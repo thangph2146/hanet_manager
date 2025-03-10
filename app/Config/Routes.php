@@ -84,6 +84,8 @@ $routes->get('Login/logout', 'Login::delete');
 $routes->get('Login/showLogoutMessage', 'Login::showLogoutMessage');
 $routes->get('Login/logoutStudent', 'Login::deleteStudent');
 $routes->get('Login/showLogoutMessageStudent', 'Login::showLogoutMessageStudent');
+$routes->get('Login/googleCallback', 'Login::googleCallback');
+$routes->get('google-callback', 'Login::googleCallback');
 
 // Settings
 $routes->get('Settings', 'Settings::index');

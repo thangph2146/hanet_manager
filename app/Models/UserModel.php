@@ -20,7 +20,7 @@ class UserModel extends Model {
 	protected $useSoftDeletes = TRUE;
 
 	protected $allowedFields = ['u_LastName', 'u_MiddleName', 'u_FirstName',
-		'u_username', 'u_password_hash', 'u_status'];
+		'u_username', 'u_password_hash', 'u_status', 'u_email', 'u_google_id', 'u_FullName'];
 
 	protected $useTimestamps = TRUE;
 
@@ -99,6 +99,16 @@ class UserModel extends Model {
 	public function findByUserName($username)
 	{
 		return $this->where('u_username', $username)->first();
+	}
+
+	public function findByEmail($email)
+	{
+		return $this->where('u_email', $email)->first();
+	}
+
+	public function findByGoogleId($googleId)
+	{
+		return $this->where('u_google_id', $googleId)->first();
 	}
 
 	public function findRolePermissionUserByID($id)
