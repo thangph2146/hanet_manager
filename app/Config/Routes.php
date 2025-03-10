@@ -91,15 +91,6 @@ $routes->get('Settings/edit/(:num)', 'Settings::edit/$1');
 $routes->match(['get', 'post'], 'Settings/update/(:num)', 'Settings::update/$1');
 $routes->get('Settings/delete/(:num)', 'Settings::delete/$1');
 
-$routes->get('BriefCases', 'BriefCases::index');
-$routes->get('BriefCases/new', 'BriefCases::new');
-$routes->post('BriefCases/create', 'BriefCases::create');
-$routes->get('BriefCases/edit/(:num)', 'BriefCases::edit/$1');
-
-//API
-$routes->post('API/ajax_fetch_file', 'API::ajax_fetch_file');
-$routes->post('API/delete_file_briefcase', 'API::delete_file_briefcase');
-$routes->post('API/ajax_upload_file', 'API::ajax_upload_file');
 
 /*
  * --------------------------------------------------------------------
