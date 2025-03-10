@@ -76,16 +76,16 @@ $routes->get('Users/dashboard', 'Users::dashboard');
 $routes->post('Users/resetPassWord', 'Users::resetPassWord');
 
 // Login user
-$routes->get('Login', 'Login::index');
-$routes->post('Login/create_student', 'Login::create_student');
+$routes->get('login', 'Login::index');
 $routes->get('Login/admin', 'Login::admin');
 $routes->post('Login/create', 'Login::create');
 $routes->get('Login/logout', 'Login::delete');
 $routes->get('Login/showLogoutMessage', 'Login::showLogoutMessage');
-$routes->get('Login/logoutStudent', 'Login::deleteStudent');
-$routes->get('Login/showLogoutMessageStudent', 'Login::showLogoutMessageStudent');
 $routes->get('Login/googleCallback', 'Login::googleCallback');
 $routes->get('google-callback', 'Login::googleCallback');
+
+// Login
+
 
 // Settings
 $routes->get('Settings', 'Settings::index');
@@ -94,10 +94,6 @@ $routes->match(['get', 'post'], 'Settings/create', 'Settings::create');
 $routes->get('Settings/edit/(:num)', 'Settings::edit/$1');
 $routes->match(['get', 'post'], 'Settings/update/(:num)', 'Settings::update/$1');
 $routes->get('Settings/delete/(:num)', 'Settings::delete/$1');
-
-//Students
-$routes->get('Students/dashboard', 'Students::dashboard');
-$routes->get('Login/logoutStudent', 'Login::deleteStudent');
 
 // PscDicBuildings
 $routes->get('Admin/PscDicBuildings', 'Admin\PscDicBuildings::index');
@@ -113,7 +109,6 @@ $routes->get('View/ScheduleStudyUnit/(:any)', 'View::ScheduleStudyUnit/$1');
 // Musters
 $routes->get('Musters', 'Musters::index');
 $routes->match(['get', 'post'],'Musters/findNearLocation', 'Musters::findNearLocation');
-$routes->post('Musters/saveAttendedStudents', 'Musters::saveAttendedStudents');
 $routes->get('Musters/test', 'Musters::test');
 
 // Admin/Api

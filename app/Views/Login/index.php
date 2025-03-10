@@ -119,7 +119,6 @@
 </div>
 <!--end wrapper-->
 <!-- footer -->
-<?= $this->include('componentsStudent/_footer') ?>
 <!--end footer -->
 <!-- Bootstrap JS -->
 <script src="<?= site_url('assets/js/bootstrap.bundle.min.js') ?>"></script>
