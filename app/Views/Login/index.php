@@ -50,9 +50,6 @@
 		<div class="container-fluid">
 			<div class="row row-cols-1 row-cols-lg-2 row-cols-xl-3">
 				<div class="col mx-auto">
-					<div class="mb-4 text-center">
-						<img src="<?= site_url('assets/images/logo-img.png') ?>" width="100%" alt="" />
-					</div>
 					<div class="card">
 						<div class="card-body">
 							<div class="border p-4 rounded">
@@ -64,7 +61,7 @@
 									<hr/>
 								</div>
 								<div class="form-body">
-									<?= form_open(site_url("Login/create_student"), ['class' => 'row g-3']) ?>
+									<?= form_open(site_url("Login/admin"), ['class' => 'row g-3']) ?>
 										<div class="row">
 											<div class="col-xl-12 mx-auto">
 												<!--Error list -->
@@ -96,17 +93,6 @@
 											</div>
 										</div>
 									</form>
-									
-									<div class="col-12 mt-3">
-										<div class="login-separater text-center mb-4"> <span>HOẶC</span>
-											<hr/>
-										</div>
-										<div class="d-grid">
-											<a href="<?= $googleAuthUrl ?? '#' ?>" class="btn btn-danger">
-												<i class="bx bxl-google"></i> Đăng nhập bằng Google
-											</a>
-										</div>
-									</div>
 								</div>
 							</div>
 						</div>

@@ -35,31 +35,7 @@ class Login extends BaseController
 		return view('Login/index', ['googleAuthUrl' => $googleAuthUrl]);
 	}
 
-	/*public function create_student()
-	{
-		$username = $this->request->getPost('username');
-		$password = $this->request->getPost('password');
-		$remember_me = (bool) $this->request->getPost('remember_me');
 
-		$authStudent = service('authStudent');
-
-		if ($authStudent->login($username, $password, $remember_me)) {
-
-			$redirect_url = session('redirect_url') ?? 'Students/dashboard';
-
-			unset($_SESSION['redirect_url']);
-
-			return redirect()->to($redirect_url)
-							 ->with('info', 'Bạn đã login thành công!')
-							 ->withCookies();
-
-		} else {
-
-			return redirect()->back()
-							 ->withInput()
-							 ->with('warning', 'Login đã xảy ra lỗi!');
-		}
-	}*/
 
 	public function admin()
 	{

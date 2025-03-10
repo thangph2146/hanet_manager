@@ -76,16 +76,11 @@ $routes->get('Users/dashboard', 'Users::dashboard');
 $routes->post('Users/resetPassWord', 'Users::resetPassWord');
 
 // Login user
-$routes->get('login', 'Login::index');
-$routes->get('Login/admin', 'Login::admin');
 $routes->post('Login/create', 'Login::create');
+$routes->get('Login/admin', 'Login::admin');
 $routes->get('Login/logout', 'Login::delete');
 $routes->get('Login/showLogoutMessage', 'Login::showLogoutMessage');
-$routes->get('Login/googleCallback', 'Login::googleCallback');
-$routes->get('google-callback', 'Login::googleCallback');
-
-// Login
-
+$routes->get('login/admin', 'Login::admin');
 
 // Settings
 $routes->get('Settings', 'Settings::index');
@@ -94,25 +89,6 @@ $routes->match(['get', 'post'], 'Settings/create', 'Settings::create');
 $routes->get('Settings/edit/(:num)', 'Settings::edit/$1');
 $routes->match(['get', 'post'], 'Settings/update/(:num)', 'Settings::update/$1');
 $routes->get('Settings/delete/(:num)', 'Settings::delete/$1');
-
-// PscDicBuildings
-$routes->get('Admin/PscDicBuildings', 'Admin\PscDicBuildings::index');
-$routes->match(['get', 'post'], 'Admin/PscDicBuildings/new', 'Admin\PscDicBuildings::new');
-$routes->match(['get', 'post'], 'Admin/PscDicBuildings/create', 'Admin\PscDicBuildings::create');
-$routes->get('Admin/PscDicBuildings/edit/(:num)', 'Admin\PscDicBuildings::edit/$1');
-$routes->match(['get', 'post'], 'Admin/PscDicBuildings/update/(:num)', 'Admin\PscDicBuildings::update/$1');
-$routes->get('Admin/PscDicBuildings/delete/(:num)', 'Admin\PscDicBuildings::delete/$1');
-
-// View
-$routes->get('View/ScheduleStudyUnit/(:any)', 'View::ScheduleStudyUnit/$1');
-
-// Musters
-$routes->get('Musters', 'Musters::index');
-$routes->match(['get', 'post'],'Musters/findNearLocation', 'Musters::findNearLocation');
-$routes->get('Musters/test', 'Musters::test');
-
-// Admin/Api
-$routes->post('Admin/Api/findNearLocation', 'Admin/Api::findNearLocation');
 
 $routes->get('BriefCases', 'BriefCases::index');
 $routes->get('BriefCases/new', 'BriefCases::new');
