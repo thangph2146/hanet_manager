@@ -69,7 +69,7 @@ $routes->get('Users/edit/(:num)', 'Users::edit/$1');
 $routes->match(['get', 'post'], 'Users/update/(:num)', 'Users::update/$1');
 $routes->get('Users/delete/(:num)', 'Users::delete/$1');
 $routes->get('Users/listDeleted', 'Users::listDeleted');
-$routes->get('Users/restoreUser/(:num)', 'Roles::restoreUser/$1');
+$routes->get('Users/restoreUser/(:num)', 'Users::restoreUser/$1');
 $routes->get('Users/assignRoles/(:num)', 'Users::assignRoles/$1');
 $routes->match(['get', 'post'], 'Users/UpdateAssignRoles/(:num)', 'Users::UpdateAssignRoles/$1');
 $routes->get('Users/dashboard', 'Users::dashboard');

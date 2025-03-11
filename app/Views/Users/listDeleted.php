@@ -48,14 +48,14 @@
 	];
 
 	$table->setCaption('Danh Sách Permissions')->setTemplate($template);
-	$table->setHeading(['ID', 'Tên Code', 'Tên Hiển thị', 'Mô tả ngắn', 'Trạng thái', 'Actions']);
+	$table->setHeading(['ID', 'UserName', 'Tên Hiển thị', 'Ngày xóa', 'Trạng thái', 'Actions']);
 	if (count($data) > 0) {
 		foreach ($data as $show) {
 			$table->addRow([
 				$show->u_id,
-				'',
-				'',
-				'',
+				$show->u_username,
+				$show->u_FirstName,
+				$show->u_deleted_at,
 				view_cell('\App\Libraries\MyButton::iconChecked', [
 					'label' => ''
 				]),

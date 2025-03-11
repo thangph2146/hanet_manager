@@ -87,7 +87,9 @@ class UserModel extends Model {
 
 	public function findUserDeleted($id)
 	{
-		return $this->onlyDeleted()->where('u_id', $id)->first();
+		return $this->onlyDeleted()
+			->where('u_id', $id)
+			->first();
 	}
 
 	public function getInnerJoinRoles($id)

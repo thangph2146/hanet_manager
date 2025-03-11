@@ -125,7 +125,6 @@ class Users extends BaseController {
 	public function listDeleted()
 	{
 		$data = $this->model->getAllUsersDeleted();
-
 		return view('Users/listDeleted', ['data' => $data]);
 	}
 
@@ -133,7 +132,7 @@ class Users extends BaseController {
 	{
 		$data = $this->getUserDeletedOr404($id);
 
-		$data->r_deleted_at = NULL;
+		$data->u_deleted_at = NULL;
 
 		if ($this->model->protect(FALSE)->save($data)) {
 			return redirect()->to('/Users')
