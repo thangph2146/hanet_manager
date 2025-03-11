@@ -133,7 +133,7 @@ class Users extends BaseController {
 	{
 		$data = $this->getUserDeletedOr404($id);
 
-		$data->r_deleted_at = NULL;
+		$data->u_deleted_at = NULL;
 
 		if ($this->model->protect(FALSE)->save($data)) {
 			return redirect()->to('/Users')

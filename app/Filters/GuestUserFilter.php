@@ -1,4 +1,5 @@
-<?php namespace App\Filters;
+<?php
+namespace App\Filters;
 
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -6,19 +7,18 @@ use CodeIgniter\Filters\FilterInterface;
 
 class GuestUserFilter implements FilterInterface
 {
-	public function before(RequestInterface $request, $arguments = null)
-	{
-		if ( service('auth')->isLoggedInUser() ) {
+    public function before(RequestInterface $request, $arguments = null)
+    {
+        if (service('auth')->isLoggedInUser()) {
+            // Lấy đường dẫn hiện tại
+            return redirect()->to('/Users/dashboard');
+        }
 
-			return redirect()->to('/Users/dashboard');
+        return null; // Không chặn các trang khác
+    }
 
-		}
-	}
-
-	//--------------------------------------------------------------------
-
-	public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
-	{
-		// Do something here
-	}
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
+    {
+        // Không cần xử lý gì thêm
+    }
 }

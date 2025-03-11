@@ -57,17 +57,13 @@ class Login extends BaseController
 		$auth = service('auth');
 
 		if ($auth->login($username, $password)) {
-
 			$redirect_url = session('redirect_url') ?? 'Users/dashboard';
-
 			unset($_SESSION['redirect_url']);
 
 			return redirect()->to($redirect_url)
 							 ->with('info', 'Bạn đã login thành công!')
 							 ->withCookies();
-
 		} else {
-
 			return redirect()->back()
 							 ->withInput()
 							 ->with('warning', 'Login đã xảy ra lỗi!');
