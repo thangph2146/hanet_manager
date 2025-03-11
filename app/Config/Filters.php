@@ -85,7 +85,10 @@ class Filters extends BaseConfig
 			'before' => [
                 'login*',
                 'login/admin*'
-			]
+            ],
+            'except' => [
+                '/'  // Không áp dụng filter cho API
+            ]
 		],
 
 		'manager' => [
