@@ -64,35 +64,35 @@ $routes->get('Permissions/restorePermission/(:num)', 'Permissions::restorePermis
 
 // Role
 $routes->get('Roles', 'Roles::index');
-$routes->match(['get', 'post'], 'Roles/new', 'Roles::new');
-$routes->match(['get', 'post'], 'Roles/create', 'Roles::create');
-$routes->get('Roles/edit/(:num)', 'Roles::edit/$1');
-$routes->match(['get', 'post'], 'Roles/update/(:num)', 'Roles::update/$1');
-$routes->get('Roles/delete/(:num)', 'Roles::delete/$1');
-$routes->get('Roles/listDeleted', 'Roles::listDeleted');
-$routes->get('Roles/restoreRole/(:num)', 'Roles::restoreRole/$1');
-$routes->get('Roles/assignPermissions/(:num)', 'Roles::assignPermissions/$1');
-$routes->match(['get', 'post'], 'Roles/UpdateAssignPermissions/(:num)', 'Roles::UpdateAssignPermissions/$1');
+$routes->match(['get', 'post'], 'roles/new', 'Roles::new');
+$routes->match(['get', 'post'], 'roles/create', 'Roles::create');
+$routes->get('roles/edit/(:num)', 'Roles::edit/$1');
+$routes->match(['get', 'post'], 'roles/update/(:num)', 'Roles::update/$1');
+$routes->get('roles/delete/(:num)', 'Roles::delete/$1');
+$routes->get('roles/listDeleted', 'Roles::listDeleted');
+$routes->get('roles/restoreRole/(:num)', 'Roles::restoreRole/$1');
+$routes->get('roles/assignPermissions/(:num)', 'Roles::assignPermissions/$1');
+$routes->match(['get', 'post'], 'roles/UpdateAssignPermissions/(:num)', 'Roles::UpdateAssignPermissions/$1');
 
 // User
 $routes->get('Users', 'Users::index');
-$routes->match(['get', 'post'], 'Users/new', 'Users::new');
-$routes->match(['get', 'post'], 'Users/create', 'Users::create');
-$routes->get('Users/edit/(:num)', 'Users::edit/$1');
-$routes->match(['get', 'post'], 'Users/update/(:num)', 'Users::update/$1');
-$routes->get('Users/delete/(:num)', 'Users::delete/$1');
-$routes->get('Users/listDeleted', 'Users::listDeleted');
-$routes->get('Users/restoreUser/(:num)', 'Users::restoreUser/$1');
-$routes->get('Users/assignRoles/(:num)', 'Users::assignRoles/$1');
-$routes->match(['get', 'post'], 'Users/UpdateAssignRoles/(:num)', 'Users::UpdateAssignRoles/$1');
-$routes->get('Users/dashboard', 'Users::dashboard');
-$routes->post('Users/resetPassWord', 'Users::resetPassWord');
+$routes->match(['get', 'post'], 'users/new', 'Users::new');
+$routes->match(['get', 'post'], 'users/create', 'Users::create');
+$routes->get('users/edit/(:num)', 'Users::edit/$1');
+$routes->match(['get', 'post'], 'users/update/(:num)', 'Users::update/$1');
+$routes->get('users/delete/(:num)', 'Users::delete/$1');
+$routes->get('users/listDeleted', 'Users::listDeleted');
+$routes->get('users/restoreUser/(:num)', 'Users::restoreUser/$1');
+$routes->get('users/assignroles/(:num)', 'Users::assignroles/$1');
+$routes->match(['get', 'post'], 'users/UpdateAssignroles/(:num)', 'Users::UpdateAssignroles/$1');
+$routes->get('users/dashboard', 'Users::dashboard');
+$routes->post('users/resetPassWord', 'Users::resetPassWord');
 
 // Login user
-$routes->post('Login/create', 'Login::create');
-$routes->get('Login/admin', 'Login::admin');
-$routes->get('Login/logout', 'Login::delete');
-$routes->get('Login/showLogoutMessage', 'Login::showLogoutMessage');
+$routes->post('login/create', 'Login::create');
+$routes->get('login/admin', 'Login::admin');
+$routes->get('login/logout', 'Login::delete');
+$routes->get('login/showlogoutmessage', 'Login::showLogoutMessage');
 $routes->get('login/admin', 'Login::admin');
 $routes->get('google-callback', 'Login::googleCallback');
 

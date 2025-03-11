@@ -11,7 +11,12 @@ class GuestUserFilter implements FilterInterface
     {
         if (service('auth')->isLoggedInUser()) {
             // Lấy đường dẫn hiện tại
-            return redirect()->to('/Users/dashboard');
+            $currentURI = uri_string();
+
+            $blockedPages = ['login/admin'];
+            if (in_array($currentURI, $blockedPages)) {
+                return redirect()->to('/users/dashboard');
+            }
         }
 
         return null; // Không chặn các trang khác

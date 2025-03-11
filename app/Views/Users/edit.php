@@ -9,7 +9,7 @@
 	<div class="ps-3">
 		<nav aria-label="breadcrumb">
 			<ol class="breadcrumb mb-0 p-0">
-				<li class="breadcrumb-item"><a href="<?= site_url('Users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
+				<li class="breadcrumb-item"><a href="<?= site_url('users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
 				</li>
 				<li class="breadcrumb-item active" aria-current="page"><a href="<?= site_url('/Users') ?>">Quản lý Users</a></li>
 				<li class="breadcrumb-item active" aria-current="page">Edit User</li>
@@ -22,8 +22,8 @@
 			<button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">	<span class="visually-hidden">Toggle Dropdown</span>
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
-				<a class="dropdown-item" href="<?= site_url('/Users/new') ?>">Tạo User</a>
-				<a class="dropdown-item" href="<?= site_url('/Users/listDeleted') ?>">List Deleted User</a>
+				<a class="dropdown-item" href="<?= site_url('/users/new') ?>">Tạo User</a>
+				<a class="dropdown-item" href="<?= site_url('/users/listDeleted') ?>">List Deleted User</a>
 			</div>
 		</div>
 	</div>
@@ -32,9 +32,9 @@
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<?= form_open("Users/update/" . $data->u_id, ['class' => 'row g3']) ?>
+<?= form_open("users/update/" . $data->u_id, ['class' => 'row g3']) ?>
 
-<?= $this->include('Users/form'); ?>
+<?= $this->include('users/form'); ?>
 
 <div class="col-12">
 	<button type="submit" class="btn btn-primary">Edit Role</button>

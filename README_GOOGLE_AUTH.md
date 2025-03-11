@@ -13,7 +13,7 @@ Tài liệu này hướng dẫn cách tích hợp đăng nhập bằng Google v�
 4. Nhấp vào "Create Credentials" và chọn "OAuth client ID"
 5. Chọn "Web application" làm loại ứng dụng
 6. Đặt tên cho client ID
-7. Thêm URI chuyển hướng: `http://your-domain.com/Login/googleCallback`
+7. Thêm URI chuyển hướng: `http://your-domain.com/login/googleCallback`
 8. Nhấp vào "Create"
 9. Lưu lại Client ID và Client Secret
 

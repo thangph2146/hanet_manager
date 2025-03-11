@@ -32,7 +32,7 @@ class Login extends BaseController
 		$googleAuth = service('googleAuth');
 		$googleAuthUrl = $googleAuth->getAuthUrl();
 		
-		return view('Login/index', ['googleAuthUrl' => $googleAuthUrl]);
+		return view('login/index', ['googleAuthUrl' => $googleAuthUrl]);
 	}
 
 
@@ -43,7 +43,7 @@ class Login extends BaseController
 		$googleAuth = service('googleAuth');
 		$googleAuthUrl = $googleAuth->getAuthUrl();
 		
-		return view('Login/new', ['googleAuthUrl' => $googleAuthUrl]);
+		return view('login/new', ['googleAuthUrl' => $googleAuthUrl]);
 	}
 
 	/**
@@ -57,7 +57,7 @@ class Login extends BaseController
 		$auth = service('auth');
 
 		if ($auth->login($username, $password)) {
-			$redirect_url = session('redirect_url') ?? 'Users/dashboard';
+			$redirect_url = session('redirect_url') ?? 'users/dashboard';
 			unset($_SESSION['redirect_url']);
 
 			return redirect()->to($redirect_url)
@@ -80,7 +80,7 @@ class Login extends BaseController
 		$code = $this->request->getGet('code');
 		
 		if (empty($code)) {
-			return redirect()->to('Login/admin')
+			return redirect()->to('login/admin')
 							 ->with('warning', 'Không thể xác thực với Google!');
 		}
 		
@@ -89,7 +89,7 @@ class Login extends BaseController
 		$googleUser = $googleAuth->handleCallback($code);
 		
 		if (empty($googleUser)) {
-			return redirect()->to('Login/admin')
+			return redirect()->to('login/admin')
 							 ->with('warning', 'Không thể lấy thông tin từ Google!');
 		}
 		
@@ -115,7 +115,7 @@ class Login extends BaseController
 				$userId = $userModel->insert($userData);
 				
 				if (!$userId) {
-					return redirect()->to('Login/admin')
+					return redirect()->to('login/admin')
 									 ->with('warning', 'Không thể tạo tài khoản mới!');
 				}
 				
@@ -123,21 +123,21 @@ class Login extends BaseController
 				$user = $userModel->find($userId);
 			} catch (\Exception $e) {
 				log_message('error', 'Google Login Error: ' . $e->getMessage());
-				return redirect()->to('Login/admin')
+				return redirect()->to('login/admin')
 								 ->with('warning', 'Không thể tạo tài khoản mới: ' . $e->getMessage());
 			}
 		}
 		
 		// Đăng nhập người dùng
 		if ($googleAuth->loginWithGoogle($googleUser)) {
-			$redirect_url = session('redirect_url') ?? 'Users/dashboard';
+			$redirect_url = session('redirect_url') ?? 'users/dashboard';
 			unset($_SESSION['redirect_url']);
 			
 			return redirect()->to($redirect_url)
 							 ->with('info', 'Bạn đã đăng nhập thành công với Google!')
 							 ->withCookies();
 		} else {
-			return redirect()->to('Login/admin')
+			return redirect()->to('login/admin')
 							 ->with('warning', 'Đăng nhập với Google không thành công!');
 		}
 	}
@@ -148,7 +148,7 @@ class Login extends BaseController
 	public function delete()
 	{
 		service('auth')->logout();
-		return redirect()->to('Login/showLogoutMessage')
+		return redirect()->to('login/showlogoutmessage')
 						 ->withCookies();
 	}
 
@@ -157,14 +157,14 @@ class Login extends BaseController
 	 */
 	public function showLogoutMessage()
 	{
-		return redirect()->to('Login/admin')
+		return redirect()->to('login/admin')
 						 ->with('info', 'bạn đã logout thành công!');
 	}
 
 	/*public function deleteStudent()
 	{
 		service('authStudent')->logout();
-		return redirect()->to('Login/showLogoutMessageStudent')
+		return redirect()->to('login/showlogoutmessageStudent')
 						 ->withCookies();
 	}*/
 
