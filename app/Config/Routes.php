@@ -91,7 +91,18 @@ $routes->get('Settings/edit/(:num)', 'Settings::edit/$1');
 $routes->match(['get', 'post'], 'Settings/update/(:num)', 'Settings::update/$1');
 $routes->get('Settings/delete/(:num)', 'Settings::delete/$1');
 
+// Load routes của từng module
+$modulesPath = APPPATH . 'Modules/';
+$modules = scandir($modulesPath);
 
+foreach ($modules as $module) {
+    if ($module === '.' || $module === '..') continue;
+    
+    $routesPath = $modulesPath . $module . '/Config/Routes.php';
+    if (file_exists($routesPath)) {
+        require $routesPath;
+    }
+}
 /*
  * --------------------------------------------------------------------
  * Additional Routing

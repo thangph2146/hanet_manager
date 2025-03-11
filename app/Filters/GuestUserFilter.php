@@ -6,19 +6,29 @@ use CodeIgniter\Filters\FilterInterface;
 
 class GuestUserFilter implements FilterInterface
 {
-	public function before(RequestInterface $request, $arguments = null)
-	{
-		if ( service('auth')->isLoggedInUser() ) {
+    // Danh sách các trang chỉ dành cho khách (không cần đăng nhập)
+    protected array $guestPages = [
+        'login',
+        'login/admin',  // Trang đăng nhập
+    ];
 
-			return redirect()->to('/Users/dashboard');
+    public function before(RequestInterface $request, $arguments = null)
+    {
+        if (service('auth')->isLoggedInUser()) {
+            // Lấy đường dẫn hiện tại
+            $currentURI = uri_string();
 
-		}
-	}
+            // Nếu người dùng truy cập vào một trong các trang chỉ dành cho khách (guest), chuyển hướng đến dashboard
+            if (in_array($currentURI, $this->guestPages)) {
+                return redirect()->to('/Users/dashboard');
+            }
+        }
 
-	//--------------------------------------------------------------------
+        return null;
+    }
 
-	public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
-	{
-		// Do something here
-	}
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
+    {
+        // Không cần xử lý gì thêm sau request
+    }
 }
