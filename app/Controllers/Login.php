@@ -16,25 +16,6 @@ use App\Models\UserModel;
 
 class Login extends BaseController
 {
-	/**
-	 * @return string
-	 */
-	public function index()
-	{
-		/*$studentModel = new StudentInfoModel();
-		$studentID = '030138220294';
-		$password = '123456';
-		$PW = md5("UisStaffID=" . $studentID . ";UisPassword=" . $password);
-		//$UpdateDate = date("Y-m-d H:i:s");
-		$studentModel->protect(FALSE)->set(['PW' => $PW])->where('StudentID', $studentID)->update();*/
-
-		// Lấy URL đăng nhập Google
-		$googleAuth = service('googleAuth');
-		$googleAuthUrl = $googleAuth->getAuthUrl();
-		
-		return view('login/index', ['googleAuthUrl' => $googleAuthUrl]);
-	}
-
 
 
 	public function admin()
