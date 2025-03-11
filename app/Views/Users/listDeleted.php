@@ -48,7 +48,7 @@
 	];
 
 	$table->setCaption('Danh Sách Permissions')->setTemplate($template);
-	$table->setHeading(['ID', 'User name', 'Tên Hiển thị', 'Ngày Xóa', 'Trạng thái', 'Actions']);
+	$table->setHeading(['ID', 'UserName', 'Tên Hiển thị', 'Ngày xóa', 'Trạng thái', 'Actions']);
 	if (count($data) > 0) {
 		foreach ($data as $show) {
 			$table->addRow([

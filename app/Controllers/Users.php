@@ -125,7 +125,6 @@ class Users extends BaseController {
 	public function listDeleted()
 	{
 		$data = $this->model->getAllUsersDeleted();
-
 		return view('Users/listDeleted', ['data' => $data]);
 	}
 
