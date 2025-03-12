@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+# flow kiểm tra và imporove code
+1. Kiểm tra và đọc dữ liệu từ các file sau: [BaseEntity.php](mdc:app/Entities/BaseEntity.php) và [BaseModel.php](mdc:app/Models/BaseModel.php) và [FormRenderer.php](mdc:app/Libraries/FormRenderer.php) 
+2. Tạo Module người dùng theo path sau: App/Modules/nguoidung
+3. Dựa theo dữ liệu các file đã kiểm tra hay tạo nguoidung Entities và người dùng Model và nguoidung Controller theo cấu trúc CRUD 
+4. Thêm route nguoidung Modules để có thể chạy được nguoidung Modules.

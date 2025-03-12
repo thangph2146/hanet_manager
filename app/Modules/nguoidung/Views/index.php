@@ -1,115 +1,98 @@
 <?= $this->extend('layouts/default') ?>
 
-<?= $this->section('title') ?>
-<?= $title ?>
-<?= $this->endSection() ?>
-
-<?= $this->section('title_content') ?>
-<?= $title ?>
-<?= $this->endSection() ?>
+<?= $this->section('title') ?>QUẢN LÝ NGƯỜI DÙNG<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
+<!--breadcrumb-->
 <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-    <div class="breadcrumb-title pe-3">Quản lý người dùng</div>
-    <div class="ps-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="<?= base_url() ?>"><i class="bx bx-home-alt"></i></a>
-                </li>
-                <li class="breadcrumb-item active" aria-current="page">Danh sách người dùng</li>
-            </ol>
-        </nav>
-    </div>
+	<div class="breadcrumb-title pe-3">Quản lý Người Dùng</div>
+	<div class="ps-3">
+		<nav aria-label="breadcrumb">
+			<ol class="breadcrumb mb-0 p-0">
+				<li class="breadcrumb-item"><a href="<?= site_url('nguoidung/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
+				</li>
+				<li class="breadcrumb-item active" aria-current="page">Quản lý Người Dùng</li>
+			</ol>
+		</nav>
+	</div>
+	<div class="ms-auto">
+		<div class="btn-group">
+			<button type="button" class="btn btn-primary">Chức năng</button>
+			<button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"> <span class="visually-hidden">Toggle Dropdown</span>
+			</button>
+			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
+				<a class="dropdown-item" href="<?= site_url('/nguoidung/new') ?>">Tạo Người Dùng</a>
+				<a class="dropdown-item" href="<?= site_url('/nguoidung/listdeleted') ?>">Danh sách Người Dùng đã xóa</a>
+			</div>
+		</div>
+	</div>
 </div>
+<!--end breadcrumb-->
 <?= $this->endSection() ?>
 
-<?= $this->section('content') ?>
-<div class="card">
-    <div class="card-body">
-        <div class="d-flex align-items-center mb-3">
-            <div>
-                <a href="<?= base_url('nguoidung/create') ?>" class="btn btn-primary px-3"><i class="bx bx-plus"></i>Thêm mới</a>
-                <a href="<?= base_url('nguoidung/trash') ?>" class="btn btn-outline-danger px-3"><i class="bx bx-trash"></i>Thùng rác</a>
-            </div>
-            <div class="ms-auto">
-                <form action="<?= base_url('nguoidung/search') ?>" method="get" class="d-flex">
-                    <input type="text" name="keyword" class="form-control" placeholder="Tìm kiếm...">
-                    <button type="submit" class="btn btn-primary ms-2"><i class="bx bx-search"></i></button>
-                </form>
-            </div>
-        </div>
-        
-        <?php if (session()->getFlashdata('success')) : ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <?= session()->getFlashdata('success') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-        
-        <?php if (session()->getFlashdata('error')) : ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= session()->getFlashdata('error') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-        
-        <div class="table-responsive">
-            <table class="table table-striped table-hover table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th width="5%">ID</th>
-                        <th width="10%">Mã tài khoản</th>
-                        <th width="15%">Họ tên</th>
-                        <th width="15%">Email</th>
-                        <th width="10%">Số điện thoại</th>
-                        <th width="10%">Loại tài khoản</th>
-                        <th width="10%">Trạng thái</th>
-                        <th width="25%">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($nguoiDungs)) : ?>
-                        <tr>
-                            <td colspan="8" class="text-center">Không có dữ liệu</td>
-                        </tr>
-                    <?php else : ?>
-                        <?php foreach ($nguoiDungs as $nguoiDung) : ?>
-                            <tr>
-                                <td><?= $nguoiDung->id ?></td>
-                                <td><?= $nguoiDung->AccountId ?></td>
-                                <td><?= $nguoiDung->FullName ?></td>
-                                <td><?= $nguoiDung->Email ?></td>
-                                <td><?= $nguoiDung->MobilePhone ?></td>
-                                <td><?= $nguoiDung->getAccountTypeText() ?></td>
-                                <td>
-                                    <?php if ($nguoiDung->status) : ?>
-                                        <span class="badge bg-success">Hoạt động</span>
-                                    <?php else : ?>
-                                        <span class="badge bg-danger">Không hoạt động</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <a href="<?= base_url('nguoidung/show/' . $nguoiDung->id) ?>" class="btn btn-info btn-sm"><i class="bx bx-show"></i></a>
-                                    <a href="<?= base_url('nguoidung/edit/' . $nguoiDung->id) ?>" class="btn btn-warning btn-sm"><i class="bx bx-edit"></i></a>
-                                    <a href="<?= base_url('nguoidung/delete/' . $nguoiDung->id) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa người dùng này?')"><i class="bx bx-trash"></i></a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-<?= $this->endSection() ?>
+<?= $this->section("content") ?>
+<div class="table-responsive">
+	<?= form_open("nguoidung/resetpassword", ['class' => 'row g3']) ?>
+	<div class="col-12 mb-3">
+		<button type="submit" class="btn btn-primary">ResetPassWord</button>
+	</div>
+<?php
+	$table = new \CodeIgniter\View\Table();
 
-<?= $this->section('script') ?>
-<script>
-    $(document).ready(function() {
-        // Tự động ẩn thông báo sau 5 giây
-        setTimeout(function() {
-            $('.alert').alert('close');
-        }, 5000);
-    });
-</script>
+	$template = [
+		'table_open' => '<table id="example2" class="table table-striped table-bordered">',
+		'heading_cell_start' => '<th class="all text-center">',
+	];
+
+	$table->setCaption('Danh Sách Người Dùng')->setTemplate($template);
+	$table->setHeading(['<input type="checkbox" id="select-all" />', 'Tên đăng nhập', 'Họ và Tên', 'Trạng thái','Action']);
+	if (count($data) > 0) {
+		foreach ($data as $show) {
+			$table->addRow([
+				view_cell('\App\Libraries\MyButton::inputCheck', [
+					'class' => 'check-select-p',
+					'name' => 'u_id[]',
+					'id' => $show->u_id,
+					'array' => [],
+					'label' => ''
+				]),
+				$show->u_username,
+				$show->u_FullName,
+				($show->u_status == 1) ? view_cell('\App\Libraries\MyButton::iconChecked', ['label' => 'Hoạt động']) : 'Đã khóa!!',
+				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
+					'url' => site_url('/nguoidung/edit/'.$show->u_id),
+					'class' => 'btn btn-default',
+					'style' => '',
+					'js' => '',
+					'title' => "Edit {$show->u_username}",
+					'icon' => 'fadeIn animated bx bx-edit',
+					'label' => ''
+				]) .
+				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
+					'url' => site_url('/nguoidung/delete/'.$show->u_id),
+					'class' => 'btn btn-default',
+					'style' => '',
+					'js' => 'onclick=' . '\'' . 'return confirm("Bạn thật sự muốn xóa Người Dùng ' .$show->u_id . ' ? \nIt may cause errors where it is currently being used !!")' . '\'',
+					'title' => "Delete {$show->u_username}",
+					'icon' => 'lni lni-trash',
+					'label' => ''
+				]) .
+				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
+					'url' => site_url('/nguoidung/assignroles/'.$show->u_id),
+					'class' => 'btn btn-outline-primary px-5 radius-30',
+					'style' => '',
+					'js' => '',
+					'title' => "Gán quyền cho {$show->u_username}",
+					'icon' => '',
+					'label' => 'Assign Roles'
+				])
+			]);
+		}
+	}
+
+	$table->setEmpty('&nbsp;');
+	echo $table->generate();
+?>
+	</form>
+</div>
 <?= $this->endSection() ?> 

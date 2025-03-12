@@ -17,8 +17,10 @@ $modulesPath = APPPATH . 'Modules/';
 $modules = scandir($modulesPath);
 
 foreach ($modules as $module) {
-    if ($module === '.' || $module === '..') continue;
-    
+    if ($module === '.' || $module === '..') {
+        continue;
+    }
+
     $routesPath = $modulesPath . $module . '/Config/Routes.php';
     if (file_exists($routesPath)) {
         require $routesPath;
@@ -103,7 +105,6 @@ $routes->match(['get', 'post'], 'settings/create', 'Settings::create');
 $routes->get('settings/edit/(:num)', 'Settings::edit/$1');
 $routes->match(['get', 'post'], 'settings/update/(:num)', 'Settings::update/$1');
 $routes->get('settings/delete/(:num)', 'Settings::delete/$1');
-
 
 /*
  * --------------------------------------------------------------------
