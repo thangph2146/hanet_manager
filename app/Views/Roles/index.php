@@ -22,7 +22,7 @@
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
 				<a class="dropdown-item" href="<?= site_url('roles/new') ?>">Tạo Role</a>
-				<a class="dropdown-item" href="<?= site_url('roles/listDeleted') ?>">List Deleted Role</a>
+				<a class="dropdown-item" href="<?= site_url('roles/listdeleted') ?>">List Deleted Role</a>
 			</div>
 		</div>
 	</div>
@@ -68,7 +68,7 @@
 					'label' => ''
 				]) .
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/roles/assignPermissions/'.$show->r_id),
+					'url' => site_url('/roles/assignpermissions/'.$show->r_id),
 					'class' => 'btn btn-outline-primary px-5 radius-30',
 					'style' => '',
 					'js' => '',

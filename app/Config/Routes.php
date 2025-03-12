@@ -63,16 +63,16 @@ $routes->get('Permissions/listDeleted', 'Permissions::listDeleted');
 $routes->get('Permissions/restorePermission/(:num)', 'Permissions::restorePermission/$1');
 
 // Role
-$routes->get('Roles', 'Roles::index');
+$routes->get('roles', 'Roles::index');
 $routes->match(['get', 'post'], 'roles/new', 'Roles::new');
 $routes->match(['get', 'post'], 'roles/create', 'Roles::create');
 $routes->get('roles/edit/(:num)', 'Roles::edit/$1');
 $routes->match(['get', 'post'], 'roles/update/(:num)', 'Roles::update/$1');
 $routes->get('roles/delete/(:num)', 'Roles::delete/$1');
-$routes->get('roles/listDeleted', 'Roles::listDeleted');
-$routes->get('roles/restoreRole/(:num)', 'Roles::restoreRole/$1');
-$routes->get('roles/assignPermissions/(:num)', 'Roles::assignPermissions/$1');
-$routes->match(['get', 'post'], 'roles/UpdateAssignPermissions/(:num)', 'Roles::UpdateAssignPermissions/$1');
+$routes->get('roles/listdeleted', 'Roles::listDeleted');
+$routes->get('roles/restorerole/(:num)', 'Roles::restoreRole/$1');
+$routes->get('roles/assignpermissions/(:num)', 'Roles::assignPermissions/$1');
+$routes->match(['get', 'post'], 'roles/updateassignpermissions/(:num)', 'Roles::UpdateAssignPermissions/$1');
 
 // User
 $routes->get('users', 'Users::index');

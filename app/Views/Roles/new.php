@@ -23,7 +23,7 @@
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
 				<a class="dropdown-item" href="javascript:;">Tạo Role</a>
-				<a class="dropdown-item" href="<?= site_url('roles/listDeleted') ?>">List Deleted Role</a>
+				<a class="dropdown-item" href="<?= site_url('roles/listdeleted') ?>">List Deleted Role</a>
 			</div>
 		</div>
 	</div>

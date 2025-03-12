@@ -29,7 +29,7 @@
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
 				<a class="dropdown-item" href="<?= site_url('roles/new') ?>">Tạo Role</a>
-				<a class="dropdown-item" href="<?= site_url('roles/listDeleted') ?>">List Deleted Roles</a>
+				<a class="dropdown-item" href="<?= site_url('roles/listdeleted') ?>">List Deleted Roles</a>
 			</div>
 		</div>
 	</div>

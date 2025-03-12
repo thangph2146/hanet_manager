@@ -87,10 +87,10 @@ class Roles extends BaseController {
 	{
 		$data = $this->getRoleOr404($id);
 
-		$this->model->delete($data->p_id);
+		$this->model->delete($data->r_id);
 
 		return redirect()->to('/Roles')
-						 ->with('info', 'Deleted thành công Roles Id : ' . $data->p_id);
+						 ->with('info', 'Deleted thành công Roles Id : ' . $data->r_id);
 
 	}
 
@@ -98,7 +98,7 @@ class Roles extends BaseController {
 	{
 		$data = $this->model->getAllRolesDeleted();
 
-		return view('roles/listDeleted', ['data' => $data]);
+		return view('Roles/listDeleted', ['data' => $data]);
 	}
 
 	public function restoreRole($id)
@@ -129,7 +129,7 @@ class Roles extends BaseController {
 
 		$allPermissions = $getPermissions->getAllPermissions(1);
 
-		return view('roles/assignPermissions', [
+		return view('Roles/assignPermissions', [
 			'data' => $data,
 			'allPermissions' => $allPermissions,
 			'permissionsOfRole' => $permissionsOfRole,
@@ -158,7 +158,7 @@ class Roles extends BaseController {
 			$PermRole->insertBatch($data);
 		}
 
-		return redirect()->to('/roles/assignPermissions/' . $id)
+		return redirect()->to('/roles/assignpermissions/' . $id)
 						 ->with('info', 'Bạn đã cập nhật bản phân quyền cho Role này!');
 	}
 

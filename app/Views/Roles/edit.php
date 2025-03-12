@@ -23,7 +23,7 @@
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
 				<a class="dropdown-item" href="<?= site_url('roles/new') ?>">Tạo Role</a>
-				<a class="dropdown-item" href="<?= site_url('roles/listDeleted') ?>">List Deleted Role</a>
+				<a class="dropdown-item" href="<?= site_url('roles/listdeleted') ?>">List Deleted Role</a>
 			</div>
 		</div>
 	</div>
@@ -34,7 +34,7 @@
 <?= $this->section("content") ?>
 <?= form_open("roles/update/" . $data->r_id, ['class' => 'row g3']) ?>
 
-<?= $this->include('roles/form'); ?>
+<?= $this->include('Roles/form'); ?>
 
 <div class="col-12">
 	<button type="submit" class="btn btn-primary">Edit Role</button>

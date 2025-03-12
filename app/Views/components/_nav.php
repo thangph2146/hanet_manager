@@ -29,9 +29,9 @@
 			<div class="menu-title">Quản lý Roles</div>
 		</a>
 		<ul>
-			<li> <a href="<?= site_url('Roles') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Roles</a>
+			<li> <a href="<?= site_url('roles') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Roles</a>
 			</li>
-			<li> <a href="<?= site_url('roles/listDeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Roles bị xóa</a>
+			<li> <a href="<?= site_url('roles/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Roles bị xóa</a>
 			</li>
 			<li> <a href="<?= site_url('roles/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Role mới</a>
 			</li>
