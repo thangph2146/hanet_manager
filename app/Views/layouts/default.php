@@ -4,6 +4,7 @@
 <head>
 	<!-- Required meta tags -->
 	<?= $this->include('components/_css') ?>
+	<?= $this->renderSection("linkHref") ?>
 	<title><?= $this->renderSection("title") ?></title>
 </head>
 

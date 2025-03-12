@@ -1,6 +1,13 @@
 <?= $this->extend('layouts/default') ?>
-
+<?= $this->section('linkHref') ?>
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/dataTables.bootstrap5.min.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/buttons.bootstrap5.min.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/responsive.bootstrap5.min.css') ?>">
+<?= $this->endSection() ?>
 <?= $this->section('title') ?>QUẢN LÝ NGƯỜI DÙNG<?= $this->endSection() ?>
+
+
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
@@ -22,54 +29,76 @@
 	<div class="col-12 mb-3">
 		<button type="submit" class="btn btn-primary">ResetPassWord</button>
 	</div>
-<?php
-	$table = new \CodeIgniter\View\Table();
-
-	$template = [
-		'table_open' => '<table id="example2" class="table table-striped table-bordered">',
-		'heading_cell_start' => '<th class="all text-center">',
-	];
-
-	$table->setCaption('Danh Sách Người Dùng')->setTemplate($template);
-	$table->setHeading(['<input type="checkbox" id="select-all" />', 'AccountId', 'FullName', 'Status','Action']);
-	if (count($data) > 0) {
-		foreach ($data as $show) {
-			$table->addRow([
-				view_cell('\App\Libraries\MyButton::inputCheck', [
-					'class' => 'check-select-p',
-					'name' => 'id[]',
-					'id' => $show->id,
-					'array' => [],
-					'label' => ''
-				]),
-				$show->AccountId,
-				$show->FullName,
-				($show->status == 1) ? view_cell('\App\Libraries\MyButton::iconChecked', ['label' => 'Hoạt động']) : 'Đã khóa!!',
-				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/nguoidung/edit/'.$show->u_id),
-					'class' => 'btn btn-default',
-					'style' => '',
-					'js' => '',
-					'title' => "Edit {$show->u_username}",
-					'icon' => 'fadeIn animated bx bx-edit',
-					'label' => ''
-				]) .
-				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/nguoidung/delete/'.$show->u_id),
-					'class' => 'btn btn-default',
-					'style' => '',
-					'js' => 'onclick=' . '\'' . 'return confirm("Bạn thật sự muốn xóa Người Dùng ' .$show->u_id . ' ? \nIt may cause errors where it is currently being used !!")' . '\'',
-					'title' => "Delete {$show->u_username}",
-					'icon' => 'lni lni-trash',
-					'label' => ''
-				])
-			]);
-		}
-	}
-
-	$table->setEmpty('&nbsp;');
-	echo $table->generate();
+<?= view('components/_table', [
+    'caption' => 'Danh Sách Người Dùng',
+    'headers' => [
+        '<input type="checkbox" id="select-all" />', 
+        'AccountId', 
+        'FullName', 
+        'Status',
+        'Action'
+    ],	
+    'data' => $data,
+    'columns' => [
+        [
+            'type' => 'checkbox',
+            'id_field' => 'id',
+            'name' => 'id[]'
+        ],
+        [
+            'field' => 'AccountId'
+        ],
+        [
+            'field' => 'FullName'
+        ],
+        [
+            'type' => 'status',
+            'field' => 'status',
+            'active_label' => 'Hoạt động',
+            'inactive_label' => 'Đã khóa!!'
+        ],
+        [
+            'type' => 'actions',
+            'buttons' => [
+                [
+                    'url_prefix' => '/nguoidung/edit/',
+                    'id_field' => 'u_id',
+                    'title_field' => 'u_username',
+                    'title' => 'Edit %s',
+                    'icon' => 'fadeIn animated bx bx-edit'
+                ],
+                [
+                    'url_prefix' => '/nguoidung/delete/',
+                    'id_field' => 'u_id',
+                    'title_field' => 'u_username',
+                    'title' => 'Delete %s',
+                    'icon' => 'lni lni-trash',
+                    'js' => 'onclick="return confirm(\'Bạn thật sự muốn xóa Người Dùng này?\')"'
+                ]
+            ]
+        ]
+    ],
+    'options' => [
+        'table_id' => 'example2'
+    ]
+]) 
 ?>
 	</form>
 </div>
 <?= $this->endSection() ?> 
+
+<?= $this->section('script') ?>
+<!-- DataTables JS -->
+<script src="<?= base_url('assets/plugins/datatable/js/jquery.dataTables.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/dataTables.bootstrap5.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/dataTables.buttons.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/buttons.bootstrap5.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/jszip.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/pdfmake.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/vfs_fonts.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/buttons.html5.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/buttons.print.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/buttons.colVis.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/dataTables.responsive.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/responsive.bootstrap5.min.js') ?>"></script>
+<?= $this->endSection() ?>
