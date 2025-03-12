@@ -45,20 +45,20 @@
 	];
 
 	$table->setCaption('Danh Sách Người Dùng')->setTemplate($template);
-	$table->setHeading(['<input type="checkbox" id="select-all" />', 'Tên đăng nhập', 'Họ và Tên', 'Trạng thái','Action']);
+	$table->setHeading(['<input type="checkbox" id="select-all" />', 'AccountId', 'FullName', 'Status','Action']);
 	if (count($data) > 0) {
 		foreach ($data as $show) {
 			$table->addRow([
 				view_cell('\App\Libraries\MyButton::inputCheck', [
 					'class' => 'check-select-p',
-					'name' => 'u_id[]',
-					'id' => $show->u_id,
+					'name' => 'id[]',
+					'id' => $show->id,
 					'array' => [],
 					'label' => ''
 				]),
-				$show->u_username,
-				$show->u_FullName,
-				($show->u_status == 1) ? view_cell('\App\Libraries\MyButton::iconChecked', ['label' => 'Hoạt động']) : 'Đã khóa!!',
+				$show->AccountId,
+				$show->FullName,
+				($show->status == 1) ? view_cell('\App\Libraries\MyButton::iconChecked', ['label' => 'Hoạt động']) : 'Đã khóa!!',
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
 					'url' => site_url('/nguoidung/edit/'.$show->u_id),
 					'class' => 'btn btn-default',
@@ -76,15 +76,6 @@
 					'title' => "Delete {$show->u_username}",
 					'icon' => 'lni lni-trash',
 					'label' => ''
-				]) .
-				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/nguoidung/assignroles/'.$show->u_id),
-					'class' => 'btn btn-outline-primary px-5 radius-30',
-					'style' => '',
-					'js' => '',
-					'title' => "Gán quyền cho {$show->u_username}",
-					'icon' => '',
-					'label' => 'Assign Roles'
 				])
 			]);
 		}
