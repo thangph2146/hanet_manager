@@ -12,7 +12,7 @@ class LoginUserFilter implements FilterInterface
 
 			session()->set('redirect_url', current_url());
 
-			return redirect()->to('Login/admin')
+			return redirect()->to('login/admin')
 							 ->with('info', 'Vui lòng Đăng nhập trước!');
 
 		}

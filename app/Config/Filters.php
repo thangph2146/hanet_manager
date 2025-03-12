@@ -25,8 +25,6 @@ class Filters extends BaseConfig
         'secureheaders' => SecureHeaders::class,
 		'loginUser'    		=> \App\Filters\LoginUserFilter::class,
 		'guestUser' 		=> \App\Filters\GuestUserFilter::class,
-		/*'loginStudent'    		=> \App\Filters\LoginStudentFilter::class,
-		'guestStudent' 		=> \App\Filters\GuestStudentFilter::class,*/
 		'manager' 		=> \App\Filters\ManagerFilter::class,
     ];
 
@@ -39,12 +37,7 @@ class Filters extends BaseConfig
     public $globals = [
         'before' => [
             // 'honeypot',
-			'csrf' => ['except' => [
-										'Musters/findNearLocation',
-										'API*',
-									]
-					],
-            // 'invalidchars',
+			'csrf' => ['except' => []],
         ],
         'after' => [
             'toolbar',
@@ -80,7 +73,6 @@ class Filters extends BaseConfig
     public $filters = [
 		'loginUser' => [
 			'before' => [
-				'/',
 				'Users*',
 				'Roles*',
 				'Permissions*',
@@ -91,28 +83,13 @@ class Filters extends BaseConfig
 
 		'guestUser' => [
 			'before' => [
-				'Login/admin*',
+                'login*',
+                'login/admin*'
 			]
 		],
 
-		/*'loginStudent' => [
-			'before' => [
-				'Students/dashboard*',
-				'Login/logoutStudent',
-				'Musters*',
-				'View*'
-			]
-		],*/
-
-		/*'guestStudent' => [
-			'before' => [
-				'Login',
-			]
-		],*/
-
 		'manager' => [
 			'before' => [
-				'/',
 				'Users*',
 				'Roles*',
 				'Permissions*',
