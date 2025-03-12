@@ -99,15 +99,22 @@ class NguoiDungController extends BaseController
         return redirect()->back()->withInput()->with('errors', $this->model->errors());
     }
 
-    public function deleteUsers()
+    public function deleteUsers($id = null)
     {
-        $ids = $this->request->getPost('ids');
-
-        if ($this->model->softDeleteMultiple($ids)) {
-            return redirect()->to('/nguoidung')->with('success', 'Xóa người dùng thành công.');
+        if ($id !== null) {
+            // Xử lý xóa một người dùng
+            if ($this->model->delete($id)) {
+                return redirect()->to('/nguoidung')->with('success', 'Xóa người dùng thành công.');
+            }
+        } else {
+            // Xử lý xóa nhiều người dùng
+            $ids = $this->request->getPost('ids');
+            if (is_array($ids) && $this->model->softDeleteMultiple($ids)) {
+                return redirect()->to('/nguoidung')->with('success', 'Xóa người dùng thành công.');
+            }
         }
 
-        return redirect()->back()->with('error', 'Không thể xóa.');
+        return redirect()->back()->with('error', 'Không thể xóa người dùng. Vui lòng thử lại.');
     }
 
     public function restoreUsers($id)

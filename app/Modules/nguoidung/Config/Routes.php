@@ -12,7 +12,9 @@ $routes->group('nguoidung', ['namespace' => 'App\Modules\nguoidung\Controllers']
     
     // Routes cho chức năng xóa mềm và khôi phục
     $routes->get('listdeleted', 'NguoiDungController::listDeleted');
-    $routes->post('delete', 'NguoiDungController::deleteUsers');
+    $routes->get('deleteusers/(:num)', 'NguoiDungController::deleteUsers/$1');
+    $routes->post('deleteusers', 'NguoiDungController::deleteUsers');
+    $routes->post('deleteusers/(:num)', 'NguoiDungController::deleteUsers/$1');
     $routes->post('restoreusers', 'NguoiDungController::restoreUsers');
     $routes->get('restoreusers/(:num)', 'NguoiDungController::restoreUsers/$1');
     $routes->post('force-delete', 'NguoiDungController::forceDeleteUsers');

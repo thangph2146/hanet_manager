@@ -68,7 +68,7 @@
                     'icon' => 'fadeIn animated bx bx-edit'
                 ],
                 [
-                    'url_prefix' => '/nguoidung/delete/',
+                    'url_prefix' => '/nguoidung/deleteusers/',
                     'id_field' => 'id',
                     'title_field' => 'FullName',
                     'title' => 'Delete %s',
