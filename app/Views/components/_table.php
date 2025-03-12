@@ -32,7 +32,7 @@
 
             // Thiết lập template mặc định
             $template = [
-                'table_open' => '<table id="' . ($options['table_id'] ?? 'example2') . '" class="table table-hover table-striped table-bordered mb-0 w-100">',
+                'table_open' => '<table id="example2_wrapper" class="table table-hover table-striped table-bordered mb-0 w-100">',
                 'thead_open' => '<thead>',
                 'thead_close' => '</thead>',
                 'heading_row_start' => '<tr>',
@@ -145,7 +145,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const tableId = '<?= $options['table_id'] ?? 'example2' ?>';
+    const tableId =  'example2_wrapper';
     const table = $(`#${tableId}`).DataTable({
         lengthMenu: [
             [10, 25, 50, 100, -1],

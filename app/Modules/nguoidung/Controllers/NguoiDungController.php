@@ -112,13 +112,37 @@ class NguoiDungController extends BaseController
 
     public function restoreUsers()
     {
-        $ids = $this->request->getPost('ids');
-
-        if ($this->model->restoreMultipleRecords($ids)) {
-            return redirect()->to('/nguoidung')->with('success', 'Khôi phục người dùng thành công.');
+        // Lấy danh sách ID từ form
+        $ids = $this->request->getPost('id');
+        print_r($ids);
+        die();
+        // Kiểm tra xem có ID nào được chọn không
+        if (empty($ids)) {
+            return redirect()->back()->with('error', 'Vui lòng chọn ít nhất một người dùng để khôi phục');
         }
 
-        return redirect()->back()->with('error', 'Không thể khôi phục.');
+        // Đảm bảo $ids là mảng
+        if (!is_array($ids)) {
+            $ids = [$ids];
+        }
+
+        try {
+            // Thực hiện khôi phục từng người dùng
+            $successCount = 0;
+            foreach ($ids as $id) {
+                if ($this->model->update($id, ['deleted_at' => null])) {
+                    $successCount++;
+                }
+            }
+
+            if ($successCount > 0) {
+                return redirect()->back()->with('message', "Đã khôi phục thành công $successCount người dùng");
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Error restoring users: ' . $e->getMessage());
+        }
+
+        return redirect()->back()->with('error', 'Không thể khôi phục người dùng');
     }
 
     public function forceDeleteUsers()

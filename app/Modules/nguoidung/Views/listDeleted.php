@@ -22,14 +22,16 @@
 
 <?= $this->section("content") ?>
 <div class="table-responsive">
-	<?= form_open("nguoidung/restore", ['class' => 'row g3']) ?>
+	<?= form_open("nguoidung/restoreusers", ['id' => 'form-restore', 'class' => 'row g3']) ?>
 	<div class="col-12 mb-3">
-		<button type="submit" class="btn btn-primary">Khôi phục Người Dùng</button>
+		<button type="submit" class="btn btn-primary">
+			<i class="lni lni-reload"></i> Khôi phục Người Dùng
+		</button>
 	</div>
 <?= view('components/_table', [
     'caption' => 'Danh Sách Người Dùng Đã Xóa',
     'headers' => [
-        '<input type="checkbox" id="select-all" />', 
+        '<input type="checkbox" id="select-all" class="form-check-input" />', 
         'AccountId', 
         'FullName', 
         'Status',
@@ -40,7 +42,8 @@
         [
             'type' => 'checkbox',
             'id_field' => 'id',
-            'name' => 'id[]'
+            'name' => 'id[]',
+            'class' => 'form-check-input checkbox-item'
         ],
         [
             'field' => 'AccountId'
@@ -58,11 +61,12 @@
             'type' => 'actions',
             'buttons' => [
                 [
-                    'url_prefix' => '/nguoidung/restore/',
+                    'url_prefix' => '/nguoidung/restoreusers/',
                     'id_field' => 'id',
                     'title_field' => 'FullName',
                     'title' => 'Restore %s',
                     'icon' => 'lni lni-reload',
+                    'class' => 'btn btn-warning btn-sm',
                     'js' => 'onclick="return confirm(\'Bạn thật sự muốn khôi phục Người Dùng này?\')"'
                 ]
             ]
@@ -73,7 +77,7 @@
     ]
 ]) 
 ?>
-	</form>
+	<?= form_close() ?>
 </div>
 <?= $this->endSection() ?> 
 
@@ -91,4 +95,5 @@
 <script src="<?= base_url('assets/plugins/datatable/js/buttons.colVis.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/datatable/js/dataTables.responsive.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/datatable/js/responsive.bootstrap5.min.js') ?>"></script>
+
 <?= $this->endSection() ?> 
