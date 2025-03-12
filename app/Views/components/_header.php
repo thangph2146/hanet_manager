@@ -3,10 +3,6 @@
 		<nav class="navbar navbar-expand">
 			<div class="mobile-toggle-menu"><i class='bx bx-menu'></i>
 			</div>
-			<div class="search-bar flex-grow-1">
-				
-			</div>
-			
 			<div class="user-box dropdown">
 				<a class="d-flex align-items-center nav-link dropdown-toggle dropdown-toggle-nocaret" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 					<img src="<?= site_url('assets/images/avatars/user.png') ?>" class="user-img" alt="user avatar">
