@@ -84,7 +84,7 @@ $routes->get('users/delete/(:num)', 'Users::delete/$1');
 $routes->get('users/listdeleted', 'Users::listDeleted');
 $routes->get('users/restoreuser/(:num)', 'Users::restoreUser/$1');
 $routes->get('users/assignroles/(:num)', 'Users::assignRoles/$1');
-$routes->match(['get', 'post'], 'users/UpdateAssignRoles/(:num)', 'Users::UpdateAssignRoles/$1');
+$routes->match(['get', 'post'], 'users/updateassignroles/(:num)', 'Users::UpdateAssignRoles/$1');
 $routes->get('users/dashboard', 'Users::dashboard');
 $routes->post('users/resetpassword', 'Users::resetPassWord');
 

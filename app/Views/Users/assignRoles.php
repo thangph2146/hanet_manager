@@ -17,7 +17,7 @@
 			<ol class="breadcrumb mb-0 p-0">
 				<li class="breadcrumb-item"><a href="<?= site_url('users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
 				</li>
-				<li class="breadcrumb-item active" aria-current="page"><a href="<?= site_url('/Users') ?>">Quản lý Users</a></li>
+				<li class="breadcrumb-item active" aria-current="page"><a href="<?= site_url('/users') ?>">Quản lý Users</a></li>
 				<li class="breadcrumb-item active" aria-current="page">Assign Permissions for <?= $data->u_FullName ?></li>
 			</ol>
 		</nav>
@@ -40,7 +40,7 @@
 <?= $this->section("content") ?>
 
 <div class="responsive">
-	<?= form_open("users/UpdateAssignroles/" . $data->u_id, ['class' => 'row g3']) ?>
+	<?= form_open("users/updateassignroles/" . $data->u_id, ['class' => 'row g3']) ?>
 
 	<?= $this->include('users/formAssignRoles') ?>
 

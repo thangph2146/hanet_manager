@@ -58,7 +58,7 @@ class Users extends BaseController {
 		$data = new User($this->request->getpost());
 
 		if ($this->model->protect(FALSE)->insert($data)) {
-			return redirect()->to('/Users')
+			return redirect()->to('/users')
 							 ->with('info', 'User đã được tạo thành công!');
 		}
 		else {
