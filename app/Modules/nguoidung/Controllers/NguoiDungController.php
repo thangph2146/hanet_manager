@@ -22,7 +22,7 @@ class NguoiDungController extends BaseController
 
     public function delete($id)
     {
-        if ($this->model->deleteRecord($id)) {
+        if ($this->model->softDeleteRecord($id)) {
             return redirect()->to('/nguoidung')->with('message', 'Xóa người dùng thành công');
         } else {
             return redirect()->to('/nguoidung')->with('error', 'Xóa người dùng thất bại');
