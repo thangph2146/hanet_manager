@@ -110,40 +110,21 @@ class NguoiDungController extends BaseController
         return redirect()->back()->with('error', 'Không thể xóa.');
     }
 
-    public function restoreUsers()
-    {
-        // Lấy danh sách ID từ form
-        $ids = $this->request->getPost('id');
-        print_r($ids);
-        die();
-        // Kiểm tra xem có ID nào được chọn không
-        if (empty($ids)) {
-            return redirect()->back()->with('error', 'Vui lòng chọn ít nhất một người dùng để khôi phục');
-        }
+    public function restoreUsers($id)
+	{
+		$data = $this->getUserDeletedOr404($id);
 
-        // Đảm bảo $ids là mảng
-        if (!is_array($ids)) {
-            $ids = [$ids];
-        }
+		$data->u_deleted_at = NULL;
 
-        try {
-            // Thực hiện khôi phục từng người dùng
-            $successCount = 0;
-            foreach ($ids as $id) {
-                if ($this->model->update($id, ['deleted_at' => null])) {
-                    $successCount++;
-                }
-            }
+		if ($this->model->protect(FALSE)->save($data)) {
+			return redirect()->to('/users')
+							 ->with('info', 'User đã được restored thành công!');
+		}
 
-            if ($successCount > 0) {
-                return redirect()->back()->with('message', "Đã khôi phục thành công $successCount người dùng");
-            }
-        } catch (\Exception $e) {
-            log_message('error', 'Error restoring users: ' . $e->getMessage());
-        }
+		return redirect()->back()
+						 ->with('warning', 'Đã có lỗi xảy ra!');
 
-        return redirect()->back()->with('error', 'Không thể khôi phục người dùng');
-    }
+	}
 
     public function forceDeleteUsers()
     {
