@@ -12,7 +12,7 @@
     'title' => 'Danh sách Người Dùng đã xóa',
     'dashboard_url' => site_url('users/dashboard'),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Người Dùng', 'url' => site_url('/nguoidung'), 'active' => false],
+        ['title' => 'Quản lý Người Dùng', 'url' => site_url('/nguoidung')],
         ['title' => 'Danh sách Người Dùng đã xóa', 'active' => true]
     ],
     'actions' => [
