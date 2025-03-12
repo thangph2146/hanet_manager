@@ -14,6 +14,10 @@
 	<label for="u_username" class="form-label">UserName:</label>
 	<input type="text" class="form-control" id="u_username" name="u_username" value="<?= old('u_username', esc($data->u_username)) ?>" placeholder="username để đăng nhập">
 </div>
+<div class="col-md-12 mb-md-4">
+	<label for="u_email" class="form-label">Email:</label>
+	<input type="text" class="form-control" id="u_email" name="u_email" value="<?= old('u_email', esc($data->u_email)) ?>" placeholder="Nhập Email">
+</div>
 <div class="clearfix"></div>
 <div class="col-md-6 mb-md-4">
 	<label for="password" class="form-label">PassWord:</label>
