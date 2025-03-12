@@ -4,6 +4,8 @@ namespace App\Modules\nguoidung\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\nguoidung\Models\NguoiDungModel;
+use App\Entities\NguoiDungEntity;
+use CodeIgniter\HTTP\ResponseInterface;
 
 class NguoiDungController extends BaseController
 {
@@ -20,61 +22,106 @@ class NguoiDungController extends BaseController
         return view('App\Modules\nguoidung\Views\index', ['data' => $data]);
     }
 
-    public function delete($id)
+    public function new()
     {
-        if ($this->model->softDeleteRecord($id)) {
-            return redirect()->to('/nguoidung')->with('message', 'Xóa người dùng thành công');
+        return view('App\Modules\nguoidung\Views\new');
+    }
+
+    public function store()
+    {
+        // Validate dữ liệu đầu vào
+        $rules = [
+            'AccountId' => 'required|min_length[3]|is_unique[nguoi_dung.AccountId]',
+            'FullName'  => 'required|min_length[3]',
+            'password'  => 'required|min_length[6]',
+            'email'     => 'permit_empty|valid_email|is_unique[nguoi_dung.Email]'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        // Chuẩn bị dữ liệu
+        $data = [
+            'AccountId' => $this->request->getPost('AccountId'),
+            'FullName'  => $this->request->getPost('FullName'),
+            'Email'     => $this->request->getPost('email'),
+            'PW'        => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
+            'status'    => 1,
+            'bin'       => 0,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        // Thêm người dùng mới
+        try {
+            if ($this->model->insertRecord($data)) {
+                return redirect()->to('/nguoidung')->with('message', 'Tạo người dùng mới thành công');
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Error creating user: ' . $e->getMessage());
+        }
+        
+        return redirect()->back()->withInput()->with('error', 'Có lỗi xảy ra khi tạo người dùng');
+    }
+
+    public function edit($id)
+    {
+        $data['user'] = $this->model->getUserById($id);
+
+        if (!$data['user']) {
+            return redirect()->to('/nguoidung')->with('error', 'Không tìm thấy người dùng.');
+        }
+
+        return view('nguoidung/edit', $data);
+    }
+
+    public function update($id)
+    {
+        $data = $this->request->getPost();
+        if (!empty($data['PW'])) {
+            $data['PW'] = password_hash($data['PW'], PASSWORD_DEFAULT);
         } else {
-            return redirect()->to('/nguoidung')->with('error', 'Xóa người dùng thất bại');
+            unset($data['PW']);
         }
-    }
 
-    public function resetPassword()
-    {
-        $ids = $this->request->getPost('id');
-        if ($ids && is_array($ids)) {
-            foreach ($ids as $id) {
-                if ($id) {
-                    $nguoidung = $this->model->getById($id);
-                    if ($nguoidung) {
-                        $nguoidung->fill(['PW' => password_hash(setting('App.resetPassWord'), PASSWORD_DEFAULT)]);
-                        if (!$nguoidung->hasChanged()) {
-                            return redirect()->back()->with('warning', 'Không có gì xảy ra!')->withInput();
-                        }
-                        if ($this->model->protect(FALSE)->save($nguoidung)) {
-                            return redirect()->to('/nguoidung')->with('info', 'Reset mật khẩu thành công!');
-                        } else {
-                            return redirect()->back()->with('errors', $this->model->errors())->with('warning', 'Reset mật khẩu đã có lỗi xảy ra!')->withInput();
-                        }
-                    }
-                }
-            }
-            return redirect()->to('/nguoidung')->with('message', 'Reset mật khẩu thành công');
+        if ($this->model->update($id, $data)) {
+            return redirect()->to('/nguoidung')->with('success', 'Cập nhật thành công.');
         }
-        return redirect()->to('/nguoidung')->with('error', 'Không có người dùng nào được chọn để reset mật khẩu');
+
+        return redirect()->back()->withInput()->with('errors', $this->model->errors());
     }
 
-    public function listDeleted()
+    public function deleteUsers()
     {
-        $data = $this->model->getAll(true); // Lấy tất cả bao gồm cả những bản ghi đã bị xóa mềm
-        return view('App\Modules\nguoidung\Views\listdeleted', ['data' => $data]);
-    }
+        $ids = $this->request->getPost('ids');
 
-    public function restore($id = NULL)
-    {
-        if ($id) {
-            // Sử dụng query builder trực tiếp
-            $result = $this->model->builder()
-                                ->set('deleted_at', null)
-                                ->where('id', $id)
-                                ->update();
-            
-            if ($result) {
-                return redirect()->to('/nguoidung/listdeleted')->with('message', 'Khôi phục người dùng thành công');
-            }
+        if ($this->model->softDeleteMultiple($ids)) {
+            return redirect()->to('/nguoidung')->with('success', 'Xóa người dùng thành công.');
         }
-        return redirect()->to('/nguoidung/listdeleted')->with('error', 'Khôi phục người dùng thất bại hoặc không có người dùng nào được chọn');
+
+        return redirect()->back()->with('error', 'Không thể xóa.');
     }
 
-    // Định nghĩa các phương thức CRUD khác như create, store, edit, update, delete, show, trash, restore, purge, search
+    public function restoreUsers()
+    {
+        $ids = $this->request->getPost('ids');
+
+        if ($this->model->restoreMultipleRecords($ids)) {
+            return redirect()->to('/nguoidung')->with('success', 'Khôi phục người dùng thành công.');
+        }
+
+        return redirect()->back()->with('error', 'Không thể khôi phục.');
+    }
+
+    public function forceDeleteUsers()
+    {
+        $ids = $this->request->getPost('ids');
+
+        if ($this->model->forceDeleteMultiple($ids)) {
+            return redirect()->to('/nguoidung')->with('success', 'Xóa vĩnh viễn người dùng.');
+        }
+
+        return redirect()->back()->with('error', 'Không thể xóa vĩnh viễn.');
+    }
 }
