@@ -60,5 +60,21 @@ class NguoiDungController extends BaseController
         return view('App\Modules\nguoidung\Views\listdeleted', ['data' => $data]);
     }
 
+    public function restore($id = NULL)
+    {
+        if ($id) {
+            // Sử dụng query builder trực tiếp
+            $result = $this->model->builder()
+                                ->set('deleted_at', null)
+                                ->where('id', $id)
+                                ->update();
+            
+            if ($result) {
+                return redirect()->to('/nguoidung/listdeleted')->with('message', 'Khôi phục người dùng thành công');
+            }
+        }
+        return redirect()->to('/nguoidung/listdeleted')->with('error', 'Khôi phục người dùng thất bại hoặc không có người dùng nào được chọn');
+    }
+
     // Định nghĩa các phương thức CRUD khác như create, store, edit, update, delete, show, trash, restore, purge, search
 }
