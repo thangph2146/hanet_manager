@@ -11,7 +11,7 @@
 			<ol class="breadcrumb mb-0 p-0">
 				<li class="breadcrumb-item"><a href="<?= site_url('users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
 				</li>
-				<li class="breadcrumb-item active" aria-current="page"><a href="<?= site_url('/Users') ?>">Quản lý Users</a></li>
+				<li class="breadcrumb-item active" aria-current="page"><a href="<?= site_url('/users') ?>">Quản lý Users</a></li>
 				<li class="breadcrumb-item active" aria-current="page">Tạo User</li>
 			</ol>
 		</nav>
