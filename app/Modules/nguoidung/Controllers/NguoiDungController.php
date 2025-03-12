@@ -16,6 +16,13 @@ class NguoiDungController extends BaseController
         $this->model = new NguoiDungModel();
     }
 
+    public function listDeleted()
+    {
+        // Lấy danh sách người dùng đã bị xóa mềm
+        $data = $this->model->onlyDeleted()->findAll();
+        return view('App\Modules\nguoidung\Views\listdeleted', ['data' => $data]);
+    }
+
     public function index()
     {
         $data = $this->model->getAll();
