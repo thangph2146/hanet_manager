@@ -14,7 +14,11 @@
     'breadcrumbs' => [
         ['title' => 'Quản lý Người Dùng', 'url' => site_url('/nguoidung'), 'active' => false],
         ['title' => 'Danh sách Người Dùng đã xóa', 'active' => true]
-    ]
+    ],
+    'actions' => [
+		['url' => site_url('/nguoidung/new'), 'title' => 'Tạo Người Dùng'],
+		['url' => site_url('/nguoidung'), 'title' => 'Danh sách Người Dùng']
+	]
 ]) ?>
 <?= $this->endSection() ?>
 
