@@ -11,7 +11,7 @@
 			<ol class="breadcrumb mb-0 p-0">
 				<li class="breadcrumb-item"><a href="<?= site_url('users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
 				</li>
-				<li class="breadcrumb-item active" aria-current="page"><a href="<?= site_url('Permissions') ?>">Quản lý Permissons</a></li>
+				<li class="breadcrumb-item active" aria-current="page"><a href="<?= site_url('permissions') ?>">Quản lý Permissions</a></li>
 				<li class="breadcrumb-item active" aria-current="page">Tạo Permissons</li>
 			</ol>
 		</nav>
@@ -23,7 +23,7 @@
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
 				<a class="dropdown-item" href="javascript:;">Tạo Permission</a>
-				<a class="dropdown-item" href="<?= site_url('Permissions/listDeleted') ?>">List Deleted Permission</a>
+				<a class="dropdown-item" href="<?= site_url('permissions/listdeleted') ?>">List Deleted Permission</a>
 			</div>
 		</div>
 	</div>
@@ -32,7 +32,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<?= form_open("Permissions/create", ['class' => 'row g3']) ?>
+<?= form_open("permissions/create", ['class' => 'row g3']) ?>
 
 	<?= $this->include('Permissions/form'); ?>
 

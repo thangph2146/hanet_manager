@@ -38,7 +38,7 @@ class Permissions extends BaseController {
 		$data = new Permission($this->request->getpost());
 
 		if ($this->model->protect(FALSE)->insert($data)) {
-			return redirect()->to('/Permissions')
+			return redirect()->to('/permissions')
 							 ->with('info', 'Chức năng đã được tạo!');
 		}
 		else {
@@ -77,7 +77,7 @@ class Permissions extends BaseController {
 							 ->withInput();
 		}
 		if ($this->model->protect(FALSE)->save($data)) {
-			return redirect()->to('/Permissions')
+			return redirect()->to('/permissions')
 							 ->with('info', 'Edit Permission thành công!');
 		}
 		else {
@@ -94,7 +94,7 @@ class Permissions extends BaseController {
 
 		$this->model->delete($data->p_id);
 
-		return redirect()->to('/Permissions')
+		return redirect()->to('/permissions')
 						 ->with('info', 'Deleted thành công Permissions Id : ' . $data->p_id);
 
 	}
@@ -113,7 +113,7 @@ class Permissions extends BaseController {
 		$data->p_deleted_at = NULL;
 
 		if ($this->model->protect(FALSE)->save($data)) {
-			return redirect()->to('/Permissions')
+			return redirect()->to('/permissions')
 							 ->with('info', 'Permission đã được restored thành công!');
 		}
 

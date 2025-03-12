@@ -47,7 +47,7 @@
 		'heading_cell_start' => '<th class="all">',
 	];
 
-	$table->setCaption('Danh Sách Permissions')->setTemplate($template);
+	$table->setCaption('Danh Sách Users')->setTemplate($template);
 	$table->setHeading(['ID', 'User name', 'Tên Hiển thị', 'Ngày Xóa', 'Trạng thái', 'Actions']);
 	if (count($data) > 0) {
 		foreach ($data as $show) {

@@ -21,8 +21,8 @@
 			<button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">	<span class="visually-hidden">Toggle Dropdown</span>
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
-				<a class="dropdown-item" href="<?= site_url('Permissions/new') ?>">Tạo Permission</a>
-				<a class="dropdown-item" href="<?= site_url('Permissions/listDeleted') ?>">List Deleted Permission</a>
+				<a class="dropdown-item" href="<?= site_url('permissions/new') ?>">Tạo Permission</a>
+				<a class="dropdown-item" href="<?= site_url('permissions/listdeleted') ?>">List Deleted Permission</a>
 			</div>
 		</div>
 	</div>
@@ -51,7 +51,7 @@
 				$show->p_description,
 				($show->p_status == 1) ? view_cell('\App\Libraries\MyButton::iconChecked', ['label' => 'checked']) : '',
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/Permissions/edit/'.$show->p_id),
+					'url' => site_url('/permissions/edit/'.$show->p_id),
 					'class' => 'btn btn-default',
 					'style' => '',
 					'js' => '',
@@ -60,7 +60,7 @@
 					'label' => ''
 				]) .
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/Permissions/delete/'.$show->p_id),
+					'url' => site_url('/permissions/delete/'.$show->p_id),
 					'class' => 'btn btn-default',
 					'style' => '',
 					'js' => 'onclick=' . '\'' . 'return confirm("Bạn thật sự muốn xóa Permission ' .$show->p_id . ' ? \nIt may cause errors where it is currently being used !!")' . '\'',

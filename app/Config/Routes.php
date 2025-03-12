@@ -53,14 +53,14 @@ $routes->get('/', 'Home::index');
 $routes->get('Roles', 'Roles::index');
 
 // Permissions
-$routes->get('Permissions', 'Permissions::index');
-$routes->match(['get', 'post'], 'Permissions/new', 'Permissions::new');
-$routes->match(['get', 'post'], 'Permissions/create', 'Permissions::create');
-$routes->get('Permissions/edit/(:num)', 'Permissions::edit/$1');
-$routes->match(['get', 'post'], 'Permissions/update/(:num)', 'Permissions::update/$1');
-$routes->get('Permissions/delete/(:num)', 'Permissions::delete/$1');
-$routes->get('Permissions/listDeleted', 'Permissions::listDeleted');
-$routes->get('Permissions/restorePermission/(:num)', 'Permissions::restorePermission/$1');
+$routes->get('permissions', 'Permissions::index');
+$routes->match(['get', 'post'], 'permissions/new', 'Permissions::new');
+$routes->match(['get', 'post'], 'permissions/create', 'Permissions::create');
+$routes->get('permissions/edit/(:num)', 'Permissions::edit/$1');
+$routes->match(['get', 'post'], 'permissions/update/(:num)', 'Permissions::update/$1');
+$routes->get('permissions/delete/(:num)', 'Permissions::delete/$1');
+$routes->get('permissions/listdeleted', 'Permissions::listDeleted');
+$routes->get('permissions/restorepermission/(:num)', 'Permissions::restorePermission/$1');
 
 // Role
 $routes->get('roles', 'Roles::index');

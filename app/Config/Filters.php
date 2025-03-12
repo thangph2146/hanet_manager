@@ -76,9 +76,9 @@ class Filters extends BaseConfig
 		'loginUser' => [
 			'before' => [
 				'users*',
-				'Roles*',
-				'Permissions*',
-				'Settings*',
+				'roles*',
+				'permissions*',
+				'settings*',
 				'login/logout'
 			]
 		],
@@ -96,10 +96,10 @@ class Filters extends BaseConfig
 		'manager' => [
 			'before' => [
 				'users*',
-				'Roles*',
-				'Permissions*',
-				'Settings*',
-				'Admin*'
+				'roles*',
+				'permissions*',
+				'settings*',
+				'admin*'
 			]
 		],
 	];

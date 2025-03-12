@@ -44,11 +44,11 @@
 			<div class="menu-title">Quản lý Permissions</div>
 		</a>
 		<ul>
-			<li> <a href="<?= site_url('Permissions') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Permissions</a>
+			<li> <a href="<?= site_url('permissions') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Permissions</a>
 			</li>
-			<li> <a href="<?= site_url('Permissions/listDeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Permissions bị xóa</a>
+			<li> <a href="<?= site_url('permissions/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Permissions bị xóa</a>
 			</li>
-			<li> <a href="<?= site_url('Permissions/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Permission mới</a>
+			<li> <a href="<?= site_url('permissions/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Permission mới</a>
 			</li>
 		</ul>
 	</li>
@@ -66,7 +66,7 @@
 		</ul>
 	</li>
 	<li>
-		<a href="https://phongqlcntt.buh.edu.vn/" target="_blank">
+		<a href="https://phongqlcntt.hub.edu.vn/" target="_blank">
 			<div class="parent-icon"><i class="bx bx-support"></i>
 			</div>
 			<div class="menu-title">Support</div>

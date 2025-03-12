@@ -21,7 +21,7 @@
 		</a>
 	</div>
 	<div class="col">
-		<a href="<?= site_url('Permissions') ?>">
+		<a href="<?= site_url('permissions') ?>">
 			<div class="card radius-10 bg-danger bg-gradient">
 				<div class="card-body">
 					<div class="d-flex align-items-center">
