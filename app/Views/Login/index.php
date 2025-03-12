@@ -61,7 +61,7 @@
 									<hr/>
 								</div>
 								<div class="form-body">
-									<?= form_open(site_url("Login/admin"), ['class' => 'row g-3']) ?>
+									<?= form_open(site_url("login/admin"), ['class' => 'row g-3']) ?>
 										<div class="row">
 											<div class="col-xl-12 mx-auto">
 												<!--Error list -->

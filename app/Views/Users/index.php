@@ -9,7 +9,7 @@
 	<div class="ps-3">
 		<nav aria-label="breadcrumb">
 			<ol class="breadcrumb mb-0 p-0">
-				<li class="breadcrumb-item"><a href="<?= site_url('Users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
+				<li class="breadcrumb-item"><a href="<?= site_url('users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
 				</li>
 				<li class="breadcrumb-item active" aria-current="page">Quản lý Users</li>
 			</ol>
@@ -21,8 +21,8 @@
 			<button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">	<span class="visually-hidden">Toggle Dropdown</span>
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
-				<a class="dropdown-item" href="<?= site_url('/Users/new') ?>">Tạo User</a>
-				<a class="dropdown-item" href="<?= site_url('/Users/listDeleted') ?>">List Deleted User</a>
+				<a class="dropdown-item" href="<?= site_url('/users/new') ?>">Tạo User</a>
+				<a class="dropdown-item" href="<?= site_url('/users/listDeleted') ?>">List Deleted User</a>
 			</div>
 		</div>
 	</div>
@@ -32,7 +32,7 @@
 
 <?= $this->section("content") ?>
 <div class="table-responsive">
-	<?= form_open("Users/resetPassWord", ['class' => 'row g3']) ?>
+	<?= form_open("users/resetPassWord", ['class' => 'row g3']) ?>
 	<div class="col-12 mb-3">
 		<button type="submit" class="btn btn-primary">ResetPassWord</button>
 	</div>
@@ -60,7 +60,7 @@
 				$show->u_FullName,
 				($show->u_status == 1) ? view_cell('\App\Libraries\MyButton::iconChecked', ['label' => 'Hoạt động']) : 'Đã khóa!!',
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/Users/edit/'.$show->u_id),
+					'url' => site_url('/users/edit/'.$show->u_id),
 					'class' => 'btn btn-default',
 					'style' => '',
 					'js' => '',
@@ -69,7 +69,7 @@
 					'label' => ''
 				]) .
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/Users/delete/'.$show->u_id),
+					'url' => site_url('/users/delete/'.$show->u_id),
 					'class' => 'btn btn-default',
 					'style' => '',
                     'js' => 'onclick=' . '\'' . 'return confirm("Bạn thật sự muốn xóa User ' .$show->u_id . ' ? \nIt may cause errors where it is currently being used !!")' . '\'',
@@ -78,7 +78,7 @@
 					'label' => ''
 				]) .
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/Users/assignRoles/'.$show->u_id),
+					'url' => site_url('/users/assignroles/'.$show->u_id),
 					'class' => 'btn btn-outline-primary px-5 radius-30',
 					'style' => '',
 					'js' => '',

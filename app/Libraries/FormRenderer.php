@@ -4,7 +4,7 @@ namespace App\Libraries;
 
 use CodeIgniter\HTTP\RequestInterface;
 
-class RenderHelper
+class FormRenderer
 {
     protected $data = [];
     protected $request;

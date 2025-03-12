@@ -25,7 +25,7 @@ class Users extends BaseController {
 	{
 		$data = $this->model->getAllUsers();
 
-		return view('Users/index', ['data' => $data]);
+		return view('users/index', ['data' => $data]);
 	}
 
 	public function dashboard()
@@ -39,7 +39,7 @@ class Users extends BaseController {
 			'permission' => count($permission->getAllPermissions()),
 			'setting' => count($setting->getAllSettings()),
 		];
-		return view('Users/dashboard', [
+		return view('users/dashboard', [
 			'data' => $data
 		]);
 	}
@@ -48,7 +48,7 @@ class Users extends BaseController {
 	{
 		$data = new User();
 
-		return view('Users/new', [
+		return view('users/new', [
 			'data' => $data,
 		]);
 	}
@@ -73,7 +73,7 @@ class Users extends BaseController {
 	{
 		$data = $this->getUserOr404($id);
 
-		return view('Users/edit', [
+		return view('users/edit', [
 			'data' => $data
 		]);
 	}
@@ -100,7 +100,7 @@ class Users extends BaseController {
 							 ->withInput();
 		}
 		if ($this->model->protect(FALSE)->save($data)) {
-			return redirect()->to('/Users/edit/' . $id)
+			return redirect()->to('/users/edit/' . $id)
 							 ->with('info', 'Edit User thành công!');
 		}
 		else {
@@ -125,8 +125,7 @@ class Users extends BaseController {
 	public function listDeleted()
 	{
 		$data = $this->model->getAllUsersDeleted();
-
-		return view('Users/listDeleted', ['data' => $data]);
+		return view('users/listDeleted', ['data' => $data]);
 	}
 
 	public function restoreUser($id)
@@ -157,7 +156,7 @@ class Users extends BaseController {
 
 		$allRoles = array_column($getRoles->getAllRoles(1), 'r_name', 'r_id');
 
-		return view('Users/assignRoles', [
+		return view('users/assignRoles', [
 			'data' => $data,
 			'select' => $allRoles,
 			'arraySelected' => $rolesOfUser,
@@ -186,7 +185,7 @@ class Users extends BaseController {
 			$RoleUser->insertBatch($data);
 		}
 
-		return redirect()->to('/Users/assignRoles/' . $id)
+		return redirect()->to('/users/assignroles/' . $id)
 						 ->with('info', 'Bạn đã cập nhật Role cho User này!');
 	}
 

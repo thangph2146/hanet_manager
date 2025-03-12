@@ -5,12 +5,25 @@ namespace Config;
 // Create a new instance of our RouteCollection class.
 $routes = Services::routes();
 
+
 // Load the system's routing file first, so that the app and ENVIRONMENT
 // can override as needed.
 if (is_file(SYSTEMPATH . 'Config/Routes.php')) {
     require SYSTEMPATH . 'Config/Routes.php';
 }
 
+// Load routes của từng module
+$modulesPath = APPPATH . 'Modules/';
+$modules = scandir($modulesPath);
+
+foreach ($modules as $module) {
+    if ($module === '.' || $module === '..') continue;
+    
+    $routesPath = $modulesPath . $module . '/Config/Routes.php';
+    if (file_exists($routesPath)) {
+        require $routesPath;
+    }
+}
 /*
  * --------------------------------------------------------------------
  * Router Setup
@@ -51,15 +64,15 @@ $routes->get('Permissions/restorePermission/(:num)', 'Permissions::restorePermis
 
 // Role
 $routes->get('Roles', 'Roles::index');
-$routes->match(['get', 'post'], 'Roles/new', 'Roles::new');
-$routes->match(['get', 'post'], 'Roles/create', 'Roles::create');
-$routes->get('Roles/edit/(:num)', 'Roles::edit/$1');
-$routes->match(['get', 'post'], 'Roles/update/(:num)', 'Roles::update/$1');
-$routes->get('Roles/delete/(:num)', 'Roles::delete/$1');
-$routes->get('Roles/listDeleted', 'Roles::listDeleted');
-$routes->get('Roles/restoreRole/(:num)', 'Roles::restoreRole/$1');
-$routes->get('Roles/assignPermissions/(:num)', 'Roles::assignPermissions/$1');
-$routes->match(['get', 'post'], 'Roles/UpdateAssignPermissions/(:num)', 'Roles::UpdateAssignPermissions/$1');
+$routes->match(['get', 'post'], 'roles/new', 'Roles::new');
+$routes->match(['get', 'post'], 'roles/create', 'Roles::create');
+$routes->get('roles/edit/(:num)', 'Roles::edit/$1');
+$routes->match(['get', 'post'], 'roles/update/(:num)', 'Roles::update/$1');
+$routes->get('roles/delete/(:num)', 'Roles::delete/$1');
+$routes->get('roles/listDeleted', 'Roles::listDeleted');
+$routes->get('roles/restoreRole/(:num)', 'Roles::restoreRole/$1');
+$routes->get('roles/assignPermissions/(:num)', 'Roles::assignPermissions/$1');
+$routes->match(['get', 'post'], 'roles/UpdateAssignPermissions/(:num)', 'Roles::UpdateAssignPermissions/$1');
 
 // User
 $routes->get('Users', 'Users::index');
@@ -76,10 +89,10 @@ $routes->get('Users/dashboard', 'Users::dashboard');
 $routes->post('Users/resetPassWord', 'Users::resetPassWord');
 
 // Login user
-$routes->post('Login/create', 'Login::create');
-$routes->get('Login/admin', 'Login::admin');
-$routes->get('Login/logout', 'Login::delete');
-$routes->get('Login/showLogoutMessage', 'Login::showLogoutMessage');
+$routes->post('login/create', 'Login::create');
+$routes->get('login/admin', 'Login::admin');
+$routes->get('login/logout', 'Login::delete');
+$routes->get('login/showlogoutmessage', 'Login::showLogoutMessage');
 $routes->get('login/admin', 'Login::admin');
 $routes->get('google-callback', 'Login::googleCallback');
 

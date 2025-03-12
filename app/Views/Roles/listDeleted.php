@@ -15,7 +15,7 @@
 	<div class="ps-3">
 		<nav aria-label="breadcrumb">
 			<ol class="breadcrumb mb-0 p-0">
-				<li class="breadcrumb-item"><a href="<?= site_url('Users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
+				<li class="breadcrumb-item"><a href="<?= site_url('users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
 				</li>
 				<li class="breadcrumb-item active" aria-current="page"><a href="<?= site_url('Roles') ?>">Quản lý Roles</a></li>
 				<li class="breadcrumb-item active" aria-current="page">List Deleted Roles</li>
@@ -28,8 +28,8 @@
 			<button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">	<span class="visually-hidden">Toggle Dropdown</span>
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
-				<a class="dropdown-item" href="<?= site_url('Roles/new') ?>">Tạo Role</a>
-				<a class="dropdown-item" href="<?= site_url('Roles/listDeleted') ?>">List Deleted Roles</a>
+				<a class="dropdown-item" href="<?= site_url('roles/new') ?>">Tạo Role</a>
+				<a class="dropdown-item" href="<?= site_url('roles/listDeleted') ?>">List Deleted Roles</a>
 			</div>
 		</div>
 	</div>

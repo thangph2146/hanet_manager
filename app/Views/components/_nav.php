@@ -1,6 +1,6 @@
 <ul class="metismenu" id="menu">
 	<li>
-		<a href="<?= site_url('Users/dashboard') ?>">
+		<a href="<?= site_url('users/dashboard') ?>">
 			<div class="parent-icon"><i class='bx bx-home-circle'></i>
 			</div>
 			<div class="menu-title">Dashboard</div>
@@ -16,9 +16,9 @@
 		<ul>
 			<li> <a href="<?= site_url('Users') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Users</a>
 			</li>
-			<li> <a href="<?= site_url('Users/listDeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Users bị xóa</a>
+			<li> <a href="<?= site_url('users/listDeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Users bị xóa</a>
 			</li>
-			<li> <a href="<?= site_url('Users/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm User mới</a>
+			<li> <a href="<?= site_url('users/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm User mới</a>
 			</li>
 		</ul>
 	</li>
@@ -31,9 +31,9 @@
 		<ul>
 			<li> <a href="<?= site_url('Roles') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Roles</a>
 			</li>
-			<li> <a href="<?= site_url('Roles/listDeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Roles bị xóa</a>
+			<li> <a href="<?= site_url('roles/listDeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Roles bị xóa</a>
 			</li>
-			<li> <a href="<?= site_url('Roles/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Role mới</a>
+			<li> <a href="<?= site_url('roles/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Role mới</a>
 			</li>
 		</ul>
 	</li>

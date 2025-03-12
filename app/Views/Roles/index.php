@@ -9,7 +9,7 @@
 	<div class="ps-3">
 		<nav aria-label="breadcrumb">
 			<ol class="breadcrumb mb-0 p-0">
-				<li class="breadcrumb-item"><a href="<?= site_url('Users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
+				<li class="breadcrumb-item"><a href="<?= site_url('users/dashboard') ?>"><i class="bx bx-home-alt"></i></a>
 				</li>
 				<li class="breadcrumb-item active" aria-current="page">Quản lý Roles</li>
 			</ol>
@@ -21,8 +21,8 @@
 			<button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">	<span class="visually-hidden">Toggle Dropdown</span>
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
-				<a class="dropdown-item" href="<?= site_url('Roles/new') ?>">Tạo Role</a>
-				<a class="dropdown-item" href="<?= site_url('Roles/listDeleted') ?>">List Deleted Role</a>
+				<a class="dropdown-item" href="<?= site_url('roles/new') ?>">Tạo Role</a>
+				<a class="dropdown-item" href="<?= site_url('roles/listDeleted') ?>">List Deleted Role</a>
 			</div>
 		</div>
 	</div>
@@ -50,7 +50,7 @@
 				$show->r_description,
 				($show->r_status == 1) ? view_cell('\App\Libraries\MyButton::iconChecked', ['label' => 'checked']) : '',
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/Roles/edit/'.$show->r_id),
+					'url' => site_url('/roles/edit/'.$show->r_id),
 					'class' => 'btn btn-default',
 					'style' => '',
 					'js' => '',
@@ -59,7 +59,7 @@
 					'label' => ''
 				]) .
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/Roles/delete/'.$show->r_id),
+					'url' => site_url('/roles/delete/'.$show->r_id),
 					'class' => 'btn btn-default',
 					'style' => '',
                     'js' => 'onclick=' . '\'' . 'return confirm("Bạn thật sự muốn xóa Permission ' .$show->r_id . ' ? \nIt may cause errors where it is currently being used !!")' . '\'',
@@ -68,7 +68,7 @@
 					'label' => ''
 				]) .
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/Roles/assignPermissions/'.$show->r_id),
+					'url' => site_url('/roles/assignPermissions/'.$show->r_id),
 					'class' => 'btn btn-outline-primary px-5 radius-30',
 					'style' => '',
 					'js' => '',
