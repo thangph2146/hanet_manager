@@ -15,4 +15,11 @@ $routes->group('nguoidung', ['namespace' => 'App\Modules\nguoidung\Controllers']
     $routes->get('restore/(:num)', 'NguoiDungController::restore/$1');
     $routes->get('purge/(:num)', 'NguoiDungController::purge/$1');
     $routes->get('search', 'NguoiDungController::search');
+
+    // Routes cho chức năng xóa mềm và khôi phục
+    $routes->get('listdeleted', 'Nguoidung::listdeleted');
+    $routes->get('delete/(:num)', 'Nguoidung::delete/$1');
+    $routes->get('restore/(:num)', 'Nguoidung::restore/$1');
+    $routes->post('restore', 'Nguoidung::restore');
+    $routes->get('forcedelete/(:num)', 'Nguoidung::forcedelete/$1');
 });

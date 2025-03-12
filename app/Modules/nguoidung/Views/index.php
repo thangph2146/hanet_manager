@@ -79,7 +79,7 @@
         ]
     ],
     'options' => [
-        'table_id' => 'example2'
+        'table_id' => setting('App.table_id')
     ]
 ]) 
 ?>

@@ -11,7 +11,6 @@
  */
 ?>
 
-
 <div class="card">
     <?php if (isset($card_title)): ?>
     <div class="card-header border-bottom">
