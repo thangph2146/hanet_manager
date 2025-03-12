@@ -2,9 +2,9 @@
 
 namespace App\Modules\nguoidung\Models;
 
-use CodeIgniter\Model;
+use App\Models\BaseModel;
 
-class NguoiDungModel extends Model
+class NguoiDungModel extends BaseModel
 {
     protected $table = 'nguoi_dung';
     protected $allowedFields = ['username', 'email', 'password'];

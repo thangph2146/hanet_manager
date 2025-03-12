@@ -17,9 +17,12 @@ $routes->group('nguoidung', ['namespace' => 'App\Modules\nguoidung\Controllers']
     $routes->get('search', 'NguoiDungController::search');
 
     // Routes cho chức năng xóa mềm và khôi phục
-    $routes->get('listdeleted', 'Nguoidung::listdeleted');
-    $routes->get('delete/(:num)', 'Nguoidung::delete/$1');
-    $routes->get('restore/(:num)', 'Nguoidung::restore/$1');
-    $routes->post('restore', 'Nguoidung::restore');
-    $routes->get('forcedelete/(:num)', 'Nguoidung::forcedelete/$1');
+    $routes->get('listdeleted', 'NguoiDungController::listdeleted');
+    $routes->get('delete/(:num)', 'NguoiDungController::delete/$1');
+    $routes->get('restore/(:num)', 'NguoiDungController::restore/$1');
+    $routes->post('restore', 'NguoiDungController::restore');
+    $routes->get('forcedelete/(:num)', 'NguoiDungController::forcedelete/$1');
+
+    // Routes cho chức năng reset password
+    $routes->post('resetpassword', 'NguoiDungController::resetPassword');
 });

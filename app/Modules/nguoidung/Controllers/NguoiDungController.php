@@ -16,8 +16,48 @@ class NguoiDungController extends BaseController
 
     public function index()
     {
-        $data = $this->model->findAll();
+        $data = $this->model->getAll();
         return view('App\Modules\nguoidung\Views\index', ['data' => $data]);
+    }
+
+    public function delete($id)
+    {
+        if ($this->model->deleteRecord($id)) {
+            return redirect()->to('/nguoidung')->with('message', 'Xóa người dùng thành công');
+        } else {
+            return redirect()->to('/nguoidung')->with('error', 'Xóa người dùng thất bại');
+        }
+    }
+
+    public function resetPassword()
+    {
+        $ids = $this->request->getPost('id');
+        if ($ids && is_array($ids)) {
+            foreach ($ids as $id) {
+                if ($id) {
+                    $nguoidung = $this->model->getById($id);
+                    if ($nguoidung) {
+                        $nguoidung->fill(['PW' => password_hash(setting('App.resetPassWord'), PASSWORD_DEFAULT)]);
+                        if (!$nguoidung->hasChanged()) {
+                            return redirect()->back()->with('warning', 'Không có gì xảy ra!')->withInput();
+                        }
+                        if ($this->model->protect(FALSE)->save($nguoidung)) {
+                            return redirect()->to('/nguoidung')->with('info', 'Reset mật khẩu thành công!');
+                        } else {
+                            return redirect()->back()->with('errors', $this->model->errors())->with('warning', 'Reset mật khẩu đã có lỗi xảy ra!')->withInput();
+                        }
+                    }
+                }
+            }
+            return redirect()->to('/nguoidung')->with('message', 'Reset mật khẩu thành công');
+        }
+        return redirect()->to('/nguoidung')->with('error', 'Không có người dùng nào được chọn để reset mật khẩu');
+    }
+
+    public function listDeleted()
+    {
+        $data = $this->model->getAll(true); // Lấy tất cả bao gồm cả những bản ghi đã bị xóa mềm
+        return view('App\Modules\nguoidung\Views\listdeleted', ['data' => $data]);
     }
 
     // Định nghĩa các phương thức CRUD khác như create, store, edit, update, delete, show, trash, restore, purge, search

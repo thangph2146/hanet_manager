@@ -62,15 +62,15 @@
             'buttons' => [
                 [
                     'url_prefix' => '/nguoidung/edit/',
-                    'id_field' => 'u_id',
-                    'title_field' => 'u_username',
+                    'id_field' => 'id',
+                    'title_field' => 'FullName',
                     'title' => 'Edit %s',
                     'icon' => 'fadeIn animated bx bx-edit'
                 ],
                 [
                     'url_prefix' => '/nguoidung/delete/',
-                    'id_field' => 'u_id',
-                    'title_field' => 'u_username',
+                    'id_field' => 'id',
+                    'title_field' => 'FullName',
                     'title' => 'Delete %s',
                     'icon' => 'lni lni-trash',
                     'js' => 'onclick="return confirm(\'Bạn thật sự muốn xóa Người Dùng này?\')"'
