@@ -117,21 +117,41 @@ class NguoiDungController extends BaseController
         return redirect()->back()->with('error', 'Không thể xóa người dùng. Vui lòng thử lại.');
     }
 
-    public function restoreUsers($id)
-	{
-		$data = $this->getUserDeletedOr404($id);
+    public function restoreUsers($id = null)
+    {
+        if ($id !== null) {
+            // Xử lý khôi phục một người dùng
+            $user = $this->model->onlyDeleted()->find($id);
+            if ($user) {
+                $this->model->protect(false);
+                $data = [
+                    'deleted_at' => null,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ];
+                if ($this->model->update($id, $data)) {
+                    return redirect()->to('/nguoidung/listdeleted')
+                                   ->with('success', 'Khôi phục người dùng thành công.');
+                }
+            }
+        } else {
+            // Xử lý khôi phục nhiều người dùng
+            $ids = $this->request->getPost('ids');
+            if (is_array($ids)) {
+                $this->model->protect(false);
+                $data = [
+                    'deleted_at' => null,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ];
+                if ($this->model->update($ids, $data)) {
+                    return redirect()->to('/nguoidung/listdeleted')
+                                   ->with('success', 'Khôi phục người dùng thành công.');
+                }
+            }
+        }
 
-		$data->u_deleted_at = NULL;
-
-		if ($this->model->protect(FALSE)->save($data)) {
-			return redirect()->to('/users')
-							 ->with('info', 'User đã được restored thành công!');
-		}
-
-		return redirect()->back()
-						 ->with('warning', 'Đã có lỗi xảy ra!');
-
-	}
+        return redirect()->back()
+                       ->with('error', 'Không thể khôi phục người dùng. Vui lòng thử lại.');
+    }
 
     public function forceDeleteUsers()
     {
