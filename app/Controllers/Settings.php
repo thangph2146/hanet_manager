@@ -22,13 +22,13 @@ class Settings extends BaseController {
 	{
 		$data = $this->model->getAllSettings();
 
-		return view('Settings/index', ['data' => $data]);
+		return view('settings/index', ['data' => $data]);
 	}
 
 	public function new()
 	{
 		$data = new Setting();
-		return view('Settings/new', [
+		return view('settings/new', [
 			'data' => $data
 		]);
 	}
@@ -48,7 +48,7 @@ class Settings extends BaseController {
 		else {
 			// Store a value
 			service('settings')->set($data['key'], $data['value']);
-			return redirect()->to('/Settings')
+			return redirect()->to('/settings')
 							 ->with('info', 'Setting đã được tạo!');
 		}
 	}
@@ -57,7 +57,7 @@ class Settings extends BaseController {
 	{
 		$data = $this->getSettingOr404($id);
 
-		return view('Settings/edit', [
+		return view('settings/edit', [
 			'data' => $data
 		]);
 	}
@@ -71,7 +71,7 @@ class Settings extends BaseController {
 		// Store a value
 		service('settings')->set($post['key'], $post['value']);
 
-		return redirect()->to('/Settings')
+		return redirect()->to('/settings')
 						 ->with('info', 'Bạn đã Edit Settings thành công!');
 	}
 
@@ -81,7 +81,7 @@ class Settings extends BaseController {
 
 		$this->model->delete($data->id);
 
-		return redirect()->to('/Settings')
+		return redirect()->to('/settings')
 						 ->with('info', 'Deleted thành công Settings Id : ' . $data->id);
 
 	}

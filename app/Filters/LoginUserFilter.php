@@ -16,11 +16,6 @@ class LoginUserFilter implements FilterInterface
     }
 
 
-			return redirect()->to('login/admin')
-							 ->with('info', 'Vui lòng Đăng nhập trước!');
-
-	}
-
 	public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
 	{
 		// Do something here

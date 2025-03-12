@@ -22,7 +22,7 @@
 			<button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">	<span class="visually-hidden">Toggle Dropdown</span>
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
-				<a class="dropdown-item" href="<?= site_url('Settings/new') ?>">Tạo Setting</a>
+				<a class="dropdown-item" href="<?= site_url('settings/new') ?>">Tạo Setting</a>
 			</div>
 		</div>
 	</div>
@@ -31,7 +31,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<?= form_open("Settings/update/" . $data->id, ['class' => 'row g3']) ?>
+<?= form_open("settings/update/" . $data->id, ['class' => 'row g3']) ?>
 
 <?= $this->include('Settings/form'); ?>
 

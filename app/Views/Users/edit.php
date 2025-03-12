@@ -23,7 +23,7 @@
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
 				<a class="dropdown-item" href="<?= site_url('/users/new') ?>">Tạo User</a>
-				<a class="dropdown-item" href="<?= site_url('/users/listDeleted') ?>">List Deleted User</a>
+				<a class="dropdown-item" href="<?= site_url('/users/listdeleted') ?>">List Deleted User</a>
 			</div>
 		</div>
 	</div>

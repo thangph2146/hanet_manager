@@ -37,7 +37,7 @@
 		</a>
 	</div>
 	<div class="col">
-		<a href="<?= site_url('Users') ?>">
+		<a href="<?= site_url('users') ?>">
 			<div class="card radius-10 bg-warning bg-gradient">
 				<div class="card-body">
 					<div class="d-flex align-items-center">

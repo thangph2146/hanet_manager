@@ -75,18 +75,18 @@ $routes->get('roles/assignPermissions/(:num)', 'Roles::assignPermissions/$1');
 $routes->match(['get', 'post'], 'roles/UpdateAssignPermissions/(:num)', 'Roles::UpdateAssignPermissions/$1');
 
 // User
-$routes->get('Users', 'Users::index');
-$routes->match(['get', 'post'], 'Users/new', 'Users::new');
-$routes->match(['get', 'post'], 'Users/create', 'Users::create');
-$routes->get('Users/edit/(:num)', 'Users::edit/$1');
-$routes->match(['get', 'post'], 'Users/update/(:num)', 'Users::update/$1');
-$routes->get('Users/delete/(:num)', 'Users::delete/$1');
-$routes->get('Users/listDeleted', 'Users::listDeleted');
-$routes->get('Users/restoreUser/(:num)', 'Users::restoreUser/$1');
-$routes->get('Users/assignRoles/(:num)', 'Users::assignRoles/$1');
-$routes->match(['get', 'post'], 'Users/UpdateAssignRoles/(:num)', 'Users::UpdateAssignRoles/$1');
-$routes->get('Users/dashboard', 'Users::dashboard');
-$routes->post('Users/resetPassWord', 'Users::resetPassWord');
+$routes->get('users', 'Users::index');
+$routes->match(['get', 'post'], 'users/new', 'Users::new');
+$routes->match(['get', 'post'], 'users/create', 'Users::create');
+$routes->get('users/edit/(:num)', 'Users::edit/$1');
+$routes->match(['get', 'post'], 'users/update/(:num)', 'Users::update/$1');
+$routes->get('users/delete/(:num)', 'Users::delete/$1');
+$routes->get('users/listdeleted', 'Users::listDeleted');
+$routes->get('users/restoreuser/(:num)', 'Users::restoreUser/$1');
+$routes->get('users/assignroles/(:num)', 'Users::assignRoles/$1');
+$routes->match(['get', 'post'], 'users/UpdateAssignRoles/(:num)', 'Users::UpdateAssignRoles/$1');
+$routes->get('users/dashboard', 'Users::dashboard');
+$routes->post('users/resetpassword', 'Users::resetPassWord');
 
 // Login user
 $routes->post('login/create', 'Login::create');
@@ -97,12 +97,12 @@ $routes->get('login/admin', 'Login::admin');
 $routes->get('google-callback', 'Login::googleCallback');
 
 // Settings
-$routes->get('Settings', 'Settings::index');
-$routes->match(['get', 'post'], 'Settings/new', 'Settings::new');
-$routes->match(['get', 'post'], 'Settings/create', 'Settings::create');
-$routes->get('Settings/edit/(:num)', 'Settings::edit/$1');
-$routes->match(['get', 'post'], 'Settings/update/(:num)', 'Settings::update/$1');
-$routes->get('Settings/delete/(:num)', 'Settings::delete/$1');
+$routes->get('settings', 'Settings::index');
+$routes->match(['get', 'post'], 'settings/new', 'Settings::new');
+$routes->match(['get', 'post'], 'settings/create', 'Settings::create');
+$routes->get('settings/edit/(:num)', 'Settings::edit/$1');
+$routes->match(['get', 'post'], 'settings/update/(:num)', 'Settings::update/$1');
+$routes->get('settings/delete/(:num)', 'Settings::delete/$1');
 
 
 /*

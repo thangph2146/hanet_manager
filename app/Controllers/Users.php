@@ -117,7 +117,7 @@ class Users extends BaseController {
 
 		$this->model->delete($data->u_id);
 
-		return redirect()->to('/Users')
+		return redirect()->to('/users')
 						 ->with('info', 'Deleted thành công Users Id : ' . $data->u_id);
 
 	}
@@ -125,7 +125,7 @@ class Users extends BaseController {
 	public function listDeleted()
 	{
 		$data = $this->model->getAllUsersDeleted();
-		return view('users/listDeleted', ['data' => $data]);
+		return view('users/listdeleted', ['data' => $data]);
 	}
 
 	public function restoreUser($id)
@@ -135,7 +135,7 @@ class Users extends BaseController {
 		$data->u_deleted_at = NULL;
 
 		if ($this->model->protect(FALSE)->save($data)) {
-			return redirect()->to('/Users')
+			return redirect()->to('/users')
 							 ->with('info', 'User đã được restored thành công!');
 		}
 
@@ -199,7 +199,7 @@ class Users extends BaseController {
 						->whereIn('u_id', $post['u_id'])
 						->update();
 
-			return redirect()->to('/Users')
+			return redirect()->to('/users')
 							 ->with('info', 'User đã reset PassWord thành công!');
 		}
 		else {

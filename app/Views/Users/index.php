@@ -22,7 +22,7 @@
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
 				<a class="dropdown-item" href="<?= site_url('/users/new') ?>">Tạo User</a>
-				<a class="dropdown-item" href="<?= site_url('/users/listDeleted') ?>">List Deleted User</a>
+				<a class="dropdown-item" href="<?= site_url('/users/listdeleted') ?>">List Deleted User</a>
 			</div>
 		</div>
 	</div>
@@ -32,7 +32,7 @@
 
 <?= $this->section("content") ?>
 <div class="table-responsive">
-	<?= form_open("users/resetPassWord", ['class' => 'row g3']) ?>
+	<?= form_open("users/resetpassword", ['class' => 'row g3']) ?>
 	<div class="col-12 mb-3">
 		<button type="submit" class="btn btn-primary">ResetPassWord</button>
 	</div>

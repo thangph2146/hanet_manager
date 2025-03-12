@@ -31,7 +31,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<?= form_open("Settings/create", ['class' => 'row g3']) ?>
+<?= form_open("settings/create", ['class' => 'row g3']) ?>
 
 	<?= $this->include('Settings/form'); ?>
 

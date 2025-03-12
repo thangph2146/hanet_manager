@@ -14,9 +14,9 @@
 			<div class="menu-title">Quản lý Users</div>
 		</a>
 		<ul>
-			<li> <a href="<?= site_url('Users') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Users</a>
+			<li> <a href="<?= site_url('users') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Users</a>
 			</li>
-			<li> <a href="<?= site_url('users/listDeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Users bị xóa</a>
+			<li> <a href="<?= site_url('users/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Users bị xóa</a>
 			</li>
 			<li> <a href="<?= site_url('users/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm User mới</a>
 			</li>
@@ -59,9 +59,9 @@
 			<div class="menu-title">Quản lý Settings</div>
 		</a>
 		<ul>
-			<li> <a href="<?= site_url('Settings') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Settings</a>
+			<li> <a href="<?= site_url('settings') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Settings</a>
 			</li>
-			<li> <a href="<?= site_url('Settings/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Setting mới</a>
+			<li> <a href="<?= site_url('settings/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Setting mới</a>
 			</li>
 		</ul>
 	</li>

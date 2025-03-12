@@ -21,7 +21,7 @@
 			<button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">	<span class="visually-hidden">Toggle Dropdown</span>
 			</button>
 			<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
-				<a class="dropdown-item" href="<?= site_url('Settings/new') ?>">Tạo Setting</a>
+				<a class="dropdown-item" href="<?= site_url('settings/new') ?>">Tạo Setting</a>
 			</div>
 		</div>
 	</div>
@@ -52,7 +52,7 @@
 				$show->type,
 				$show->context,
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/Settings/edit/'.$show->id),
+					'url' => site_url('/settings/edit/'.$show->id),
 					'class' => 'btn btn-default',
 					'style' => '',
 					'js' => '',
@@ -61,7 +61,7 @@
 					'label' => ''
 				]) .
 				view_cell('\App\Libraries\MyButton::buttonEditDelete', [
-					'url' => site_url('/Settings/delete/'.$show->id),
+					'url' => site_url('/settings/delete/'.$show->id),
 					'class' => 'btn btn-default',
 					'style' => '',
 					'js' => 'onclick=' . '\'' . 'return confirm("Bạn thật sự muốn xóa Setting ' .$show->id . ' ? \nIt may cause errors where it is currently being used !!")' . '\'',
