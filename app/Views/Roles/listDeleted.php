@@ -47,21 +47,21 @@
 		'heading_cell_start' => '<th class="all">',
 	];
 
-	$table->setCaption('Danh Sách Permissions')->setTemplate($template);
-	$table->setHeading(['ID', 'Tên Code', 'Tên Hiển thị', 'Mô tả ngắn', 'Trạng thái', 'Actions']);
+	$table->setCaption('Danh Sách Roles')->setTemplate($template);
+	$table->setHeading(['ID', 'Tên Role', 'Ngày xóa', 'Trạng thái', 'Actions']);
 	if (count($data) > 0) {
 		foreach ($data as $show) {
 			$table->addRow([
-				$show->p_id,
-				$show->p_name,
-				$show->p_display_name,
-				$show->p_description,
-				($show->p_status == 1) ? view_cell('\App\Libraries\MyButton::iconChecked', [
+				$show->r_id,
+				$show->r_name,
+				$show->r_deleted_at,
+				($show->r_status == 1) ? view_cell('\App\Libraries\MyButton::iconChecked', [
 					'label' => ''
 				]) : '',
 				view_cell('\App\Libraries\MyButton::iconRestored', [
-					'url' => site_url('/Permissions/restorePermission/'.$show->p_id)
+					'url' => site_url('/roles/restorerole/'.$show->r_id)
 				])
+
 			]);
 		}
 	}
