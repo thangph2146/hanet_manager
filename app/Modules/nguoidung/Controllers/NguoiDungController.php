@@ -41,35 +41,86 @@ class NguoiDungController extends BaseController
             'AccountId' => 'required|min_length[3]|is_unique[nguoi_dung.AccountId]',
             'FullName'  => 'required|min_length[3]',
             'password'  => 'required|min_length[6]',
-            'email'     => 'permit_empty|valid_email|is_unique[nguoi_dung.Email]'
+            'Email'     => 'permit_empty|valid_email|is_unique[nguoi_dung.Email]',
+            'FirstName' => 'permit_empty|min_length[2]',
+            'AccountType' => 'permit_empty',
+            'MobilePhone' => 'permit_empty|min_length[10]',
+            'HomePhone' => 'permit_empty',
+            'HomePhone1' => 'permit_empty',
+            'loai_nguoi_dung_id' => 'permit_empty|numeric',
+            'nam_hoc_id' => 'permit_empty|numeric',
+            'bac_hoc_id' => 'permit_empty|numeric',
+            'he_dao_tao_id' => 'permit_empty|numeric',
+            'nganh_id' => 'permit_empty|numeric',
+            'phong_khoa_id' => 'permit_empty|numeric'
         ];
 
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        // Chuẩn bị dữ liệu
-        $data = [
-            'AccountId' => $this->request->getPost('AccountId'),
-            'FullName'  => $this->request->getPost('FullName'),
-            'Email'     => $this->request->getPost('email'),
-            'PW'        => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
-            'status'    => 1,
-            'bin'       => 0,
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
-        ];
-
-        // Thêm người dùng mới
         try {
-            if ($this->model->insertRecord($data)) {
-                return redirect()->to('/nguoidung')->with('message', 'Tạo người dùng mới thành công');
+            // Chuẩn bị dữ liệu cơ bản
+            $data = [
+                'AccountId' => $this->request->getPost('AccountId'),
+                'FirstName' => $this->request->getPost('FirstName'),
+                'AccountType' => $this->request->getPost('AccountType'),
+                'FullName' => $this->request->getPost('FullName'),
+                'MobilePhone' => $this->request->getPost('MobilePhone'),
+                'Email' => $this->request->getPost('Email'),
+                'HomePhone1' => $this->request->getPost('HomePhone1'),
+                'HomePhone' => $this->request->getPost('HomePhone'),
+                'PW' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
+                'mat_khau_local' => $this->request->getPost('mat_khau_local'),
+                'status' => 1,
+                'bin' => 0
+            ];
+
+            // Thêm các trường ID tham chiếu
+            $referenceFields = [
+                'loai_nguoi_dung_id',
+                'nam_hoc_id',
+                'bac_hoc_id',
+                'he_dao_tao_id',
+                'nganh_id',
+                'phong_khoa_id'
+            ];
+
+            foreach ($referenceFields as $field) {
+                $value = $this->request->getPost($field);
+                if (!empty($value)) {
+                    $data[$field] = (int)$value;
+                }
             }
+
+            // Thêm thời gian
+            $now = date('Y-m-d H:i:s');
+            $data['created_at'] = $now;
+            $data['updated_at'] = $now;
+
+            // Bắt đầu transaction
+            $this->model->db->transBegin();
+
+            if ($this->model->insertRecord($data)) {
+                $this->model->db->transCommit();
+                return redirect()->to('/nguoidung')
+                               ->with('message', 'Tạo người dùng mới thành công');
+            }
+
+            $this->model->db->transRollback();
+            return redirect()->back()
+                           ->withInput()
+                           ->with('error', 'Không thể tạo người dùng. Vui lòng thử lại.');
+
         } catch (\Exception $e) {
+            $this->model->db->transRollback();
             log_message('error', 'Error creating user: ' . $e->getMessage());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            
+            return redirect()->back()
+                           ->withInput()
+                           ->with('error', 'Có lỗi xảy ra khi tạo người dùng');
         }
-        
-        return redirect()->back()->withInput()->with('error', 'Có lỗi xảy ra khi tạo người dùng');
     }
 
     public function edit($id)
