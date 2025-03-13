@@ -74,13 +74,13 @@ class NguoiDungController extends BaseController
 
     public function edit($id)
     {
-        $data['user'] = $this->model->getUserById($id);
+        $data['user'] = $this->model->find($id);
 
         if (!$data['user']) {
             return redirect()->to('/nguoidung')->with('error', 'Không tìm thấy người dùng.');
         }
 
-        return view('nguoidung/edit', $data);
+        return view('App\Modules\nguoidung\Views\edit', $data);
     }
 
     public function update($id)
@@ -163,4 +163,23 @@ class NguoiDungController extends BaseController
 
         return redirect()->back()->with('error', 'Không thể xóa vĩnh viễn.');
     }
+
+    public function resetPassWord()
+	{
+		$post = $this->request->getPost();
+
+		if ($post) {
+			$u_password_hash = password_hash(service('settings')->get('Config\App.resetPassWord'), PASSWORD_DEFAULT);
+			$this->model->set('PW', $u_password_hash)
+						->whereIn('id', $post['id'])
+						->update();
+
+			return redirect()->to('/nguoidung')
+							 ->with('info', 'Người dùng đã reset PassWord thành công!');
+		}
+		else {
+			return redirect()->back()
+							 ->with('warning', 'Bạn vui lòng chọn Người dùng để reset PassWord');
+		}
+	}
 }
