@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\nguoidung\Libraries;
+namespace App\Modules\account\Libraries;
 
-use App\Modules\nguoidung\Models\NguoiDungModel;
-use App\Modules\nguoidung\Entities\NguoiDungEntity;
+use App\Modules\account\Models\AccountModel;
+use App\Modules\account\Entities\AccountEntity;
 
-class GoogleAuthNguoiDung
+class GoogleAuthAccount
 {
     private $clientID;
     private $clientSecret;
@@ -13,11 +13,8 @@ class GoogleAuthNguoiDung
 
     public function __construct()
     {
-        // Tải helper setting
         helper('setting');
-        
-        // Tải helper session cho module nguoidung
-        helper('App\Modules\nguoidung\Helpers\session');
+        helper('App\Modules\account\Helpers\session');
         
         $this->clientID = setting('App.GOOGLE_CLIENT_ID');
         $this->clientSecret = setting('App.GOOGLE_CLIENT_SECRET');
@@ -160,7 +157,7 @@ class GoogleAuthNguoiDung
      */
     public function loginWithGoogle($googleUser)
     {
-        $model = new NguoiDungModel();
+        $model = new AccountModel();
         
         // Tìm người dùng theo email
         $user = $model->where('Email', $googleUser['email'])->first();
@@ -196,7 +193,7 @@ class GoogleAuthNguoiDung
         }
         
         // Sử dụng session tùy chỉnh thay vì session mặc định
-        nguoidung_session()->regenerate();
+        account_session()->regenerate();
         
         // Lưu thông tin người dùng vào session
         $userData = [
@@ -208,7 +205,7 @@ class GoogleAuthNguoiDung
             'login_method' => 'google',
         ];
         
-        nguoidung_session_set('logged_user', $userData);
+        account_session_set('logged_user', $userData);
         
         return true;
     }

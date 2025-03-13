@@ -81,18 +81,30 @@ class Authentication {
 
 	public function has_permission($permission)
 	{
-		return in_array($permission, array_column($this->getCurrentUser(), 'p_name'));
+		$user = $this->getCurrentUser();
+		if ($user === null) {
+			return false;
+		}
+		return in_array($permission, array_column($user, 'p_name'));
 	}
 
 	public function getFullName()
 	{
-		$fullName = array_column($this->getCurrentUser(), 'u_FullName');
-		return $fullName[0];
+		$user = $this->getCurrentUser();
+		if ($user === null) {
+			return '';
+		}
+		$fullName = array_column($user, 'u_FullName');
+		return $fullName[0] ?? '';
 	}
 
 	public function getFullRole()
 	{
-		$fullRole = array_unique(array_column($this->getCurrentUser(), 'r_name'));
+		$user = $this->getCurrentUser();
+		if ($user === null) {
+			return '';
+		}
+		$fullRole = array_unique(array_column($user, 'r_name'));
 		$role = '';
 		foreach ($fullRole as $item)
 		{

@@ -3,19 +3,19 @@
  * Helper session cho module nguoidung
  */
 
-if (!function_exists('nguoidung_session')) {
+if (!function_exists('account_session')) {
     /**
      * Lấy đối tượng session
      *
      * @return \CodeIgniter\Session\Session
      */
-    function nguoidung_session()
+    function account_session()
     {
         return session();
     }
 }
 
-if (!function_exists('nguoidung_session_set')) {
+    if (!function_exists('account_session_set')) {
     /**
      * Đặt giá trị vào session
      *
@@ -23,65 +23,65 @@ if (!function_exists('nguoidung_session_set')) {
      * @param mixed $value
      * @return void
      */
-    function nguoidung_session_set($key, $value)
+    function account_session_set($key, $value)
     {
-        nguoidung_session()->set($key, $value);
+        account_session()->set($key, $value);
     }
 }
 
-if (!function_exists('nguoidung_session_get')) {
+if (!function_exists('account_session_get')) {
     /**
      * Lấy giá trị từ session
      *
      * @param string $key
      * @return mixed
      */
-    function nguoidung_session_get($key)
+    function account_session_get($key)
     {
-        return nguoidung_session()->get($key);
+        return account_session()->get($key);
     }
 }
 
-if (!function_exists('nguoidung_session_has')) {
+if (!function_exists('account_session_has')) {
     /**
      * Kiểm tra xem session có chứa key không
      *
      * @param string $key
      * @return boolean
      */
-    function nguoidung_session_has($key)
+    function account_session_has($key)
     {
-        return nguoidung_session()->has($key);
+        return account_session()->has($key);
     }
 }
 
-if (!function_exists('nguoidung_session_remove')) {
+if (!function_exists('account_session_remove')) {
     /**
      * Xóa giá trị khỏi session
      *
      * @param string $key
      * @return void
      */
-    function nguoidung_session_remove($key)
+    function account_session_remove($key)
     {
-        nguoidung_session()->remove($key);
+        account_session()->remove($key);
     }
 }
 
-if (!function_exists('nguoidung_is_logged_in')) {
+if (!function_exists('account_is_logged_in')) {
     /**
      * Kiểm tra xem người dùng đã đăng nhập chưa
      *
      * @return boolean
      */
-    function nguoidung_is_logged_in()
+    function account_is_logged_in()
     {
-        $userData = nguoidung_session_get('logged_user');
+        $userData = account_session_get('logged_user');
         return !empty($userData) && isset($userData['logged_in']) && $userData['logged_in'] === true;
     }
 }
 
-if (!function_exists('nguoidung_logout')) {
+if (!function_exists('account_logout')) {
     /**
      * Đăng xuất người dùng
      *
@@ -89,12 +89,12 @@ if (!function_exists('nguoidung_logout')) {
      */
     function nguoidung_logout()
     {
-        nguoidung_session_remove('logged_user');
-        nguoidung_session()->destroy();
+        account_session_remove('logged_user');
+        account_session()->destroy();
     }
 }
 
-if (!function_exists('nguoidung_set_remember_cookie')) {
+if (!function_exists('account_set_remember_cookie')) {
     /**
      * Đặt cookie nhớ đăng nhập
      *
@@ -102,14 +102,14 @@ if (!function_exists('nguoidung_set_remember_cookie')) {
      * @param string $token
      * @return void
      */
-    function nguoidung_set_remember_cookie($userId, $token)
+    function account_set_remember_cookie($userId, $token)
     {
         $expiration = time() + (86400 * 30); // 30 ngày
-        set_cookie('nguoidung_remember', $userId . ':' . $token, $expiration);
+        set_cookie('account_remember', $userId . ':' . $token, $expiration);
     }
 }
 
-if (!function_exists('nguoidung_get_remember_cookie')) {
+if (!function_exists('account_get_remember_cookie')) {
     /**
      * Lấy thông tin từ cookie nhớ đăng nhập
      *
@@ -117,7 +117,7 @@ if (!function_exists('nguoidung_get_remember_cookie')) {
      */
     function nguoidung_get_remember_cookie()
     {
-        $cookie = get_cookie('nguoidung_remember');
+        $cookie = get_cookie('account_remember');
         
         if (empty($cookie)) {
             return null;
@@ -136,7 +136,7 @@ if (!function_exists('nguoidung_get_remember_cookie')) {
     }
 }
 
-if (!function_exists('nguoidung_clear_remember_cookie')) {
+if (!function_exists('account_clear_remember_cookie')) {
     /**
      * Xóa cookie nhớ đăng nhập
      *
@@ -144,6 +144,6 @@ if (!function_exists('nguoidung_clear_remember_cookie')) {
      */
     function nguoidung_clear_remember_cookie()
     {
-        delete_cookie('nguoidung_remember');
+        delete_cookie('account_remember');
     }
 } 

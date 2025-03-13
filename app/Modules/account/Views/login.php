@@ -400,11 +400,11 @@
 	<div class="row mt-4">
 		<div class="col-xl-12 mx-auto">
 			<!-- warning -->
-			<?php helper('App\Modules\nguoidung\Helpers\session'); ?>
-			<?php if (nguoidung_session_has('warning')) : ?>
+			<?php helper('App\Modules\account\Helpers\session'); ?>
+			<?php if (account_session_has('warning')) : ?>
 				<div class="container">
 					<div class="alert alert-warning">
-						<i class="fas fa-exclamation-triangle me-2"></i><?= nguoidung_session_get('warning') ?>
+						<i class="fas fa-exclamation-triangle me-2"></i><?= account_session_get('warning') ?>
 					</div>
 				</div>
 			<?php endif; ?>
@@ -436,15 +436,15 @@
 									<hr/>
 								</div>
 								<div class="form-body">
-									<form action="<?= base_url('nguoidung/login/authenticate') ?>" method="post" class="row g-3">
+									<form action="<?= base_url('account/login/authenticate') ?>" method="post" class="row g-3">
 										<?= csrf_field() ?>
 										<div class="row">
 											<div class="col-xl-12 mx-auto">
 												<!--Error list -->
-												<?php if (nguoidung_session_has('errors')) : ?>
+												<?php if (account_session_has('errors')) : ?>
 													<div class="alert alert-danger">
 														<ul class="mb-0">
-															<?php foreach (nguoidung_session_get('errors') as $error) : ?>
+															<?php foreach (account_session_get('errors') as $error) : ?>
 																<li><?= $error ?></li>
 															<?php endforeach; ?>
 														</ul>
@@ -471,7 +471,7 @@
 											</div>
 										</div>
 										<div class="col-md-6 text-end">	
-											<a href="<?= site_url("nguoidung/forgot-password") ?>" class="text-primary">Quên mật khẩu?</a>
+											<a href="<?= site_url("account/forgot-password") ?>" class="text-primary">Quên mật khẩu?</a>
 										</div>
 										<div class="col-12">
 											<div class="d-grid">

@@ -4,15 +4,15 @@
  * AUTHOR:PDV-PC
  */
 
-namespace App\Modules\nguoidung\Libraries;
+namespace App\Modules\account\Libraries;
 
-use App\Modules\nguoidung\Models\NguoiDungModel;
-use App\Modules\nguoidung\Entities\NguoiDungEntity;
+use App\Modules\account\Models\AccountModel;
+use App\Modules\account\Entities\AccountEntity;
 
-class AuthenticationNguoiDung {
+class AuthenticationAccount {
 
 	/**
-	 * @var NguoiDungEntity|null
+	 * @var AccountEntity|null
 	 */
 	private $user;
 
@@ -25,7 +25,7 @@ class AuthenticationNguoiDung {
 	 */
 	public function login($email, $password)
 	{
-		$model = new NguoiDungModel();
+		$model = new AccountModel();
 
 		// Sử dụng phương thức authenticate từ model
 		$user = $model->authenticate($email, $password);
@@ -42,16 +42,16 @@ class AuthenticationNguoiDung {
 	/**
 	 * Lưu thông tin người dùng vào session
 	 *
-	 * @param NguoiDungEntity $user
+	 * @param AccountEntity $user
 	 * @return void
 	 */
 	private function logInUser($user)
 	{
 		// Tải helper session
-		helper('App\Modules\nguoidung\Helpers\session');
+		helper('App\Modules\account\Helpers\session');
 		
 		// Sử dụng session tùy chỉnh thay vì session mặc định
-		nguoidung_session()->regenerate();
+		account_session()->regenerate();
 		
 		// Lưu thông tin người dùng vào session
 		$userData = [
@@ -62,26 +62,26 @@ class AuthenticationNguoiDung {
             'logged_in' => true,
         ];
 		
-		nguoidung_session_set('logged_user', $userData);
+		account_session_set('logged_user', $userData);
 	}
 
 	/**
 	 * Lấy thông tin người dùng từ session
 	 *
-	 * @return NguoiDungEntity|null
+	 * @return AccountEntity|null
 	 */
 	private function getUserFromSession()
 	{
 		// Tải helper session
-		helper('App\Modules\nguoidung\Helpers\session');
+		helper('App\Modules\account\Helpers\session');
 		
 		// Kiểm tra xem người dùng đã đăng nhập chưa
-		if (!nguoidung_session_has('logged_user')) {
+		if (!account_session_has('logged_user')) {
 			return null;
 		}
 
-		$model = new NguoiDungModel();
-		$userData = nguoidung_session_get('logged_user');
+		$model = new AccountModel();
+		$userData = account_session_get('logged_user');
 		
 		// Tìm người dùng theo ID
 		$user = $model->find($userData['id']);
@@ -96,7 +96,7 @@ class AuthenticationNguoiDung {
 	/**
 	 * Lấy thông tin người dùng hiện tại
 	 *
-	 * @return NguoiDungEntity|null
+	 * @return AccountEntity|null
 	 */
 	public function getCurrentUser()
 	{
@@ -157,10 +157,10 @@ class AuthenticationNguoiDung {
 	public function logout()
 	{
 		// Tải helper session
-		helper('App\Modules\nguoidung\Helpers\session');
+		helper('App\Modules\account\Helpers\session');
 		
 		// Sử dụng hàm đăng xuất từ helper
-		nguoidung_logout();
+		account_logout();
 	}
 
 	/**
@@ -171,9 +171,9 @@ class AuthenticationNguoiDung {
 	public function isLoggedInUser()
 	{
 		// Tải helper session
-		helper('App\Modules\nguoidung\Helpers\session');
+		helper('App\Modules\account\Helpers\session');
 		
 		// Sử dụng hàm kiểm tra đăng nhập từ helper
-		return nguoidung_is_logged_in();
+		return account_is_logged_in();
 	}
 }

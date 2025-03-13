@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\nguoidung\Controllers;
+namespace App\Modules\account\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\nguoidung\Models\NguoiDungModel;
-use App\Modules\nguoidung\Libraries\AuthenticationNguoiDung;
-use App\Modules\nguoidung\Libraries\GoogleAuthNguoiDung;
+use App\Modules\account\Models\AccountModel;
+use App\Modules\account\Libraries\AuthenticationAccount;
+use App\Modules\account\Libraries\GoogleAuthAccount;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class Login extends BaseController
@@ -16,12 +16,12 @@ class Login extends BaseController
 
     public function __construct()
     {
-        $this->loginModel = new NguoiDungModel();
-        $this->auth = new AuthenticationNguoiDung();
-        $this->googleAuth = new GoogleAuthNguoiDung();
+        $this->loginModel = new AccountModel();
+        $this->auth = new AuthenticationAccount();
+        $this->googleAuth = new GoogleAuthAccount();
         
         // Tải helper session
-        helper('App\Modules\nguoidung\Helpers\session');
+        helper('App\Modules\account\Helpers\session');
     }
 
     /**
@@ -30,14 +30,14 @@ class Login extends BaseController
     public function index()
     {
         // Nếu đã đăng nhập, chuyển hướng đến trang chủ
-        if (nguoidung_is_logged_in()) {
-            return redirect()->to(base_url('nguoidung/dashboard'));
+        if (account_is_logged_in()) {
+            return redirect()->to(base_url('account'));
         }
 
         // Lấy URL đăng nhập Google
         $googleAuthUrl = $this->googleAuth->getAuthUrl();
 
-        return view('App\Modules\nguoidung\Views\login', [
+        return view('App\Modules\account\Views\login', [
             'googleAuthUrl' => $googleAuthUrl
         ]);
     }
@@ -64,7 +64,7 @@ class Login extends BaseController
         ];
 
         if (!$this->validate($rules, $messages)) {
-            nguoidung_session_set('errors', $this->validator->getErrors());
+            account_session_set('errors', $this->validator->getErrors());
             return redirect()->back()->withInput();
         }
 
@@ -78,19 +78,19 @@ class Login extends BaseController
                 $token = bin2hex(random_bytes(32));
                 // Lưu token vào cơ sở dữ liệu hoặc cache (nếu cần)
                 // $this->loginModel->saveRememberToken($user->id, $token);
-                nguoidung_set_remember_cookie($this->auth->getCurrentUser()->id, $token);
+                account_set_remember_cookie($this->auth->getCurrentUser()->id, $token);
             }
 
             // Chuyển hướng đến trang chủ hoặc trang được yêu cầu trước đó
-            $redirect_url = nguoidung_session_get('redirect_url') ?? base_url('nguoidung/dashboard');
-            nguoidung_session_remove('redirect_url');
+            $redirect_url = account_session_get('redirect_url') ?? base_url('account/dashboard');
+            account_session_remove('redirect_url');
 
-            nguoidung_session_set('info', 'Bạn đã đăng nhập thành công!');
+            account_session_set('info', 'Bạn đã đăng nhập thành công!');
             
             return redirect()->to($redirect_url)
                              ->withCookies();
         } else {
-            nguoidung_session_set('warning', 'Email hoặc mật khẩu không đúng');
+            account_session_set('warning', 'Email hoặc mật khẩu không đúng');
             return redirect()->back()->withInput();
         }
     }
@@ -104,10 +104,10 @@ class Login extends BaseController
         $this->auth->logout();
         
         // Sử dụng session tùy chỉnh thay vì session mặc định
-        nguoidung_session_set('info', 'Bạn đã đăng xuất thành công!');
+        account_session_set('info', 'Bạn đã đăng xuất thành công!');
         
         // Chuyển hướng đến trang đăng nhập
-        return redirect()->to(base_url('nguoidung/login'));
+        return redirect()->to(base_url('account/login'));
     }
 
     /**
@@ -116,14 +116,14 @@ class Login extends BaseController
     public function google()
     {
         // Nếu đã đăng nhập, chuyển hướng đến trang chủ
-        if (nguoidung_is_logged_in()) {
-            return redirect()->to(base_url('nguoidung/dashboard'));
+        if (account_is_logged_in()) {
+            return redirect()->to(base_url('account/dashboard'));
         }
 
         // Lấy URL đăng nhập Google
         $googleAuthUrl = $this->googleAuth->getAuthUrl();
         
-        return view('App\Modules\nguoidung\Views\login_google', [
+        return view('App\Modules\account\Views\login_google', [
             'googleAuthUrl' => $googleAuthUrl
         ]);
     }
@@ -137,28 +137,28 @@ class Login extends BaseController
         $code = $this->request->getGet('code');
         
         if (empty($code)) {
-            nguoidung_session_set('warning', 'Không thể xác thực với Google!');
-            return redirect()->to('nguoidung/login');
+            account_session_set('warning', 'Không thể xác thực với Google!');
+            return redirect()->to('account/login');
         }
         
         // Xử lý code để lấy thông tin người dùng
         $googleUser = $this->googleAuth->handleCallback($code);
         
         if (empty($googleUser)) {
-            nguoidung_session_set('warning', 'Không thể lấy thông tin từ Google!');
-            return redirect()->to('nguoidung/login');
+            account_session_set('warning', 'Không thể lấy thông tin từ Google!');
+            return redirect()->to('account/login');
         }
         
         // Đăng nhập người dùng
         if ($this->googleAuth->loginWithGoogle($googleUser)) {
-            $redirect_url = nguoidung_session_get('redirect_url') ?? 'nguoidung/dashboard';
-            nguoidung_session_remove('redirect_url');
+            $redirect_url = account_session_get('redirect_url') ?? 'account/dashboard';
+            account_session_remove('redirect_url');
             
-            nguoidung_session_set('info', 'Bạn đã đăng nhập thành công với Google!');
+            account_session_set('info', 'Bạn đã đăng nhập thành công với Google!');
             return redirect()->to($redirect_url);
         } else {
-            nguoidung_session_set('warning', 'Đăng nhập với Google không thành công!');
-            return redirect()->to('nguoidung/login');
+            account_session_set('warning', 'Đăng nhập với Google không thành công!');
+            return redirect()->to('account/login');
         }
     }
 } 

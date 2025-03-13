@@ -26,7 +26,6 @@ class Filters extends BaseConfig
 		'loginUser'    		=> \App\Filters\LoginUserFilter::class,
 		'guestUser' 		=> \App\Filters\GuestUserFilter::class,
 		'manager' 		=> \App\Filters\ManagerFilter::class,
-        'LowercaseURL'  => \App\Filters\LowercaseURL::class
     ];
 
     /**
@@ -39,7 +38,6 @@ class Filters extends BaseConfig
         'before' => [
             // 'honeypot',
 			'csrf' => ['except' => []],
-            'LowercaseURL'
         ],
         'after' => [
             'toolbar',

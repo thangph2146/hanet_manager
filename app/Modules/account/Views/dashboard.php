@@ -41,21 +41,21 @@
             <!--navigation-->
             <ul class="metismenu" id="menu">
                 <li>
-                    <a href="<?= base_url('nguoidung/dashboard') ?>">
+                    <a href="<?= base_url('account/dashboard') ?>">
                         <div class="parent-icon"><i class='bx bx-home-circle'></i>
                         </div>
                         <div class="menu-title">Dashboard</div>
                     </a>
                 </li>
                 <li>
-                    <a href="<?= base_url('nguoidung/dashboard/profile') ?>">
+                    <a href="<?= base_url('account/dashboard/profile') ?>">
                         <div class="parent-icon"><i class='bx bx-user'></i>
                         </div>
                         <div class="menu-title">Thông tin cá nhân</div>
                     </a>
                 </li>
                 <li>
-                    <a href="<?= base_url('nguoidung/dashboard/change-password') ?>">
+                    <a href="<?= base_url('account/dashboard/change-password') ?>">
                         <div class="parent-icon"><i class='bx bx-lock'></i>
                         </div>
                         <div class="menu-title">Đổi mật khẩu</div>
@@ -101,14 +101,14 @@
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="<?= base_url('nguoidung/dashboard/profile') ?>"><i class="bx bx-user"></i><span>Thông tin cá nhân</span></a>
+                            <li><a class="dropdown-item" href="<?= base_url('account/dashboard/profile') ?>"><i class="bx bx-user"></i><span>Thông tin cá nhân</span></a>
                             </li>
-                            <li><a class="dropdown-item" href="<?= base_url('nguoidung/dashboard/change-password') ?>"><i class="bx bx-lock"></i><span>Đổi mật khẩu</span></a>
+                            <li><a class="dropdown-item" href="<?= base_url('account/dashboard/change-password') ?>"><i class="bx bx-lock"></i><span>Đổi mật khẩu</span></a>
                             </li>
                             <li>
                                 <div class="dropdown-divider mb-0"></div>
                             </li>
-                            <li><a class="dropdown-item" href="<?= base_url('nguoidung/logout') ?>"><i class='bx bx-log-out-circle'></i><span>Đăng xuất</span></a>
+                            <li><a class="dropdown-item" href="<?= base_url('account/logout') ?>"><i class='bx bx-log-out-circle'></i><span>Đăng xuất</span></a>
                             </li>
                         </ul>
                     </div>
@@ -120,30 +120,30 @@
         <!--start page wrapper -->
         <div class="page-wrapper">
             <div class="page-content">
-                <?php if (nguoidung_session_has('success')): ?>
+                <?php if (account_session_has('success')): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <?= nguoidung_session_get('success') ?>
+                        <?= account_session_get('success') ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
                 
-                <?php if (nguoidung_session_has('error')): ?>
+                <?php if (account_session_has('error')): ?>
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <?= nguoidung_session_get('error') ?>
+                        <?= account_session_get('error') ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
                 
-                <?php if (nguoidung_session_has('warning')): ?>
+                <?php if (account_session_has('warning')): ?>
                     <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                        <?= nguoidung_session_get('warning') ?>
+                        <?= account_session_get('warning') ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
                 
-                <?php if (nguoidung_session_has('info')): ?>
+                <?php if (account_session_has('info')): ?>
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
-                        <?= nguoidung_session_get('info') ?>
+                        <?= account_session_get('info') ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>

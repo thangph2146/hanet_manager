@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\nguoidung\Controllers;
+namespace App\Modules\account\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\nguoidung\Models\NguoiDungModel;
-use App\Modules\nguoidung\Libraries\GoogleAuthNguoiDung;
+use App\Modules\account\Models\NguoiDungModel;
+use App\Modules\account\Libraries\GoogleAuthNguoiDung;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class LoginGoogle extends BaseController
@@ -18,7 +18,7 @@ class LoginGoogle extends BaseController
         $this->nguoiDungModel = new NguoiDungModel();
         
         // Tải helper session
-        helper('App\Modules\nguoidung\Helpers\session');
+        helper('App\Modules\account\Helpers\session');
     }
 
     /**
@@ -28,13 +28,13 @@ class LoginGoogle extends BaseController
     {
         // Nếu đã đăng nhập, chuyển hướng đến trang chủ
         if (nguoidung_is_logged_in()) {
-            return redirect()->to(base_url('nguoidung/dashboard'));
+            return redirect()->to(base_url('account/dashboard'));
         }
 
         // Lấy URL đăng nhập Google
         $googleAuthUrl = $this->googleAuth->getAuthUrl();
         
-        return view('App\Modules\nguoidung\Views\login_google', [
+        return view('App\Modules\account\Views\login_google', [
             'googleAuthUrl' => $googleAuthUrl
         ]);
     }
@@ -49,7 +49,7 @@ class LoginGoogle extends BaseController
         
         if (empty($code)) {
             nguoidung_session_set('warning', 'Không thể xác thực với Google!');
-            return redirect()->to('nguoidung/login');
+            return redirect()->to('account/login');
         }
         
         // Xử lý code để lấy thông tin người dùng
@@ -57,7 +57,7 @@ class LoginGoogle extends BaseController
         
         if (empty($googleUser)) {
             nguoidung_session_set('warning', 'Không thể lấy thông tin từ Google!');
-            return redirect()->to('nguoidung/login');
+            return redirect()->to('account/login');
         }
         
         // Kiểm tra xem người dùng đã tồn tại trong hệ thống chưa
@@ -84,7 +84,7 @@ class LoginGoogle extends BaseController
                 
                 if (!$userId) {
                     nguoidung_session_set('warning', 'Không thể tạo tài khoản mới!');
-                    return redirect()->to('nguoidung/login');
+                    return redirect()->to('account/login');
                 }
                 
                 // Lấy thông tin người dùng vừa tạo
@@ -92,20 +92,20 @@ class LoginGoogle extends BaseController
             } catch (\Exception $e) {
                 log_message('error', 'Google Login Error: ' . $e->getMessage());
                 nguoidung_session_set('warning', 'Không thể tạo tài khoản mới: ' . $e->getMessage());
-                return redirect()->to('nguoidung/login');
+                return redirect()->to('account/login');
             }
         }
         
         // Đăng nhập người dùng
         if ($this->googleAuth->loginWithGoogle($googleUser)) {
-            $redirect_url = nguoidung_session_get('redirect_url') ?? 'nguoidung/dashboard';
+            $redirect_url = nguoidung_session_get('redirect_url') ?? 'account/dashboard';
             nguoidung_session_remove('redirect_url');
             
             nguoidung_session_set('info', 'Bạn đã đăng nhập thành công với Google!');
             return redirect()->to($redirect_url);
         } else {
             nguoidung_session_set('warning', 'Đăng nhập với Google không thành công!');
-            return redirect()->to('nguoidung/login');
+            return redirect()->to('account/login');
         }
     }
 } 
