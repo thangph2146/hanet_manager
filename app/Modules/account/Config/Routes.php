@@ -9,6 +9,9 @@ $routes->group('account', ['namespace' => 'App\Modules\account\Controllers'], fu
     $routes->post('login/authenticate', 'Login::authenticate');
     $routes->get('logout', 'Login::logout');
 
+    // Google login routes
+    $routes->get('login/google', 'LoginGoogle::index');
+    $routes->get('login/google/callback', 'LoginGoogle::googleCallback');
 
     // dashboard
     $routes->get('dashboard', 'Dashboard::index');

@@ -56,32 +56,19 @@ class GoogleAuthAccount
             return null;
         }
 
-        try {
-            // Lấy token từ code
-            $token = $this->getAccessToken($code);
-            
-            if (empty($token) || empty($token['access_token'])) {
-                return null;
-            }
-            
-            // Lấy thông tin người dùng từ token
-            $userInfo = $this->getUserInfo($token['access_token']);
-            
-            if (empty($userInfo)) {
-                return null;
-            }
-            
-            return $userInfo;
-        } catch (\Exception $e) {
-            log_message('error', 'Google Authentication Error: ' . $e->getMessage());
+        $token = $this->getAccessToken($code);
+        if ($token === null) {
             return null;
         }
+
+        return $this->getUserInfo($token);
     }
-    
+
     /**
-     * Lấy access token từ code
-     * @param string $code Code từ Google callback
-     * @return array|null Token từ Google
+     * Lấy access token từ Google
+     *
+     * @param string $code
+     * @return string|null
      */
     private function getAccessToken($code)
     {
@@ -110,13 +97,15 @@ class GoogleAuthAccount
             return null;
         }
         
-        return json_decode($result, true);
+        $response = json_decode($result, true);
+        return $response['access_token'] ?? null;
     }
-    
+
     /**
-     * Lấy thông tin người dùng từ access token
-     * @param string $accessToken Access token từ Google
-     * @return array|null Thông tin người dùng Google
+     * Lấy thông tin người dùng từ Google
+     *
+     * @param string $accessToken
+     * @return array|null
      */
     private function getUserInfo($accessToken)
     {
@@ -138,14 +127,12 @@ class GoogleAuthAccount
         
         $userInfo = json_decode($result, true);
         
-        // Chuyển đổi định dạng để phù hợp với cấu trúc cũ
         return [
-            'id' => $userInfo['sub'] ?? '',
             'email' => $userInfo['email'] ?? '',
             'name' => $userInfo['name'] ?? '',
-            'picture' => $userInfo['picture'] ?? '',
             'given_name' => $userInfo['given_name'] ?? '',
             'family_name' => $userInfo['family_name'] ?? '',
+            'picture' => $userInfo['picture'] ?? '',
         ];
     }
 
@@ -160,36 +147,18 @@ class GoogleAuthAccount
         $model = new AccountModel();
         
         // Tìm người dùng theo email
-        $user = $model->where('Email', $googleUser['email'])->first();
+        $user = $model->findByEmail($googleUser['email']);
         
         if ($user === null) {
-            // Tạo người dùng mới từ thông tin Google
-            $userData = [
-                'AccountId' => explode('@', $googleUser['email'])[0], // Tạo AccountId từ email
-                'Email' => $googleUser['email'],
-                'FullName' => $googleUser['name'],
-                'FirstName' => $googleUser['given_name'],
-                'status' => 1, // Kích hoạt tài khoản
-                'PW' => password_hash(bin2hex(random_bytes(8)), PASSWORD_DEFAULT), // Tạo mật khẩu ngẫu nhiên
-                'loai_nguoi_dung_id' => 2, // Loại người dùng mặc định
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s')
-            ];
-            
-            // Thử tạo người dùng mới
-            try {
-                $userId = $model->insert($userData);
-                
-                if (!$userId) {
-                    return false;
-                }
-                
-                // Lấy thông tin người dùng vừa tạo
-                $user = $model->find($userId);
-            } catch (\Exception $e) {
-                log_message('error', 'Google Login Error: ' . $e->getMessage());
-                return false;
-            }
+            // Không cho phép tạo tài khoản mới từ Google
+            log_message('error', 'Google Login Error: Email ' . $googleUser['email'] . ' không tồn tại trong hệ thống');
+            return false;
+        }
+        
+        // Kiểm tra trạng thái tài khoản
+        if (!$user->isActive()) {
+            log_message('error', 'Google Login Error: Tài khoản ' . $googleUser['email'] . ' đã bị vô hiệu hóa');
+            return false;
         }
         
         // Sử dụng session tùy chỉnh thay vì session mặc định

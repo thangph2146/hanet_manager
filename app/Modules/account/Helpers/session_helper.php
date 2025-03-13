@@ -15,7 +15,7 @@ if (!function_exists('account_session')) {
     }
 }
 
-    if (!function_exists('account_session_set')) {
+if (!function_exists('account_session_set')) {
     /**
      * Đặt giá trị vào session
      *
@@ -87,7 +87,7 @@ if (!function_exists('account_logout')) {
      *
      * @return void
      */
-    function nguoidung_logout()
+    function account_logout()
     {
         account_session_remove('logged_user');
         account_session()->destroy();
@@ -115,7 +115,7 @@ if (!function_exists('account_get_remember_cookie')) {
      *
      * @return array|null
      */
-    function nguoidung_get_remember_cookie()
+    function account_get_remember_cookie()
     {
         $cookie = get_cookie('account_remember');
         
@@ -142,7 +142,7 @@ if (!function_exists('account_clear_remember_cookie')) {
      *
      * @return void
      */
-    function nguoidung_clear_remember_cookie()
+    function account_clear_remember_cookie()
     {
         delete_cookie('account_remember');
     }

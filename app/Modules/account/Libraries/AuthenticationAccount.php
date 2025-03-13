@@ -50,6 +50,9 @@ class AuthenticationAccount {
 		// Tải helper session
 		helper('App\Modules\account\Helpers\session');
 		
+		// Khởi tạo session
+		session()->start();
+		
 		// Sử dụng session tùy chỉnh thay vì session mặc định
 		account_session()->regenerate();
 		
@@ -160,7 +163,7 @@ class AuthenticationAccount {
 		helper('App\Modules\account\Helpers\session');
 		
 		// Sử dụng hàm đăng xuất từ helper
-		account_logout();
+		\account_logout();
 	}
 
 	/**

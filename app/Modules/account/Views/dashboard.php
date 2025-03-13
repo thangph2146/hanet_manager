@@ -1,3 +1,7 @@
+<?php
+// Tải helper session
+helper('App\Modules\account\Helpers\session');
+?>
 <!doctype html>
 <html lang="en">
 

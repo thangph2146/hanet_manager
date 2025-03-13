@@ -22,6 +22,9 @@ class Login extends BaseController
         
         // Tải helper session
         helper('App\Modules\account\Helpers\session');
+        
+        // Khởi tạo session
+        session()->start();
     }
 
     /**
@@ -31,7 +34,7 @@ class Login extends BaseController
     {
         // Nếu đã đăng nhập, chuyển hướng đến trang chủ
         if (account_is_logged_in()) {
-            return redirect()->to(base_url('account'));
+            return redirect()->to(base_url('account/dashboard'));
         }
 
         // Lấy URL đăng nhập Google
@@ -76,8 +79,6 @@ class Login extends BaseController
             // Nếu chọn "Nhớ mật khẩu", lưu cookie
             if ($remember) {
                 $token = bin2hex(random_bytes(32));
-                // Lưu token vào cơ sở dữ liệu hoặc cache (nếu cần)
-                // $this->loginModel->saveRememberToken($user->id, $token);
                 account_set_remember_cookie($this->auth->getCurrentUser()->id, $token);
             }
 
@@ -85,14 +86,14 @@ class Login extends BaseController
             $redirect_url = account_session_get('redirect_url') ?? base_url('account/dashboard');
             account_session_remove('redirect_url');
 
-            account_session_set('info', 'Bạn đã đăng nhập thành công!');
+            account_session_set('success', 'Đăng nhập thành công!');
             
             return redirect()->to($redirect_url)
-                             ->withCookies();
-        } else {
-            account_session_set('warning', 'Email hoặc mật khẩu không đúng');
-            return redirect()->back()->withInput();
+                           ->withCookies();
         }
+
+        account_session_set('error', 'Email hoặc mật khẩu không đúng');
+        return redirect()->back()->withInput();
     }
 
     /**
@@ -100,65 +101,15 @@ class Login extends BaseController
      */
     public function logout()
     {
+        // Xóa cookie nhớ mật khẩu nếu có
+        account_clear_remember_cookie();
+        
         // Đăng xuất người dùng
         $this->auth->logout();
         
-        // Sử dụng session tùy chỉnh thay vì session mặc định
-        account_session_set('info', 'Bạn đã đăng xuất thành công!');
+        account_session_set('success', 'Đăng xuất thành công!');
         
         // Chuyển hướng đến trang đăng nhập
         return redirect()->to(base_url('account/login'));
-    }
-
-    /**
-     * Hiển thị trang đăng nhập với Google
-     */
-    public function google()
-    {
-        // Nếu đã đăng nhập, chuyển hướng đến trang chủ
-        if (account_is_logged_in()) {
-            return redirect()->to(base_url('account/dashboard'));
-        }
-
-        // Lấy URL đăng nhập Google
-        $googleAuthUrl = $this->googleAuth->getAuthUrl();
-        
-        return view('App\Modules\account\Views\login_google', [
-            'googleAuthUrl' => $googleAuthUrl
-        ]);
-    }
-
-    /**
-     * Xử lý callback từ Google sau khi người dùng đăng nhập
-     */
-    public function googleCallback()
-    {
-        // Lấy code từ callback URL
-        $code = $this->request->getGet('code');
-        
-        if (empty($code)) {
-            account_session_set('warning', 'Không thể xác thực với Google!');
-            return redirect()->to('account/login');
-        }
-        
-        // Xử lý code để lấy thông tin người dùng
-        $googleUser = $this->googleAuth->handleCallback($code);
-        
-        if (empty($googleUser)) {
-            account_session_set('warning', 'Không thể lấy thông tin từ Google!');
-            return redirect()->to('account/login');
-        }
-        
-        // Đăng nhập người dùng
-        if ($this->googleAuth->loginWithGoogle($googleUser)) {
-            $redirect_url = account_session_get('redirect_url') ?? 'account/dashboard';
-            account_session_remove('redirect_url');
-            
-            account_session_set('info', 'Bạn đã đăng nhập thành công với Google!');
-            return redirect()->to($redirect_url);
-        } else {
-            account_session_set('warning', 'Đăng nhập với Google không thành công!');
-            return redirect()->to('account/login');
-        }
     }
 } 
