@@ -482,7 +482,6 @@
 									
 									<div class="col-12 mt-4">
 										<div class="login-separater text-center mb-3"> 
-											<span>HOẶC</span>
 											<hr/>
 										</div>
 										<div class="d-grid">
