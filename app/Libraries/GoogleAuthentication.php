@@ -54,7 +54,7 @@ class GoogleAuthentication {
         if (empty($code)) {
             return null;
         }
-
+    
         try {
             // Lấy token từ code
             $token = $this->getAccessToken($code);
@@ -69,7 +69,6 @@ class GoogleAuthentication {
             if (empty($userInfo)) {
                 return null;
             }
-            
             return $userInfo;
         } catch (\Exception $e) {
             log_message('error', 'Google Authentication Error: ' . $e->getMessage());
@@ -108,6 +107,7 @@ class GoogleAuthentication {
         if ($result === FALSE) {
             return null;
         }
+       
         
         return json_decode($result, true);
     }
@@ -136,7 +136,7 @@ class GoogleAuthentication {
         }
         
         $userInfo = json_decode($result, true);
-        
+  
         // Chuyển đổi định dạng để phù hợp với cấu trúc cũ
         return [
             'email' => $userInfo['email'] ?? '',
@@ -162,7 +162,8 @@ class GoogleAuthentication {
         
         // Tìm người dùng theo email
         $user = $userModel->where('u_email', $googleUser['email'])->first();
-        
+        print_r($user);
+        die();
         // Nếu người dùng không tồn tại, có thể tạo mới hoặc trả về false
         if ($user === null) {
             // Tùy chọn: Tự động tạo người dùng mới từ Google
