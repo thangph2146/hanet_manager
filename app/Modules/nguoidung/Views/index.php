@@ -4,6 +4,12 @@
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/dataTables.bootstrap5.min.css') ?>">
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/buttons.bootstrap5.min.css') ?>">
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/responsive.bootstrap5.min.css') ?>">
+<style>
+    .highlight-row {
+        background-color: #e6f7ff !important;
+        transition: background-color 1s ease;
+    }
+</style>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>QUẢN LÝ NGƯỜI DÙNG<?= $this->endSection() ?>
 
@@ -62,14 +68,14 @@
             'type' => 'actions',
             'buttons' => [
                 [
-                    'url_prefix' => '/nguoidung/edit/',
+                    'url_prefix' => site_url('nguoidung/edit/'),
                     'id_field' => 'id',
                     'title_field' => 'FullName',
                     'title' => 'Edit %s',
                     'icon' => 'fadeIn animated bx bx-edit'
                 ],
                 [
-                    'url_prefix' => '/nguoidung/deleteusers/',
+                    'url_prefix' => site_url('nguoidung/deleteusers/'),
                     'id_field' => 'id',
                     'title_field' => 'FullName',
                     'title' => 'Delete %s',
@@ -110,6 +116,64 @@ $(document).ready(function() {
     // Biến lưu trữ CSRF token
     var csrfName = '<?= csrf_token() ?>';
     var csrfHash = '<?= csrf_hash() ?>';
+    
+    // Lắng nghe sự kiện từ localStorage để cập nhật bảng khi có người dùng được khôi phục
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'restored_user') {
+            try {
+                var userData = JSON.parse(e.newValue);
+                console.log('Received restored user data:', userData); // Log để debug
+                
+                if (userData && userData.id) {
+                    // Kiểm tra xem người dùng đã tồn tại trong bảng chưa
+                    var existingRow = null;
+                    dataTable.rows().every(function() {
+                        var rowData = this.data();
+                        var rowId = $(rowData[0]).val();
+                        if (rowId == userData.id) {
+                            existingRow = this;
+                            return false; // Break the loop
+                        }
+                    });
+                    
+                    if (existingRow) {
+                        console.log('User already exists in table, updating...');
+                        // Cập nhật dòng hiện tại
+                        existingRow.draw(false);
+                        $(existingRow.node()).addClass('highlight-row');
+                        setTimeout(function() {
+                            $(existingRow.node()).removeClass('highlight-row');
+                        }, 3000);
+                    } else {
+                        console.log('Adding new user to table...');
+                        // Thêm người dùng đã khôi phục vào bảng
+                        var newRow = dataTable.row.add([
+                            '<input type="checkbox" class="check-select-p" name="id[]" value="' + userData.id + '" />',
+                            userData.AccountId,
+                            userData.FullName,
+                            '<span class="badge rounded-pill bg-success">Hoạt động</span>',
+                            '<a href="<?= site_url('nguoidung/edit') ?>/' + userData.id + '" title="Edit ' + userData.FullName + '" class="btn btn-sm btn-primary"><i class="fadeIn animated bx bx-edit"></i></a> ' +
+                            '<a href="<?= site_url('nguoidung/deleteusers') ?>/' + userData.id + '" title="Delete ' + userData.FullName + '" class="btn btn-sm btn-danger"><i class="lni lni-trash"></i></a>'
+                        ]).draw(false).node();
+                        
+                        // Làm nổi bật dòng mới thêm
+                        $(newRow).addClass('highlight-row');
+                        setTimeout(function() {
+                            $(newRow).removeClass('highlight-row');
+                        }, 3000);
+                    }
+                    
+                    // Hiển thị thông báo
+                    showNotification('success', 'Người dùng "' + userData.FullName + '" đã được khôi phục.');
+                    
+                    // Xóa dữ liệu từ localStorage
+                    localStorage.removeItem('restored_user');
+                }
+            } catch (error) {
+                console.error('Error parsing restored user data:', error);
+            }
+        }
+    });
     
     // Xử lý sự kiện xóa người dùng bằng Ajax
     $(document).on('click', '.lni-trash', function(e) {

@@ -208,9 +208,19 @@ class NguoiDungController extends BaseController
 
     public function restoreUsers($id = null)
     {
+        // Kiểm tra nếu là yêu cầu Ajax
+        $isAjax = $this->request->isAJAX();
+        
+        // Log để debug
+        log_message('debug', 'restoreUsers called with ID: ' . $id);
+        log_message('debug', 'Request method: ' . $this->request->getMethod());
+        log_message('debug', 'Is Ajax request: ' . ($isAjax ? 'Yes' : 'No'));
+        
         if ($id !== null) {
             // Xử lý khôi phục một người dùng
             $user = $this->model->onlyDeleted()->find($id);
+            log_message('debug', 'User found: ' . ($user ? 'Yes' : 'No'));
+            
             if ($user) {
                 $this->model->protect(false);
                 $data = [
@@ -218,39 +228,153 @@ class NguoiDungController extends BaseController
                     'updated_at' => date('Y-m-d H:i:s')
                 ];
                 if ($this->model->update($id, $data)) {
+                    if ($isAjax || $this->request->getMethod() === 'post') {
+                        return $this->response->setJSON([
+                            'success' => true,
+                            'message' => 'Khôi phục người dùng thành công.',
+                            'user' => [
+                                'id' => $id,
+                                'AccountId' => $user['AccountId'],
+                                'FullName' => $user['FullName'],
+                                'status' => $user['status']
+                            ],
+                            'csrf_hash' => csrf_hash()
+                        ]);
+                    }
                     return redirect()->to('/nguoidung/listdeleted')
                                    ->with('success', 'Khôi phục người dùng thành công.');
+                } else {
+                    log_message('error', 'Failed to update user: ' . json_encode($this->model->errors()));
+                    if ($isAjax || $this->request->getMethod() === 'post') {
+                        return $this->response->setJSON([
+                            'success' => false,
+                            'message' => 'Không thể khôi phục người dùng. Vui lòng thử lại.',
+                            'csrf_hash' => csrf_hash()
+                        ]);
+                    }
+                }
+            } else {
+                log_message('error', 'User not found with ID: ' . $id);
+                if ($isAjax || $this->request->getMethod() === 'post') {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Không tìm thấy người dùng để khôi phục.',
+                        'csrf_hash' => csrf_hash()
+                    ]);
                 }
             }
         } else {
             // Xử lý khôi phục nhiều người dùng
             $ids = $this->request->getPost('ids');
-            if (is_array($ids)) {
-                $this->model->protect(false);
-                $data = [
-                    'deleted_at' => null,
-                    'updated_at' => date('Y-m-d H:i:s')
-                ];
-                if ($this->model->update($ids, $data)) {
-                    return redirect()->to('/nguoidung/listdeleted')
-                                   ->with('success', 'Khôi phục người dùng thành công.');
+            log_message('debug', 'IDs received: ' . json_encode($ids));
+            
+            if (is_array($ids) && !empty($ids)) {
+                // Lấy thông tin người dùng trước khi khôi phục
+                $users = $this->model->onlyDeleted()->whereIn('id', $ids)->findAll();
+                log_message('debug', 'Users found: ' . count($users));
+                
+                if (!empty($users)) {
+                    $this->model->protect(false);
+                    $data = [
+                        'deleted_at' => null,
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    if ($this->model->update($ids, $data)) {
+                        if ($isAjax || $this->request->getMethod() === 'post') {
+                            return $this->response->setJSON([
+                                'success' => true,
+                                'message' => 'Khôi phục người dùng thành công.',
+                                'users' => $users,
+                                'csrf_hash' => csrf_hash()
+                            ]);
+                        }
+                        return redirect()->to('/nguoidung/listdeleted')
+                                       ->with('success', 'Khôi phục người dùng thành công.');
+                    } else {
+                        log_message('error', 'Failed to update users: ' . json_encode($this->model->errors()));
+                        if ($isAjax || $this->request->getMethod() === 'post') {
+                            return $this->response->setJSON([
+                                'success' => false,
+                                'message' => 'Không thể khôi phục người dùng. Vui lòng thử lại.',
+                                'csrf_hash' => csrf_hash()
+                            ]);
+                        }
+                    }
+                } else {
+                    log_message('error', 'No users found with IDs: ' . json_encode($ids));
+                    if ($isAjax || $this->request->getMethod() === 'post') {
+                        return $this->response->setJSON([
+                            'success' => false,
+                            'message' => 'Không tìm thấy người dùng để khôi phục.',
+                            'csrf_hash' => csrf_hash()
+                        ]);
+                    }
+                }
+            } else {
+                log_message('error', 'No IDs received or invalid IDs');
+                if ($isAjax || $this->request->getMethod() === 'post') {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Vui lòng chọn ít nhất một người dùng để khôi phục.',
+                        'csrf_hash' => csrf_hash()
+                    ]);
                 }
             }
         }
-
-        return redirect()->back()
-                       ->with('error', 'Không thể khôi phục người dùng. Vui lòng thử lại.');
+        
+        if ($isAjax || $this->request->getMethod() === 'post') {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Không thể khôi phục người dùng. Vui lòng thử lại.',
+                'csrf_hash' => csrf_hash()
+            ]);
+        }
+        return redirect()->back()->with('error', 'Không thể khôi phục người dùng. Vui lòng thử lại.');
     }
 
-    public function forceDeleteUsers()
+    public function forceDelete()
     {
         $ids = $this->request->getPost('ids');
+        $isAjax = $this->request->isAJAX();
 
-        if ($this->model->forceDeleteMultiple($ids)) {
-            return redirect()->to('/nguoidung')->with('success', 'Xóa vĩnh viễn người dùng.');
+        if (is_array($ids) && !empty($ids)) {
+            if ($this->model->forceDeleteMultiple($ids)) {
+                if ($isAjax) {
+                    return $this->response->setJSON([
+                        'success' => true,
+                        'message' => 'Xóa vĩnh viễn người dùng thành công.',
+                        'csrf_hash' => csrf_hash()
+                    ]);
+                }
+                return redirect()->to('/nguoidung/listdeleted')->with('success', 'Xóa vĩnh viễn người dùng thành công.');
+            } else {
+                if ($isAjax) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Không thể xóa vĩnh viễn người dùng. Vui lòng thử lại.',
+                        'csrf_hash' => csrf_hash()
+                    ]);
+                }
+            }
+        } else {
+            if ($isAjax) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Vui lòng chọn ít nhất một người dùng để xóa vĩnh viễn.',
+                    'csrf_hash' => csrf_hash()
+                ]);
+            }
         }
 
-        return redirect()->back()->with('error', 'Không thể xóa vĩnh viễn.');
+        if ($isAjax) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Không thể xóa vĩnh viễn người dùng. Vui lòng thử lại.',
+                'csrf_hash' => csrf_hash()
+            ]);
+        }
+        return redirect()->back()->with('error', 'Không thể xóa vĩnh viễn người dùng.');
     }
 
     public function resetPassWord()

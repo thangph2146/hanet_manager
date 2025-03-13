@@ -98,9 +98,17 @@
                                         $label = isset($button['label']) ? $button['label'] : '';
                                         $title = sprintf($button['title'], $item->{$button['title_field']});
                                         $class = $button['class'] ?? 'btn btn-sm btn-outline-primary';
-                                        $url = site_url($button['url_prefix'] . $item->{$button['id_field']});
                                         
-                                        $actions .= "<a href='{$url}' class='{$class}' title='{$title}'>{$icon} {$label}</a>";
+                                        // Đảm bảo URL được tạo đúng
+                                        $url = $button['url_prefix'] . $item->{$button['id_field']};
+                                        
+                                        // Thêm các thuộc tính JavaScript nếu có
+                                        $js_attrs = '';
+                                        if (isset($button['js'])) {
+                                            $js_attrs = ' ' . $button['js'];
+                                        }
+                                        
+                                        $actions .= "<a href='{$url}' class='{$class}' title='{$title}'{$js_attrs}>{$icon} {$label}</a>";
                                     }
                                     $actions .= '</div>';
                                     $row[] = $actions;

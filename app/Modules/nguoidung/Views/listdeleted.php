@@ -27,7 +27,7 @@
     <?= form_open("nguoidung/restoreusers", ['class' => 'row g3']) ?>
     <div class="col-12 mb-3">
         <button type="submit" class="btn btn-success">Khôi phục người dùng đã chọn</button>
-        <button type="submit" class="btn btn-danger" formaction="<?= site_url('nguoidung/force-delete') ?>" onclick="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn những người dùng này?')">Xóa vĩnh viễn</button>
+        <button type="submit" id="force-delete-btn" class="btn btn-danger" formaction="<?= site_url('nguoidung/force-delete') ?>">Xóa vĩnh viễn</button>
     </div>
     <?= view('components/_table', [
         'caption' => 'Danh Sách Người Dùng đã xóa',
@@ -35,8 +35,7 @@
             '<input type="checkbox" id="select-all" />', 
             'AccountId', 
             'FullName', 
-            'Ngày xóa',
-            'Action'
+            'Ngày xóa'
         ],    
         'data' => $data,
         'columns' => [
@@ -54,19 +53,6 @@
             [
                 'field' => 'deleted_at',
                 'format' => 'date'
-            ],
-            [
-                'type' => 'actions',
-                'buttons' => [
-                    [
-                        'url_prefix' => '/nguoidung/restoreusers/',
-                        'id_field' => 'id',
-                        'title_field' => 'FullName',
-                        'title' => 'Khôi phục %s',
-                        'icon' => 'fadeIn animated bx bx-revision',
-                        'js' => 'onclick="return confirm(\'Bạn có chắc chắn muốn khôi phục người dùng này?\')"'
-                    ]
-                ]
             ]
         ],
         'options' => [
@@ -92,4 +78,278 @@
 <script src="<?= base_url('assets/plugins/datatable/js/buttons.colVis.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/datatable/js/dataTables.responsive.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/datatable/js/responsive.bootstrap5.min.js') ?>"></script>
+
+<script>
+$(document).ready(function() {
+    // Khởi tạo DataTable
+    var dataTable = $('#<?= setting('App.table_id') ?>').DataTable();
+    
+    // Biến lưu trữ CSRF token
+    var csrfName = '<?= csrf_token() ?>';
+    var csrfHash = '<?= csrf_hash() ?>';
+    
+    // Xử lý sự kiện xóa vĩnh viễn
+    $('#force-delete-btn').on('click', function(e) {
+        e.preventDefault();
+        
+        var selectedIds = [];
+        
+        // Lấy tất cả ID đã chọn
+        $('input[name="ids[]"]:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+        
+        if (selectedIds.length === 0) {
+            showNotification('warning', 'Vui lòng chọn ít nhất một người dùng để xóa vĩnh viễn.');
+            return false;
+        }
+        
+        // Lưu thông tin trang hiện tại
+        var currentPage = dataTable.page();
+        
+        // Hiển thị hộp thoại xác nhận
+        if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn những người dùng này? Hành động này không thể hoàn tác!')) {
+            var data = {
+                ids: selectedIds
+            };
+            data[csrfName] = csrfHash;
+            
+            $.ajax({
+                url: '<?= site_url('nguoidung/force-delete') ?>',
+                type: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function(response) {
+                    // Cập nhật CSRF hash nếu có
+                    if (response.csrf_hash) {
+                        csrfHash = response.csrf_hash;
+                    }
+                    
+                    if (response.success) {
+                        // Xóa các dòng đã chọn khỏi DataTable
+                        $('input[name="ids[]"]:checked').each(function() {
+                            var row = $(this).closest('tr');
+                            dataTable.row(row).remove();
+                        });
+                        
+                        // Vẽ lại bảng
+                        dataTable.draw(false);
+                        
+                        // Quay lại trang hiện tại nếu cần
+                        if (dataTable.page() !== currentPage && dataTable.page.info().pages > currentPage) {
+                            dataTable.page(currentPage).draw(false);
+                        }
+                        
+                        // Bỏ chọn checkbox "chọn tất cả"
+                        $('#select-all').prop('checked', false);
+                        
+                        // Hiển thị thông báo thành công
+                        showNotification('success', response.message || 'Xóa vĩnh viễn người dùng thành công.');
+                    } else {
+                        // Hiển thị thông báo lỗi
+                        showNotification('error', response.message || 'Không thể xóa vĩnh viễn người dùng. Vui lòng thử lại.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ajax error:', xhr.responseText);
+                    showNotification('error', 'Đã xảy ra lỗi: ' + (xhr.status === 404 ? 'Không tìm thấy đường dẫn' : error));
+                }
+            });
+        }
+        
+        return false;
+    });
+    
+    // Xử lý sự kiện khôi phục người dùng bằng Ajax
+    $(document).on('click', '.restore-user', function(e) {
+        e.preventDefault();
+        
+        var url = $(this).attr('href');
+        var row = $(this).closest('tr');
+        var userName = $(this).attr('title').replace('Khôi phục ', '');
+        var userId = $(this).closest('tr').find('input[name="ids[]"]').val();
+        
+        // Đảm bảo URL chính xác
+        if (!url || url === '#' || url === 'javascript:void(0)') {
+            url = '<?= site_url('nguoidung/restoreusers') ?>/' + userId;
+        }
+        
+        console.log('Restore URL:', url); // Log URL để debug
+        
+        // Lưu thông tin trang hiện tại
+        var currentPage = dataTable.page();
+        
+        // Hiển thị hộp thoại xác nhận
+        if (confirm('Bạn có chắc chắn muốn khôi phục người dùng "' + userName + '"?')) {
+            var data = {};
+            data[csrfName] = csrfHash;
+            
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function(response) {
+                    // Cập nhật CSRF hash nếu có
+                    if (response.csrf_hash) {
+                        csrfHash = response.csrf_hash;
+                    }
+                    
+                    if (response.success) {
+                        // Xóa dòng khỏi DataTable mà không tải lại trang
+                        dataTable.row(row).remove().draw(false);
+                        
+                        // Quay lại trang hiện tại nếu cần
+                        if (dataTable.page() !== currentPage && dataTable.page.info().pages > currentPage) {
+                            dataTable.page(currentPage).draw(false);
+                        }
+                        
+                        // Lưu thông tin người dùng đã khôi phục vào localStorage để cập nhật trang index
+                        if (response.user) {
+                            localStorage.setItem('restored_user', JSON.stringify(response.user));
+                        }
+                        
+                        // Hiển thị thông báo thành công
+                        showNotification('success', response.message || 'Khôi phục người dùng thành công.');
+                    } else {
+                        // Hiển thị thông báo lỗi
+                        showNotification('error', response.message || 'Không thể khôi phục người dùng. Vui lòng thử lại.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ajax error:', xhr.responseText);
+                    showNotification('error', 'Đã xảy ra lỗi: ' + (xhr.status === 404 ? 'Không tìm thấy đường dẫn' : error));
+                }
+            });
+        }
+        
+        return false;
+    });
+    
+    // Xử lý sự kiện khôi phục nhiều người dùng
+    $('form').on('submit', function(e) {
+        // Chỉ xử lý form khôi phục, không xử lý form xóa vĩnh viễn
+        if ($(this).attr('action') === '<?= site_url('nguoidung/restoreusers') ?>') {
+            e.preventDefault();
+            
+            var selectedIds = [];
+            
+            // Lấy tất cả ID đã chọn
+            $('input[name="ids[]"]:checked').each(function() {
+                selectedIds.push($(this).val());
+            });
+            
+            if (selectedIds.length === 0) {
+                showNotification('warning', 'Vui lòng chọn ít nhất một người dùng để khôi phục.');
+                return false;
+            }
+            
+            // Lưu thông tin trang hiện tại
+            var currentPage = dataTable.page();
+            
+            // Đảm bảo URL chính xác
+            var url = '<?= site_url('nguoidung/restoreusers') ?>';
+            console.log('Restore multiple URL:', url); // Log URL để debug
+            
+            if (confirm('Bạn có chắc chắn muốn khôi phục ' + selectedIds.length + ' người dùng đã chọn?')) {
+                var data = {
+                    ids: selectedIds
+                };
+                data[csrfName] = csrfHash;
+                
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: data,
+                    success: function(response) {
+                        // Cập nhật CSRF hash nếu có
+                        if (response.csrf_hash) {
+                            csrfHash = response.csrf_hash;
+                        }
+                        
+                        if (response.success) {
+                            // Xóa các dòng đã chọn khỏi DataTable
+                            $('input[name="ids[]"]:checked').each(function() {
+                                var row = $(this).closest('tr');
+                                dataTable.row(row).remove();
+                            });
+                            
+                            // Vẽ lại bảng
+                            dataTable.draw(false);
+                            
+                            // Quay lại trang hiện tại nếu cần
+                            if (dataTable.page() !== currentPage && dataTable.page.info().pages > currentPage) {
+                                dataTable.page(currentPage).draw(false);
+                            }
+                            
+                            // Bỏ chọn checkbox "chọn tất cả"
+                            $('#select-all').prop('checked', false);
+                            
+                            // Lưu thông tin người dùng đã khôi phục vào localStorage để cập nhật trang index
+                            if (response.users && response.users.length > 0) {
+                                // Chỉ lưu người dùng đầu tiên để thông báo
+                                localStorage.setItem('restored_user', JSON.stringify(response.users[0]));
+                            }
+                            
+                            // Hiển thị thông báo thành công
+                            showNotification('success', response.message || 'Khôi phục người dùng thành công.');
+                        } else {
+                            // Hiển thị thông báo lỗi
+                            showNotification('error', response.message || 'Không thể khôi phục người dùng. Vui lòng thử lại.');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Ajax error:', xhr.responseText);
+                        showNotification('error', 'Đã xảy ra lỗi: ' + (xhr.status === 404 ? 'Không tìm thấy đường dẫn' : error));
+                    }
+                });
+            }
+            
+            return false;
+        }
+    });
+    
+    // Xử lý sự kiện chọn tất cả
+    $('#select-all').on('change', function() {
+        $('input[name="ids[]"]').prop('checked', $(this).prop('checked'));
+    });
+    
+    // Hàm hiển thị thông báo
+    function showNotification(type, message) {
+        var bgClass = 'bg-success';
+        var icon = 'bx bx-check-circle';
+        
+        if (type === 'error') {
+            bgClass = 'bg-danger';
+            icon = 'bx bx-error-circle';
+        } else if (type === 'warning') {
+            bgClass = 'bg-warning';
+            icon = 'bx bx-error';
+        } else if (type === 'info') {
+            bgClass = 'bg-info';
+            icon = 'bx bx-info-circle';
+        }
+        
+        var html = '<div class="toast-container position-fixed top-0 end-0 p-3">' +
+                   '<div class="toast fade show" role="alert" aria-live="assertive" aria-atomic="true">' +
+                   '<div class="toast-header ' + bgClass + ' text-white">' +
+                   '<i class="' + icon + ' me-2"></i>' +
+                   '<strong class="me-auto">' + (type === 'success' ? 'Thành công' : 'Thông báo') + '</strong>' +
+                   '<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>' +
+                   '</div>' +
+                   '<div class="toast-body">' + message + '</div>' +
+                   '</div>' +
+                   '</div>';
+        
+        // Thêm thông báo vào body
+        $('body').append(html);
+        
+        // Tự động đóng thông báo sau 3 giây
+        setTimeout(function() {
+            $('.toast-container').remove();
+        }, 3000);
+    }
+});
+</script>
 <?= $this->endSection() ?>
