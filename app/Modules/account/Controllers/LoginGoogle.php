@@ -3,8 +3,8 @@
 namespace App\Modules\account\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\account\Models\AccountModel;
 use App\Modules\account\Libraries\GoogleAuthAccount;
+use App\Modules\account\Models\AccountModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class LoginGoogle extends BaseController
@@ -14,6 +14,7 @@ class LoginGoogle extends BaseController
 
     public function __construct()
     {
+        parent::__construct();
         $this->googleAuth = new GoogleAuthAccount();
         $this->accountModel = new AccountModel();
         

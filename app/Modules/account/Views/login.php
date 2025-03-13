@@ -432,7 +432,6 @@
 								</div>
 								
 								<div class="login-separater text-center mb-4"> 
-									<span>ĐĂNG NHẬP</span>
 									<hr/>
 								</div>
 								<div class="form-body">

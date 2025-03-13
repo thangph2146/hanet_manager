@@ -17,7 +17,7 @@ if (!function_exists('account_session')) {
 
 if (!function_exists('account_session_set')) {
     /**
-     * Đặt giá trị vào session
+     * Lưu giá trị vào session
      *
      * @param string $key
      * @param mixed $value
@@ -44,10 +44,10 @@ if (!function_exists('account_session_get')) {
 
 if (!function_exists('account_session_has')) {
     /**
-     * Kiểm tra xem session có chứa key không
+     * Kiểm tra key có tồn tại trong session
      *
      * @param string $key
-     * @return boolean
+     * @return bool
      */
     function account_session_has($key)
     {
@@ -68,16 +68,27 @@ if (!function_exists('account_session_remove')) {
     }
 }
 
+if (!function_exists('account_session_destroy')) {
+    /**
+     * Xóa toàn bộ session
+     *
+     * @return void
+     */
+    function account_session_destroy()
+    {
+        account_session()->destroy();
+    }
+}
+
 if (!function_exists('account_is_logged_in')) {
     /**
-     * Kiểm tra xem người dùng đã đăng nhập chưa
+     * Kiểm tra người dùng đã đăng nhập chưa
      *
-     * @return boolean
+     * @return bool
      */
     function account_is_logged_in()
     {
-        $userData = account_session_get('logged_user');
-        return !empty($userData) && isset($userData['logged_in']) && $userData['logged_in'] === true;
+        return account_session_has('user_id');
     }
 }
 
@@ -96,16 +107,25 @@ if (!function_exists('account_logout')) {
 
 if (!function_exists('account_set_remember_cookie')) {
     /**
-     * Đặt cookie nhớ đăng nhập
+     * Lưu cookie nhớ đăng nhập
      *
-     * @param int $userId
+     * @param int $user_id
      * @param string $token
      * @return void
      */
-    function account_set_remember_cookie($userId, $token)
+    function account_set_remember_cookie($user_id, $token)
     {
-        $expiration = time() + (86400 * 30); // 30 ngày
-        set_cookie('account_remember', $userId . ':' . $token, $expiration);
+        // Load helper cookie
+        helper('cookie');
+        
+        $cookie = [
+            'name'   => 'account_remember',
+            'value'  => $user_id . ':' . $token,
+            'expire' => 30 * 24 * 60 * 60, // 30 ngày
+            'secure' => true
+        ];
+
+        set_cookie($cookie);
     }
 }
 
@@ -144,6 +164,9 @@ if (!function_exists('account_clear_remember_cookie')) {
      */
     function account_clear_remember_cookie()
     {
+        // Load helper cookie
+        helper('cookie');
+        
         delete_cookie('account_remember');
     }
 } 

@@ -14,6 +14,9 @@ class GoogleAuthentication {
 
     public function __construct()
     {
+        // Load helper setting
+        helper('setting');
+        
         $this->clientID = setting('App.GOOGLE_CLIENT_ID');
         $this->clientSecret = setting('App.GOOGLE_CLIENT_SECRET');
         $this->redirectUri = setting('App.GOOGLE_REDIRECT_URI');
