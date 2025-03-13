@@ -155,16 +155,54 @@ class NguoiDungController extends BaseController
         if ($id !== null) {
             // Xử lý xóa một người dùng
             if ($this->model->delete($id)) {
+                // Kiểm tra nếu là yêu cầu Ajax
+                if ($this->request->isAJAX()) {
+                    return $this->response->setJSON([
+                        'success' => true,
+                        'message' => 'Xóa người dùng thành công.',
+                        'csrf_hash' => csrf_hash()
+                    ]);
+                }
                 return redirect()->to('/nguoidung')->with('success', 'Xóa người dùng thành công.');
+            } else {
+                if ($this->request->isAJAX()) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Không thể xóa người dùng. Vui lòng thử lại.',
+                        'csrf_hash' => csrf_hash()
+                    ]);
+                }
             }
         } else {
             // Xử lý xóa nhiều người dùng
             $ids = $this->request->getPost('ids');
             if (is_array($ids) && $this->model->softDeleteMultiple($ids)) {
+                if ($this->request->isAJAX()) {
+                    return $this->response->setJSON([
+                        'success' => true,
+                        'message' => 'Xóa người dùng thành công.',
+                        'csrf_hash' => csrf_hash()
+                    ]);
+                }
                 return redirect()->to('/nguoidung')->with('success', 'Xóa người dùng thành công.');
+            } else {
+                if ($this->request->isAJAX()) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Không thể xóa người dùng. Vui lòng thử lại.',
+                        'csrf_hash' => csrf_hash()
+                    ]);
+                }
             }
         }
 
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Không thể xóa người dùng. Vui lòng thử lại.',
+                'csrf_hash' => csrf_hash()
+            ]);
+        }
         return redirect()->back()->with('error', 'Không thể xóa người dùng. Vui lòng thử lại.');
     }
 
