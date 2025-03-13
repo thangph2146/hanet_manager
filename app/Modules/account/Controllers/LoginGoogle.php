@@ -14,7 +14,7 @@ class LoginGoogle extends BaseController
 
     public function __construct()
     {
-        parent::__construct();
+        // Khởi tạo các thành phần cần thiết
         $this->googleAuth = new GoogleAuthAccount();
         $this->accountModel = new AccountModel();
         
