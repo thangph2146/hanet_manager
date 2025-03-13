@@ -108,7 +108,7 @@
                             <li>
                                 <div class="dropdown-divider mb-0"></div>
                             </li>
-                            <li><a class="dropdown-item" href="<?= base_url('nguoidung/login/logout') ?>"><i class='bx bx-log-out-circle'></i><span>Đăng xuất</span></a>
+                            <li><a class="dropdown-item" href="<?= base_url('nguoidung/logout') ?>"><i class='bx bx-log-out-circle'></i><span>Đăng xuất</span></a>
                             </li>
                         </ul>
                     </div>
