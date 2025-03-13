@@ -40,14 +40,14 @@ class Services extends BaseService
 		return new \App\Libraries\Authentication;
 	}
 
-	public static function authStudent($getShared = true)
+	public static function authNguoiDung($getShared = true)
 	{
 		if ($getShared)
 		{
-			return static::getSharedInstance('authStudent');
+			return static::getSharedInstance('authNguoiDung');
 		}
 
-		return new \App\Libraries\AuthenticationStudent;
+		return new \App\Modules\nguoidung\Libraries\AuthenticationNguoiDung;
 	}
 	
 	public static function googleAuth($getShared = true)

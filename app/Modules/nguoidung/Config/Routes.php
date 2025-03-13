@@ -23,3 +23,26 @@ $routes->group('nguoidung', ['namespace' => 'App\Modules\nguoidung\Controllers']
     $routes->post('resetpassword', 'NguoiDungController::resetPassword');
 });
 
+// Routes cho chức năng đăng nhập không cần xác thực
+$routes->group('', ['namespace' => 'App\Modules\nguoidung\Controllers'], function ($routes) {
+    // Đăng nhập thông thường
+    $routes->get('nguoidung/login', 'Login::index');
+    $routes->post('nguoidung/login/authenticate', 'Login::authenticate');
+    $routes->get('nguoidung/logout', 'Login::logout');
+
+    // Đăng nhập với Google
+    $routes->get('nguoidung/login/google', 'Login::google');
+    $routes->get('nguoidung/login/google-callback', 'Login::googleCallback');
+
+    // Quên mật khẩu
+    $routes->get('nguoidung/forgot-password', 'Login::forgotPassword');
+    $routes->post('nguoidung/forgot-password', 'Login::forgotPassword');
+    
+    // Đặt lại mật khẩu
+    $routes->get('nguoidung/reset-password/(:any)', 'Login::resetPassword/$1');
+    $routes->post('nguoidung/reset-password/(:any)', 'Login::resetPassword/$1');
+
+    // Dashboard
+    $routes->get('nguoidung/dashboard', 'Dashboard::index');
+});
+
