@@ -15,11 +15,22 @@ if (!isset($event) || empty($event)) {
 // Đặt giá trị mặc định cho biến $featured
 $featured = isset($featured) ? $featured : false;
 ?>
-
+<?php
+// Tạo mảng màu nền ngẫu nhiên
+$backgroundColors = [
+    '#D32F2F', '#C2185B', '#7B1FA2', '#512DA8', '#303F9F', 
+    '#1976D2', '#0288D1', '#0097A7', '#00796B', '#388E3C',
+    '#689F38', '#AFB42B', '#FBC02D', '#FFA000', '#F57C00',
+    '#E64A19', '#5D4037', '#455A64', '#7E57C2', '#00ACC1'
+];
+$randomColor = $backgroundColors[array_rand($backgroundColors)];
+?>
 <div class="event-card h-100  <?= $featured ? 'featured' : '' ?>">
-    <div class="event-category">
-        <a href="<?= site_url('su-kien/category/' . strtolower(str_replace(' ', '-', $event['loai_su_kien']))) ?>" class="category-tag <?= strtolower(str_replace(' ', '-', $event['loai_su_kien'])) ?>">
-            <i class="fas fa-tag"></i> <?= $event['loai_su_kien'] ?>
+    <div class="event-category" style="background-color: <?= $randomColor ?>;">
+        <a href="<?= site_url('su-kien/category/' . strtolower(str_replace(' ', '-', $event['loai_su_kien']))) ?>"
+         class="category-tag <?= strtolower(str_replace(' ', '-', $event['loai_su_kien'])) ?>"
+         style="background-color: <?= $randomColor ?>;">
+            <i class="fas fa-tag" style="font-size: 1.25rem; background-color: <?= $randomColor ?>;"></i> <?= $event['loai_su_kien'] ?>
         </a>
     </div>
     
