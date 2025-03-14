@@ -24,25 +24,4 @@ $routes->group('su-kien', ['namespace' => 'App\Modules\sukien\Controllers'], fun
         $routes->get('registrations', 'Admin\Registrations::index');
         $routes->get('registrations/event/(:num)', 'Admin\Registrations::byEvent/$1');
     });
-
-    // // Trang chủ sự kiện
-    // $routes->get('sukien', 'App\Modules\sukien\Controllers\Sukien::index');
-
-    // // Danh sách sự kiện
-    // $routes->get('su-kien/list', 'App\Modules\sukien\Controllers\Sukien::list');
-
-    // // Danh mục sự kiện
-    // $routes->get('su-kien/category/(:any)', 'App\Modules\sukien\Controllers\Sukien::category/$1');
-
-    // // Chi tiết sự kiện theo ID (legacy)
-    // $routes->get('sukien/view/(:num)', 'App\Modules\sukien\Controllers\Sukien::detail/$1');
-
-    // // Chi tiết sự kiện theo slug (SEO friendly)
-    // $routes->get('su-kien/detail/(:any)', 'App\Modules\sukien\Controllers\Sukien::detail/$1');
-
-    // // Xử lý đăng ký sự kiện
-    // $routes->post('sukien/register', 'App\Modules\sukien\Controllers\Sukien::register');
-
-    // // Sitemap
-    // $routes->get('sukien/sitemap.xml', 'App\Modules\sukien\Controllers\Sitemap::index');
 });

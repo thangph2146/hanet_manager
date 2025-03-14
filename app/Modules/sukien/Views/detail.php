@@ -291,7 +291,7 @@
                 <div class="card shadow-sm mb-4">
                     <div class="card-body">
                         <h4 class="card-title mb-4">Đăng ký tham gia</h4>
-                        <form action="<?= site_url('sukien/register') ?>" method="post">
+                        <form action="<?= site_url('su-kien/register') ?>" method="post">
                             <input type="hidden" name="id_su_kien" value="<?= $event['id_su_kien'] ?>">
                             <input type="hidden" name="nguoi_dung_id" value="<?= rand(1000, 9999) ?>"> <!-- Giả lập ID người dùng -->
                             

@@ -267,7 +267,7 @@
                 <div class="col-lg-8">
                     <div class="registration-form">
                         <h2 class="text-center mb-4">Đăng Ký Tham Gia</h2>
-                        <form action="<?= site_url('sukien/register') ?>" method="post">
+                        <form action="<?= site_url('su-kien/register') ?>" method="post">
                             <input type="hidden" name="nguoi_dung_id" value="<?= rand(1000, 9999) ?>"> <!-- Giả lập ID người dùng -->
                             
                             <div class="row">
