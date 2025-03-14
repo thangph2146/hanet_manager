@@ -123,9 +123,9 @@ class NguoiDungController extends BaseController
         }
     }
 
-    public function edit($id)
+    public function edit($student_id)
     {
-        $data['user'] = $this->model->find($id);
+        $data['user'] = $this->model->find($student_id);
 
         if (!$data['user']) {
             return redirect()->to('/nguoidung')->with('error', 'Không tìm thấy người dùng.');
@@ -134,7 +134,7 @@ class NguoiDungController extends BaseController
         return view('App\Modules\nguoidung\Views\edit', $data);
     }
 
-    public function update($id)
+    public function update($student_id)
     {
         $data = $this->request->getPost();
         if (!empty($data['PW'])) {
@@ -143,18 +143,18 @@ class NguoiDungController extends BaseController
             unset($data['PW']);
         }
 
-        if ($this->model->update($id, $data)) {
+        if ($this->model->update($student_id, $data)) {
             return redirect()->to('/nguoidung')->with('success', 'Cập nhật thành công.');
         }
 
         return redirect()->back()->withInput()->with('errors', $this->model->errors());
     }
 
-    public function deleteUsers($id = null)
+    public function deleteUsers($student_id = null)
     {
-        if ($id !== null) {
+        if ($student_id !== null) {
             // Xử lý xóa một người dùng
-            if ($this->model->delete($id)) {
+            if ($this->model->delete($student_id)) {
                 // Kiểm tra nếu là yêu cầu Ajax
                 if ($this->request->isAJAX()) {
                     return $this->response->setJSON([
@@ -175,7 +175,7 @@ class NguoiDungController extends BaseController
             }
         } else {
             // Xử lý xóa nhiều người dùng
-            $ids = $this->request->getPost('ids');
+            $ids = $this->request->getPost('student_ids');
             if (is_array($ids) && $this->model->softDeleteMultiple($ids)) {
                 if ($this->request->isAJAX()) {
                     return $this->response->setJSON([
@@ -206,19 +206,19 @@ class NguoiDungController extends BaseController
         return redirect()->back()->with('error', 'Không thể xóa người dùng. Vui lòng thử lại.');
     }
 
-    public function restoreUsers($id = null)
+    public function restoreUsers($student_id = null)
     {
         // Kiểm tra nếu là yêu cầu Ajax
         $isAjax = $this->request->isAJAX();
         
         // Log để debug
-        log_message('debug', 'restoreUsers called with ID: ' . $id);
+        log_message('debug', 'restoreUsers called with ID: ' . $student_id);
         log_message('debug', 'Request method: ' . $this->request->getMethod());
         log_message('debug', 'Is Ajax request: ' . ($isAjax ? 'Yes' : 'No'));
         
-        if ($id !== null) {
+        if ($student_id !== null) {
             // Xử lý khôi phục một người dùng
-            $user = $this->model->onlyDeleted()->find($id);
+            $user = $this->model->onlyDeleted()->find($student_id);
             log_message('debug', 'User found: ' . ($user ? 'Yes' : 'No'));
             
             if ($user) {
@@ -227,13 +227,13 @@ class NguoiDungController extends BaseController
                     'deleted_at' => null,
                     'updated_at' => date('Y-m-d H:i:s')
                 ];
-                if ($this->model->update($id, $data)) {
+                if ($this->model->update($student_id, $data)) {
                     if ($isAjax || $this->request->getMethod() === 'post') {
                         return $this->response->setJSON([
                             'success' => true,
                             'message' => 'Khôi phục người dùng thành công.',
                             'user' => [
-                                'id' => $id,
+                                'student_id' => $student_id,
                                 'AccountId' => $user['AccountId'],
                                 'FullName' => $user['FullName'],
                                 'status' => $user['status']
@@ -254,7 +254,7 @@ class NguoiDungController extends BaseController
                     }
                 }
             } else {
-                log_message('error', 'User not found with ID: ' . $id);
+                log_message('error', 'User not found with ID: ' . $student_id);
                 if ($isAjax || $this->request->getMethod() === 'post') {
                     return $this->response->setJSON([
                         'success' => false,
@@ -265,12 +265,12 @@ class NguoiDungController extends BaseController
             }
         } else {
             // Xử lý khôi phục nhiều người dùng
-            $ids = $this->request->getPost('ids');
+            $ids = $this->request->getPost('student_ids');
             log_message('debug', 'IDs received: ' . json_encode($ids));
             
             if (is_array($ids) && !empty($ids)) {
                 // Lấy thông tin người dùng trước khi khôi phục
-                $users = $this->model->onlyDeleted()->whereIn('id', $ids)->findAll();
+                $users = $this->model->onlyDeleted()->whereIn('student_id', $ids)->findAll();
                 log_message('debug', 'Users found: ' . count($users));
                 
                 if (!empty($users)) {
@@ -335,7 +335,7 @@ class NguoiDungController extends BaseController
 
     public function forceDelete()
     {
-        $ids = $this->request->getPost('ids');
+        $ids = $this->request->getPost('student_ids');
         $isAjax = $this->request->isAJAX();
 
         if (is_array($ids) && !empty($ids)) {
@@ -377,14 +377,14 @@ class NguoiDungController extends BaseController
         return redirect()->back()->with('error', 'Không thể xóa vĩnh viễn người dùng.');
     }
 
-    public function resetPassWord()
+    public function resetPassword()
 	{
 		$post = $this->request->getPost();
 
 		if ($post) {
 			$u_password_hash = password_hash(service('settings')->get('Config\App.resetPassWord'), PASSWORD_DEFAULT);
 			$this->model->set('PW', $u_password_hash)
-						->whereIn('id', $post['id'])
+						->whereIn('student_id', $post['student_id'])
 						->update();
 
 			return redirect()->to('/nguoidung')

@@ -49,8 +49,8 @@
     'columns' => [
         [
             'type' => 'checkbox',
-            'id_field' => 'id',
-            'name' => 'id[]'
+            'id_field' => 'student_id',
+            'name' => 'student_id[]'
         ],
         [
             'field' => 'AccountId'
@@ -69,14 +69,14 @@
             'buttons' => [
                 [
                     'url_prefix' => site_url('nguoidung/edit/'),
-                    'id_field' => 'id',
+                    'id_field' => 'student_id',
                     'title_field' => 'FullName',
                     'title' => 'Edit %s',
                     'icon' => 'fadeIn animated bx bx-edit'
                 ],
                 [
                     'url_prefix' => site_url('nguoidung/deleteusers/'),
-                    'id_field' => 'id',
+                    'id_field' => 'student_id',
                     'title_field' => 'FullName',
                     'title' => 'Delete %s',
                     'icon' => 'lni lni-trash'
@@ -130,7 +130,7 @@ $(document).ready(function() {
                     dataTable.rows().every(function() {
                         var rowData = this.data();
                         var rowId = $(rowData[0]).val();
-                        if (rowId == userData.id) {
+                        if (rowId == userData.student_id) {
                             existingRow = this;
                             return false; // Break the loop
                         }
@@ -148,12 +148,12 @@ $(document).ready(function() {
                         console.log('Adding new user to table...');
                         // Thêm người dùng đã khôi phục vào bảng
                         var newRow = dataTable.row.add([
-                            '<input type="checkbox" class="check-select-p" name="id[]" value="' + userData.id + '" />',
+                            '<input type="checkbox" class="check-select-p" name="student_id[]" value="' + userData.student_id + '" />',
                             userData.AccountId,
                             userData.FullName,
                             '<span class="badge rounded-pill bg-success">Hoạt động</span>',
-                            '<a href="<?= site_url('nguoidung/edit') ?>/' + userData.id + '" title="Edit ' + userData.FullName + '" class="btn btn-sm btn-primary"><i class="fadeIn animated bx bx-edit"></i></a> ' +
-                            '<a href="<?= site_url('nguoidung/deleteusers') ?>/' + userData.id + '" title="Delete ' + userData.FullName + '" class="btn btn-sm btn-danger"><i class="lni lni-trash"></i></a>'
+                            '<a href="<?= site_url('nguoidung/edit') ?>/' + userData.student_id + '" title="Edit ' + userData.FullName + '" class="btn btn-sm btn-primary"><i class="fadeIn animated bx bx-edit"></i></a> ' +
+                            '<a href="<?= site_url('nguoidung/deleteusers') ?>/' + userData.student_id + '" title="Delete ' + userData.FullName + '" class="btn btn-sm btn-danger"><i class="lni lni-trash"></i></a>'
                         ]).draw(false).node();
                         
                         // Làm nổi bật dòng mới thêm
@@ -235,7 +235,7 @@ $(document).ready(function() {
         
         if (confirm('Bạn thật sự muốn xóa ' + selectedIds.length + ' người dùng đã chọn?')) {
             var data = {
-                ids: selectedIds
+                student_ids: selectedIds
             };
             data[csrfName] = csrfHash;
             
