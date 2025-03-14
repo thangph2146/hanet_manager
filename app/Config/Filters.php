@@ -77,6 +77,7 @@ class Filters extends BaseConfig
 				'roles*',
 				'permissions*',
 				'settings*',
+				'nguoidung*',
 				'login/logout'
 			]
 		],
@@ -97,7 +98,8 @@ class Filters extends BaseConfig
 				'roles*',
 				'permissions*',
 				'settings*',
-				'admin*'
+				'admin*',
+				'nguoidung*',
 			]
 		],
 	];
