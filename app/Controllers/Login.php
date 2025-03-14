@@ -106,6 +106,8 @@ class Login extends BaseController
 		// Lấy state từ query string (chứa login_type)
 		$state = $this->request->getGet('state');
 		
+		// In ra thông tin để debug (có thể xóa sau khi đã hoạt động)
+		log_message('debug', 'Google Callback - State: ' . $state . ', Login Type param: ' . $login_type);
 		
 		// Nếu có state và state không rỗng, sử dụng nó làm login_type
 		if (!empty($state)) {
@@ -133,38 +135,26 @@ class Login extends BaseController
 							 ->with('warning', 'Không thể lấy thông tin từ Google!');
 		}
 		
-		// Kiểm tra xem người dùng đã tồn tại trong hệ thống chưa
-		$userModel = new UserModel();
-		$user = $userModel->where('u_email', $googleUser['email'])->first();
-		
-		// Nếu người dùng chưa tồn tại, tạo mới
-		if ($user === null) {
-			// Tạo người dùng mới từ thông tin Google
-			$userData = [
-				'u_username' => explode('@', $googleUser['email'])[0], // Tạo username từ email
-				'u_email' => $googleUser['email'],
-				'u_FullName' => $googleUser['name'],
-				'u_status' => 1, // Kích hoạt tài khoản
-				'u_google_id' => $googleUser['id'],
-				'password' => bin2hex(random_bytes(8)), // Tạo mật khẩu ngẫu nhiên
-				'password_confirmation' => bin2hex(random_bytes(8))
-			];
+		// Xác định model và điều kiện tìm kiếm dựa trên login_type
+		if ($login_type == 'student') {
+			$model = new StudentModel();
+			$user = $model->where('Email', $googleUser['email'])->first();
+			$redirect_failure = 'login';
 			
-			// Thử tạo người dùng mới
-			try {
-				$userId = $userModel->insert($userData);
-				
-				if (!$userId) {
-					return redirect()->to('login/admin')
-									 ->with('warning', 'Không thể tạo tài khoản mới!');
-				}
-				
-				// Lấy thông tin người dùng vừa tạo
-				$user = $userModel->find($userId);
-			} catch (\Exception $e) {
-				log_message('error', 'Google Login Error: ' . $e->getMessage());
-				return redirect()->to('login/admin')
-								 ->with('warning', 'Không thể tạo tài khoản mới: ' . $e->getMessage());
+			// Hiển thị thông báo phù hợp nếu không tìm thấy người dùng
+			if ($user === null) {
+				return redirect()->to($redirect_failure)
+								 ->with('warning', 'Không tìm thấy tài khoản sinh viên với email: ' . $googleUser['email']);
+			}
+		} else {
+			$model = new UserModel();
+			$user = $model->where('u_email', $googleUser['email'])->first();
+			$redirect_failure = 'login/admin';
+			
+			// Hiển thị thông báo phù hợp nếu không tìm thấy người dùng
+			if ($user === null) {
+				return redirect()->to($redirect_failure)
+								 ->with('warning', 'Không tìm thấy tài khoản quản trị với email: ' . $googleUser['email']);
 			}
 		}
 		

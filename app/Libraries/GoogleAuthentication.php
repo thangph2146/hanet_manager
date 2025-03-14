@@ -166,18 +166,19 @@ class GoogleAuthentication {
     /**
      * Đăng nhập người dùng bằng tài khoản Google
      * @param array $googleUser Thông tin người dùng Google
+     * @param string $login_type Loại đăng nhập (student hoặc admin)
      * @return bool Trạng thái đăng nhập
      */
     public function loginWithGoogle($googleUser, $login_type)
     {
         if (empty($googleUser) || empty($googleUser['email'])) {
+            log_message('error', 'Google Login: Thông tin người dùng không hợp lệ');
             return false;
         }
         
         // Logging để debug
-        print_r($googleUser);
-        print_r($login_type);
-		die();
+        log_message('debug', 'Login with Google - Login Type: ' . $login_type . ', Email: ' . $googleUser['email']);
+    
         switch ($login_type) {
             case 'student':
                 $studentModel = new \App\Models\StudentModel();
@@ -185,41 +186,44 @@ class GoogleAuthentication {
                 
                 // Nếu sinh viên không tồn tại
                 if ($student === null) {
-                    log_message('debug', 'Student not found with email: ' . $googleUser['email']);
+                    log_message('error', 'Student not found with email: ' . $googleUser['email']);
                     return false;
                 }
                 
-                // Đăng nhập sinh viên
+                // Nếu tài khoản sinh viên không hoạt động
+                if (!$student->status) {
+                    log_message('error', 'Student account is inactive: ' . $student->id);
+                    return false;
+                }
+                
+                // Đăng nhập sinh viên - sử dụng logInStudent tương tự như trong AuthenticationStudent
                 $session = session();
                 $session->regenerate();
-                $session->set('student_id', $student->id);
-                log_message('debug', 'Student logged in successfully: ' . $student->id);
+                $session->set('student_id', $student->student_id);
+                log_message('info', 'Student logged in successfully via Google: ' . $student->student_id);
                 return true;
 
-            default:
+            default: // admin
                 $userModel = new \App\Models\UserModel();
                 $user = $userModel->where('u_email', $googleUser['email'])->first();
-                 // Nếu người dùng không tồn tại, có thể tạo mới hoặc trả về false
+                
+                // Nếu người dùng không tồn tại
                 if ($user === null) {
-                    // Tùy chọn: Tự động tạo người dùng mới từ Google
-                    // return $this->createUserFromGoogle($googleUser);
-                    
-                    // Hoặc trả về false nếu không muốn tự động tạo người dùng
+                    log_message('error', 'Admin user not found with email: ' . $googleUser['email']);
                     return false;
                 }
                 
                 // Nếu tài khoản bị vô hiệu hóa
                 if (!$user->u_status) {
+                    log_message('error', 'Admin account is inactive: ' . $user->u_id);
                     return false;
                 }
                 
                 // Đăng nhập người dùng
                 $this->logInUser($user);
-                break;
+                log_message('info', 'Admin logged in successfully via Google: ' . $user->u_id);
+                return true;
         }
-
-        
-        return true;
     }
     
     /**
