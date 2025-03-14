@@ -106,6 +106,18 @@ $routes->get('settings/edit/(:num)', 'Settings::edit/$1');
 $routes->match(['get', 'post'], 'settings/update/(:num)', 'Settings::update/$1');
 $routes->get('settings/delete/(:num)', 'Settings::delete/$1');
 
+
+// student
+$routes->get('login', 'Login::index');
+$routes->post('login/create_student', 'Login::create_student');
+$routes->get('students/dashboard', 'Students::dashboard');
+$routes->post('students/create_student', 'Students::create_student');
+$routes->get('students/logout', 'Students::logout');
+
+// Thêm route cho logoutStudent
+$routes->get('login/logoutstudent', 'Login::deleteStudent');
+$routes->get('login/showlogoutmessagestudent', 'Login::showLogoutMessageStudent');
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing

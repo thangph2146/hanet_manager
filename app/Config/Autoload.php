@@ -44,7 +44,7 @@ class Autoload extends AutoloadConfig
         APP_NAMESPACE => APPPATH, // For custom app namespace
         'Config'      => APPPATH . 'Config',
         'App\Modules\nguoidung' => APPPATH . 'Modules/nguoidung',
-        'App\Modules\account' => APPPATH . 'Modules/account'
+        'App\Modules\sukien' => APPPATH . 'Modules/sukien'
     ];
 
     /**

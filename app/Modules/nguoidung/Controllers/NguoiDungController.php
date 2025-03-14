@@ -38,10 +38,10 @@ class NguoiDungController extends BaseController
     {
         // Validate dữ liệu đầu vào
         $rules = [
-            'AccountId' => 'required|min_length[3]|is_unique[nguoi_dung.AccountId]',
+            'AccountId' => 'required|min_length[3]|is_unique[students.AccountId]',
             'FullName'  => 'required|min_length[3]',
             'password'  => 'required|min_length[6]',
-            'Email'     => 'permit_empty|valid_email|is_unique[nguoi_dung.Email]',
+            'Email'     => 'permit_empty|valid_email|is_unique[students.Email]',
             'FirstName' => 'permit_empty|min_length[2]',
             'AccountType' => 'permit_empty',
             'MobilePhone' => 'permit_empty|min_length[10]',

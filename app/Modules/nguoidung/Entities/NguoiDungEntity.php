@@ -9,7 +9,7 @@ class NguoiDungEntity extends Entity
     protected $datamap = [];
     protected $dates   = ['created_at', 'updated_at', 'deleted_at'];
     protected $casts   = [
-        'id' => 'integer',
+        'student_id' => 'integer',
         'AccountId' => 'string',
         'AccountType' => 'string',
         'FullName' => 'string',

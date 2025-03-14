@@ -136,14 +136,13 @@ class GoogleAuthentication {
         }
         
         $userInfo = json_decode($result, true);
-  
         // Chuyển đổi định dạng để phù hợp với cấu trúc cũ
         return [
             'email' => $userInfo['email'] ?? '',
             'name' => $userInfo['name'] ?? '',
             'id' => $userInfo['sub'] ?? '',
             'picture' => $userInfo['picture'] ?? '',
-            'verified_email' => $userInfo['email_verified'] ?? false
+            'verified_email' => $userInfo['email_verified'] ?? false,
         ];
     }
 
@@ -157,13 +156,14 @@ class GoogleAuthentication {
         if (empty($googleUser) || empty($googleUser['email'])) {
             return false;
         }
+        print_r($googleUser);
+        die();
 
         $userModel = new \App\Models\UserModel();
         
         // Tìm người dùng theo email
         $user = $userModel->where('u_email', $googleUser['email'])->first();
         print_r($user);
-        die();
         // Nếu người dùng không tồn tại, có thể tạo mới hoặc trả về false
         if ($user === null) {
             // Tùy chọn: Tự động tạo người dùng mới từ Google

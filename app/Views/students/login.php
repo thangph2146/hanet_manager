@@ -50,6 +50,8 @@
 		<div class="container-fluid">
 			<div class="row row-cols-1 row-cols-lg-2 row-cols-xl-3">
 				<div class="col mx-auto">
+					<div class="mb-4 text-center">
+					</div>
 					<div class="card">
 						<div class="card-body">
 							<div class="border p-4 rounded">
@@ -61,7 +63,7 @@
 									<hr/>
 								</div>
 								<div class="form-body">
-									<?= form_open(site_url("login/admin"), ['class' => 'row g-3']) ?>
+									<?= form_open(site_url("login/create_student"), ['class' => 'row g-3']) ?>
 										<div class="row">
 											<div class="col-xl-12 mx-auto">
 												<!--Error list -->
@@ -69,10 +71,9 @@
 												<!--end Error list -->
 											</div>
 										</div>
-										<input type="hidden" name="login_type" value="users">
 										<div class="col-12">
-											<label for="inputUsername" class="form-label">Username</label>
-											<input type="text" class="form-control" id="username" name="username" placeholder="Nhập username">
+											<label for="inputUsername" class="form-label">Email</label>
+											<input type="text" class="form-control" id="email" name="email" placeholder="Nhập email">
 										</div>
 										<div class="col-12">
 											<label for="inputChoosePassword" class="form-label">Enter Password</label>

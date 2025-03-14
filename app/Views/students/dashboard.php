@@ -1,6 +1,5 @@
 <?php
 // Tải helper session
-helper('App\Modules\account\Helpers\session');
 ?>
 <!doctype html>
 <html lang="en">
@@ -112,7 +111,7 @@ helper('App\Modules\account\Helpers\session');
                             <li>
                                 <div class="dropdown-divider mb-0"></div>
                             </li>
-                            <li><a class="dropdown-item" href="<?= base_url('account/logout') ?>"><i class='bx bx-log-out-circle'></i><span>Đăng xuất</span></a>
+                            <li><a class="dropdown-item" href="<?= base_url('login/logoutstudent') ?>"><i class='bx bx-log-out-circle'></i><span>Đăng xuất</span></a>
                             </li>
                         </ul>
                     </div>
@@ -124,34 +123,6 @@ helper('App\Modules\account\Helpers\session');
         <!--start page wrapper -->
         <div class="page-wrapper">
             <div class="page-content">
-                <?php if (account_session_has('success')): ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <?= account_session_get('success') ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if (account_session_has('error')): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <?= account_session_get('error') ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if (account_session_has('warning')): ?>
-                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                        <?= account_session_get('warning') ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-                
-                <?php if (account_session_has('info')): ?>
-                    <div class="alert alert-info alert-dismissible fade show" role="alert">
-                        <?= account_session_get('info') ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-                
                 <?= $this->renderSection("content") ?>
             </div>
         </div>
