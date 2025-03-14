@@ -6,7 +6,6 @@
 <?= $this->section('content') ?>
     <!-- Hero Section -->
     <section class="hero-section position-relative overflow-hidden">
-        <div class="hero-particles position-absolute top-0 left-0 w-100 h-100" id="particles-js"></div>
         <div class="container position-relative">
        
             <div class="row min-vh-100 align-items-center justify-content-center">
@@ -46,6 +45,8 @@
                 <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
             </svg>
         </div>
+        <div class="hero-particles position-absolute top-0 left-0 w-100 h-100" id="particles-js"></div>
+
     </section>
 
     <!-- HUB Banner -->
