@@ -24,9 +24,10 @@ class GoogleAuthentication {
 
     /**
      * Tạo URL đăng nhập Google
+     * @param string $login_type Loại đăng nhập (student hoặc admin)
      * @return string URL đăng nhập Google
      */
-    public function getAuthUrl()
+    public function getAuthUrl($login_type = 'admin')
     {
         if (empty($this->clientID)) {
             return '#';
@@ -38,7 +39,8 @@ class GoogleAuthentication {
             'response_type' => 'code',
             'scope' => 'email profile',
             'access_type' => 'online',
-            'prompt' => 'select_account'
+            'prompt' => 'select_account',
+            'state' => $login_type // Truyền login_type qua tham số state
         ];
         
         return 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params);
@@ -47,12 +49,22 @@ class GoogleAuthentication {
     /**
      * Xử lý callback từ Google
      * @param string $code Code từ Google callback
+     * @param string $login_type Loại đăng nhập (mặc định là admin)
      * @return array|null Thông tin người dùng Google
      */
-    public function handleCallback($code)
+    public function handleCallback($code, $login_type = 'admin')
     {
         if (empty($code)) {
             return null;
+        }
+        
+        // Lấy state từ query string nếu có (chứa login_type)
+        $request = \Config\Services::request();
+        $state = $request->getGet('state');
+        
+        // Nếu có state và state không rỗng, sử dụng nó thay cho login_type
+        if (!empty($state)) {
+            $login_type = $state;
         }
     
         try {
@@ -64,7 +76,7 @@ class GoogleAuthentication {
             }
             
             // Lấy thông tin người dùng từ token
-            $userInfo = $this->getUserInfo($token['access_token']);
+            $userInfo = $this->getUserInfo($token['access_token'], $login_type);
             
             if (empty($userInfo)) {
                 return null;
@@ -117,8 +129,9 @@ class GoogleAuthentication {
      * @param string $accessToken Access token từ Google
      * @return array|null Thông tin người dùng Google
      */
-    private function getUserInfo($accessToken)
+    private function getUserInfo($accessToken, $login_type)
     {
+     
         $url = 'https://www.googleapis.com/oauth2/v3/userinfo';
         
         $options = [
@@ -143,6 +156,7 @@ class GoogleAuthentication {
             'id' => $userInfo['sub'] ?? '',
             'picture' => $userInfo['picture'] ?? '',
             'verified_email' => $userInfo['email_verified'] ?? false,
+            'login_type' => $login_type
         ];
     }
 
@@ -151,19 +165,29 @@ class GoogleAuthentication {
      * @param array $googleUser Thông tin người dùng Google
      * @return bool Trạng thái đăng nhập
      */
-    public function loginWithGoogle($googleUser)
+    public function loginWithGoogle($googleUser, $login_type)
     {
         if (empty($googleUser) || empty($googleUser['email'])) {
             return false;
         }
-        print_r($googleUser);
+        print_r($login_type);
         die();
 
-        $userModel = new \App\Models\UserModel();
+        switch ($login_type) {
+            case 'student':
+               $userModel = new \App\Models\StudentModel();
+               $user = $studentModel->where('Email', $googleUser['email'])->first();
+
+                break;
+            default:
+                $userModel = new \App\Models\UserModel();
+                $user = $userModel->where('u_email', $googleUser['email'])->first();
+
+                break;
+        }
+
+
         
-        // Tìm người dùng theo email
-        $user = $userModel->where('u_email', $googleUser['email'])->first();
-        print_r($user);
         // Nếu người dùng không tồn tại, có thể tạo mới hoặc trả về false
         if ($user === null) {
             // Tùy chọn: Tự động tạo người dùng mới từ Google

@@ -93,6 +93,18 @@
 											<div class="d-grid">
 												<button type="submit" class="btn btn-primary"><i class="bx bxs-lock-open"></i>Đăng nhập</button>
 											</div>
+											<div class="d-grid">
+											<div class="col-12 mt-3">
+										<div class="login-separater text-center mb-4"> <span>HOẶC</span>
+											<hr/>
+										</div>
+										<div class="d-grid">
+											<a href="<?= $googleAuthUrl ?? '#' ?>" class="btn btn-danger">
+												<i class="bx bxl-google"></i> Đăng nhập bằng Google
+											</a>
+										</div>
+									</div>
+										</div>
 										</div>
 									</form>
 								</div>

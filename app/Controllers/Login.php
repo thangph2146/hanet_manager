@@ -20,14 +20,15 @@ class Login extends BaseController
 	public function index()
 	{
 		$googleAuth = service('googleAuth');
-		$googleAuthUrl = $googleAuth->getAuthUrl();	
+		$googleAuthUrl = $googleAuth->getAuthUrl('student');	
 		return view('students/login', ['googleAuthUrl' => $googleAuthUrl]);
 	}
 
 	public function create_student()
 	{
 		$email = $this->request->getPost('email');
-		$password = $this->request->getPost('password');
+		$password = $this->request->getPost('password');	
+		$login_type = $this->request->getPost('login_type');
 		$remember_me = (bool) $this->request->getPost('remember_me');
 
 		$authStudent = service('authStudent');
@@ -66,7 +67,7 @@ class Login extends BaseController
 	{
 		// Lấy URL đăng nhập Google
 		$googleAuth = service('googleAuth');
-		$googleAuthUrl = $googleAuth->getAuthUrl();
+		$googleAuthUrl = $googleAuth->getAuthUrl('admin');
 		
 		return view('login/new', ['googleAuthUrl' => $googleAuthUrl]);
 	}
@@ -76,12 +77,12 @@ class Login extends BaseController
 	 */
 	public function create()
 	{
-		$username = $this->request->getPost('username');
+		$u_email = $this->request->getPost('u_email');
 		$password = $this->request->getPost('password');
-
+		$login_type = $this->request->getPost('login_type');
 		$auth = service('auth');
 
-		if ($auth->login($username, $password)) {
+		if ($auth->login($u_email, $password)) {
 			$redirect_url = session('redirect_url') ?? 'users/dashboard';
 			unset($_SESSION['redirect_url']);
 
@@ -99,22 +100,37 @@ class Login extends BaseController
 	 * Xử lý callback từ Google sau khi người dùng đăng nhập
 	 * @return \CodeIgniter\HTTP\RedirectResponse
 	 */
-	public function googleCallback()
+	public function googleCallback($login_type = null)
 	{
 		// Lấy code từ callback URL
 		$code = $this->request->getGet('code');
 		
+		// Lấy state từ query string (chứa login_type)
+		$state = $this->request->getGet('state');
+		
+		// Nếu có state và state không rỗng, sử dụng nó làm login_type
+		if (!empty($state)) {
+			$login_type = $state;
+		}
+		
+		// Nếu vẫn không có login_type, sử dụng 'admin' làm mặc định
+		if (empty($login_type)) {
+			$login_type = 'admin';
+		}
+		
 		if (empty($code)) {
-			return redirect()->to('login/admin')
+			$redirect = ($login_type == 'student') ? 'login' : 'login/admin';
+			return redirect()->to($redirect)
 							 ->with('warning', 'Không thể xác thực với Google!');
 		}
 		
 		// Xử lý code để lấy thông tin người dùng
 		$googleAuth = service('googleAuth');
-		$googleUser = $googleAuth->handleCallback($code);
+		$googleUser = $googleAuth->handleCallback($code, $login_type);
 		
 		if (empty($googleUser)) {
-			return redirect()->to('login/admin')
+			$redirect = ($login_type == 'student') ? 'login' : 'login/admin';
+			return redirect()->to($redirect)
 							 ->with('warning', 'Không thể lấy thông tin từ Google!');
 		}
 		
@@ -154,15 +170,22 @@ class Login extends BaseController
 		}
 		
 		// Đăng nhập người dùng
-		if ($googleAuth->loginWithGoogle($googleUser)) {
-			$redirect_url = session('redirect_url') ?? 'users/dashboard';
+		if ($googleAuth->loginWithGoogle($googleUser, $login_type)) {
+			// Xác định redirect_url dựa trên login_type
+			if ($login_type == 'student') {
+				$redirect_url = session('redirect_url') ?? 'students/dashboard';
+			} else {
+				$redirect_url = session('redirect_url') ?? 'users/dashboard';
+			}
+			
 			unset($_SESSION['redirect_url']);
 			
 			return redirect()->to($redirect_url)
 							 ->with('info', 'Bạn đã đăng nhập thành công với Google!')
 							 ->withCookies();
 		} else {
-			return redirect()->to('login/admin')
+			$redirect = ($login_type == 'student') ? 'login' : 'login/admin';
+			return redirect()->to($redirect)
 							 ->with('warning', 'Đăng nhập với Google không thành công!');
 		}
 	}

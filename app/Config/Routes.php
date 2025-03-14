@@ -97,6 +97,7 @@ $routes->get('login/logout', 'Login::delete');
 $routes->get('login/showlogoutmessage', 'Login::showLogoutMessage');
 $routes->get('login/admin', 'Login::admin');
 $routes->get('google-callback', 'Login::googleCallback');
+$routes->get('google-callback/(:any)', 'Login::googleCallback/$1');
 
 // Settings
 $routes->get('settings', 'Settings::index');

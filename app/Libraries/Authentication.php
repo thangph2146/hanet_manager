@@ -10,11 +10,11 @@ class Authentication {
 
 	private $user;
 
-	public function login($username, $password)
+	public function login($u_email, $password)
 	{
 		$model = new \App\Models\UserModel();
 
-		$user = $model->findByUserName($username);
+		$user = $model->findByEmail($u_email);
 
 		if ($user === null) {
 

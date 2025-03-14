@@ -69,7 +69,6 @@
 												<!--end Error list -->
 											</div>
 										</div>
-										<input type="hidden" name="login_type" value="users">
 										<div class="col-12">
 											<label for="inputUsername" class="form-label">Username</label>
 											<input type="text" class="form-control" id="username" name="username" placeholder="Nhập username">
