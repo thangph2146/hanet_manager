@@ -321,51 +321,211 @@ a:hover {
     font-weight: 500;
 }
 
-/* Event Cards */
+/* Event Cards - Thiết kế mới */
 .event-card {
     background: var(--bg-white);
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: var(--shadow-dark);
-    transition: var(--transition);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
     height: 100%;
-    border-bottom: 3px solid transparent;
+    border: 1px solid rgba(128, 0, 0, 0.1);
+    position: relative;
 }
 
 .event-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-hover);
-    border-bottom-color: var(--primary);
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(128, 0, 0, 0.2);
+    border-color: var(--primary);
+}
+
+.event-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.4s ease;
+}
+
+.event-card:hover::before {
+    transform: scaleY(1);
 }
 
 .event-card img {
     height: 200px;
     object-fit: cover;
     transition: all 0.5s ease;
+    width: 100%;
+    border-bottom: 3px solid transparent;
 }
 
 .event-card:hover img {
     transform: scale(1.05);
+    border-bottom-color: var(--primary);
 }
 
 .event-card .card-body {
     padding: 1.5rem;
+    background: var(--bg-white);
 }
 
 .event-card .card-title {
+    font-size: 1.25rem;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     color: var(--primary);
+    line-height: 1.4;
+    transition: color 0.3s ease;
+    border-bottom: 2px solid transparent;
+    padding-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 3.5rem;
+}
+
+.event-card:hover .card-title {
+    color: var(--primary-dark);
+    border-bottom-color: rgba(128, 0, 0, 0.1);
 }
 
 .event-card .card-text {
     color: var(--text-dark);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 4.8rem;
 }
 
-.event-card .badge {
+.event-card .event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed rgba(128, 0, 0, 0.1);
+}
+
+.event-card .event-meta i {
+    color: var(--primary);
+    margin-right: 0.5rem;
+}
+
+.event-card .event-meta span {
+    margin-right: 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.event-card .card-footer {
+    background-color: rgba(128, 0, 0, 0.03);
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(128, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.event-card .btn-link {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+}
+
+.event-card .btn-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--primary);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+}
+
+.event-card .btn-link:hover {
+    color: var(--primary-dark);
+}
+
+.event-card .btn-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+.event-card .btn-link i {
+    margin-left: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.event-card .btn-link:hover i {
+    transform: translateX(5px);
+}
+
+.event-card .btn-outline-primary {
+    border-color: var(--primary);
+    color: var(--primary);
     font-weight: 500;
-    padding: 0.5rem 0.75rem;
-    border-radius: 4px;
+    padding: 0.375rem 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.event-card .btn-outline-primary:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Thêm hiệu ứng ribbon cho sự kiện nổi bật */
+.event-card.featured::after {
+    content: 'Nổi bật';
+    position: absolute;
+    top: 20px;
+    right: -30px;
+    background: var(--primary);
+    color: white;
+    padding: 5px 30px;
+    transform: rotate(45deg);
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 3;
+}
+
+/* Event Card Grid Layout */
+.event-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 767.98px) {
+    .event-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .event-card img {
+        height: 180px;
+    }
 }
 
 /* Footer Styles */
@@ -825,4 +985,242 @@ footer a:hover {
     background: var(--primary-light);
     transform: translateY(-5px);
     box-shadow: var(--shadow-hover);
+}
+
+/* Category Tags - Tối ưu màu sắc */
+.category-tag {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: #ffffff;
+    background-color: var(--primary);
+    box-shadow: 0 2px 5px rgba(128, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.category-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(128, 0, 0, 0.3);
+    background-color: var(--primary-dark);
+    color: #ffffff;
+}
+
+.category-tag i {
+    margin-right: 5px;
+    font-size: 0.9rem;
+}
+
+/* Các biến thể màu sắc cho loại sự kiện - tất cả dựa trên màu đỏ đô */
+.category-tag.hoi-thao {
+    background-color: var(--primary);
+}
+
+.category-tag.nghe-nghiep {
+    background-color: var(--primary);
+    border-left: 3px solid #ffffff;
+}
+
+.category-tag.workshop {
+    background-color: var(--primary);
+    border-bottom: 3px solid #ffffff;
+}
+
+.category-tag.hoat-dong-sinh-vien {
+    background-color: var(--primary);
+    border-right: 3px solid #ffffff;
+}
+
+/* Hiệu ứng hover cho tất cả các loại */
+.category-tag.hoi-thao:hover,
+.category-tag.nghe-nghiep:hover,
+.category-tag.workshop:hover,
+.category-tag.hoat-dong-sinh-vien:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Thêm vào event-card để hiển thị loại sự kiện */
+.event-card .event-category {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 2;
+}
+
+.event-card .event-category .category-tag {
+    margin-right: 0;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Tối ưu hiển thị loại sự kiện trong trang chi tiết */
+.event-details .event-category {
+    margin-bottom: 1.5rem;
+}
+
+.event-details .event-category .category-tag {
+    font-size: 0.9rem;
+    padding: 8px 15px;
+}
+
+/* Trang danh sách loại sự kiện */
+.category-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 2rem;
+}
+
+.category-filter .category-tag {
+    opacity: 0.9;
+    background-color: var(--primary);
+}
+
+.category-filter .category-tag:hover,
+.category-filter .category-tag.active {
+    opacity: 1;
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* Event Card Horizontal */
+.event-card-horizontal {
+    background: var(--bg-white);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(128, 0, 0, 0.1);
+    position: relative;
+}
+
+.event-card-horizontal:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(128, 0, 0, 0.2);
+    border-color: var(--primary);
+}
+
+.event-card-horizontal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.4s ease;
+}
+
+.event-card-horizontal:hover::before {
+    transform: scaleY(1);
+}
+
+.event-card-horizontal img {
+    transition: all 0.5s ease;
+    border-right: 3px solid transparent;
+    object-fit: cover;
+    height: 100%;
+}
+
+.event-card-horizontal:hover img {
+    transform: scale(1.05);
+    border-right-color: var(--primary);
+}
+
+.event-card-horizontal .card-body {
+    padding: 1.5rem;
+    background: var(--bg-white);
+}
+
+.event-card-horizontal .card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--primary);
+    line-height: 1.4;
+    transition: color 0.3s ease;
+    border-bottom: 2px solid transparent;
+    padding-bottom: 0.5rem;
+}
+
+.event-card-horizontal:hover .card-title {
+    color: var(--primary-dark);
+    border-bottom-color: rgba(128, 0, 0, 0.1);
+}
+
+.event-card-horizontal .card-text {
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.event-card-horizontal .event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed rgba(128, 0, 0, 0.1);
+}
+
+.event-card-horizontal .event-meta i {
+    color: var(--primary);
+    margin-right: 0.5rem;
+}
+
+.event-card-horizontal .event-meta span {
+    margin-right: 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.event-card-horizontal .event-category {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 2;
+}
+
+.event-card-horizontal.featured::after {
+    content: 'Nổi bật';
+    position: absolute;
+    top: 20px;
+    left: -30px;
+    background: var(--primary);
+    color: white;
+    padding: 5px 30px;
+    transform: rotate(-45deg);
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 3;
+}
+
+@media (max-width: 767.98px) {
+    .event-card-horizontal .card-body {
+        padding: 1rem;
+    }
+    
+    .event-card-horizontal .card-title {
+        font-size: 1.25rem;
+    }
+    
+    .event-card-horizontal .col-md-4 {
+        height: 200px;
+    }
 } 

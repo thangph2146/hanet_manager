@@ -128,31 +128,15 @@
         <div class="container">
             <h2 class="section-title">Sự Kiện Sắp Diễn Ra</h2>
             <div class="row">
-                <?php foreach ($upcoming_events as $event): ?>
+                <?php foreach ($upcoming_events as $key => $event): ?>
                 <div class="col-md-4 mb-4">
-                    <div class="event-card animate-on-scroll">
-                        <img src="<?= base_url($event['hinh_anh']) ?>" class="card-img-top" alt="<?= $event['ten_su_kien'] ?>">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="badge bg-<?php 
-                                    switch($event['loai_su_kien']) {
-                                        case 'Hội thảo': echo 'primary'; break;
-                                        case 'Nghề nghiệp': echo 'success'; break;
-                                        case 'Workshop': echo 'warning text-dark'; break;
-                                        case 'Hoạt động sinh viên': echo 'info'; break;
-                                        default: echo 'secondary';
-                                    }
-                                ?>"><?= $event['loai_su_kien'] ?></span>
-                                <span class="text-muted"><i class="lni lni-calendar"></i> <?= date('d/m/Y', strtotime($event['ngay_to_chuc'])) ?></span>
-                            </div>
-                            <h5 class="card-title"><?= $event['ten_su_kien'] ?></h5>
-                            <p class="card-text"><?= $event['mo_ta_su_kien'] ?></p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <a href="<?= site_url('su-kien/detail/' . $event['slug']) ?>" class="btn btn-sm btn-outline-primary">Chi tiết</a>
-                                <span class="text-muted"><i class="lni lni-map-marker"></i> <?= $event['dia_diem'] ?></span>
-                            </div>
-                        </div>
-                    </div>
+                    <?php 
+                    // Sử dụng component event_card
+                    echo view('App\Modules\sukien\Views\components\event_card', [
+                        'event' => $event,
+                        'featured' => ($key === 0) // Sự kiện đầu tiên là nổi bật
+                    ]);
+                    ?>
                 </div>
                 <?php endforeach; ?>
             </div>

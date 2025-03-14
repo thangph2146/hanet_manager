@@ -24,4 +24,7 @@ $routes->group('su-kien', ['namespace' => 'App\Modules\sukien\Controllers'], fun
         $routes->get('registrations', 'Admin\Registrations::index');
         $routes->get('registrations/event/(:num)', 'Admin\Registrations::byEvent/$1');
     });
+
+    // Route cho AJAX lấy chế độ xem sự kiện
+    $routes->post('su-kien/get-events-view', 'SukienController::getEventsView');
 });

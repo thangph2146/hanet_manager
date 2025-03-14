@@ -20,7 +20,7 @@
                 <div class="col-md-12">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="<?= site_url('sukien') ?>">Trang chủ</a></li>
+                            <li class="breadcrumb-item"><a href="<?= site_url('su-kien') ?>">Trang chủ</a></li>
                             <li class="breadcrumb-item active" aria-current="page">Danh sách sự kiện</li>
                             <?php if (isset($category)): ?>
                             <li class="breadcrumb-item active" aria-current="page"><?= $category ?></li>
@@ -49,7 +49,7 @@
     </section>
 
     <!-- Search and Filter Section -->
-    <section class="container py-4">
+    <section class="container py-5">
         <div class="row mb-4">
             <div class="col-md-8">
                 <form action="<?= site_url('su-kien/list') ?>" method="get" class="d-flex">
@@ -58,7 +58,15 @@
                 </form>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <a href="<?= site_url('su-kien/list') ?>" class="btn <?= !isset($category) ? 'btn-primary' : 'btn-outline-primary' ?> me-2 mb-2">Tất cả</a>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary view-toggle active" data-view="grid">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary view-toggle" data-view="list">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+                <a href="<?= site_url('su-kien/list') ?>" class="btn <?= !isset($category) ? 'btn-primary' : 'btn-outline-primary' ?> ms-2">Tất cả</a>
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     Lọc theo loại
                 </button>
@@ -88,54 +96,18 @@
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Events List -->
-    <section class="container py-5">
-        <div class="row">
-            <?php if (empty($events)): ?>
-            <div class="col-md-12 text-center">
-                <div class="alert alert-info">
-                    <h4>Không tìm thấy sự kiện</h4>
-                    <?php if (isset($search) && !empty($search)): ?>
-                    <p>Không tìm thấy sự kiện nào phù hợp với từ khóa "<?= esc($search) ?>". Vui lòng thử lại với từ khóa khác.</p>
-                    <?php elseif (isset($category)): ?>
-                    <p>Hiện tại không có sự kiện nào trong danh mục <?= $category ?>. Vui lòng quay lại sau.</p>
-                    <?php else: ?>
-                    <p>Hiện tại không có sự kiện nào. Vui lòng quay lại sau.</p>
-                    <?php endif; ?>
-                    <a href="<?= site_url('su-kien/list') ?>" class="btn btn-primary mt-3">Xem tất cả sự kiện</a>
-                </div>
-            </div>
-            <?php else: ?>
-                <?php foreach ($events as $event): ?>
-                <div class="col-md-4 mb-4" data-category="<?= strtolower(str_replace(' ', '-', $event['loai_su_kien'])) ?>">
-                    <div class="event-card h-100">
-                        <img src="<?= base_url($event['hinh_anh']) ?>" class="card-img-top" alt="<?= $event['ten_su_kien'] ?>">
-                        <div class="card-body d-flex flex-column">
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="badge bg-<?php 
-                                    switch($event['loai_su_kien']) {
-                                        case 'Hội thảo': echo 'primary'; break;
-                                        case 'Nghề nghiệp': echo 'success'; break;
-                                        case 'Workshop': echo 'warning text-dark'; break;
-                                        case 'Hoạt động sinh viên': echo 'info'; break;
-                                        default: echo 'secondary';
-                                    }
-                                ?>"><?= $event['loai_su_kien'] ?></span>
-                                <span class="text-muted"><i class="lni lni-calendar"></i> <?= date('d/m/Y', strtotime($event['ngay_to_chuc'])) ?></span>
-                            </div>
-                            <h5 class="card-title"><?= $event['ten_su_kien'] ?></h5>
-                            <p class="card-text"><?= $event['mo_ta_su_kien'] ?></p>
-                            <div class="d-flex justify-content-between align-items-center mt-auto">
-                                <a href="<?= site_url('su-kien/detail/' . $event['slug']) ?>" class="btn btn-sm btn-outline-primary">Chi tiết</a>
-                                <span><i class="lni lni-map-marker"></i> <?= $event['dia_diem'] ?></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+        <div class="row event-container" id="event-container">
+            <?php 
+            // Sử dụng component event_list
+            echo view('App\Modules\sukien\Views\components\event_list', [
+                'events' => $events,
+                'layout' => 'grid', // Mặc định là grid
+                'show_featured' => true,
+                'category' => isset($category) ? $category : null,
+                'search' => isset($search) ? $search : null
+            ]);
+            ?>
         </div>
 
         <!-- Pagination -->
@@ -219,6 +191,56 @@
                 }, 150);
             }, 5000);
         }
+        
+        // Xử lý chuyển đổi chế độ xem
+        const viewToggles = document.querySelectorAll('.view-toggle');
+        const eventContainer = document.getElementById('event-container');
+        
+        viewToggles.forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const view = this.getAttribute('data-view');
+                
+                // Cập nhật trạng thái active
+                viewToggles.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Lấy dữ liệu hiện tại
+                const events = <?= json_encode($events) ?>;
+                const category = <?= isset($category) ? json_encode($category) : 'null' ?>;
+                const search = <?= isset($search) ? json_encode($search) : 'null' ?>;
+                
+                // Gọi AJAX để lấy HTML mới
+                fetch('<?= site_url('su-kien/get-events-view') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        events: events,
+                        layout: view,
+                        category: category,
+                        search: search
+                    })
+                })
+                .then(response => response.text())
+                .then(html => {
+                    eventContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    
+                    // Fallback nếu AJAX thất bại
+                    if (view === 'grid') {
+                        eventContainer.classList.remove('list-view');
+                        eventContainer.classList.add('grid-view');
+                    } else {
+                        eventContainer.classList.remove('grid-view');
+                        eventContainer.classList.add('list-view');
+                    }
+                });
+            });
+        });
     });
 </script>
 <?= $this->endSection() ?> 

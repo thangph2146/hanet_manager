@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <!-- Trang chủ -->
     <url>
-        <loc><?= site_url('sukien') ?></loc>
+        <loc><?= site_url('su-kien') ?></loc>
         <lastmod><?= $current_date ?></lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
