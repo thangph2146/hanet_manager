@@ -321,12 +321,12 @@
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav me-auto">
 					<li class="nav-item">
-						<a class="nav-link <?= uri_string() == 'sukien' ? 'active' : '' ?>" href="<?= site_url('sukien') ?>">
+						<a class="nav-link <?= uri_string() == 'su-kien' ? 'active' : '' ?>" href="<?= site_url('su-kien') ?>">
 							<i class="fas fa-home me-1"></i> Trang chủ
 						</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link <?= uri_string() == 'sukien/list' ? 'active' : '' ?>" href="<?= site_url('sukien/list') ?>">
+						<a class="nav-link <?= uri_string() == 'su-kien/list' ? 'active' : '' ?>" href="<?= site_url('su-kien/list') ?>">
 							<i class="fas fa-calendar-alt me-1"></i> Sự kiện
 						</a>
 					</li>
@@ -335,10 +335,10 @@
 							<i class="fas fa-tags me-1"></i> Loại sự kiện
 						</a>
 						<ul class="dropdown-menu">
-							<li><a class="dropdown-item" href="<?= site_url('sukien/category/hoi-thao') ?>">Hội thảo</a></li>
-							<li><a class="dropdown-item" href="<?= site_url('sukien/category/nghe-nghiep') ?>">Nghề nghiệp</a></li>
-							<li><a class="dropdown-item" href="<?= site_url('sukien/category/workshop') ?>">Workshop</a></li>
-							<li><a class="dropdown-item" href="<?= site_url('sukien/category/hoat-dong-sinh-vien') ?>">Hoạt động sinh viên</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('su-kien/category/hoi-thao') ?>">Hội thảo</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('su-kien/category/nghe-nghiep') ?>">Nghề nghiệp</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('su-kien/category/workshop') ?>">Workshop</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('su-kien/category/hoat-dong-sinh-vien') ?>">Hoạt động sinh viên</a></li>
 						</ul>
 					</li>
 				</ul>
