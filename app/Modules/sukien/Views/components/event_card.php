@@ -16,14 +16,13 @@ if (!isset($event) || empty($event)) {
 $featured = isset($featured) ? $featured : false;
 ?>
 
-<div class="event-card h-100 <?= $featured ? 'featured' : '' ?>">
+<div class="event-card h-100  <?= $featured ? 'featured' : '' ?>">
     <div class="event-category">
         <a href="<?= site_url('su-kien/category/' . strtolower(str_replace(' ', '-', $event['loai_su_kien']))) ?>" class="category-tag <?= strtolower(str_replace(' ', '-', $event['loai_su_kien'])) ?>">
             <i class="fas fa-tag"></i> <?= $event['loai_su_kien'] ?>
         </a>
     </div>
     
-    <img src="<?= base_url($event['hinh_anh']) ?>" alt="<?= $event['ten_su_kien'] ?>" class="card-img-top">
     
     <div class="card-body">
         <h5 class="card-title"><?= $event['ten_su_kien'] ?></h5>
