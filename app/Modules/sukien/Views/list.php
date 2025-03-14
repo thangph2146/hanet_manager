@@ -58,14 +58,6 @@
                 </form>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-primary view-toggle active" data-view="grid">
-                        <i class="fas fa-th-large"></i>
-                    </button>
-                    <button type="button" class="btn btn-outline-primary view-toggle" data-view="list">
-                        <i class="fas fa-list"></i>
-                    </button>
-                </div>
                 <a href="<?= site_url('su-kien/list') ?>" class="btn <?= !isset($category) ? 'btn-primary' : 'btn-outline-primary' ?> ms-2">Tất cả</a>
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     Lọc theo loại
