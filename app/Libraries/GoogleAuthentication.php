@@ -33,6 +33,9 @@ class GoogleAuthentication {
             return '#';
         }
         
+        // Logging để debug
+        log_message('debug', 'Google Auth - Redirect URI: ' . $this->redirectUri . ', Login Type: ' . $login_type);
+        
         $params = [
             'client_id' => $this->clientID,
             'redirect_uri' => $this->redirectUri,
@@ -170,40 +173,51 @@ class GoogleAuthentication {
         if (empty($googleUser) || empty($googleUser['email'])) {
             return false;
         }
+        
+        // Logging để debug
+        print_r($googleUser);
         print_r($login_type);
-        die();
-
+		die();
         switch ($login_type) {
             case 'student':
-               $userModel = new \App\Models\StudentModel();
-               $user = $studentModel->where('Email', $googleUser['email'])->first();
+                $studentModel = new \App\Models\StudentModel();
+                $student = $studentModel->where('Email', $googleUser['email'])->first();
+                
+                // Nếu sinh viên không tồn tại
+                if ($student === null) {
+                    log_message('debug', 'Student not found with email: ' . $googleUser['email']);
+                    return false;
+                }
+                
+                // Đăng nhập sinh viên
+                $session = session();
+                $session->regenerate();
+                $session->set('student_id', $student->id);
+                log_message('debug', 'Student logged in successfully: ' . $student->id);
+                return true;
 
-                break;
             default:
                 $userModel = new \App\Models\UserModel();
                 $user = $userModel->where('u_email', $googleUser['email'])->first();
-
+                 // Nếu người dùng không tồn tại, có thể tạo mới hoặc trả về false
+                if ($user === null) {
+                    // Tùy chọn: Tự động tạo người dùng mới từ Google
+                    // return $this->createUserFromGoogle($googleUser);
+                    
+                    // Hoặc trả về false nếu không muốn tự động tạo người dùng
+                    return false;
+                }
+                
+                // Nếu tài khoản bị vô hiệu hóa
+                if (!$user->u_status) {
+                    return false;
+                }
+                
+                // Đăng nhập người dùng
+                $this->logInUser($user);
                 break;
         }
 
-
-        
-        // Nếu người dùng không tồn tại, có thể tạo mới hoặc trả về false
-        if ($user === null) {
-            // Tùy chọn: Tự động tạo người dùng mới từ Google
-            // return $this->createUserFromGoogle($googleUser);
-            
-            // Hoặc trả về false nếu không muốn tự động tạo người dùng
-            return false;
-        }
-        
-        // Nếu tài khoản bị vô hiệu hóa
-        if (!$user->u_status) {
-            return false;
-        }
-        
-        // Đăng nhập người dùng
-        $this->logInUser($user);
         
         return true;
     }

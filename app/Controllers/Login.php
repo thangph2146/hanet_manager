@@ -28,7 +28,6 @@ class Login extends BaseController
 	{
 		$email = $this->request->getPost('email');
 		$password = $this->request->getPost('password');	
-		$login_type = $this->request->getPost('login_type');
 		$remember_me = (bool) $this->request->getPost('remember_me');
 
 		$authStudent = service('authStudent');
@@ -79,7 +78,6 @@ class Login extends BaseController
 	{
 		$u_email = $this->request->getPost('u_email');
 		$password = $this->request->getPost('password');
-		$login_type = $this->request->getPost('login_type');
 		$auth = service('auth');
 
 		if ($auth->login($u_email, $password)) {
@@ -107,6 +105,7 @@ class Login extends BaseController
 		
 		// Lấy state từ query string (chứa login_type)
 		$state = $this->request->getGet('state');
+		
 		
 		// Nếu có state và state không rỗng, sử dụng nó làm login_type
 		if (!empty($state)) {
