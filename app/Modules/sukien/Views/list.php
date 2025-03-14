@@ -66,7 +66,7 @@
                     <?php foreach ($event_types as $type): ?>
                     <li>
                         <a class="dropdown-item <?= (isset($category) && $category === $type['loai_su_kien']) ? 'active' : '' ?>" 
-                           href="<?= site_url('su-kien/category/' . strtolower(str_replace(' ', '-', $type['loai_su_kien']))) ?>">
+                           href="<?= site_url('su-kien/loai/' . $type['slug']) ?>">
                             <?= $type['loai_su_kien'] ?>
                         </a>
                     </li>
@@ -80,7 +80,7 @@
                 <div class="filter-buttons text-center d-none d-md-block">
                     <a href="<?= site_url('su-kien/list') ?>" class="btn btn-outline-primary me-2 mb-2 <?= !isset($category) ? 'active' : '' ?>">Tất cả</a>
                     <?php foreach ($event_types as $type): ?>
-                    <a href="<?= site_url('su-kien/category/' . strtolower(str_replace(' ', '-', $type['loai_su_kien']))) ?>" 
+                    <a href="<?= site_url('su-kien/loai/' . $type['slug']) ?>" 
                        class="btn btn-outline-primary me-2 mb-2 <?= (isset($category) && $category === $type['loai_su_kien']) ? 'active' : '' ?>">
                         <?= $type['loai_su_kien'] ?>
                     </a>

@@ -15,7 +15,7 @@
                         <h1 class="display-3 fw-bold text-gradient mb-4 text-white">Ngày Hội Việc Làm HUB 2025</h1>
                         <p class="lead mb-4 fw-light" data-aos="fade-up" data-aos-delay="200">
                             Khám phá cơ hội nghề nghiệp và kết nối với doanh nghiệp hàng đầu tại sự kiện thường niên của 
-                            <span class="text-primary">Trường Đại học Ngân hàng TP.HCM</span>
+                            <span class="text-white fw-bold">Trường Đại học Ngân hàng TP.HCM</span>
                         </p>
                         <div class="d-flex justify-content-center gap-3 flex-wrap" data-aos="fade-up" data-aos-delay="300">
                             <a href="#registration" class="btn btn-gradient btn-lg">

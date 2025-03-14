@@ -19,7 +19,7 @@
     <!-- Trang danh mục -->
     <?php foreach ($categories as $category): ?>
     <url>
-        <loc><?= site_url('su-kien/category/' . strtolower(str_replace(' ', '-', $category['loai_su_kien']))) ?></loc>
+        <loc><?= site_url('su-kien/loai/' . $category['slug']) ?></loc>
         <lastmod><?= $current_date ?></lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
@@ -30,7 +30,7 @@
     <?php foreach ($events as $event): ?>
     <url>
         <loc><?= site_url('su-kien/detail/' . $event['slug']) ?></loc>
-        <lastmod><?= date('Y-m-d\TH:i:sP', strtotime($event['ngay_cap_nhat'] ?? $current_date)) ?></lastmod>
+        <lastmod><?= date('Y-m-d\TH:i:sP', strtotime($event['updated_at'] ?? $current_date)) ?></lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>

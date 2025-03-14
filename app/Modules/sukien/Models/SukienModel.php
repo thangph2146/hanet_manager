@@ -512,7 +512,14 @@ class SukienModel extends Model
         // return $this->db->table('loai_su_kien')->where('status', 1)->get()->getResultArray();
         
         // Sử dụng mock data cho demo
-        return $this->mockEventTypes;
+        $eventTypes = $this->mockEventTypes;
+        
+        // Thêm trường slug cho mỗi loại sự kiện
+        foreach ($eventTypes as &$type) {
+            $type['slug'] = strtolower(str_replace(' ', '-', $type['loai_su_kien']));
+        }
+        
+        return $eventTypes;
     }
     
     /**

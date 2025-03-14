@@ -24,10 +24,13 @@ $backgroundColors = [
     '#E64A19', '#5D4037', '#455A64', '#7E57C2', '#00ACC1'
 ];
 $randomColor = $backgroundColors[array_rand($backgroundColors)];
+
+// Lấy slug của loại sự kiện
+$categorySlug = isset($event['loai_su_kien_slug']) ? $event['loai_su_kien_slug'] : strtolower(str_replace(' ', '-', $event['loai_su_kien']));
 ?>
 <div class="event-card h-100  <?= $featured ? 'featured' : '' ?>">
     <div class="event-category" style="background-color: <?= $randomColor ?>;">
-        <a href="<?= site_url('su-kien/category/' . strtolower(str_replace(' ', '-', $event['loai_su_kien']))) ?>"
+        <a href="<?= site_url('su-kien/loai/' . $categorySlug) ?>"
          class="category-tag <?= strtolower(str_replace(' ', '-', $event['loai_su_kien'])) ?>"
          style="background-color: <?= $randomColor ?>;">
             <i class="fas fa-tag" style="font-size: 1.25rem; background-color: <?= $randomColor ?>;"></i> <?= $event['loai_su_kien'] ?>

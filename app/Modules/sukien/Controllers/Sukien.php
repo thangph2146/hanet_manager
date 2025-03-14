@@ -64,7 +64,8 @@ class Sukien extends BaseController
             'meta_title' => 'Sự Kiện Đại Học Ngân Hàng TP.HCM - Hub Events',
             'meta_description' => 'Khám phá các sự kiện, hội thảo, workshop tại Trường Đại học Ngân hàng TP.HCM. Tham gia các hoạt động học thuật, nghề nghiệp và phát triển bản thân.',
             'meta_keywords' => 'sự kiện hub, đại học ngân hàng, hội thảo, ngày hội việc làm, workshop, hoạt động sinh viên',
-            'og_image' => base_url('public/assets/modules/sukien/images/hub-banner.jpg')
+            'og_image' => base_url('public/assets/modules/sukien/images/hub-banner.jpg'),
+            'canonical_url' => site_url('su-kien')
         ];
         
         return view('App\Modules\sukien\Views\welcome', array_merge(
@@ -88,8 +89,8 @@ class Sukien extends BaseController
         // Chuẩn bị dữ liệu cho view
         $data = [];
         
-        // Lấy danh sách loại sự kiện
-        $data['event_types'] = $this->sukienModel->getEventTypes();
+        // Lấy danh sách loại sự kiện từ LoaiSukienModel thay vì SukienModel
+        $data['event_types'] = $this->loaiSukienModel->getAllEventTypes();
         
         // Xử lý tìm kiếm
         if (!empty($search)) {
@@ -107,8 +108,8 @@ class Sukien extends BaseController
             
             // Chuẩn bị dữ liệu SEO
             $data['meta_title'] = 'Danh Sách Sự Kiện - Đại Học Ngân Hàng TP.HCM';
-            $data['meta_description'] = 'Danh sách tất cả sự kiện tại Trường Đại học Ngân hàng TP.HCM. Cập nhật các sự kiện, hội thảo và hoạt động mới nhất.';
-            $data['meta_keywords'] = 'sự kiện hub, danh sách sự kiện, hội thảo, workshop, ngày hội việc làm';
+            $data['meta_description'] = 'Khám phá tất cả các sự kiện tại Trường Đại học Ngân hàng TP.HCM. Hội thảo, workshop, ngày hội việc làm và nhiều hoạt động khác.';
+            $data['meta_keywords'] = 'sự kiện hub, danh sách sự kiện, đại học ngân hàng, hội thảo, workshop';
         }
         
         // Xử lý phân trang
@@ -153,16 +154,26 @@ class Sukien extends BaseController
         return view('App\Modules\sukien\Views\list', $data);
     }
 
+    /**
+     * Phương thức mới: Chuyển hướng từ ID sang slug
+     */
+    public function redirectToSlug($id)
+    {
+        // Lấy thông tin sự kiện từ ID
+        $event = $this->sukienModel->getEventById($id);
+        
+        if (empty($event)) {
+            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+        }
+        
+        // Chuyển hướng đến URL với slug
+        return redirect()->to('/su-kien/detail/' . $event['slug'], 301);
+    }
+
     public function detail($slug)
     {
-        // Debug: Kiểm tra giá trị slug được truyền vào
-        // echo "Slug: " . $slug . "<br>";
-        
         // Lấy thông tin sự kiện từ slug
         $event = $this->sukienModel->getEventBySlug($slug);
-        
-        // Debug: Kiểm tra kết quả từ getEventBySlug
-        // var_dump($event); die;
         
         if (empty($event)) {
             return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
@@ -198,24 +209,20 @@ class Sukien extends BaseController
     
     public function category($category_slug)
     {
-        // Chuyển đổi category-slug thành tên danh mục
-        $category_name = '';
-        $event_types = $this->sukienModel->getEventTypes();
+        // Lấy thông tin loại sự kiện từ slug
+        $category = $this->loaiSukienModel->getEventTypeBySlug($category_slug);
         
-        foreach ($event_types as $type) {
-            $type_slug = strtolower(str_replace(' ', '-', $type['loai_su_kien']));
-            if ($type_slug === $category_slug) {
-                $category_name = $type['loai_su_kien'];
-                break;
-            }
-        }
-        
-        if (empty($category_name)) {
+        if (empty($category)) {
             return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy danh mục');
         }
         
+        $category_name = $category['loai_su_kien'];
+        
         // Lấy sự kiện thuộc danh mục đã chọn
         $events = $this->sukienModel->getEventsByCategory($category_name);
+        
+        // Lấy danh sách loại sự kiện
+        $event_types = $this->loaiSukienModel->getAllEventTypes();
         
         // Chuẩn bị dữ liệu SEO
         $data = [
@@ -225,7 +232,7 @@ class Sukien extends BaseController
             'meta_title' => 'Sự Kiện ' . $category_name . ' - Đại Học Ngân Hàng TP.HCM',
             'meta_description' => 'Khám phá các sự kiện ' . $category_name . ' tại Trường Đại học Ngân hàng TP.HCM. Cập nhật các ' . strtolower($category_name) . ' mới nhất.',
             'meta_keywords' => 'sự kiện ' . strtolower($category_name) . ', ' . strtolower($category_name) . ' hub, đại học ngân hàng',
-            'canonical_url' => site_url('su-kien/category/' . $category_slug)
+            'canonical_url' => site_url('su-kien/loai/' . $category_slug)
         ];
         
         return view('App\Modules\sukien\Views\list', $data);

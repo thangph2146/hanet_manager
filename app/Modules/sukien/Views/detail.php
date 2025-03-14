@@ -45,7 +45,11 @@
                             <li class="breadcrumb-item"><a href="<?= site_url('su-kien/list') ?>">Danh sách sự kiện</a></li>
                             <?php if (isset($event['loai_su_kien'])): ?>
                             <li class="breadcrumb-item">
-                                <a href="<?= site_url('su-kien/category/' . strtolower(str_replace(' ', '-', $event['loai_su_kien']))) ?>">
+                                <?php 
+                                // Lấy slug của loại sự kiện
+                                $categorySlug = isset($event['loai_su_kien_slug']) ? $event['loai_su_kien_slug'] : strtolower(str_replace(' ', '-', $event['loai_su_kien']));
+                                ?>
+                                <a href="<?= site_url('su-kien/loai/' . $categorySlug) ?>">
                                     <?= $event['loai_su_kien'] ?>
                                 </a>
                             </li>

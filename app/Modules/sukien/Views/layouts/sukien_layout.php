@@ -341,10 +341,10 @@
 							<i class="fas fa-tags me-1"></i> Loại sự kiện
 						</a>
 						<ul class="dropdown-menu">
-							<li><a class="dropdown-item" href="<?= site_url('su-kien/category/hoi-thao') ?>">Hội thảo</a></li>
-							<li><a class="dropdown-item" href="<?= site_url('su-kien/category/nghe-nghiep') ?>">Nghề nghiệp</a></li>
-							<li><a class="dropdown-item" href="<?= site_url('su-kien/category/workshop') ?>">Workshop</a></li>
-							<li><a class="dropdown-item" href="<?= site_url('su-kien/category/hoat-dong-sinh-vien') ?>">Hoạt động sinh viên</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('su-kien/loai/hoi-thao') ?>">Hội thảo</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('su-kien/loai/nghe-nghiep') ?>">Nghề nghiệp</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('su-kien/loai/workshop') ?>">Workshop</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('su-kien/loai/hoat-dong-sinh-vien') ?>">Hoạt động sinh viên</a></li>
 						</ul>
 					</li>
 				</ul>

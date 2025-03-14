@@ -4,14 +4,17 @@ namespace App\Modules\sukien\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\sukien\Models\SukienModel;
+use App\Modules\sukien\Models\LoaiSukienModel;
 
 class Sitemap extends BaseController
 {
     protected $sukienModel;
+    protected $loaiSukienModel;
     
     public function __construct()
     {
         $this->sukienModel = new SukienModel();
+        $this->loaiSukienModel = new LoaiSukienModel();
     }
     
     public function index()
@@ -23,7 +26,7 @@ class Sitemap extends BaseController
         $events = $this->sukienModel->getAllEvents();
         
         // Lấy tất cả danh mục
-        $categories = $this->sukienModel->getEventTypes();
+        $categories = $this->loaiSukienModel->getAllEventTypes();
         
         // Chuẩn bị dữ liệu cho sitemap
         $data = [

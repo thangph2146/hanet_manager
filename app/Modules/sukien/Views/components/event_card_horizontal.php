@@ -20,7 +20,7 @@ $featured = isset($featured) ? $featured : false;
     <div class="row g-0">
         <div class="col-md-4 position-relative">
             <div class="event-category">
-                <a href="<?= site_url('su-kien/category/' . strtolower(str_replace(' ', '-', $event['loai_su_kien']))) ?>" class="category-tag <?= strtolower(str_replace(' ', '-', $event['loai_su_kien'])) ?>">
+                <a href="<?= site_url('su-kien/loai/' . strtolower(str_replace(' ', '-', $event['loai_su_kien']))) ?>" class="category-tag <?= strtolower(str_replace(' ', '-', $event['loai_su_kien'])) ?>">
                     <i class="fas fa-tag"></i> <?= $event['loai_su_kien'] ?>
                 </a>
             </div>
