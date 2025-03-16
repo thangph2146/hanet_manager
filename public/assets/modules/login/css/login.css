@@ -571,6 +571,14 @@ body, html {
     color: #fff;
 }
 
+.bxl-google {
+    color: #DB4437;
+}
+
+.google-btn:hover .bxl-google {
+    color: #fff;
+}
+
 .google-btn i {
     color: #DB4437;
     margin-right: 8px;
