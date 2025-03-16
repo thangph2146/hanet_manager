@@ -25,6 +25,8 @@
 	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 	<!-- Animate.css -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+	<!-- Particles CSS -->
+	<link href="<?= site_url('assets/modules/particles/css/particles.css') ?>" rel="stylesheet">
 	<!-- Login CSS -->
 	<link href="<?= site_url('assets/modules/login/css/login.css') ?>" rel="stylesheet">
 	<title>Đăng nhập - Quản trị viên Hệ thống Đăng ký Sự kiện ĐH Ngân hàng TP.HCM</title>
@@ -155,6 +157,7 @@
 			</div>
 		</div>
 	</div>
+	<div id="particles-js" class="particles-js"></div>
 </div>
 <!--end wrapper-->
 
@@ -169,6 +172,9 @@
 <script src="<?= site_url('assets/js/app.js') ?>"></script>
 <!-- Login JS -->
 <script src="<?= site_url('assets/modules/login/js/login.js') ?>"></script>
+<!-- Particles JS -->
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="<?= site_url('assets/modules/particles/js/particles.js') ?>"></script>
 </body>
 
 </html>
