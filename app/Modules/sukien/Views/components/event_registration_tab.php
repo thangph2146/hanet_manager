@@ -9,49 +9,137 @@
         <div class="card-body">
             <h3 class="card-title mb-4">Đăng ký tham gia</h3>
             
-            <!-- Thông tin đăng ký -->
-            <div class="registration-info mb-4">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="info-item mb-3">
-                            <i class="lni lni-calendar me-2"></i>
-                            <span>Ngày: <?= date('d/m/Y', strtotime($event['ngay_to_chuc'])) ?></span>
-                        </div>
-                        <div class="info-item mb-3">
-                            <i class="lni lni-map-marker me-2"></i>
-                            <span>Địa điểm: <?= $event['dia_diem'] ?></span>
-                        </div>
+             <!-- Event Meta -->
+    <div class="event-meta mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="meta-item d-flex align-items-center">
+                    <div class="icon-container me-3">
+                        <i class="lni lni-timer text-primary"></i>
                     </div>
-                    <div class="col-md-6">
-                        <div class="info-item mb-3">
-                            <i class="lni lni-clock me-2"></i>
-                            <span>Thời gian: <?= $event['thoi_gian'] ?></span>
-                        </div>
-                        <div class="info-item mb-3">
-                            <i class="lni lni-users me-2"></i>
-                            <span>Số lượng: <?= $event['so_luong_tham_gia'] ?> người</span>
-                        </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Ngày tổ chức</h6>
+                        <span><?= date('d/m/Y', strtotime($event['ngay_to_chuc'])) ?></span>
                     </div>
                 </div>
             </div>
+            <div class="col-md-6 mb-3">
+                <div class="meta-item d-flex align-items-center">
+                    <div class="icon-container me-3">
+                        <i class="lni lni-timer text-primary"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Thời gian</h6>
+                        <span><?= date('H:i', strtotime($event['gio_bat_dau'])) ?> - <?= date('H:i', strtotime($event['gio_ket_thuc'])) ?></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="meta-item d-flex align-items-center">
+                    <div class="icon-container me-3">
+                        <i class="lni lni-map text-primary"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Địa điểm</h6>
+                        <span><?= $event['dia_diem'] ?></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="meta-item d-flex align-items-center">
+                    <div class="icon-container me-3">
+                        <i class="lni lni-users text-primary"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Số lượng</h6>
+                        <span><?= $event['so_luong_tham_gia'] ?> người</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+            
+            <!-- CSS cho Registration Meta -->
+            <style>
+                .meta-item {
+                    background-color: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 8px;
+                    height: 100%;
+                    transition: all 0.3s ease;
+                }
+                .meta-item:hover {
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+                    transform: translateY(-3px);
+                }
+                .icon-container {
+                    font-size: 24px;
+                    width: 50px;
+                    height: 50px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: rgba(var(--bs-primary-rgb), 0.1);
+                    border-radius: 50%;
+                }
+            </style>
             
             <!-- Tiến trình đăng ký -->
             <div class="mb-4">
                 <h5>Tình trạng đăng ký</h5>
-                <div class="progress mb-2">
-                    <?php 
-                        $percent = isset($registration_count) && $event['so_luong_tham_gia'] > 0 
-                            ? min(100, round(($registration_count / $event['so_luong_tham_gia']) * 100)) 
-                            : 0;
-                    ?>
-                    <div class="progress-bar bg-primary" role="progressbar" style="width: <?= $percent ?>%" 
-                        aria-valuenow="<?= $percent ?>" aria-valuemin="0" aria-valuemax="100">
-                        <?= $percent ?>%
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <!-- Hiển thị số liệu đăng ký -->
+                        <?php 
+                        // Sử dụng biến registrationCount từ controller
+                        $registration_total = isset($registrationCount) ? $registrationCount : 0;
+                        $max_slots = $event['so_luong_tham_gia'];
+                        $slots_left = max(0, $max_slots - $registration_total);
+                        $percent = $max_slots > 0 ? min(100, round(($registration_total / $max_slots) * 100)) : 0;
+                        $progressClass = $percent >= 80 ? 'bg-danger' : ($percent >= 50 ? 'bg-warning' : 'bg-success');
+                        ?>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <span class="d-block fs-4 fw-bold text-primary"><?= $registration_total ?></span>
+                                <span class="text-muted small">Đã đăng ký</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="d-block fs-5 badge bg-<?= $progressClass ?> rounded-pill"><?= $percent ?>%</span>
+                                <span class="text-muted small">Đã lấp đầy</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="d-block fs-4 fw-bold text-success"><?= $slots_left ?></span>
+                                <span class="text-muted small">Chỗ còn trống</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Progress bar -->
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated <?= $progressClass ?>" 
+                                role="progressbar" style="width: <?= $percent ?>%" 
+                                aria-valuenow="<?= $registration_total ?>" 
+                                aria-valuemin="0" 
+                                aria-valuemax="<?= $max_slots ?>">
+                            </div>
+                        </div>
+                        
+                        <!-- Thông báo trạng thái -->
+                        <div class="mt-2 text-center small">
+                            <?php if ($percent >= 90): ?>
+                                <div class="text-danger">
+                                    <i class="lni lni-alarm-clock me-1"></i> Sắp hết chỗ, hãy đăng ký ngay!
+                                </div>
+                            <?php elseif ($percent >= 70): ?>
+                                <div class="text-warning">
+                                    <i class="lni lni-hourglass me-1"></i> Số lượng chỗ còn lại đang giảm dần
+                                </div>
+                            <?php else: ?>
+                                <div class="text-success">
+                                    <i class="lni lni-checkmark-circle me-1"></i> Còn nhiều chỗ trống
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                </div>
-                <div class="d-flex justify-content-between">
-                    <span class="text-muted small">Đã đăng ký: <?= isset($registration_count) ? $registration_count : 0 ?> người</span>
-                    <span class="text-muted small">Còn trống: <?= max(0, $event['so_luong_tham_gia'] - (isset($registration_count) ? $registration_count : 0)) ?> chỗ</span>
                 </div>
             </div>
             
