@@ -48,7 +48,7 @@
 				<!-- Info Panel (Left Side) -->
 				<div class="info-panel">
 					<div class="text-center">
-						<img src="https://buh.edu.vn/Resources/Images/SubDomain/HomePage/logobuh.png" alt="Logo Đại học Ngân hàng TP.HCM" class="school-logo">
+						<img src="<?= base_url('assets/modules/images/hub-logo.png') ?>" alt="Logo Đại học Ngân hàng TP.HCM" class="school-logo">
 						<h2 class="school-name">ĐẠI HỌC NGÂN HÀNG<br>TP. HỒ CHÍ MINH</h2>
 					</div>
 					
@@ -108,7 +108,7 @@
 					<div class="floating-shape shape2"></div>
 					
 					<div class="login-header">
-						<img src="https://buh.edu.vn/Resources/Images/SubDomain/HomePage/logobuh.png" alt="Logo Đại học Ngân hàng TP.HCM" class="mobile-logo">
+						<img src="<?= base_url('assets/modules/images/hub-logo.png') ?>" alt="Logo Đại học Ngân hàng TP.HCM" class="mobile-logo">
 						<h3 class="login-title">ĐĂNG NHẬP QUẢN TRỊ VIÊN</h3>
 						<p class="login-subtitle">Quản lý sự kiện và hoạt động của Trường Đại học Ngân hàng TP.HCM</p>
 					</div>
