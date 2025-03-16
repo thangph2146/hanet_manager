@@ -34,18 +34,40 @@ class Sukien extends BaseController
         // Lấy 6 sự kiện sắp diễn ra gần nhất (dành cho phần upcoming events)
         $upcoming_events = $this->sukienModel->getUpcomingEvents(6);
         
-        // Tìm sự kiện Ngày hội việc làm cho phần countdown
+        // Tìm sự kiện sắp diễn ra gần nhất
         $job_fair_event = null;
-        foreach ($upcoming_events as $event) {
-            if (strpos(strtolower($event['ten_su_kien']), 'việc làm') !== false) {
-                $job_fair_event = $event;
-                break;
-            }
-        }
+        $current_time = time();
         
-        // Sử dụng sự kiện đầu tiên nếu không tìm thấy sự kiện việc làm
-        if (!$job_fair_event && !empty($upcoming_events)) {
-            $job_fair_event = $upcoming_events[0];
+        // Lọc các sự kiện chưa kết thúc và sắp xếp theo thời gian bắt đầu
+        $valid_events = array_filter($upcoming_events, function($event) use ($current_time) {
+            $event_start_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_bat_dau']);
+            $event_end_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_ket_thuc']);
+            return $event_end_time > $current_time;
+        });
+        
+        // Sắp xếp theo thời gian bắt đầu
+        usort($valid_events, function($a, $b) {
+            $time_a = strtotime($a['ngay_to_chuc'] . ' ' . $a['gio_bat_dau']);
+            $time_b = strtotime($b['ngay_to_chuc'] . ' ' . $b['gio_bat_dau']);
+            return $time_a - $time_b;
+        });
+        
+        // Lấy sự kiện gần nhất
+        if (!empty($valid_events)) {
+            $job_fair_event = reset($valid_events);
+            
+            // Kiểm tra xem sự kiện đã bắt đầu chưa
+            $event_start_time = strtotime($job_fair_event['ngay_to_chuc'] . ' ' . $job_fair_event['gio_bat_dau']);
+            
+            // Nếu sự kiện đã bắt đầu, tìm sự kiện tiếp theo
+            if ($current_time > $event_start_time) {
+                // Bỏ qua sự kiện hiện tại và lấy sự kiện tiếp theo
+                next($valid_events);
+                $next_event = current($valid_events);
+                if ($next_event) {
+                    $job_fair_event = $next_event;
+                }
+            }
         }
         
         // Lấy thông tin counter
@@ -60,23 +82,17 @@ class Sukien extends BaseController
         $speakers = $this->sukienModel->getSpeakers();
         
         // Chuẩn bị dữ liệu SEO
-        $seo_data = [
-            'meta_title' => 'Sự Kiện Đại Học Ngân Hàng TP.HCM - Hub Events',
-            'meta_description' => 'Khám phá các sự kiện, hội thảo, workshop tại Trường Đại học Ngân hàng TP.HCM. Tham gia các hoạt động học thuật, nghề nghiệp và phát triển bản thân.',
-            'meta_keywords' => 'sự kiện hub, đại học ngân hàng, hội thảo, ngày hội việc làm, workshop, hoạt động sinh viên',
-            'og_image' => base_url('public/assets/modules/sukien/images/hub-banner.jpg'),
-            'canonical_url' => site_url('su-kien')
+        $data = [
+            'title' => 'Sự Kiện Đại Học Ngân Hàng TP.HCM',
+            'description' => 'Trang thông tin sự kiện của Trường Đại học Ngân hàng TP.HCM',
+            'keywords' => 'sự kiện, hội thảo, workshop, ngân hàng, đại học',
+            'upcoming_events' => $upcoming_events,
+            'job_fair_event' => $job_fair_event,
+            'stats' => $stats,
+            'speakers' => $speakers
         ];
         
-        return view('App\Modules\sukien\Views\welcome', array_merge(
-            ['featured_events' => $featured_events, 
-             'upcoming_events' => $upcoming_events,
-             'job_fair_event' => $job_fair_event,
-             'stats' => $stats,
-             'speakers' => $speakers
-            ], 
-            $seo_data
-        ));
+        return view('App\Modules\sukien\Views\welcome', $data);
     }
 
     public function list()

@@ -7,23 +7,35 @@
     <!-- Hero Section -->
     <section class="hero-section position-relative overflow-hidden">
         <div class="container position-relative">
-       
             <div class="row min-vh-100 align-items-center justify-content-center">
                 <div class="col-lg-10 text-center">
                     <div class="hero-content" data-aos="fade-up" data-aos-delay="100">
-                        <h1 class="display-3 fw-bold text-gradient mb-4 text-white">Ngày Hội Việc Làm HUB 2025</h1>
-                        <p class="lead mb-4 fw-light" data-aos="fade-up" data-aos-delay="200">
-                            Khám phá cơ hội nghề nghiệp và kết nối với doanh nghiệp hàng đầu tại sự kiện thường niên của 
-                            <span class="text-white fw-bold">Trường Đại học Ngân hàng TP.HCM</span>
-                        </p>
-                        <div class="d-flex justify-content-center gap-3 flex-wrap" data-aos="fade-up" data-aos-delay="300">
-                            <a href="#registration" class="btn btn-gradient btn-lg">
-                                <i class="fas fa-user-plus me-2"></i>Đăng ký tham gia
-                            </a>
-                            <a href="#schedule" class="btn btn-outline-light btn-lg btn-hover-gradient">
-                                <i class="fas fa-calendar-alt me-2"></i>Lịch trình
-                            </a>
-                        </div>
+                        <?php if($job_fair_event): ?>
+                            <h1 class="display-3 fw-bold text-gradient mb-4 text-white"><?= $job_fair_event['ten_su_kien'] ?></h1>
+                            <p class="lead mb-4 fw-light" data-aos="fade-up" data-aos-delay="200">
+                                Khám phá cơ hội nghề nghiệp và kết nối với doanh nghiệp hàng đầu tại sự kiện của 
+                                <span class="text-white fw-bold">Trường Đại học Ngân hàng TP.HCM</span>
+                            </p>
+                            <div class="d-flex justify-content-center gap-3 flex-wrap" data-aos="fade-up" data-aos-delay="300">
+                                <a href="#registration" class="btn btn-gradient btn-lg">
+                                    <i class="fas fa-user-plus me-2"></i>Đăng ký tham gia
+                                </a>
+                                <a href="#schedule" class="btn btn-outline-light btn-lg btn-hover-gradient">
+                                    <i class="fas fa-calendar-alt me-2"></i>Lịch trình
+                                </a>
+                            </div>
+                        <?php else: ?>
+                            <h1 class="display-3 fw-bold text-gradient mb-4 text-white">Sự Kiện Đại Học Ngân Hàng TP.HCM</h1>
+                            <p class="lead mb-4 fw-light" data-aos="fade-up" data-aos-delay="200">
+                                Khám phá các sự kiện và hoạt động tại
+                                <span class="text-white fw-bold">Trường Đại học Ngân hàng TP.HCM</span>
+                            </p>
+                            <div class="d-flex justify-content-center gap-3 flex-wrap" data-aos="fade-up" data-aos-delay="300">
+                                <a href="<?= site_url('su-kien/list') ?>" class="btn btn-gradient btn-lg">
+                                    <i class="fas fa-calendar-alt me-2"></i>Xem tất cả sự kiện
+                                </a>
+                            </div>
+                        <?php endif; ?>
                         <div class="hero-scroll-indicator" data-aos="fade-up" data-aos-delay="400">
                             <a href="#hub-banner" class="text-white">
                                 <div class="mouse">
@@ -46,7 +58,6 @@
             </svg>
         </div>
         <div class="hero-particles position-absolute top-0 left-0 w-100 h-100" id="particles-js"></div>
-
     </section>
 
     <!-- HUB Banner -->
@@ -150,42 +161,77 @@
     <!-- Countdown Section -->
     <section class="countdown-section" id="schedule">
         <div class="container">
-            <h2 class="countdown-title"><?= $job_fair_event ? $job_fair_event['ten_su_kien'] : 'Sự kiện sắp diễn ra' ?> sẽ diễn ra sau</h2>
             <?php if($job_fair_event): ?>
-            <?php endif; ?>
-            <div class="row justify-content-center">
-                <div class="col-6 col-md-3">
-                    <div class="countdown-box">
-                        <div id="countdown-days" class="countdown-number">00</div>
-                        <div class="countdown-label">Ngày</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="countdown-box">
-                        <div id="countdown-hours" class="countdown-number">00</div>
-                        <div class="countdown-label">Giờ</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="countdown-box">
-                        <div id="countdown-minutes" class="countdown-number">00</div>
-                        <div class="countdown-label">Phút</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="countdown-box">
-                        <div id="countdown-seconds" class="countdown-number">00</div>
-                        <div class="countdown-label">Giây</div>
-                    </div>
-                </div>
-            </div>
-            <div class="text-center mt-5">
-                <?php if ($job_fair_event): ?>
-                <a href="<?= site_url('su-kien/detail/' . $job_fair_event['slug']) ?>" class="btn btn-light btn-lg">Xem chi tiết sự kiện</a>
+                <?php
+                    $eventDateTime = strtotime($job_fair_event['ngay_to_chuc'] . ' ' . $job_fair_event['gio_bat_dau']);
+                    $currentTime = time();
+                    $eventEndDateTime = strtotime($job_fair_event['ngay_to_chuc'] . ' ' . $job_fair_event['gio_ket_thuc']);
+                ?>
+                
+                <?php if($currentTime < $eventDateTime): ?>
+                    <h2 class="countdown-title"><?= $job_fair_event['ten_su_kien'] ?> sẽ diễn ra sau</h2>
                 <?php else: ?>
-                <a href="<?= site_url('su-kien/list') ?>" class="btn btn-light btn-lg">Xem tất cả sự kiện</a>
+                    <h2 class="countdown-title text-warning">Sự kiện đang diễn ra!</h2>
                 <?php endif; ?>
-            </div>
+                
+                <div class="row justify-content-center">
+                    <div class="col-6 col-md-3">
+                        <div class="countdown-box">
+                            <div id="countdown-days" class="countdown-number">00</div>
+                            <div class="countdown-label">Ngày</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="countdown-box">
+                            <div id="countdown-hours" class="countdown-number">00</div>
+                            <div class="countdown-label">Giờ</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="countdown-box">
+                            <div id="countdown-minutes" class="countdown-number">00</div>
+                            <div class="countdown-label">Phút</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="countdown-box">
+                            <div id="countdown-seconds" class="countdown-number">00</div>
+                            <div class="countdown-label">Giây</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <?php if($currentTime < $eventDateTime): ?>
+                    <div class="text-center mt-4">
+                        <p class="text-white mb-3">
+                            Sự kiện sẽ diễn ra vào ngày <?= date('d/m/Y', strtotime($job_fair_event['ngay_to_chuc'])) ?>
+                            từ <?= date('H:i', strtotime($job_fair_event['gio_bat_dau'])) ?> 
+                            đến <?= date('H:i', strtotime($job_fair_event['gio_ket_thuc'])) ?>
+                        </p>
+                        <a href="<?= site_url('su-kien/detail/' . $job_fair_event['slug']) ?>" class="btn btn-light btn-lg">
+                            <i class="fas fa-info-circle me-2"></i>Xem chi tiết sự kiện
+                        </a>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center mt-4">
+                        <p class="text-warning h4 mb-3">
+                            <i class="fas fa-broadcast-tower me-2"></i>Sự kiện đang diễn ra!
+                        </p>
+                        <p class="text-white mb-3">
+                            Thời gian: <?= date('H:i', strtotime($job_fair_event['gio_bat_dau'])) ?> 
+                            - <?= date('H:i', strtotime($job_fair_event['gio_ket_thuc'])) ?>
+                        </p>
+                        <a href="<?= site_url('su-kien/detail/' . $job_fair_event['slug']) ?>" class="btn btn-warning btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Tham gia ngay
+                        </a>
+                    </div>
+                <?php endif; ?>
+            <?php else: ?>
+                <h2 class="countdown-title">Không có sự kiện nào sắp diễn ra</h2>
+                <div class="text-center mt-4">
+                    <a href="<?= site_url('su-kien/list') ?>" class="btn btn-light btn-lg">Xem tất cả sự kiện</a>
+                </div>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -311,43 +357,51 @@
 <script>
     // Countdown Timer
     document.addEventListener('DOMContentLoaded', function() {
-        // Đặt thời gian kết thúc từ dữ liệu động
         <?php if (isset($job_fair_event) && !empty($job_fair_event)): ?>
-        const countDownDate = new Date("<?= date('F d, Y H:i:s', strtotime($job_fair_event['ngay_to_chuc'])) ?>").getTime();
-        <?php else: ?>
-        // Mặc định là 1 tháng từ hiện tại nếu không có dữ liệu
-        const countDownDate = new Date(new Date().setMonth(new Date().getMonth() + 1)).getTime();
-        <?php endif; ?>
+        // Lấy thời gian bắt đầu và kết thúc sự kiện
+        const eventStartDate = new Date("<?= date('Y-m-d', strtotime($job_fair_event['ngay_to_chuc'])) ?>T<?= $job_fair_event['gio_bat_dau'] ?>");
+        const eventEndDate = new Date("<?= date('Y-m-d', strtotime($job_fair_event['ngay_to_chuc'])) ?>T<?= $job_fair_event['gio_ket_thuc'] ?>");
         
         // Cập nhật đếm ngược mỗi 1 giây
         const countdownTimer = setInterval(function() {
             // Lấy thời gian hiện tại
             const now = new Date().getTime();
             
-            // Tìm khoảng cách giữa hiện tại và thời gian đếm ngược
-            const distance = countDownDate - now;
+            // Tính khoảng cách đến thời gian bắt đầu hoặc kết thúc
+            const distance = now < eventStartDate.getTime() 
+                ? eventStartDate.getTime() - now 
+                : eventEndDate.getTime() - now;
             
-            // Tính toán ngày, giờ, phút, giây
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            
-            // Hiển thị kết quả
-            document.getElementById("countdown-days").innerHTML = days < 10 ? "0" + days : days;
-            document.getElementById("countdown-hours").innerHTML = hours < 10 ? "0" + hours : hours;
-            document.getElementById("countdown-minutes").innerHTML = minutes < 10 ? "0" + minutes : minutes;
-            document.getElementById("countdown-seconds").innerHTML = seconds < 10 ? "0" + seconds : seconds;
-            
-            // Nếu đếm ngược kết thúc
-            if (distance < 0) {
-                clearInterval(countdownTimer);
+            // Kiểm tra trạng thái sự kiện
+            if (now < eventStartDate.getTime()) {
+                // Sự kiện chưa diễn ra - đếm ngược đến thời gian bắt đầu
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                // Hiển thị kết quả
+                document.getElementById("countdown-days").innerHTML = days < 10 ? "0" + days : days;
+                document.getElementById("countdown-hours").innerHTML = hours < 10 ? "0" + hours : hours;
+                document.getElementById("countdown-minutes").innerHTML = minutes < 10 ? "0" + minutes : minutes;
+                document.getElementById("countdown-seconds").innerHTML = seconds < 10 ? "0" + seconds : seconds;
+            } else if (now <= eventEndDate.getTime()) {
+                // Sự kiện đang diễn ra - đếm ngược đến thời gian kết thúc
+                const hours = Math.floor(distance / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
                 document.getElementById("countdown-days").innerHTML = "00";
-                document.getElementById("countdown-hours").innerHTML = "00";
-                document.getElementById("countdown-minutes").innerHTML = "00";
-                document.getElementById("countdown-seconds").innerHTML = "00";
+                document.getElementById("countdown-hours").innerHTML = hours < 10 ? "0" + hours : hours;
+                document.getElementById("countdown-minutes").innerHTML = minutes < 10 ? "0" + minutes : minutes;
+                document.getElementById("countdown-seconds").innerHTML = seconds < 10 ? "0" + seconds : seconds;
+            } else {
+                // Sự kiện đã kết thúc - tải lại trang để hiển thị sự kiện tiếp theo
+                clearInterval(countdownTimer);
+                window.location.reload();
             }
         }, 1000);
+        <?php endif; ?>
     });
 </script>
 <?= $this->endSection() ?> 
