@@ -45,7 +45,7 @@ class SukienModel extends Model
             'created_at' => '2023-04-01 10:00:00',
             'updated_at' => '2023-04-01 10:00:00',
             'deleted_at' => null,
-            'ngay_to_chuc' => '2023-06-15',
+            'ngay_to_chuc' => '2023-06-15 08:00:00',
             'dia_diem' => 'CS Tôn Thất Đạm',
             'hinh_anh' => 'assets/images/event-1.jpg',
             'gio_bat_dau' => '08:00:00',
@@ -74,7 +74,7 @@ class SukienModel extends Model
             'created_at' => '2023-04-05 11:30:00',
             'updated_at' => '2023-04-05 11:30:00',
             'deleted_at' => null,
-            'ngay_to_chuc' => '2023-06-22',
+            'ngay_to_chuc' => '2023-06-22 08:30:00',
             'dia_diem' => 'CS Hoàng Diệu',
             'hinh_anh' => 'assets/images/event-2.jpg',
             'gio_bat_dau' => '08:30:00',
@@ -103,7 +103,7 @@ class SukienModel extends Model
             'created_at' => '2023-05-10 09:45:00',
             'updated_at' => '2023-05-10 09:45:00',
             'deleted_at' => null,
-            'ngay_to_chuc' => '2023-06-30',
+            'ngay_to_chuc' => '2023-06-30 13:30:00',
             'dia_diem' => 'CS Hàm Nghi',
             'hinh_anh' => 'assets/images/event-3.jpg',
             'gio_bat_dau' => '13:30:00',
@@ -132,7 +132,7 @@ class SukienModel extends Model
             'created_at' => '2023-05-15 14:20:00',
             'updated_at' => '2023-05-15 14:20:00',
             'deleted_at' => null,
-            'ngay_to_chuc' => '2023-07-05',
+            'ngay_to_chuc' => '2023-07-05 08:00:00',
             'dia_diem' => 'CS Tôn Thất Đạm',
             'hinh_anh' => 'assets/images/event-4.jpg',
             'gio_bat_dau' => '08:00:00',
@@ -161,7 +161,7 @@ class SukienModel extends Model
             'created_at' => '2023-05-20 16:00:00',
             'updated_at' => '2023-05-20 16:00:00',
             'deleted_at' => null,
-            'ngay_to_chuc' => '2023-07-12',
+            'ngay_to_chuc' => '2023-07-12 09:00:00',
             'dia_diem' => 'CS Hoàng Diệu',
             'hinh_anh' => 'assets/images/event-5.jpg',
             'gio_bat_dau' => '09:00:00',
@@ -190,7 +190,7 @@ class SukienModel extends Model
             'created_at' => '2023-05-25 13:15:00',
             'updated_at' => '2023-05-25 13:15:00',
             'deleted_at' => null,
-            'ngay_to_chuc' => '2023-07-20',
+            'ngay_to_chuc' => '2023-07-20 13:30:00',
             'dia_diem' => 'CS Hàm Nghi',
             'hinh_anh' => 'assets/images/event-6.jpg',
             'gio_bat_dau' => '13:30:00',
@@ -319,9 +319,10 @@ class SukienModel extends Model
         // Tạm thời sử dụng dữ liệu mẫu để demo
         $featuredEvents = [];
         $i = 0;
+        $currentDateTime = date('Y-m-d H:i:s');
         
         foreach ($this->mockEvents as $event) {
-            if ($i < 3 && strtotime($event['ngay_to_chuc']) >= strtotime('today')) {
+            if ($i < 3 && strtotime($event['ngay_to_chuc']) >= strtotime($currentDateTime)) {
                 $featuredEvents[] = $event;
                 $i++;
             }
@@ -342,7 +343,7 @@ class SukienModel extends Model
     {
         // Trong triển khai thực tế:
         // return $this->where('status', 1)
-        //             ->where('ngay_to_chuc >=', date('Y-m-d'))
+        //             ->where('ngay_to_chuc >=', date('Y-m-d H:i:s'))
         //             ->orderBy('ngay_to_chuc', 'ASC')
         //             ->limit($limit)
         //             ->findAll();
@@ -611,5 +612,58 @@ class SukienModel extends Model
         }
         
         return null;
+    }
+
+    /**
+     * Định dạng ngày tổ chức với giờ phút giây
+     * 
+     * @param string $ngayToChuc Ngày tổ chức dạng Y-m-d H:i:s
+     * @param string $format Định dạng đầu ra
+     * @return string
+     */
+    public function formatNgayToChuc($ngayToChuc, $format = 'd/m/Y H:i')
+    {
+        if (empty($ngayToChuc)) {
+            return '';
+        }
+        
+        $timestamp = strtotime($ngayToChuc);
+        return date($format, $timestamp);
+    }
+    
+    /**
+     * Lấy thời gian còn lại đến sự kiện
+     * 
+     * @param string $ngayToChuc Ngày tổ chức dạng Y-m-d H:i:s
+     * @return array Mảng chứa số ngày, giờ, phút, giây còn lại
+     */
+    public function getTimeRemaining($ngayToChuc)
+    {
+        $eventTime = strtotime($ngayToChuc);
+        $currentTime = time();
+        $timeRemaining = $eventTime - $currentTime;
+        
+        if ($timeRemaining <= 0) {
+            return [
+                'days' => 0,
+                'hours' => 0,
+                'minutes' => 0,
+                'seconds' => 0,
+                'total' => 0
+            ];
+        }
+        
+        $days = floor($timeRemaining / 86400);
+        $hours = floor(($timeRemaining % 86400) / 3600);
+        $minutes = floor(($timeRemaining % 3600) / 60);
+        $seconds = $timeRemaining % 60;
+        
+        return [
+            'days' => $days,
+            'hours' => $hours,
+            'minutes' => $minutes,
+            'seconds' => $seconds,
+            'total' => $timeRemaining
+        ];
     }
 } 

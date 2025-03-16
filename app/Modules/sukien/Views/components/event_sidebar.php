@@ -72,7 +72,7 @@
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     // Lấy thời gian sự kiện
-                    const eventDate = new Date('<?= $event['ngay_to_chuc'] ?> <?= $event['thoi_gian'] ?>'.replace(/-/g, '/'));
+                    const eventDate = new Date('<?= $event['ngay_to_chuc'] ?>'.replace(/-/g, '/'));
                     
                     // Cập nhật đếm ngược
                     function updateCountdown() {
@@ -143,7 +143,11 @@
                                 </div>
                                 <div>
                                     <h6 class="mb-1"><?= $related['ten_su_kien'] ?></h6>
-                                    <p class="text-muted small mb-0"><i class="lni lni-map-marker me-1"></i> <?= $related['dia_diem'] ?></p>
+                                    <p class="text-muted small mb-0">
+                                        <i class="lni lni-map-marker me-1"></i> <?= $related['dia_diem'] ?>
+                                        <br>
+                                        <i class="lni lni-alarm-clock me-1"></i> <?= date('H:i', strtotime($related['ngay_to_chuc'])) ?>
+                                    </p>
                                 </div>
                             </div>
                         </a>

@@ -22,7 +22,7 @@
             <div class="col-md-6">
                 <div class="meta-item">
                     <i class="lni lni-clock"></i>
-                    <span>Thời gian: <?= $event['thoi_gian'] ?></span>
+                    <span>Thời gian: <?= date('H:i', strtotime($event['ngay_to_chuc'])) ?> - <?= $event['gio_ket_thuc'] ?></span>
                 </div>
             </div>
             <div class="col-md-6">
