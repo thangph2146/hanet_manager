@@ -34,6 +34,25 @@ class Sukien extends BaseController
         // Lấy 6 sự kiện sắp diễn ra gần nhất (dành cho phần upcoming events)
         $upcoming_events = $this->sukienModel->getUpcomingEvents(6);
         
+        // Thêm số lượng đăng ký và số lượt xem cho các sự kiện
+        foreach ($featured_events as &$event) {
+            if (isset($event['id_su_kien'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+                $event['registration_count'] = count($registrations);
+            } else {
+                $event['registration_count'] = 0;
+            }
+        }
+        
+        foreach ($upcoming_events as &$event) {
+            if (isset($event['id_su_kien'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+                $event['registration_count'] = count($registrations);
+            } else {
+                $event['registration_count'] = 0;
+            }
+        }
+        
         // Tìm sự kiện sắp diễn ra gần nhất
         $job_fair_event = null;
         $current_time = time();
@@ -67,6 +86,12 @@ class Sukien extends BaseController
                 if ($next_event) {
                     $job_fair_event = $next_event;
                 }
+            }
+            
+            // Thêm thông tin đăng ký cho sự kiện nổi bật
+            if ($job_fair_event && isset($job_fair_event['id_su_kien'])) {
+                $registrations = $this->sukienModel->getRegistrations($job_fair_event['id_su_kien']);
+                $job_fair_event['registration_count'] = count($registrations);
             }
         }
         
@@ -126,6 +151,16 @@ class Sukien extends BaseController
             $data['meta_title'] = 'Danh Sách Sự Kiện - Đại Học Ngân Hàng TP.HCM';
             $data['meta_description'] = 'Khám phá tất cả các sự kiện tại Trường Đại học Ngân hàng TP.HCM. Hội thảo, workshop, ngày hội việc làm và nhiều hoạt động khác.';
             $data['meta_keywords'] = 'sự kiện hub, danh sách sự kiện, đại học ngân hàng, hội thảo, workshop';
+        }
+        
+        // Thêm số lượng đăng ký cho mỗi sự kiện
+        foreach ($events as &$event) {
+            if (isset($event['id_su_kien'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+                $event['registration_count'] = count($registrations);
+            } else {
+                $event['registration_count'] = 0;
+            }
         }
         
         // Xử lý phân trang
@@ -221,6 +256,16 @@ class Sukien extends BaseController
         // Lấy các sự kiện liên quan (cùng loại)
         $related_events = $this->sukienModel->getRelatedEvents($event['id_su_kien'], $event['loai_su_kien'], 3);
         
+        // Thêm số lượng đăng ký cho sự kiện liên quan
+        foreach ($related_events as &$related) {
+            if (isset($related['id_su_kien'])) {
+                $relatedRegistrations = $this->sukienModel->getRegistrations($related['id_su_kien']);
+                $related['registration_count'] = count($relatedRegistrations);
+            } else {
+                $related['registration_count'] = 0;
+            }
+        }
+        
         // Chuẩn bị dữ liệu có cấu trúc cho SEO
         $structured_data = $this->generateEventStructuredData($event);
         
@@ -260,6 +305,16 @@ class Sukien extends BaseController
         
         // Lấy sự kiện thuộc danh mục đã chọn
         $events = $this->sukienModel->getEventsByCategory($category_name);
+        
+        // Thêm số lượng đăng ký cho mỗi sự kiện
+        foreach ($events as &$event) {
+            if (isset($event['id_su_kien'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+                $event['registration_count'] = count($registrations);
+            } else {
+                $event['registration_count'] = 0;
+            }
+        }
         
         // Lấy danh sách loại sự kiện
         $event_types = $this->loaiSukienModel->getAllEventTypes();

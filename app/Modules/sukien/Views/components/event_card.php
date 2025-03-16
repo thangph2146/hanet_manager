@@ -27,6 +27,18 @@ $randomColor = $backgroundColors[array_rand($backgroundColors)];
 
 // Lấy slug của loại sự kiện
 $categorySlug = isset($event['loai_su_kien_slug']) ? $event['loai_su_kien_slug'] : strtolower(str_replace(' ', '-', $event['loai_su_kien']));
+
+// Lấy số lượng đăng ký thực tế nếu có
+$sukienModel = new \App\Modules\sukien\Models\SukienModel();
+$registrationCount = isset($event['registration_count']) ? $event['registration_count'] : 0;
+
+// Nếu không có sẵn thông tin registration_count, có thể lấy từ model
+if ($registrationCount === 0 && isset($event['id_su_kien'])) {
+    // Thông thường bạn sẽ lấy từ controller và truyền vào view
+    // Nhưng ở đây chúng ta gọi trực tiếp từ model
+    $registrations = $sukienModel->getRegistrations($event['id_su_kien']);
+    $registrationCount = count($registrations);
+}
 ?>
 <div class="event-card h-100  <?= $featured ? 'featured' : '' ?>">
     <div class="event-category" style="background-color: <?= $randomColor ?>;">
@@ -54,6 +66,16 @@ $categorySlug = isset($event['loai_su_kien_slug']) ? $event['loai_su_kien_slug']
             echo substr($description, 0, 120) . (strlen($description) > 120 ? '...' : '');
             ?>
         </p>
+        
+        <!-- Thêm thông tin lượt xem và người đăng ký -->
+        <div class="event-stats d-flex justify-content-between mt-2">
+            <span class="event-views small text-muted">
+                <i class="far fa-eye"></i> <?= isset($event['so_luot_xem']) ? number_format($event['so_luot_xem']) : 0 ?> lượt xem
+            </span>
+            <span class="event-registrations small text-muted">
+                <i class="far fa-user"></i> <?= number_format($registrationCount) ?> đã đăng ký
+            </span>
+        </div>
     </div>
     
     <div class="card-footer">
