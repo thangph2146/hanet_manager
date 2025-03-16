@@ -15,7 +15,7 @@ class SukienModel extends Model
         'ten_su_kien', 'loai_su_kien_id', 'chi_tiet_su_kien', 'bat_dau_dang_ky',
         'ket_thuc_dang_ky', 'so_luong_tham_gia', 'gio_bat_dau', 'gio_ket_thuc',
         'so_luong_dien_gia', 'gioi_han_loai_nguoi_dung', 'tu_khoa_su_kien',
-        'mo_ta_su_kien', 'hashtag', 'status', 'bin', 'slug', 'so_luot_xem'
+        'mo_ta_su_kien', 'hashtag', 'status', 'bin', 'slug', 'so_luot_xem', 'lich_trinh'
     ];
     
     // Dates
@@ -55,7 +55,63 @@ class SukienModel extends Model
             'thoi_gian' => '08:00 - 17:00',
             'loai_su_kien' => 'Hội thảo',
             'slug' => 'hoi-thao-khoa-hoc-tai-chinh-va-ngan-hang-trong-ky-nguyen-so-1.html',
-            'so_luot_xem' => 1250
+            'so_luot_xem' => 1250,
+            'lich_trinh' => [
+                [
+                    'thoi_gian' => '08:00 - 08:30',
+                    'tieu_de' => 'Đăng ký và khai mạc',
+                    'mo_ta' => 'Đón tiếp đại biểu và phát biểu khai mạc',
+                    'dien_gia' => 'TS. Nguyễn Đình Thọ'
+                ],
+                [
+                    'thoi_gian' => '08:30 - 10:00',
+                    'tieu_de' => 'Phiên thảo luận 1',
+                    'mo_ta' => 'Xu hướng phát triển của ngân hàng số',
+                    'dien_gia' => 'TS. Lê Phan Quốc'
+                ],
+                [
+                    'thoi_gian' => '10:00 - 10:30',
+                    'tieu_de' => 'Giải lao',
+                    'mo_ta' => 'Tea break và giao lưu',
+                    'dien_gia' => ''
+                ],
+                [
+                    'thoi_gian' => '10:30 - 12:00',
+                    'tieu_de' => 'Phiên thảo luận 2',
+                    'mo_ta' => 'Ứng dụng blockchain trong tài chính',
+                    'dien_gia' => 'ThS. Trần Văn Nam'
+                ],
+                [
+                    'thoi_gian' => '12:00 - 13:30',
+                    'tieu_de' => 'Nghỉ trưa',
+                    'mo_ta' => 'Tiệc trưa và giao lưu',
+                    'dien_gia' => ''
+                ],
+                [
+                    'thoi_gian' => '13:30 - 15:00',
+                    'tieu_de' => 'Phiên thảo luận 3',
+                    'mo_ta' => 'Bảo mật và quản lý rủi ro trong ngân hàng số',
+                    'dien_gia' => 'TS. Nguyễn Thị Minh Hương'
+                ],
+                [
+                    'thoi_gian' => '15:00 - 15:30',
+                    'tieu_de' => 'Giải lao',
+                    'mo_ta' => 'Tea break và giao lưu',
+                    'dien_gia' => ''
+                ],
+                [
+                    'thoi_gian' => '15:30 - 17:00',
+                    'tieu_de' => 'Phiên thảo luận 4',
+                    'mo_ta' => 'Đào tạo nguồn nhân lực cho ngân hàng số',
+                    'dien_gia' => 'PGS.TS. Trần Hùng Sơn'
+                ],
+                [
+                    'thoi_gian' => '17:00 - 17:30',
+                    'tieu_de' => 'Bế mạc',
+                    'mo_ta' => 'Tổng kết và trao chứng nhận',
+                    'dien_gia' => 'TS. Nguyễn Đình Thọ'
+                ]
+            ]
         ],
         [
             'id_su_kien' => 2,
@@ -85,7 +141,39 @@ class SukienModel extends Model
             'thoi_gian' => '08:30 - 16:30',
             'loai_su_kien' => 'Nghề nghiệp',
             'slug' => 'ngay-hoi-viec-lam-hub-lan-thu-13-nam-2023-2.html',
-            'so_luot_xem' => 980
+            'so_luot_xem' => 980,
+            'lich_trinh' => [
+                [
+                    'thoi_gian' => '08:30 - 09:00',
+                    'tieu_de' => 'Đón tiếp và khai mạc',
+                    'mo_ta' => 'Đón tiếp doanh nghiệp và sinh viên, tổ chức khai mạc',
+                    'dien_gia' => 'Ban tổ chức'
+                ],
+                [
+                    'thoi_gian' => '09:00 - 11:30',
+                    'tieu_de' => 'Phỏng vấn trực tiếp (Phiên sáng)',
+                    'mo_ta' => 'Sinh viên phỏng vấn trực tiếp với doanh nghiệp',
+                    'dien_gia' => 'Đại diện doanh nghiệp'
+                ],
+                [
+                    'thoi_gian' => '11:30 - 13:00',
+                    'tieu_de' => 'Nghỉ trưa',
+                    'mo_ta' => 'Nghỉ trưa và giao lưu',
+                    'dien_gia' => ''
+                ],
+                [
+                    'thoi_gian' => '13:00 - 14:30',
+                    'tieu_de' => 'Hội thảo định hướng nghề nghiệp',
+                    'mo_ta' => 'Chia sẻ kinh nghiệm từ các chuyên gia nhân sự',
+                    'dien_gia' => 'Đại diện doanh nghiệp'
+                ],
+                [
+                    'thoi_gian' => '14:30 - 16:30',
+                    'tieu_de' => 'Phỏng vấn trực tiếp (Phiên chiều)',
+                    'mo_ta' => 'Sinh viên phỏng vấn trực tiếp với doanh nghiệp',
+                    'dien_gia' => 'Đại diện doanh nghiệp'
+                ]
+            ]
         ],
         [
             'id_su_kien' => 3,
@@ -981,5 +1069,27 @@ class SukienModel extends Model
         }
         
         return false;
+    }
+
+    /**
+     * Lấy lịch trình của sự kiện
+     * 
+     * @param int $eventId ID của sự kiện
+     * @return array
+     */
+    public function getEventSchedule($eventId)
+    {
+        // Trong triển khai thực tế:
+        // $event = $this->find($eventId);
+        // return $event && isset($event['lich_trinh']) ? json_decode($event['lich_trinh'], true) : [];
+        
+        // Sử dụng mock data cho demo
+        foreach ($this->mockEvents as $event) {
+            if ($event['id_su_kien'] == $eventId) {
+                return isset($event['lich_trinh']) ? $event['lich_trinh'] : [];
+            }
+        }
+        
+        return [];
     }
 } 

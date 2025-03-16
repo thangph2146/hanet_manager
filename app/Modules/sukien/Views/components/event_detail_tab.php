@@ -121,69 +121,31 @@
     <div class="event-schedule mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.7s;">
         <h3>Lịch trình</h3>
         <div class="schedule-timeline">
-            <div class="schedule-item">
-                <div class="time">08:00 - 08:30</div>
-                <div class="content">
-                    <h5>Đăng ký và khai mạc</h5>
-                    <p>Đón tiếp đại biểu và phát biểu khai mạc</p>
+            <?php 
+            // Lấy lịch trình sự kiện từ model
+            $schedules = isset($event_schedule) ? $event_schedule : [];
+            
+            if (!empty($schedules)): 
+                foreach ($schedules as $schedule): 
+            ?>
+                <div class="schedule-item">
+                    <div class="time"><?= $schedule['thoi_gian'] ?></div>
+                    <div class="content">
+                        <h5><?= $schedule['tieu_de'] ?></h5>
+                        <p><?= $schedule['mo_ta'] ?></p>
+                        <?php if (!empty($schedule['dien_gia'])): ?>
+                            <span class="badge bg-primary"><i class="lni lni-user me-1"></i> <?= $schedule['dien_gia'] ?></span>
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </div>
-            <div class="schedule-item">
-                <div class="time">08:30 - 10:00</div>
-                <div class="content">
-                    <h5>Phiên thảo luận 1</h5>
-                    <p>Xu hướng phát triển của ngân hàng số</p>
+            <?php 
+                endforeach; 
+            else: 
+            ?>
+                <div class="alert alert-info">
+                    <i class="lni lni-information me-2"></i> Lịch trình chi tiết của sự kiện sẽ được cập nhật sớm.
                 </div>
-            </div>
-            <div class="schedule-item">
-                <div class="time">10:00 - 10:30</div>
-                <div class="content">
-                    <h5>Giải lao</h5>
-                    <p>Tea break và giao lưu</p>
-                </div>
-            </div>
-            <div class="schedule-item">
-                <div class="time">10:30 - 12:00</div>
-                <div class="content">
-                    <h5>Phiên thảo luận 2</h5>
-                    <p>Ứng dụng blockchain trong tài chính</p>
-                </div>
-            </div>
-            <div class="schedule-item">
-                <div class="time">12:00 - 13:30</div>
-                <div class="content">
-                    <h5>Nghỉ trưa</h5>
-                    <p>Tiệc trưa và giao lưu</p>
-                </div>
-            </div>
-            <div class="schedule-item">
-                <div class="time">13:30 - 15:00</div>
-                <div class="content">
-                    <h5>Phiên thảo luận 3</h5>
-                    <p>Bảo mật và quản lý rủi ro trong ngân hàng số</p>
-                </div>
-            </div>
-            <div class="schedule-item">
-                <div class="time">15:00 - 15:30</div>
-                <div class="content">
-                    <h5>Giải lao</h5>
-                    <p>Tea break và giao lưu</p>
-                </div>
-            </div>
-            <div class="schedule-item">
-                <div class="time">15:30 - 17:00</div>
-                <div class="content">
-                    <h5>Phiên thảo luận 4</h5>
-                    <p>Đào tạo nguồn nhân lực cho ngân hàng số</p>
-                </div>
-            </div>
-            <div class="schedule-item">
-                <div class="time">17:00 - 17:30</div>
-                <div class="content">
-                    <h5>Bế mạc</h5>
-                    <p>Tổng kết và trao chứng nhận</p>
-                </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
 

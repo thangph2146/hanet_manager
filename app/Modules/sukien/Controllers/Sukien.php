@@ -266,6 +266,9 @@ class Sukien extends BaseController
             }
         }
         
+        // Lấy lịch trình sự kiện
+        $event_schedule = $this->sukienModel->getEventSchedule($event['id_su_kien']);
+        
         // Chuẩn bị dữ liệu có cấu trúc cho SEO
         $structured_data = $this->generateEventStructuredData($event);
         
@@ -286,7 +289,8 @@ class Sukien extends BaseController
                 'registrations' => $registrations,
                 'registrationCount' => $registrationCount,
                 'attendedCount' => $attendedCount,
-                'participants' => $registrations
+                'participants' => $registrations,
+                'event_schedule' => $event_schedule
             ], 
             $seo_data
         ));
