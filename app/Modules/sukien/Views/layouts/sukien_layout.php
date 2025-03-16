@@ -349,9 +349,6 @@
 					</li>
 				</ul>
 				<div class="d-flex align-items-center gap-2">
-					<a href="#registration" class="btn btn-light btn-sm px-3">
-						<i class="fas fa-user-plus me-1"></i> Đăng ký
-					</a>
 					<a href="https://hub.edu.vn" target="_blank" class="btn btn-outline-light btn-sm px-3">
 						<i class="fas fa-external-link-alt me-1"></i> HUB
 					</a>
