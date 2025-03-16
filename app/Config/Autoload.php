@@ -45,7 +45,8 @@ class Autoload extends AutoloadConfig
         'Config'      => APPPATH . 'Config',
         'App\Modules\nguoidung' => APPPATH . 'Modules/nguoidung',
         'App\Modules\sukien' => APPPATH . 'Modules/sukien',
-        'App\Modules\login' => APPPATH . 'Modules/login'
+        'App\Modules\login' => APPPATH . 'Modules/login',
+        'App\Modules\students' => APPPATH . 'Modules/students'
     ];
 
     /**
