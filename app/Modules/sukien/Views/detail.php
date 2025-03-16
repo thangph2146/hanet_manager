@@ -64,6 +64,17 @@
                         </ol>
                     </nav>
                     <h1 class="fw-bold text-white animate__animated animate__fadeInDown"><?= $event['ten_su_kien'] ?></h1>
+                    <div class="event-meta-stats d-flex justify-content-start mt-2 animate__animated animate__fadeInUp">
+                        <div class="meta-stat me-4">
+                            <i class="lni lni-eye"></i> <?= isset($event['so_luot_xem']) ? number_format($event['so_luot_xem']) : 0 ?> lượt xem
+                        </div>
+                        <div class="meta-stat me-4">
+                            <i class="lni lni-users"></i> <?= isset($registrationCount) ? number_format($registrationCount) : 0 ?> người đăng ký
+                        </div>
+                        <div class="meta-stat">
+                            <i class="lni lni-calendar"></i> <?= date('d/m/Y', strtotime($event['ngay_to_chuc'])) ?>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

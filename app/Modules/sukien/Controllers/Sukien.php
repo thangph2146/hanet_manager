@@ -201,6 +201,23 @@ class Sukien extends BaseController
             return redirect()->to('/su-kien/detail/' . $slug, 301);
         }
         
+        // Tăng số lượt xem cho sự kiện
+        $this->sukienModel->incrementViews($event['id_su_kien']);
+        
+        // Lấy danh sách người đăng ký sự kiện
+        $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+        
+        // Lấy số lượng người đăng ký
+        $registrationCount = count($registrations);
+        
+        // Lấy số lượng người đã tham gia
+        $attendedCount = 0;
+        foreach ($registrations as $reg) {
+            if ($reg['da_tham_gia'] == 1) {
+                $attendedCount++;
+            }
+        }
+        
         // Lấy các sự kiện liên quan (cùng loại)
         $related_events = $this->sukienModel->getRelatedEvents($event['id_su_kien'], $event['loai_su_kien'], 3);
         
@@ -218,7 +235,14 @@ class Sukien extends BaseController
         ];
         
         return view('App\Modules\sukien\Views\detail', array_merge(
-            ['event' => $event, 'related_events' => $related_events], 
+            [
+                'event' => $event, 
+                'related_events' => $related_events,
+                'registrations' => $registrations,
+                'registrationCount' => $registrationCount,
+                'attendedCount' => $attendedCount,
+                'participants' => $registrations
+            ], 
             $seo_data
         ));
     }

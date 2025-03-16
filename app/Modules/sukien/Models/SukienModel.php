@@ -15,7 +15,7 @@ class SukienModel extends Model
         'ten_su_kien', 'loai_su_kien_id', 'chi_tiet_su_kien', 'bat_dau_dang_ky',
         'ket_thuc_dang_ky', 'so_luong_tham_gia', 'gio_bat_dau', 'gio_ket_thuc',
         'so_luong_dien_gia', 'gioi_han_loai_nguoi_dung', 'tu_khoa_su_kien',
-        'mo_ta_su_kien', 'hashtag', 'status', 'bin', 'slug'
+        'mo_ta_su_kien', 'hashtag', 'status', 'bin', 'slug', 'so_luot_xem'
     ];
     
     // Dates
@@ -54,7 +54,8 @@ class SukienModel extends Model
             'dien_gia' => 'TS. Nguyễn Đình Thọ, TS. Lê Phan Quốc, TS. Nguyễn Thị Minh Hương',
             'thoi_gian' => '08:00 - 17:00',
             'loai_su_kien' => 'Hội thảo',
-            'slug' => 'hoi-thao-khoa-hoc-tai-chinh-va-ngan-hang-trong-ky-nguyen-so-1.html'
+            'slug' => 'hoi-thao-khoa-hoc-tai-chinh-va-ngan-hang-trong-ky-nguyen-so-1.html',
+            'so_luot_xem' => 1250
         ],
         [
             'id_su_kien' => 2,
@@ -83,7 +84,8 @@ class SukienModel extends Model
             'dien_gia' => 'Đại diện các doanh nghiệp lớn',
             'thoi_gian' => '08:30 - 16:30',
             'loai_su_kien' => 'Nghề nghiệp',
-            'slug' => 'ngay-hoi-viec-lam-hub-lan-thu-13-nam-2023-2.html'
+            'slug' => 'ngay-hoi-viec-lam-hub-lan-thu-13-nam-2023-2.html',
+            'so_luot_xem' => 980
         ],
         [
             'id_su_kien' => 3,
@@ -112,7 +114,8 @@ class SukienModel extends Model
             'dien_gia' => 'ThS. Trần Văn Nam, PGS.TS. Trần Hùng Sơn',
             'thoi_gian' => '13:30 - 17:00',
             'loai_su_kien' => 'Workshop',
-            'slug' => 'workshop-ky-nang-phan-tich-du-lieu-trong-linh-vuc-tai-chinh-3.html'
+            'slug' => 'workshop-ky-nang-phan-tich-du-lieu-trong-linh-vuc-tai-chinh-3.html',
+            'so_luot_xem' => 845
         ],
         [
             'id_su_kien' => 4,
@@ -141,7 +144,8 @@ class SukienModel extends Model
             'dien_gia' => 'Ban giám khảo cuộc thi',
             'thoi_gian' => '08:00 - 17:00',
             'loai_su_kien' => 'Hoạt động sinh viên',
-            'slug' => 'cuoc-thi-sinh-vien-voi-y-tuong-khoi-nghiep-2023-4.html'
+            'slug' => 'cuoc-thi-sinh-vien-voi-y-tuong-khoi-nghiep-2023-4.html',
+            'so_luot_xem' => 720
         ],
         [
             'id_su_kien' => 5,
@@ -170,7 +174,8 @@ class SukienModel extends Model
             'dien_gia' => 'TS. Nguyễn Thanh Bình, ThS. Trần Văn Nam, Chuyên gia nước ngoài',
             'thoi_gian' => '09:00 - 16:00',
             'loai_su_kien' => 'Hội thảo',
-            'slug' => 'hoi-thao-xu-huong-cong-nghe-tai-chinh-2023-5.html'
+            'slug' => 'hoi-thao-xu-huong-cong-nghe-tai-chinh-2023-5.html',
+            'so_luot_xem' => 635
         ],
         [
             'id_su_kien' => 6,
@@ -199,7 +204,8 @@ class SukienModel extends Model
             'dien_gia' => 'Chuyên gia đào tạo kỹ năng mềm',
             'thoi_gian' => '13:30 - 17:00',
             'loai_su_kien' => 'Workshop',
-            'slug' => 'workshop-ky-nang-thuyet-trinh-chuyen-nghiep-6.html'
+            'slug' => 'workshop-ky-nang-thuyet-trinh-chuyen-nghiep-6.html',
+            'so_luot_xem' => 510
         ]
     ];
     
@@ -665,5 +671,315 @@ class SukienModel extends Model
             'seconds' => $seconds,
             'total' => $timeRemaining
         ];
+    }
+
+    /**
+     * Dữ liệu mẫu cho đăng ký sự kiện
+     * 
+     * @var array
+     */
+    private $mockRegistrations = [
+        [
+            'id' => 1,
+            'su_kien_id' => 1,
+            'user_id' => 101,
+            'ho_ten' => 'Nguyễn Văn An',
+            'email' => 'nguyenvanan@gmail.com',
+            'so_dien_thoai' => '0912345678',
+            'ma_sv' => '1912345',
+            'khoa' => 'Khoa Ngân hàng',
+            'lop' => 'NH19A',
+            'trang_thai' => 1, // 1: Đã xác nhận, 0: Chưa xác nhận
+            'ghi_chu' => 'Đã xác nhận tham gia',
+            'ngay_dang_ky' => '2023-05-20 09:15:30',
+            'da_tham_gia' => 1
+        ],
+        [
+            'id' => 2,
+            'su_kien_id' => 1,
+            'user_id' => 102,
+            'ho_ten' => 'Trần Thị Bình',
+            'email' => 'tranthib@gmail.com',
+            'so_dien_thoai' => '0923456789',
+            'ma_sv' => '1923456',
+            'khoa' => 'Khoa Tài chính',
+            'lop' => 'TC19B',
+            'trang_thai' => 1,
+            'ghi_chu' => 'Xác nhận qua email',
+            'ngay_dang_ky' => '2023-05-21 14:30:45',
+            'da_tham_gia' => 0
+        ],
+        [
+            'id' => 3,
+            'su_kien_id' => 1,
+            'user_id' => 103,
+            'ho_ten' => 'Lê Văn Cường',
+            'email' => 'levanc@gmail.com',
+            'so_dien_thoai' => '0934567890',
+            'ma_sv' => '1934567',
+            'khoa' => 'Khoa Kinh tế',
+            'lop' => 'KT19C',
+            'trang_thai' => 0,
+            'ghi_chu' => 'Chờ xác nhận',
+            'ngay_dang_ky' => '2023-05-22 10:45:15',
+            'da_tham_gia' => 0
+        ],
+        [
+            'id' => 4,
+            'su_kien_id' => 2,
+            'user_id' => 104,
+            'ho_ten' => 'Phạm Thị Dung',
+            'email' => 'phamthid@gmail.com',
+            'so_dien_thoai' => '0945678901',
+            'ma_sv' => '1945678',
+            'khoa' => 'Khoa Quản trị kinh doanh',
+            'lop' => 'QT19D',
+            'trang_thai' => 1,
+            'ghi_chu' => 'Đã xác nhận tham gia',
+            'ngay_dang_ky' => '2023-05-25 16:20:10',
+            'da_tham_gia' => 1
+        ],
+        [
+            'id' => 5,
+            'su_kien_id' => 2,
+            'user_id' => 105,
+            'ho_ten' => 'Hoàng Văn Em',
+            'email' => 'hoangvane@gmail.com',
+            'so_dien_thoai' => '0956789012',
+            'ma_sv' => '1956789',
+            'khoa' => 'Khoa Công nghệ thông tin',
+            'lop' => 'IT19E',
+            'trang_thai' => 1,
+            'ghi_chu' => 'Đã xác nhận qua SMS',
+            'ngay_dang_ky' => '2023-05-26 08:10:05',
+            'da_tham_gia' => 0
+        ]
+    ];
+
+    /**
+     * Tăng số lượt xem cho sự kiện
+     * 
+     * @param int $eventId ID của sự kiện
+     * @return bool
+     */
+    public function incrementViews($eventId)
+    {
+        // Trong triển khai thực tế:
+        // $event = $this->find($eventId);
+        // if (!$event) return false;
+        // 
+        // $currentViews = $event['so_luot_xem'] ?? 0;
+        // return $this->update($eventId, ['so_luot_xem' => $currentViews + 1]);
+        
+        // Sử dụng mock data cho demo
+        foreach ($this->mockEvents as &$event) {
+            if ($event['id_su_kien'] == $eventId) {
+                $event['so_luot_xem'] = isset($event['so_luot_xem']) ? $event['so_luot_xem'] + 1 : 1;
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Lấy số lượt xem của sự kiện
+     * 
+     * @param int $eventId ID của sự kiện
+     * @return int
+     */
+    public function getViews($eventId)
+    {
+        // Trong triển khai thực tế:
+        // $event = $this->find($eventId);
+        // return $event ? ($event['so_luot_xem'] ?? 0) : 0;
+        
+        // Sử dụng mock data cho demo
+        foreach ($this->mockEvents as $event) {
+            if ($event['id_su_kien'] == $eventId) {
+                return $event['so_luot_xem'] ?? 0;
+            }
+        }
+        
+        return 0;
+    }
+
+    /**
+     * Lấy danh sách người đăng ký tham gia sự kiện
+     * 
+     * @param int $eventId ID của sự kiện
+     * @return array
+     */
+    public function getRegistrations($eventId)
+    {
+        // Trong triển khai thực tế:
+        // return $this->db->table('dang_ky_su_kien')
+        //                 ->where('su_kien_id', $eventId)
+        //                 ->get()
+        //                 ->getResultArray();
+        
+        // Sử dụng mock data cho demo
+        $registrations = [];
+        
+        foreach ($this->mockRegistrations as $registration) {
+            if ($registration['su_kien_id'] == $eventId) {
+                $registrations[] = $registration;
+            }
+        }
+        
+        return $registrations;
+    }
+
+    /**
+     * Đăng ký tham gia sự kiện
+     * 
+     * @param array $data Thông tin đăng ký
+     * @return bool|int
+     */
+    public function registerEvent($data)
+    {
+        // Trong triển khai thực tế:
+        // return $this->db->table('dang_ky_su_kien')->insert($data);
+        
+        // Sử dụng mock data cho demo
+        $lastId = end($this->mockRegistrations)['id'] ?? 0;
+        $newId = $lastId + 1;
+        
+        $data['id'] = $newId;
+        $data['ngay_dang_ky'] = date('Y-m-d H:i:s');
+        $data['trang_thai'] = 0; // Mặc định chưa xác nhận
+        $data['da_tham_gia'] = 0; // Mặc định chưa tham gia
+        
+        $this->mockRegistrations[] = $data;
+        
+        return $newId;
+    }
+
+    /**
+     * Hủy đăng ký tham gia sự kiện
+     * 
+     * @param int $userId ID của người dùng
+     * @param int $eventId ID của sự kiện
+     * @return bool
+     */
+    public function cancelRegistration($userId, $eventId)
+    {
+        // Trong triển khai thực tế:
+        // return $this->db->table('dang_ky_su_kien')
+        //                 ->where('user_id', $userId)
+        //                 ->where('su_kien_id', $eventId)
+        //                 ->delete();
+        
+        // Sử dụng mock data cho demo
+        foreach ($this->mockRegistrations as $key => $registration) {
+            if ($registration['user_id'] == $userId && $registration['su_kien_id'] == $eventId) {
+                unset($this->mockRegistrations[$key]);
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Kiểm tra người dùng đã đăng ký sự kiện chưa
+     * 
+     * @param int $userId ID của người dùng
+     * @param int $eventId ID của sự kiện
+     * @return bool
+     */
+    public function isRegistered($userId, $eventId)
+    {
+        // Trong triển khai thực tế:
+        // $count = $this->db->table('dang_ky_su_kien')
+        //                   ->where('user_id', $userId)
+        //                   ->where('su_kien_id', $eventId)
+        //                   ->countAllResults();
+        // return $count > 0;
+        
+        // Sử dụng mock data cho demo
+        foreach ($this->mockRegistrations as $registration) {
+            if ($registration['user_id'] == $userId && $registration['su_kien_id'] == $eventId) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Lấy số lượng đăng ký cho sự kiện
+     * 
+     * @param int $eventId ID của sự kiện
+     * @return int
+     */
+    public function getRegistrationCount($eventId)
+    {
+        // Trong triển khai thực tế:
+        // return $this->db->table('dang_ky_su_kien')
+        //                 ->where('su_kien_id', $eventId)
+        //                 ->countAllResults();
+        
+        // Sử dụng mock data cho demo
+        $count = 0;
+        
+        foreach ($this->mockRegistrations as $registration) {
+            if ($registration['su_kien_id'] == $eventId) {
+                $count++;
+            }
+        }
+        
+        return $count;
+    }
+
+    /**
+     * Lấy thông tin đăng ký của người dùng
+     * 
+     * @param int $userId ID của người dùng
+     * @param int $eventId ID của sự kiện
+     * @return array|null
+     */
+    public function getUserRegistration($userId, $eventId)
+    {
+        // Trong triển khai thực tế:
+        // return $this->db->table('dang_ky_su_kien')
+        //                 ->where('user_id', $userId)
+        //                 ->where('su_kien_id', $eventId)
+        //                 ->get()
+        //                 ->getRowArray();
+        
+        // Sử dụng mock data cho demo
+        foreach ($this->mockRegistrations as $registration) {
+            if ($registration['user_id'] == $userId && $registration['su_kien_id'] == $eventId) {
+                return $registration;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Cập nhật trạng thái tham gia sự kiện
+     * 
+     * @param int $registrationId ID của đăng ký
+     * @param int $status Trạng thái tham gia (1: Đã tham gia, 0: Chưa tham gia)
+     * @return bool
+     */
+    public function updateAttendance($registrationId, $status)
+    {
+        // Trong triển khai thực tế:
+        // return $this->db->table('dang_ky_su_kien')
+        //                 ->where('id', $registrationId)
+        //                 ->update(['da_tham_gia' => $status]);
+        
+        // Sử dụng mock data cho demo
+        foreach ($this->mockRegistrations as &$registration) {
+            if ($registration['id'] == $registrationId) {
+                $registration['da_tham_gia'] = $status;
+                return true;
+            }
+        }
+        
+        return false;
     }
 } 
