@@ -21,7 +21,7 @@ class Login extends BaseController
 	{
 		$googleAuth = service('googleAuth');
 		$googleAuthUrl = $googleAuth->getAuthUrl('student');	
-		return view('students/login', ['googleAuthUrl' => $googleAuthUrl]);
+		return view('login/student/Views/login', ['googleAuthUrl' => $googleAuthUrl]);
 	}
 
 	public function create_student()
