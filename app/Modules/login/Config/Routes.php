@@ -7,8 +7,9 @@ if (!isset($routes)) {
 }
 
 // Routes cho login student sử dụng controller mới
-$routes->get('login', 'App\Modules\login\Controllers\LoginController::index');
-$routes->get('@login.php', 'App\Modules\login\Controllers\LoginController::index');
+$routes->get('login', function() {
+    return redirect()->to('login/student');
+});
 $routes->get('login/student', 'App\Modules\login\Controllers\LoginController::index');
 $routes->post('login/create_student', 'App\Modules\login\Controllers\LoginController::create_student');
 
