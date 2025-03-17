@@ -1,4 +1,4 @@
-<?= $this->extend('App\Modules\sukien\Views\layouts\sukien_layout') ?>
+<?= $this->extend('frontend\layouts\sukien_layout') ?>
 
 <?= $this->section('title') ?>Sự Kiện Đại Học Ngân Hàng TP.HCM<?= $this->endSection() ?>
 <?= $this->section('description') ?>Sự Kiện Đại Học Ngân Hàng TP.HCM<?= $this->endSection() ?>
