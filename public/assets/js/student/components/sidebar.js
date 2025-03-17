@@ -1,41 +1,54 @@
 // Sidebar Component
 class Sidebar {
     constructor() {
-        this.initElements();
-        this.initEventListeners();
-        this.checkActiveLinks();
-        this.initSubmenuState();
-    }
-
-    initElements() {
-        this.sidebar = document.getElementById('sidebar');
-        this.backdrop = document.getElementById('sidebar-backdrop');
+        this.sidebar = document.querySelector('.sidebar');
+        this.backdrop = document.querySelector('.sidebar-backdrop');
+        this.closeBtn = document.querySelector('.sidebar-close');
+        this.searchInput = document.querySelector('.sidebar-search input');
         this.menuItems = document.querySelectorAll('.sidebar-link');
         this.submenuItems = document.querySelectorAll('.submenu-link');
         this.upgradeBtn = document.querySelector('.upgrade-pro-btn');
         this.submenus = document.querySelectorAll('.submenu');
+        
+        this.init();
+    }
+
+    init() {
+        this.initSubmenuState();
+        this.initEventListeners();
+        this.initSearch();
+        this.scrollToActiveItem();
     }
 
     initEventListeners() {
-        // Handle menu item hover effects
+        // Close button click
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', () => this.closeSidebar());
+        }
+
+        // Backdrop click
+        if (this.backdrop) {
+            this.backdrop.addEventListener('click', () => this.closeSidebar());
+        }
+
+        // Menu item hover
         this.menuItems.forEach(item => {
             item.addEventListener('mouseenter', () => this.handleMenuHover(item, true));
             item.addEventListener('mouseleave', () => this.handleMenuHover(item, false));
         });
 
-        // Handle submenu item hover effects
+        // Submenu item hover
         this.submenuItems.forEach(item => {
             item.addEventListener('mouseenter', () => this.handleSubmenuHover(item, true));
             item.addEventListener('mouseleave', () => this.handleSubmenuHover(item, false));
         });
 
-        // Handle backdrop click
-        if (this.backdrop) {
-            this.backdrop.addEventListener('click', () => this.closeSidebar());
-        }
-
-        // Handle window resize
-        window.addEventListener('resize', () => this.handleResize());
+        // Window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 992) {
+                this.closeSidebar();
+            }
+        });
 
         // Handle upgrade button hover
         if (this.upgradeBtn) {
@@ -47,6 +60,37 @@ class Sidebar {
         this.submenus.forEach(submenu => {
             submenu.addEventListener('show.bs.collapse', () => this.handleSubmenuShow(submenu));
             submenu.addEventListener('hide.bs.collapse', () => this.handleSubmenuHide(submenu));
+        });
+    }
+
+    initSearch() {
+        if (!this.searchInput) return;
+
+        this.searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const allLinks = [...this.menuItems, ...this.submenuItems];
+
+            allLinks.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const listItem = link.closest('li');
+                
+                if (text.includes(searchTerm)) {
+                    listItem.style.display = '';
+                    // If it's a submenu item, show its parent menu
+                    if (link.classList.contains('submenu-link')) {
+                        const parentSubmenu = link.closest('.submenu');
+                        if (parentSubmenu) {
+                            parentSubmenu.style.display = '';
+                            const parentCollapse = parentSubmenu.closest('.collapse');
+                            if (parentCollapse) {
+                                parentCollapse.classList.add('show');
+                            }
+                        }
+                    }
+                } else {
+                    listItem.style.display = 'none';
+                }
+            });
         });
     }
 
@@ -69,6 +113,12 @@ class Sidebar {
         if (arrow && !item.classList.contains('active')) {
             arrow.style.color = isHovering ? 'var(--primary-color)' : '';
         }
+
+        if (isHovering) {
+            item.style.backgroundColor = 'rgba(138, 43, 226, 0.05)';
+        } else {
+            item.style.backgroundColor = '';
+        }
     }
 
     handleSubmenuHover(item, isHovering) {
@@ -77,6 +127,12 @@ class Sidebar {
         if (badge) {
             badge.style.transform = isHovering ? 'scale(1.1)' : '';
             badge.style.transition = 'transform 0.3s ease';
+        }
+
+        if (isHovering) {
+            item.style.backgroundColor = 'rgba(138, 43, 226, 0.03)';
+        } else {
+            item.style.backgroundColor = '';
         }
     }
 
@@ -99,59 +155,21 @@ class Sidebar {
     }
 
     initSubmenuState() {
-        // Open submenu if it contains active item
-        this.submenus.forEach(submenu => {
-            if (this.hasActiveChild(submenu)) {
-                const bsCollapse = new bootstrap.Collapse(submenu, {
-                    toggle: false
-                });
-                bsCollapse.show();
+        const activeSubmenuLink = document.querySelector('.submenu-link.active');
+        if (activeSubmenuLink) {
+            const parentCollapse = activeSubmenuLink.closest('.collapse');
+            if (parentCollapse) {
+                parentCollapse.classList.add('show');
             }
-        });
+        }
     }
 
-    checkActiveLinks() {
-        const currentPath = window.location.pathname;
-        
-        // Check main menu items
-        this.menuItems.forEach(item => {
-            const href = item.getAttribute('href');
-            if (href && href !== '#' && currentPath.includes(href)) {
-                item.classList.add('active');
-                this.scrollToActiveItem(item);
-            }
-        });
-
-        // Check submenu items
-        this.submenuItems.forEach(item => {
-            const href = item.getAttribute('href');
-            if (href && currentPath.includes(href)) {
-                item.classList.add('active');
-                this.scrollToActiveItem(item);
-                
-                // Activate parent menu
-                const parentSubmenu = item.closest('.submenu');
-                if (parentSubmenu) {
-                    const parentLink = parentSubmenu.previousElementSibling;
-                    if (parentLink) {
-                        parentLink.classList.add('active');
-                    }
-                }
-            }
-        });
-    }
-
-    scrollToActiveItem(item) {
-        const container = document.querySelector('.sidebar-menu');
-        if (container) {
-            const itemOffset = item.offsetTop;
-            const containerHeight = container.offsetHeight;
-            const scrollOffset = itemOffset - (containerHeight / 2);
-            
-            container.scrollTo({
-                top: Math.max(0, scrollOffset),
-                behavior: 'smooth'
-            });
+    scrollToActiveItem() {
+        const activeItem = document.querySelector('.sidebar-link.active, .submenu-link.active');
+        if (activeItem) {
+            setTimeout(() => {
+                activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
         }
     }
 
@@ -172,13 +190,12 @@ class Sidebar {
     }
 
     closeSidebar() {
-        if (this.sidebar && this.sidebar.classList.contains('show')) {
-            this.sidebar.classList.remove('show');
-            if (this.backdrop) {
-                this.backdrop.classList.remove('show');
-            }
-            document.body.style.overflow = '';
+        this.sidebar.classList.remove('show');
+        if (this.backdrop) {
+            this.backdrop.style.visibility = 'hidden';
+            this.backdrop.style.opacity = '0';
         }
+        document.body.style.overflow = '';
     }
 
     handleUpgradeHover(isHovering) {
@@ -194,5 +211,5 @@ class Sidebar {
 
 // Initialize sidebar when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.sidebarInstance = new Sidebar();
+    new Sidebar();
 }); 

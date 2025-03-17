@@ -164,6 +164,9 @@ function renderMenuItem($item, $current_url) {
             <i class="fas fa-graduation-cap logo-icon"></i>
             <span>MATERIO</span>
         </a>
+        <button class="sidebar-close d-lg-none" id="sidebar-close">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
     
     <ul class="sidebar-menu">
@@ -190,25 +193,6 @@ function renderMenuItem($item, $current_url) {
             <?php renderMenuItem($item, $current_url); ?>
         <?php endforeach; ?>
     </ul>
-    
-    <div class="sidebar-footer">
-        <a href="#" class="upgrade-pro-btn">
-            <i class="fas fa-rocket"></i>
-            <span>Nâng cấp lên Pro</span>
-        </a>
-        
-        <div class="sidebar-footer-stats">
-            <div class="storage-info">
-                <div class="storage-text">
-                    <span>Dung lượng</span>
-                    <span>24.3GB / 40GB</span>
-                </div>
-                <div class="progress">
-                    <div class="progress-bar" style="width: 60%"></div>
-                </div>
-            </div>
-        </div>
-    </div>
 </aside>
 
 <!-- Link JS file -->
