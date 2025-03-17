@@ -9,10 +9,40 @@ class LoaiSukienEntity extends Entity
     protected $datamap = [];
     protected $dates   = ['created_at', 'updated_at', 'deleted_at'];
     protected $casts   = [
-        'id'        => 'int',
-        'status'    => 'int',
-        'bin'       => 'int',
+        'id'            => 'int',
+        'nguoi_tao_id'  => 'int',
+        'status'        => 'int',
+        'bin'           => 'int',
+        'tong_su_kien'  => 'int',
     ];
+    
+    /**
+     * Lấy tổng số sự kiện thuộc loại này
+     */
+    public function getTongSuKien()
+    {
+        return $this->attributes['tong_su_kien'] ?? 0;
+    }
+    
+    /**
+     * Đặt tổng số sự kiện thuộc loại này
+     */
+    public function setTongSuKien(int $tongSuKien)
+    {
+        $this->attributes['tong_su_kien'] = $tongSuKien;
+        
+        return $this;
+    }
+    
+    /**
+     * Tăng tổng số sự kiện thuộc loại này
+     */
+    public function tangTongSuKien()
+    {
+        $this->attributes['tong_su_kien'] = ($this->getTongSuKien() + 1);
+        
+        return $this;
+    }
     
     /**
      * Lấy tên loại sự kiện
@@ -119,5 +149,75 @@ class LoaiSukienEntity extends Entity
         $string = trim($string, '-');
         
         return $string;
+    }
+    
+    /**
+     * Lấy mô tả loại sự kiện
+     */
+    public function getMoTa()
+    {
+        return $this->attributes['mo_ta'] ?? '';
+    }
+    
+    /**
+     * Đặt mô tả loại sự kiện
+     */
+    public function setMoTa(string $moTa)
+    {
+        $this->attributes['mo_ta'] = $moTa;
+        
+        return $this;
+    }
+    
+    /**
+     * Lấy icon loại sự kiện
+     */
+    public function getIcon()
+    {
+        return $this->attributes['icon'] ?? '';
+    }
+    
+    /**
+     * Đặt icon loại sự kiện
+     */
+    public function setIcon(string $icon)
+    {
+        $this->attributes['icon'] = $icon;
+        
+        return $this;
+    }
+    
+    /**
+     * Lấy màu nền loại sự kiện
+     */
+    public function getMauNen()
+    {
+        return $this->attributes['mau_nen'] ?? '#ffffff';
+    }
+    
+    /**
+     * Đặt màu nền loại sự kiện
+     */
+    public function setMauNen(string $mauNen)
+    {
+        $this->attributes['mau_nen'] = $mauNen;
+        
+        return $this;
+    }
+    
+    /**
+     * Tạo đối tượng sự kiện mới
+     */
+    public function taoSuKien(int $nguoiTaoId)
+    {
+        $sukien = new SukienEntity();
+        $sukien->setLoaiSuKienId($this->id);
+        $sukien->setNguoiTaoId($nguoiTaoId);
+        $sukien->setStatus(SukienEntity::STATUS_INACTIVE); // Mặc định không hoạt động
+        
+        // Tăng tổng số sự kiện
+        $this->tangTongSuKien();
+        
+        return $sukien;
     }
 }
