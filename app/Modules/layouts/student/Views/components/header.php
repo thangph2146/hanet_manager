@@ -44,7 +44,7 @@
                             <i class="bi bi-bell-fill"></i>
                         </div>
                     </a>
-                    <!-- Dropdown được định nghĩa nhưng sẽ được di chuyển ra ngoài scope -->
+                    <!-- Dropdown được định nghĩa bằng template để thoát khỏi scope giới hạn -->
                     <template id="notification-dropdown-template">
                         <div class="fixed-dropdown dropdown-menu dropdown-menu-end py-0 dropdown-notify" 
                              data-dropdown-for="notificationsDropdown">
@@ -86,7 +86,7 @@
                             </div>
                         </div>
                     </a>
-                    <!-- Dropdown được định nghĩa nhưng sẽ được di chuyển ra ngoài scope -->
+                    <!-- Dropdown được định nghĩa bằng template để thoát khỏi scope giới hạn -->
                     <template id="user-dropdown-template">
                         <ul class="fixed-dropdown dropdown-menu dropdown-menu-end user-dropdown" 
                             data-dropdown-for="userDropdown">
@@ -124,184 +124,7 @@
         </div>
     </nav>
 </header>
-<!--end header --> 
+<!--end header -->
 
-<!-- Container cho tất cả các fixed dropdown (sẽ được di chuyển ra khỏi flow/scope) -->
-<div id="fixed-dropdowns-container" style="position: relative; z-index: 9999;"></div>
-
-<style>
-/* Reset một số style mặc định từ Bootstrap để tránh xung đột */
-body {
-    overflow-x: hidden;
-}
-
-.dropdown-menu {
-    margin: 0;
-}
-
-/* CSS cho fixed dropdowns thoát khỏi scope giới hạn */
-.fixed-dropdown {
-    position: fixed !important;
-    display: none;
-    z-index: 9999 !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    min-width: 280px !important;
-    background-color: #fff;
-    background-clip: padding-box;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    border-radius: 0.375rem;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15) !important;
-    animation: dropdown-animation 0.2s ease-in;
-}
-
-.dark-theme .fixed-dropdown {
-    background-color: #2c3e50;
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-.fixed-dropdown.show {
-    display: block !important;
-}
-
-@keyframes dropdown-animation {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Kiểu dáng bổ sung cho dropdown */
-.dropdown-notify {
-    width: 320px;
-}
-
-.user-dropdown {
-    width: 250px;
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Di chuyển tất cả các dropdown ra ngoài scope giới hạn sử dụng template
-    const container = document.getElementById('fixed-dropdowns-container');
-    
-    // Di chuyển notification dropdown
-    const notifyTemplate = document.getElementById('notification-dropdown-template');
-    if (notifyTemplate && container) {
-        container.appendChild(notifyTemplate.content.cloneNode(true));
-    }
-    
-    // Di chuyển user dropdown
-    const userTemplate = document.getElementById('user-dropdown-template');
-    if (userTemplate && container) {
-        container.appendChild(userTemplate.content.cloneNode(true));
-    }
-    
-    // Thiết lập các toggle cho dropdown
-    setupDropdowns();
-    
-    function setupDropdowns() {
-        // Lấy tất cả các dropdown trigger và fixed-dropdown
-        const triggers = document.querySelectorAll('[id]');
-        const fixedDropdowns = document.querySelectorAll('.fixed-dropdown[data-dropdown-for]');
-        
-        triggers.forEach(trigger => {
-            const id = trigger.getAttribute('id');
-            const dropdown = document.querySelector(`.fixed-dropdown[data-dropdown-for="${id}"]`);
-            
-            if (trigger && dropdown) {
-                // Click event cho trigger
-                trigger.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Ẩn tất cả các dropdown khác
-                    fixedDropdowns.forEach(d => {
-                        if (d !== dropdown) {
-                            d.classList.remove('show');
-                        }
-                    });
-                    
-                    // Toggle dropdown hiện tại
-                    dropdown.classList.toggle('show');
-                    
-                    if (dropdown.classList.contains('show')) {
-                        // Định vị dropdown dưới trigger
-                        positionDropdown(trigger, dropdown);
-                    }
-                });
-            }
-        });
-        
-        // Click outside để đóng dropdown
-        document.addEventListener('click', function(e) {
-            let clickedInside = false;
-            
-            // Kiểm tra xem click có nằm trong dropdown hoặc trigger không
-            triggers.forEach(trigger => {
-                if (trigger.contains(e.target)) {
-                    clickedInside = true;
-                }
-            });
-            
-            fixedDropdowns.forEach(dropdown => {
-                if (dropdown.contains(e.target)) {
-                    clickedInside = true;
-                }
-            });
-            
-            // Nếu click bên ngoài, đóng tất cả dropdown
-            if (!clickedInside) {
-                fixedDropdowns.forEach(dropdown => {
-                    dropdown.classList.remove('show');
-                });
-            }
-        });
-        
-        // Xử lý resize window
-        window.addEventListener('resize', function() {
-            fixedDropdowns.forEach(dropdown => {
-                if (dropdown.classList.contains('show')) {
-                    const forId = dropdown.getAttribute('data-dropdown-for');
-                    const trigger = document.getElementById(forId);
-                    if (trigger) {
-                        positionDropdown(trigger, dropdown);
-                    }
-                }
-            });
-        });
-    }
-    
-    // Hàm tính toán vị trí cho dropdown
-    function positionDropdown(trigger, dropdown) {
-        const triggerRect = trigger.getBoundingClientRect();
-        const dropdownWidth = dropdown.offsetWidth;
-        const windowWidth = window.innerWidth;
-        
-        // Xác định vị trí trên/dưới
-        let top = triggerRect.bottom + window.scrollY;
-        
-        // Xác định vị trí trái/phải
-        let left;
-        if (triggerRect.right - dropdownWidth < 0) {
-            // Không đủ không gian bên trái
-            left = triggerRect.left;
-        } else {
-            // Căn phải
-            left = triggerRect.right - dropdownWidth;
-        }
-        
-        // Đảm bảo dropdown không bị tràn ra khỏi màn hình
-        if (left + dropdownWidth > windowWidth) {
-            left = windowWidth - dropdownWidth - 5;
-        }
-        
-        if (left < 0) {
-            left = 5;
-        }
-        
-        // Áp dụng vị trí
-        dropdown.style.top = `${top}px`;
-        dropdown.style.left = `${left}px`;
-    }
-});
-</script> 
+<!-- Container cho fixed dropdowns -->
+<div id="fixed-dropdowns-container"></div> 

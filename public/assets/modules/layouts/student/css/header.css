@@ -639,3 +639,57 @@ body {
   position: relative;
   overflow: hidden;
 }
+
+/* CSS cho fixed dropdowns thoát khỏi scope giới hạn */
+body {
+    overflow-x: hidden;
+}
+
+.dropdown-menu {
+    margin: 0;
+}
+
+/* CSS cho fixed dropdowns thoát khỏi scope giới hạn */
+.fixed-dropdown {
+    position: fixed !important;
+    display: none;
+    z-index: 9999 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    min-width: 280px !important;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.375rem;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15) !important;
+    animation: dropdown-animation 0.2s ease-in;
+}
+
+.dark-theme .fixed-dropdown {
+    background-color: #2c3e50;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.fixed-dropdown.show {
+    display: block !important;
+}
+
+@keyframes dropdown-animation {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Kiểu dáng bổ sung cho dropdown */
+.dropdown-notify {
+    width: 320px;
+}
+
+.user-dropdown {
+    width: 250px;
+}
+
+/* Container cho fixed dropdowns */
+#fixed-dropdowns-container {
+    position: relative;
+    z-index: 9999;
+}

@@ -527,3 +527,147 @@ const HeaderManager = {
 document.addEventListener('DOMContentLoaded', function() {
     HeaderManager.init();
 });
+
+/**
+ * Mở rộng HeaderManager với xử lý dropdown nâng cao
+ * Xử lý dropdown bị giới hạn trong scope block
+ * @version 1.0
+ */
+
+// Thêm chức năng xử lý fixed dropdown
+HeaderManager.setupFixedDropdowns = function() {
+    // Di chuyển tất cả các dropdown ra ngoài scope giới hạn sử dụng template
+    const container = document.getElementById('fixed-dropdowns-container');
+    
+    // Di chuyển notification dropdown
+    const notifyTemplate = document.getElementById('notification-dropdown-template');
+    if (notifyTemplate && container) {
+        container.appendChild(notifyTemplate.content.cloneNode(true));
+    }
+    
+    // Di chuyển user dropdown
+    const userTemplate = document.getElementById('user-dropdown-template');
+    if (userTemplate && container) {
+        container.appendChild(userTemplate.content.cloneNode(true));
+    }
+    
+    // Thiết lập các toggle cho dropdown
+    this.setupDropdownEvents();
+};
+
+HeaderManager.setupDropdownEvents = function() {
+    // Lấy tất cả các dropdown trigger và fixed-dropdown
+    const triggers = document.querySelectorAll('[id]');
+    const fixedDropdowns = document.querySelectorAll('.fixed-dropdown[data-dropdown-for]');
+    
+    triggers.forEach(trigger => {
+        const id = trigger.getAttribute('id');
+        const dropdown = document.querySelector(`.fixed-dropdown[data-dropdown-for="${id}"]`);
+        
+        if (trigger && dropdown) {
+            // Click event cho trigger
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Ẩn tất cả các dropdown khác
+                fixedDropdowns.forEach(d => {
+                    if (d !== dropdown) {
+                        d.classList.remove('show');
+                    }
+                });
+                
+                // Toggle dropdown hiện tại
+                dropdown.classList.toggle('show');
+                
+                if (dropdown.classList.contains('show')) {
+                    // Định vị dropdown dưới trigger
+                    this.positionDropdown(trigger, dropdown);
+                }
+            });
+        }
+    });
+    
+    // Click outside để đóng dropdown
+    document.addEventListener('click', (e) => {
+        let clickedInside = false;
+        
+        // Kiểm tra xem click có nằm trong dropdown hoặc trigger không
+        triggers.forEach(trigger => {
+            if (trigger.contains(e.target)) {
+                clickedInside = true;
+            }
+        });
+        
+        fixedDropdowns.forEach(dropdown => {
+            if (dropdown.contains(e.target)) {
+                clickedInside = true;
+            }
+        });
+        
+        // Nếu click bên ngoài, đóng tất cả dropdown
+        if (!clickedInside) {
+            fixedDropdowns.forEach(dropdown => {
+                dropdown.classList.remove('show');
+            });
+        }
+    });
+    
+    // Xử lý resize window
+    window.addEventListener('resize', this.throttle(() => {
+        fixedDropdowns.forEach(dropdown => {
+            if (dropdown.classList.contains('show')) {
+                const forId = dropdown.getAttribute('data-dropdown-for');
+                const trigger = document.getElementById(forId);
+                if (trigger) {
+                    this.positionDropdown(trigger, dropdown);
+                }
+            }
+        });
+    }, 250));
+};
+
+// Hàm tính toán vị trí cho dropdown
+HeaderManager.positionDropdown = function(trigger, dropdown) {
+    const triggerRect = trigger.getBoundingClientRect();
+    const dropdownWidth = dropdown.offsetWidth;
+    const windowWidth = window.innerWidth;
+    
+    // Xác định vị trí trên/dưới
+    let top = triggerRect.bottom + window.scrollY;
+    
+    // Xác định vị trí trái/phải
+    let left;
+    if (triggerRect.right - dropdownWidth < 0) {
+        // Không đủ không gian bên trái
+        left = triggerRect.left;
+    } else {
+        // Căn phải
+        left = triggerRect.right - dropdownWidth;
+    }
+    
+    // Đảm bảo dropdown không bị tràn ra khỏi màn hình
+    if (left + dropdownWidth > windowWidth) {
+        left = windowWidth - dropdownWidth - 5;
+    }
+    
+    if (left < 0) {
+        left = 5;
+    }
+    
+    // Áp dụng vị trí
+    dropdown.style.top = `${top}px`;
+    dropdown.style.left = `${left}px`;
+};
+
+// Mở rộng init để bao gồm chức năng fixed dropdown
+const originalInit = HeaderManager.init;
+HeaderManager.init = function() {
+    originalInit.call(this);
+    this.setupFixedDropdowns();
+};
+
+// Khởi tạo lại nếu DOM đã sẵn sàng
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    HeaderManager.setupFixedDropdowns();
+}
