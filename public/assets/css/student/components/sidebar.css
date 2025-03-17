@@ -6,8 +6,6 @@
     left: 0;
     top: 0;
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.98));
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     border-right: 1px solid rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
@@ -29,13 +27,13 @@
     gap: 0.75rem;
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: var(--secondary-color);
     text-decoration: none;
 }
 
 .logo-icon {
     font-size: 1.75rem;
-    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -63,7 +61,7 @@
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.5px;
-    color: #64748b;
+    color: var(--dark-color);
     padding: 1.25rem 1.5rem 0.5rem;
 }
 
@@ -75,7 +73,7 @@
     display: flex;
     align-items: center;
     padding: 0.75rem;
-    color: #64748b;
+    color: var(--dark-color);
     text-decoration: none;
     border-radius: 12px;
     transition: all 0.3s ease;
@@ -85,12 +83,12 @@
 
 .sidebar-link:hover {
     color: var(--primary-color);
-    background: rgba(138, 43, 226, 0.05);
+    background: rgba(30, 58, 138, 0.05);
 }
 
 .sidebar-link.active {
     color: var(--primary-color);
-    background: rgba(138, 43, 226, 0.1);
+    background: rgba(30, 58, 138, 0.1);
     font-weight: 600;
 }
 
@@ -119,7 +117,7 @@
     font-size: 0.75rem;
     font-weight: 600;
     border-radius: 6px;
-    background: rgba(138, 43, 226, 0.1);
+    background: rgba(30, 58, 138, 0.1);
     color: var(--primary-color);
 }
 
@@ -153,7 +151,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.5rem 0.75rem;
-    color: #64748b;
+    color: var(--dark-color);
     text-decoration: none;
     font-size: 0.9rem;
     border-radius: 8px;
@@ -163,12 +161,12 @@
 
 .submenu-link:hover {
     color: var(--primary-color);
-    background: rgba(138, 43, 226, 0.05);
+    background: rgba(30, 58, 138, 0.05);
 }
 
 .submenu-link.active {
     color: var(--primary-color);
-    background: rgba(138, 43, 226, 0.1);
+    background: rgba(30, 58, 138, 0.1);
     font-weight: 500;
 }
 
@@ -178,7 +176,7 @@
     font-weight: 600;
     border-radius: 4px;
     background: var(--primary-color);
-    color: white;
+    color: var(--white);
 }
 
 /* Enhanced Sidebar Footer */
@@ -194,8 +192,8 @@
     margin-bottom: 1rem;
     padding: 1rem;
     text-align: center;
-    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
-    color: white;
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    color: var(--white);
     border-radius: 12px;
     text-decoration: none;
     font-weight: 600;
@@ -204,13 +202,13 @@
     justify-content: center;
     gap: 0.75rem;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(138, 43, 226, 0.15);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
 }
 
 .upgrade-pro-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(138, 43, 226, 0.2);
-    color: white;
+    box-shadow: 0 6px 16px rgba(30, 58, 138, 0.2);
+    color: var(--white);
 }
 
 .upgrade-pro-btn i {
@@ -222,7 +220,7 @@
 }
 
 .storage-info {
-    background: rgba(138, 43, 226, 0.05);
+    background: rgba(30, 58, 138, 0.05);
     padding: 1rem;
     border-radius: 12px;
 }
@@ -236,24 +234,24 @@
 }
 
 .storage-text span:first-child {
-    color: #64748b;
+    color: var(--dark-color);
 }
 
 .storage-text span:last-child {
-    color: #334155;
+    color: var(--primary-color);
     font-weight: 600;
 }
 
 .progress {
     height: 6px;
-    background: rgba(138, 43, 226, 0.1);
+    background: rgba(30, 58, 138, 0.1);
     border-radius: 3px;
     overflow: hidden;
 }
 
 .progress-bar {
     height: 100%;
-    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
     border-radius: 3px;
     transition: width 0.3s ease;
 }
@@ -353,7 +351,7 @@
     width: 32px;
     height: 32px;
     border: none;
-    background: rgba(138, 43, 226, 0.1);
+    background: rgba(30, 58, 138, 0.1);
     color: var(--primary-color);
     border-radius: 8px;
     display: flex;
@@ -364,7 +362,7 @@
 }
 
 .sidebar-close:hover {
-    background: rgba(138, 43, 226, 0.2);
+    background: rgba(30, 58, 138, 0.2);
     transform: rotate(90deg);
 }
 
@@ -375,17 +373,17 @@
 
 .search-wrapper {
     position: relative;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--light-color);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     overflow: hidden;
     transition: all 0.3s ease;
 }
 
 .search-wrapper:focus-within {
-    background: #fff;
+    background: var(--white);
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
 }
 
 .search-wrapper input {
@@ -394,11 +392,11 @@
     border: none;
     background: transparent;
     font-size: 0.9rem;
-    color: #334155;
+    color: var(--dark-color);
 }
 
 .search-wrapper input::placeholder {
-    color: #94a3b8;
+    color: var(--secondary-color);
 }
 
 .search-wrapper i {
@@ -431,7 +429,7 @@
     height: 48px;
     border-radius: 12px;
     object-fit: cover;
-    border: 2px solid var(--primary-light);
+    border: 2px solid var(--primary-color);
 }
 
 .sidebar-user .user-info {
@@ -440,13 +438,13 @@
 
 .sidebar-user .user-name {
     font-weight: 600;
-    color: #334155;
+    color: var(--dark-color);
     font-size: 1rem;
     margin-bottom: 0.25rem;
 }
 
 .sidebar-user .user-role {
-    color: #64748b;
+    color: var(--secondary-color);
     font-size: 0.85rem;
 }
 
@@ -455,10 +453,10 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
     padding: 1rem;
     border-radius: 12px;
-    color: white;
+    color: var(--white);
     text-decoration: none;
     position: relative;
     overflow: hidden;
@@ -522,16 +520,16 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem;
-    background: #f8fafc;
+    background: var(--light-color);
     border-radius: 10px;
-    color: #64748b;
+    color: var(--dark-color);
     text-decoration: none;
     font-size: 0.85rem;
     transition: all 0.3s ease;
 }
 
 .footer-action:hover {
-    background: #f1f5f9;
+    background: var(--body-bg);
     color: var(--primary-color);
     transform: translateY(-2px);
 }

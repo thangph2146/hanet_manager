@@ -6,20 +6,20 @@ $menu_items = [
         [
             'icon' => 'tachometer-alt',
             'text' => 'Bảng điều khiển',
-            'url' => 'student/dashboard',
+            'url' => 'students/dashboard',
             'submenu' => [
                 [
                     'text' => 'Phân tích',
-                    'url' => 'student/dashboard/analytics',
+                    'url' => 'students/dashboard/analytics',
                     'badge' => 'New'
                 ],
                 [
                     'text' => 'Học tập',
-                    'url' => 'student/dashboard/learning'
+                    'url' => 'students/dashboard/learning'
                 ],
                 [
                     'text' => 'Thành tích',
-                    'url' => 'student/dashboard/achievements',
+                    'url' => 'students/dashboard/achievements',
                 ]
             ]
         ]
@@ -28,70 +28,70 @@ $menu_items = [
         [
             'icon' => 'envelope',
             'text' => 'Email',
-            'url' => 'student/email',
+            'url' => 'students/email',
             'submenu' => [
                 [
                     'text' => 'Hộp thư đến',
-                    'url' => 'student/email/inbox',
+                    'url' => 'students/email/inbox',
                     'badge' => '3'
                 ],
                 [
                     'text' => 'Soạn thư',
-                    'url' => 'student/email/compose'
+                    'url' => 'students/email/compose'
                 ],
                 [
                     'text' => 'Cài đặt email',
-                    'url' => 'student/email/settings'
+                    'url' => 'students/email/settings'
                 ]
             ]
         ],
         [
             'icon' => 'comments',
             'text' => 'Trò chuyện',
-            'url' => 'student/chat',
+            'url' => 'students/chat',
         ],
         [
             'icon' => 'calendar-alt',
             'text' => 'Lịch',
-            'url' => 'student/calendar',
+            'url' => 'students/calendar',
         ]
     ],
     'interface' => [
         [
             'icon' => 'layer-group',
             'text' => 'Giao diện',
-            'url' => 'student/ui',
+            'url' => 'students/ui',
             'submenu' => [
                 [
                     'text' => 'Typography',
-                    'url' => 'student/ui/typography'
+                    'url' => 'students/ui/typography'
                 ],
                 [
                     'text' => 'Colors',
-                    'url' => 'student/ui/colors'
+                    'url' => 'students/ui/colors'
                 ],
                 [
                     'text' => 'Icons',
-                    'url' => 'student/ui/icons'
+                    'url' => 'students/ui/icons'
                 ]
             ]
         ],
         [
             'icon' => 'puzzle-piece',
             'text' => 'Components',
-            'url' => 'student/components',
+            'url' => 'students/components',
             'submenu' => [
                 [
                     'text' => 'Alerts',
-                    'url' => 'student/components/alerts'
+                    'url' => 'students/components/alerts'
                 ],
                 [
                     'text' => 'Buttons',
-                    'url' => 'student/components/buttons'
+                    'url' => 'students/components/buttons'
                 ],
                 [
                     'text' => 'Cards',
-                    'url' => 'student/components/cards',
+                    'url' => 'students/components/cards',
                 ]
             ]
         ]
