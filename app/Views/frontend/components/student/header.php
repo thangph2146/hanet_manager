@@ -17,6 +17,45 @@ $notifications = [
 ];
 ?>
 
+<?php
+$userdropdown = [
+    [
+        'title' => 'Tài khoản', 
+        'actions' => [
+            [
+                'icon' => 'user',
+                'title' => 'Hồ sơ của tôi',
+                'url' => 'students/profile'
+            ],
+            [
+                'icon' => 'cog',
+                'title' => 'Cài đặt',
+                'url' => 'students/settings'
+            ]
+        ]
+    ],
+    [
+        'title' => 'Thanh toán',
+        'actions' => [
+            [
+                'icon' => 'file-invoice',
+                'title' => 'Thanh toán',
+                'url' => 'students/billing'
+            ]
+        ]
+    ],
+    [
+        'title' => 'Đăng xuất',
+        'actions' => [
+            [
+                'icon' => 'power-off',
+                'title' => 'Đăng xuất',
+                'url' => 'login/logoutstudent'
+            ]
+        ]
+    ]
+];  
+?>
 <!-- Link CSS file -->
 <link rel="stylesheet" href="<?= base_url('assets/css/student/components/header.css') ?>">
 
@@ -92,8 +131,8 @@ $notifications = [
                     <span class="user-status"></span>
                 </div>
                 <div class="user-info d-none d-md-block">
-                    <div class="user-name">John Doe</div>
-                    <div class="user-role">Admin</div>
+                    <div class="user-name"><?= getFullName() ?></div>
+                    <div class="user-role"><?= getFullRole() ?></div>
                 </div>
             </a>
             
@@ -105,8 +144,8 @@ $notifications = [
                             <span class="user-status"></span>
                         </div>
                         <div>
-                            <div class="fw-bold">John Doe</div>
-                            <div class="text-muted small">@johndoe</div>
+                            <div class="fw-bold"><?= getFullName() ?></div>
+                            <div class="text-muted small"><?= getFullRole() ?></div>
                         </div>
                     </div>
                 </div>
