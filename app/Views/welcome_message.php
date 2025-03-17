@@ -144,7 +144,7 @@
                 <div class="col-md-4 mb-4">
                     <?php 
                     // Sử dụng component event_card
-                    echo view('App\Modules\sukien\Views\components\event_card', [
+                    echo view('frontend\components\sukien\event_card', [
                         'event' => $event,
                         'featured' => ($key === 0) // Sự kiện đầu tiên là nổi bật
                     ]);

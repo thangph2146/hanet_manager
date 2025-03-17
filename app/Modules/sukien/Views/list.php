@@ -1,4 +1,4 @@
-<?= $this->extend('App\Modules\sukien\Views\layouts\sukien_layout') ?>
+<?= $this->extend('frontend\layouts\sukien_layout') ?>
 
 <?= $this->section('title') ?><?= isset($meta_title) ? $meta_title : 'Danh Sách Sự Kiện - Đại Học Ngân Hàng TP.HCM' ?><?= $this->endSection() ?>
 
@@ -92,7 +92,7 @@
         <div class="row event-container" id="event-container">
             <?php 
             // Sử dụng component event_list
-            echo view('App\Modules\sukien\Views\components\event_list', [
+            echo view('frontend\components\sukien\event_list', [
                 'events' => $events,
                 'layout' => 'grid', // Mặc định là grid
                 'show_featured' => true,

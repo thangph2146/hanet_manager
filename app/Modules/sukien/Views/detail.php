@@ -1,4 +1,4 @@
-<?= $this->extend('App\Modules\sukien\Views\layouts\sukien_layout') ?>
+<?= $this->extend('frontend\layouts\sukien_layout') ?>
 
 <?= $this->section('title') ?><?= isset($meta_title) ? $meta_title : $event['ten_su_kien'] . ' - Đại Học Ngân Hàng TP.HCM' ?><?= $this->endSection() ?>
 
@@ -122,19 +122,19 @@
                 <!-- Tabs Content -->
                 <div class="tab-content" id="eventTabsContent">
                     <!-- Tab Chi tiết sự kiện -->
-                    <?= $this->include('App\Modules\sukien\Views\components\event_detail_tab') ?>
+                    <?= $this->include('frontend\components\sukien\event_detail_tab') ?>
                     
                     <!-- Tab Danh sách người tham gia -->
-                    <?= $this->include('App\Modules\sukien\Views\components\event_participants_tab') ?>
+                    <?= $this->include('frontend\components\sukien\event_participants_tab') ?>
                     
                     <!-- Tab Form đăng ký -->
-                    <?= $this->include('App\Modules\sukien\Views\components\event_registration_tab') ?>
+                    <?= $this->include('frontend\components\sukien\event_registration_tab') ?>
                 </div>
             </div>
 
             <!-- Sidebar -->
             <div class="col-lg-4 animate__animated animate__fadeInRight">
-                <?= $this->include('App\Modules\sukien\Views\components\event_sidebar') ?>
+                <?= $this->include('frontend\components\sukien\event_sidebar') ?>
             </div>
         </div>
     </section>

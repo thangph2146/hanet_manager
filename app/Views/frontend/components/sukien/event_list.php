@@ -44,7 +44,7 @@ $search = isset($search) ? $search : null;
         <div class="col-md-4 mb-4" data-category="<?= strtolower(str_replace(' ', '-', $event['loai_su_kien'])) ?>">
             <?php 
             // Sử dụng component event_card
-            echo view('App\Modules\sukien\Views\components\event_card', [
+            echo view('frontend\components\sukien\event_card', [
                 'event' => $event,
                 'featured' => ($show_featured && $key === 0 && !$search && !$category) // Chỉ nổi bật sự kiện đầu tiên khi không tìm kiếm hoặc lọc
             ]);
@@ -56,7 +56,7 @@ $search = isset($search) ? $search : null;
         <div class="col-12 mb-4" data-category="<?= strtolower(str_replace(' ', '-', $event['loai_su_kien'])) ?>">
             <?php 
             // Sử dụng component event_card_horizontal
-            echo view('App\Modules\sukien\Views\components\event_card_horizontal', [
+            echo view('frontend\components\sukien\event_card_horizontal', [
                 'event' => $event,
                 'featured' => ($show_featured && $key === 0 && !$search && !$category) // Chỉ nổi bật sự kiện đầu tiên khi không tìm kiếm hoặc lọc
             ]);
