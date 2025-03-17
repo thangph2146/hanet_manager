@@ -1,0 +1,365 @@
+/*
+ * Styles cho sidebar component
+ * Tối ưu hiệu suất animation và hiển thị với CSS hiện đại
+ */
+
+.sidebar-wrapper {
+  width: 250px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 200;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, width, left;
+  border-right: 1px solid #e9ecef;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  contain: layout style paint;
+}
+
+.sidebar-header {
+  padding: 1.2rem 1rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.sidebar-header .logo-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+}
+
+.logo-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.logo-text-wrapper {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, visibility, width;
+}
+
+.sidebar-header .logo-text {
+  margin-left: 10px;
+  margin-bottom: 0px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--dark-color);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.toggle-icon {
+  cursor: pointer;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s;
+  z-index: 10;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.toggle-icon:hover {
+  background-color: rgba(13, 110, 253, 0.1);
+  color: var(--primary-color);
+}
+
+.toggle-icon i {
+  font-size: 1.2rem;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  transform-origin: center center;
+}
+
+/* Menu styles */
+.metismenu {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  overflow-y: auto;
+  max-height: calc(100vh - 70px);
+  overscroll-behavior: contain;
+}
+
+.metismenu li {
+  position: relative;
+}
+
+.metismenu li a {
+  color: #5f5f5f;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1.2rem;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.metismenu li a:hover {
+  color: var(--primary-color);
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.metismenu li.mm-active > a {
+  color: var(--primary-color);
+  background-color: rgba(13, 110, 253, 0.1);
+  font-weight: 500;
+}
+
+.metismenu li a .parent-icon {
+  margin-right: 10px;
+  font-size: 1.1rem;
+  width: 35px;
+  height: 35px;
+  min-width: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.metismenu li.mm-active > a .parent-icon {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.metismenu li a .menu-title {
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, visibility, width;
+  overflow: hidden;
+}
+
+/* Scollbar styles */
+.simplebar-scrollbar::before {
+  background-color: #c1c1c1;
+}
+
+/* Page content */
+.page-content {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: margin-left, width;
+  min-height: 100vh;
+  contain: layout style paint;
+}
+
+/* Overlay */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 150;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  will-change: opacity;
+  transition: opacity 0.25s ease;
+}
+
+/* Sidebar mini - thu gọn */
+.wrapper.sidebar-mini .sidebar-wrapper {
+  width: 70px;
+  overflow: visible;
+  contain: layout style paint;
+}
+
+.wrapper.sidebar-mini .sidebar-wrapper .logo-text-wrapper,
+.wrapper.sidebar-mini .sidebar-wrapper .metismenu li a .menu-title {
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+}
+
+.wrapper.sidebar-mini .page-content {
+  margin-left: 70px;
+  width: calc(100% - 70px);
+}
+
+.wrapper.sidebar-mini .toggle-icon i {
+  transform: rotate(180deg);
+}
+
+/* Hiệu ứng hover trên sidebar mini */
+.wrapper.sidebar-mini.sidebar-hover .sidebar-wrapper,
+.wrapper.sidebar-mini .sidebar-wrapper:hover {
+  width: 250px;
+  z-index: 300;
+  box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.wrapper.sidebar-mini.sidebar-hover .sidebar-wrapper .logo-text-wrapper,
+.wrapper.sidebar-mini.sidebar-hover .sidebar-wrapper .metismenu li a .menu-title,
+.wrapper.sidebar-mini .sidebar-wrapper:hover .logo-text-wrapper,
+.wrapper.sidebar-mini .sidebar-wrapper:hover .metismenu li a .menu-title {
+  opacity: 1;
+  visibility: visible;
+  width: auto;
+  transition-delay: 0.05s;
+}
+
+/* Mobile - sidebar đóng */
+@media (max-width: 1024px) {
+  /* Mặc định ẩn sidebar trên mobile */
+  .sidebar-wrapper {
+    left: -250px;
+    z-index: 300;
+    transform: translateX(0);
+    will-change: transform;
+    box-shadow: none;
+  }
+  
+  .page-content {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  /* Mobile - khi mở sidebar */
+  .wrapper.toggled .sidebar-wrapper {
+    left: 0;
+    transform: translateX(0);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .wrapper.toggled .overlay {
+    display: block;
+    opacity: 1;
+  }
+  
+  /* Nút menu trên mobile */
+  .wrapper .mobile-menu-button {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    transition: all 0.3s;
+  }
+  
+  .wrapper .mobile-menu-button:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+  }
+  
+  .wrapper .mobile-menu-button i {
+    font-size: 1.5rem;
+  }
+  
+  /* Tắt hiệu ứng hover trên mobile */
+  .wrapper.sidebar-mini .sidebar-wrapper:hover {
+    width: 70px;
+  }
+  
+  .wrapper.sidebar-mini .sidebar-wrapper:hover .logo-text-wrapper,
+  .wrapper.sidebar-mini .sidebar-wrapper:hover .metismenu li a .menu-title {
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+  }
+}
+
+/* Desktop - hiệu ứng hover */
+@media (min-width: 1025px) {
+  .wrapper.sidebar-mini .sidebar-wrapper:hover {
+    width: 250px;
+    box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .wrapper.sidebar-mini .sidebar-wrapper:hover .logo-text-wrapper,
+  .wrapper.sidebar-mini .sidebar-wrapper:hover .metismenu li a .menu-title {
+    opacity: 1;
+    visibility: visible;
+    width: auto;
+  }
+  
+  /* Đảm bảo sidebar luôn hiển thị trên desktop */
+  .sidebar-wrapper {
+    left: 0 !important;
+    transform: translateX(0);
+  }
+}
+
+/* Dark theme */
+.dark-theme .sidebar-wrapper {
+  background: #222;
+  border-right: 1px solid #333;
+}
+
+.dark-theme .sidebar-header {
+  border-bottom: 1px solid #333;
+}
+
+.dark-theme .sidebar-header .logo-text {
+  color: #f8f9fa;
+}
+
+.dark-theme .metismenu li a {
+  color: #d4d4d4;
+}
+
+.dark-theme .metismenu li a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.dark-theme .metismenu li.mm-active > a {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.dark-theme .toggle-icon:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Page content wrapper với padding */
+.page-content-wrapper {
+  padding: 1.5rem;
+}
+
+/* Thêm một lớp animation để kích hoạt animation khi cần */
+.animate-sidebar {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: transform, width, left, margin-left !important;
+}
+
+/* Tối ưu hiệu suất với GPU acceleration */
+.sidebar-wrapper, 
+.page-content,
+.toggle-icon i {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  perspective: 1000px;
+}

@@ -1,0 +1,29 @@
+/*
+ * Styles cho footer component
+ */
+
+.page-footer {
+  padding: 15px 1.5rem;
+  color: #6c757d;
+  font-size: 14px;
+  text-align: center;
+  border-top: 1px solid #e9ecef;
+  background-color: #fff;
+  position: relative;
+  margin-top: 25px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-footer {
+    padding: 10px 1rem;
+    font-size: 12px;
+  }
+}
+
+/* Dark theme */
+.dark-theme .page-footer {
+  background-color: #222;
+  border-top: 1px solid #333;
+  color: #adb5bd;
+} 

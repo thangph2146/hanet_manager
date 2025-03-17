@@ -64,6 +64,6 @@ class StudentsController extends BaseController
             'notification_count' => 2
         ];
 
-        return view('App\Modules\students\Views\dashboard', $data);
+        return view('App\Modules\students\Views\dashboard\index', $data);
     }
 } 

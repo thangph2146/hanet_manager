@@ -1,0 +1,125 @@
+/*
+ * Styles cho user dropdown component
+ */
+
+.user-box {
+  margin-left: 15px;
+}
+
+.user-box .dropdown-toggle {
+  padding: 0;
+}
+
+.user-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 3px solid #f5f5f5;
+  object-fit: cover;
+  transition: all 0.3s;
+}
+
+.user-box:hover .user-img {
+  border-color: rgba(13, 110, 253, 0.25);
+}
+
+.user-info {
+  line-height: 1.2;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.designattion {
+  font-size: 13px;
+  color: #767676;
+}
+
+.user-box .dropdown-menu {
+  padding: 0;
+  min-width: 230px;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 0;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.user-box .dropdown-menu .dropdown-item {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  border-left: 3px solid transparent;
+  transition: all 0.3s;
+}
+
+.user-box .dropdown-menu .dropdown-item:hover {
+  background-color: rgba(13, 110, 253, 0.1);
+  border-left-color: var(--primary-color);
+}
+
+.user-box .dropdown-menu .dropdown-item:active {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.user-box .dropdown-menu .dropdown-item i {
+  font-size: 20px;
+  margin-right: 10px;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-box .dropdown-menu .dropdown-divider {
+  margin: 0;
+  border-top: 1px solid #e9ecef;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .user-box {
+    margin-left: 10px;
+  }
+  
+  .user-info {
+    display: none;
+  }
+}
+
+/* Dark theme */
+.dark-theme .user-img {
+  border-color: #333;
+}
+
+.dark-theme .user-box:hover .user-img {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.dark-theme .user-name {
+  color: #f8f9fa;
+}
+
+.dark-theme .designattion {
+  color: #adb5bd;
+}
+
+.dark-theme .user-box .dropdown-menu {
+  background-color: #333;
+  color: #f8f9fa;
+}
+
+.dark-theme .user-box .dropdown-menu .dropdown-item {
+  color: #f8f9fa;
+}
+
+.dark-theme .user-box .dropdown-menu .dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .user-box .dropdown-menu .dropdown-divider {
+  border-top-color: #444;
+} 

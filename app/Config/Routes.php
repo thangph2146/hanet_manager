@@ -102,6 +102,10 @@ $routes->get('settings/delete/(:num)', 'Settings::delete/$1');
 $routes->post('students/create_student', 'Students::create_student');
 $routes->get('students/logout', 'Students::logout');
 
+// Sidebar routes
+$routes->post('sidebar/update-state', 'SidebarController::updateState');
+$routes->get('sidebar/get-state', 'SidebarController::getState');
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing

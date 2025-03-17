@@ -18,7 +18,7 @@ class Student extends Entity {
 	{
 		// return $this->PW == md5("UisStaffID=" . $this->student_id . ";UisPassword=" . $password);
 
-        return password_verify($password, $this->attributes['PW']);
+        return password_verify($password, $this->PW);
 
 	}
 }
