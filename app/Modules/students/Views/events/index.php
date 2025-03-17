@@ -1,4 +1,4 @@
-<?= $this->extend('app\Views\students\layouts\layout') ?>
+<?= $this->extend('app\Modules\layouts\students\dashboard') ?>
 
 <?= $this->section('content') ?>
 <div class="events-container">

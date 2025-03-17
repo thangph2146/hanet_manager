@@ -10,7 +10,6 @@ $routes = Services::routes();
 
 // Student routes
 $routes->group('students', function ($routes) {
-    $routes->get('/', '\App\Modules\students\Controllers\StudentsController::dashboard');
     $routes->get('dashboard', '\App\Modules\students\Controllers\StudentsController::dashboard');
     $routes->get('profile', '\App\Modules\students\Controllers\StudentsController::profile');
     $routes->get('logout', '\App\Modules\students\Controllers\StudentsController::logout');
