@@ -20,6 +20,22 @@ class View extends BaseView
     public $saveData = true;
 
     /**
+     * Cấu hình thêm để tìm kiếm views trong các modules
+     * Điều này giúp các layouts trong module layouts có thể được sử dụng
+     * bởi bất kỳ module nào khác
+     * 
+     * @var array
+     */
+    public $viewNamespaces = [
+        'App\Modules\layouts' => APPPATH . 'Modules/layouts',
+        'App\Modules\students' => APPPATH . 'Modules/students',
+        'App\Modules\admin' => APPPATH . 'Modules/admin',
+        'App\Modules\login' => APPPATH . 'Modules/login',
+        'App\Modules\sukien' => APPPATH . 'Modules/sukien',
+        'App\Modules\nguoidung' => APPPATH . 'Modules/nguoidung',
+    ];
+
+    /**
      * Parser Filters map a filter name with any PHP callable. When the
      * Parser prepares a variable for display, it will chain it
      * through the filters in the order defined, inserting any parameters.
