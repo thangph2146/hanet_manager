@@ -1,4 +1,4 @@
-<?= $this->extend(common_layout('student_layout')) ?>
+<?= $this->extend('frontend/layouts/student_layout') ?>
 
 <?= $this->section('content') ?>
 <div class="dashboard-container">
