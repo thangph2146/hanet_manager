@@ -19,7 +19,7 @@ const SidebarManager = {
      * Thiết lập nút chuyển đổi sidebar
      */
     setupSidebarToggle: function() {
-        const toggleButtons = document.querySelectorAll('.sidebar-toggle');
+        const toggleButtons = document.querySelectorAll('.sidebar-toggle, .toggle-icon');
         const mobileMenuButton = document.querySelector('.mobile-menu-button');
         const sidebar = document.querySelector('.sidebar-wrapper');
         const overlay = document.getElementById('overlay');
@@ -56,20 +56,29 @@ const SidebarManager = {
     toggleSidebar: function() {
         const sidebar = document.querySelector('.sidebar-wrapper');
         const overlay = document.getElementById('overlay');
+        const wrapper = document.querySelector('.wrapper') || document.body;
         
         if (!sidebar) return;
         
-        // Toggle classes
-        sidebar.classList.toggle('toggled');
-        document.body.classList.toggle('sidebar-toggled');
-        
-        // Hiển thị/ẩn overlay trên mobile
-        if (window.innerWidth < 1025 && overlay) {
-            if (sidebar.classList.contains('toggled')) {
-                overlay.style.display = 'none';
-            } else {
-                overlay.style.display = 'block';
+        // Xử lý khác nhau giữa mobile và desktop
+        if (window.innerWidth < 1025) {
+            // Mobile: Hiển thị/ẩn sidebar hoàn toàn
+            sidebar.classList.toggle('toggled');
+            document.body.classList.toggle('sidebar-toggled');
+            
+            // Hiển thị/ẩn overlay trên mobile
+            if (overlay) {
+                if (sidebar.classList.contains('toggled')) {
+                    overlay.style.display = 'none';
+                } else {
+                    overlay.style.display = 'block';
+                }
             }
+        } else {
+            // Desktop: Chuyển đổi giữa sidebar đầy đủ và thu gọn (mini)
+            wrapper.classList.toggle('sidebar-mini');
+            
+            // Xoay biểu tượng mũi tên (đã có trong CSS: .wrapper.sidebar-mini .toggle-icon i)
         }
     },
     
