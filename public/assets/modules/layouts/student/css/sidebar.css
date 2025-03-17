@@ -1,16 +1,17 @@
 /*
  * Styles cho sidebar component
  * Tối ưu hiệu suất animation và hiển thị với CSS hiện đại
+ * @version 2.1
  */
 
 .sidebar-wrapper {
   width: 250px;
+  height: 100vh;
   background: #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  position: fixed;
+  position: fixed !important;
   top: 0;
   left: 0;
-  height: 100%;
   z-index: 200;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, width, left;
@@ -61,7 +62,7 @@
   margin-bottom: 0px;
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--dark-color);
+  color: var(--primary-color, #0d6efd);
   transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
 }
@@ -83,7 +84,7 @@
 
 .toggle-icon:hover {
   background-color: rgba(13, 110, 253, 0.1);
-  color: var(--primary-color);
+  color: var(--primary-color, #0d6efd);
 }
 
 .toggle-icon i {
@@ -118,12 +119,12 @@
 }
 
 .metismenu li a:hover {
-  color: var(--primary-color);
+  color: var(--primary-color, #0d6efd);
   background-color: rgba(13, 110, 253, 0.1);
 }
 
 .metismenu li.mm-active > a {
-  color: var(--primary-color);
+  color: var(--primary-color, #0d6efd);
   background-color: rgba(13, 110, 253, 0.1);
   font-weight: 500;
 }
@@ -143,7 +144,7 @@
 }
 
 .metismenu li.mm-active > a .parent-icon {
-  background-color: var(--primary-color);
+  background-color: var(--primary-color, #0d6efd);
   color: #fff;
 }
 
@@ -160,14 +161,24 @@
   background-color: #c1c1c1;
 }
 
-/* Page content */
-.page-content {
-  margin-left: 250px;
+/* Page content wrapper */
+.page-content-wrapper {
   width: calc(100% - 250px);
   transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
               width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: margin-left, width;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  contain: layout style paint;
+}
+
+/* Page content */
+.page-content {
+  flex: 1;
+  padding: 1.5rem 0;
+  transition: padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: padding;
   contain: layout style paint;
 }
 
@@ -202,7 +213,7 @@
   width: 0;
 }
 
-.wrapper.sidebar-mini .page-content {
+.wrapper.sidebar-mini .page-content-wrapper {
   margin-left: 70px;
   width: calc(100% - 70px);
 }
@@ -234,50 +245,54 @@
   /* Mặc định ẩn sidebar trên mobile */
   .sidebar-wrapper {
     left: -250px;
-    z-index: 300;
+    z-index: 1000; /* Tăng z-index để hiển thị trên các phần tử khác */
     transform: translateX(0);
     will-change: transform;
-    box-shadow: none;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   }
   
-  .page-content {
+  .page-content-wrapper {
     margin-left: 0;
     width: 100%;
   }
   
   /* Mobile - khi mở sidebar */
-  .wrapper.toggled .sidebar-wrapper {
+  .sidebar-toggled .sidebar-wrapper {
     left: 0;
     transform: translateX(0);
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   }
   
-  .wrapper.toggled .overlay {
+  /* Hiển thị overlay khi mở sidebar */
+  .sidebar-toggled .overlay {
     display: block;
     opacity: 1;
   }
   
-  /* Nút menu trên mobile */
-  .wrapper .mobile-menu-button {
-    cursor: pointer;
+  /* Button menu mobile */
+  .mobile-menu-button {
     display: flex;
+    width: 40px;
+    height: 40px;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    background-color: transparent;
     border-radius: 50%;
+    cursor: pointer;
     transition: all 0.3s;
+    border: none;
+    color: var(--dark-color, #343a40);
   }
   
-  .wrapper .mobile-menu-button:hover {
+  .mobile-menu-button:hover {
     background-color: rgba(13, 110, 253, 0.1);
+    color: var(--primary-color, #0d6efd);
   }
   
-  .wrapper .mobile-menu-button i {
+  .mobile-menu-button i {
     font-size: 1.5rem;
   }
   
-  /* Tắt hiệu ứng hover trên mobile */
+  /* Vô hiệu hóa hiệu ứng hover trên mobile */
   .wrapper.sidebar-mini .sidebar-wrapper:hover {
     width: 70px;
   }
@@ -288,13 +303,20 @@
     visibility: hidden;
     width: 0;
   }
+  
+  /* Fix padding cho content trên mobile */
+  .page-content {
+    padding: 1rem 0;
+  }
 }
 
-/* Desktop - hiệu ứng hover */
+/* Desktop - overflow fix */
 @media (min-width: 1025px) {
   .wrapper.sidebar-mini .sidebar-wrapper:hover {
     width: 250px;
-    box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 300;
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+    overflow: visible;
   }
   
   .wrapper.sidebar-mini .sidebar-wrapper:hover .logo-text-wrapper,
@@ -302,64 +324,218 @@
     opacity: 1;
     visibility: visible;
     width: auto;
+    transition-delay: 0.05s;
   }
-  
-  /* Đảm bảo sidebar luôn hiển thị trên desktop */
+
+  /* Đảm bảo navbar và content không bị chồng lên sidebar */
   .sidebar-wrapper {
-    left: 0 !important;
-    transform: translateX(0);
+    z-index: 200;
+    padding-top: 0; /* Header riêng của sidebar */
   }
 }
 
-/* Dark theme */
+/* Dark theme cho sidebar */
 .dark-theme .sidebar-wrapper {
-  background: #222;
-  border-right: 1px solid #333;
+  background: #1a2234;
+  border-right-color: #2a3446;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .dark-theme .sidebar-header {
-  border-bottom: 1px solid #333;
+  border-bottom-color: #2a3446;
 }
 
 .dark-theme .sidebar-header .logo-text {
-  color: #f8f9fa;
+  color: #fff;
 }
 
 .dark-theme .metismenu li a {
-  color: #d4d4d4;
+  color: #a3adc2;
 }
 
 .dark-theme .metismenu li a:hover {
-  background-color: rgba(255, 255, 255, 0.1);
   color: #fff;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .dark-theme .metismenu li.mm-active > a {
-  background-color: rgba(255, 255, 255, 0.1);
   color: #fff;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .dark-theme .toggle-icon:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
-/* Page content wrapper với padding */
+/* Fix layout wrapper */
 .page-content-wrapper {
-  padding: 1.5rem;
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* Thêm một lớp animation để kích hoạt animation khi cần */
+/* Animation class */
 .animate-sidebar {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  will-change: transform, width, left, margin-left !important;
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Tối ưu hiệu suất với GPU acceleration */
+/* Performance optimizations */
 .sidebar-wrapper, 
-.page-content,
+.page-content-wrapper,
 .toggle-icon i {
-  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  transform: translateZ(0);
   perspective: 1000px;
+  transform: translateZ(0);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Event cards in dashboard */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.event-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.event-card-header {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f1f1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.event-card-body {
+  padding: 1rem;
+  flex: 1;
+}
+
+.event-card-footer {
+  padding: 1rem;
+  border-top: 1px solid #f1f1f1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.event-status {
+  padding: 0.3rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.event-status.upcoming {
+  background-color: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+}
+
+.event-status.ongoing {
+  background-color: rgba(25, 135, 84, 0.1);
+  color: #198754;
+}
+
+.event-status.completed {
+  background-color: rgba(108, 117, 125, 0.1);
+  color: #6c757d;
+}
+
+.event-status.full {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.dark-theme .event-card {
+  background: #1a2234;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .event-card-header,
+.dark-theme .event-card-footer {
+  border-color: #2a3446;
+}
+
+/* Stats cards */
+.stats-card {
+  padding: 1.5rem;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.stats-card:hover {
+  transform: translateY(-5px);
+}
+
+.stats-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.stats-icon i {
+  font-size: 1.8rem;
+  color: #fff;
+}
+
+.stats-info {
+  flex: 1;
+}
+
+.stats-info .stats-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.stats-info .stats-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.dark-theme .stats-card {
+  background: #1a2234;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .stats-info .stats-value {
+  color: #e9ecef;
+}
+
+.dark-theme .stats-info .stats-label {
+  color: #a3adc2;
 }

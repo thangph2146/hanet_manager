@@ -43,4 +43,13 @@ $routes->group('students', ['namespace' => 'App\Modules\students\Controllers'], 
         $routes->get('cancel/(:num)', 'RegistrationsController::cancel/$1');
         $routes->post('cancel/(:num)', 'RegistrationsController::saveCancel/$1');
     });
+    
+    // Routes cho notifications (thông báo)
+    $routes->group('notifications', function ($routes) {
+        $routes->get('/', 'NotificationsController::index');
+        $routes->get('count', 'NotificationsController::getCount');
+        $routes->get('latest', 'NotificationsController::getLatest');
+        $routes->post('mark-as-read/(:num)', 'NotificationsController::markAsRead/$1');
+        $routes->post('mark-all-as-read', 'NotificationsController::markAllAsRead');
+    });
 }); 

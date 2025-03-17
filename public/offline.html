@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Không có kết nối mạng | BUH Events</title>
+    <style>
+        /* Inline CSS để trang hiển thị ngay cả khi không có internet */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .offline-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+        
+        .offline-icon {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 2rem;
+            font-size: 150px;
+            opacity: 0.2;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #0d6efd;
+        }
+        
+        p {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            color: #666;
+        }
+        
+        .retry-button {
+            display: inline-block;
+            background-color: #0d6efd;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .retry-button:hover {
+            background-color: #0a58ca;
+        }
+        
+        .header {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-logo {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            color: #0d6efd;
+            text-decoration: none;
+            font-size: 1.5rem;
+        }
+        
+        .header-logo img {
+            width: 36px;
+            height: 36px;
+            margin-right: 0.5rem;
+        }
+        
+        footer {
+            background-color: #fff;
+            border-top: 1px solid #e9ecef;
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #222;
+                color: #f8f9fa;
+            }
+            
+            .header, footer {
+                background-color: #333;
+                border-color: #444;
+            }
+            
+            h1 {
+                color: #3d8bfd;
+            }
+            
+            p {
+                color: #adb5bd;
+            }
+            
+            .retry-button {
+                background-color: #3d8bfd;
+            }
+            
+            .retry-button:hover {
+                background-color: #2d7bf9;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="header-logo">
+            <img src="/assets/images/logo-icon.png" alt="BUH Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzNiIgaGVpZ2h0PSIzNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZDZlZmQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMiAzaDZhNCA0IDAgMCAxIDQgNHY2YTQgNCAwIDAgMS00IDRIMnYtN2g2Ii8+PHBhdGggZD0iTTIyIDNjLTEgMS00IDIuNS00IDQuNSAwIDQuNSAzLjUgMi41IDMuNSA3LjUgMCAuOTQtLjUgMi41LTMuNSAyLjUtMS41IDAtMyAwLTMgMCIvPjwvc3ZnPg=='">
+            BUH Events
+        </a>
+    </header>
+    
+    <main class="offline-container">
+        <div class="offline-icon">⚠️</div>
+        <h1>Không có kết nối mạng</h1>
+        <p>Có vẻ như thiết bị của bạn đang ngoại tuyến. Vui lòng kiểm tra kết nối mạng và thử lại.</p>
+        <button class="retry-button" onclick="window.location.reload()">Thử lại</button>
+    </main>
+    
+    <footer>
+        &copy; <?= date('Y') ?> BUH Events - Đại học Ngân hàng TP. Hồ Chí Minh
+    </footer>
+    
+    <script>
+        // Kiểm tra kết nối mạng và tự động reload khi có mạng trở lại
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+        
+        // Thay thế tag PHP date với JavaScript
+        document.querySelector('footer').innerHTML = document.querySelector('footer').innerHTML.replace('<?= date(\'Y\') ?>', new Date().getFullYear());
+    </script>
+</body>
+</html>
