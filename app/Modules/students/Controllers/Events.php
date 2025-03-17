@@ -29,352 +29,249 @@ class Events extends BaseController
     
     public function index()
     {
-        // Get all events
-        $events = $this->sukienModel->getAllEvents();
-        $event_types = $this->loaiSukienModel->getAllEventTypes();
-        
-        // Enhance events data with additional information
-        foreach ($events as &$event) {
-            // Check if user is registered for this event
-            $event['is_registered'] = $this->dangKySukienModel->isRegistered($this->user_id, $event['id']);
-            
-            // Get event status
-            $today = date('Y-m-d H:i:s');
-            if ($today < $event['ngay_to_chuc']) {
-                $event['status'] = 'upcoming';
-            } elseif ($today <= $event['ngay_ket_thuc']) {
-                $event['status'] = 'ongoing';
-            } else {
-                $event['status'] = 'completed';
-            }
-        }
-        
         $data = [
-            'events' => $events,
-            'event_types' => $event_types,
-            // Additional data for layout
-            'user_name' => 'Nguyễn Văn A',
-            'user_role' => 'Sinh viên',
-            'user_progress' => 65,
-            'notification_count' => 3,
-            'event_count' => count(array_filter($events, function($event) {
-                return $event['status'] == 'upcoming' || $event['status'] == 'ongoing';
-            }))
+            'title' => 'Danh sách sự kiện',
+            'events' => $this->getEvents(),
+            'event_types' => $this->loaiSukienModel->findAll(),
+            'registered_events' => $this->getRegisteredEvents()
         ];
         
         return view('Modules/students/Views/events/index', $data);
     }
     
-    public function detail($id)
+    private function getEvents()
     {
-        // Get event details
-        $event = $this->sukienModel->getEventById($id);
-        
-        if (empty($event)) {
-            return redirect()->to('/students/events')->with('error', 'Sự kiện không tồn tại');
+        // Lấy danh sách sự kiện với phân trang
+        $events = $this->sukienModel
+            ->select('sukien.*, loai_su_kien.loai_su_kien')
+            ->join('loai_su_kien', 'loai_su_kien.id = sukien.loai_su_kien_id')
+            ->where('status !=', 'draft')
+            ->orderBy('ngay_to_chuc', 'DESC')
+            ->paginate(9);
+            
+        // Kiểm tra xem người dùng đã đăng ký sự kiện chưa
+        $userId = session()->get('user_id');
+        foreach ($events as &$event) {
+            $event['is_registered'] = $this->dangKySukienModel
+                ->where('su_kien_id', $event['id'])
+                ->where('user_id', $userId)
+                ->countAllResults() > 0;
+                
+            // Xác định trạng thái sự kiện
+            $event['status'] = $this->determineEventStatus($event);
         }
         
-        // Check if user is registered
-        $is_registered = $this->dangKySukienModel->isRegistered($this->user_id, $id);
+        return $events;
+    }
+    
+    private function getRegisteredEvents()
+    {
+        $userId = session()->get('user_id');
         
-        // Get event status
-        $today = date('Y-m-d H:i:s');
-        if ($today < $event['ngay_to_chuc']) {
-            $event['status'] = 'upcoming';
-        } elseif ($today <= $event['ngay_ket_thuc']) {
-            $event['status'] = 'ongoing';
+        // Lấy danh sách sự kiện đã đăng ký
+        return $this->dangKySukienModel
+            ->select('dangky_sukien.id as registration_id, sukien.*, loai_su_kien.loai_su_kien')
+            ->join('sukien', 'sukien.id = dangky_sukien.su_kien_id')
+            ->join('loai_su_kien', 'loai_su_kien.id = sukien.loai_su_kien_id')
+            ->where('dangky_sukien.user_id', $userId)
+            ->orderBy('sukien.ngay_to_chuc', 'ASC')
+            ->findAll();
+    }
+    
+    private function determineEventStatus($event)
+    {
+        $now = time();
+        $eventDate = strtotime($event['ngay_to_chuc']);
+        $eventEndDate = strtotime($event['ngay_ket_thuc'] ?? $event['ngay_to_chuc']);
+        
+        if ($now < $eventDate) {
+            return 'upcoming';
+        } else if ($now >= $eventDate && $now <= $eventEndDate) {
+            return 'ongoing';
         } else {
-            $event['status'] = 'completed';
+            return 'completed';
         }
-        
-        // Get check-in/check-out status
-        $checked_in = $this->checkinSukienModel->hasUserCheckedIn($this->user_id, $id);
-        $checked_out = $this->checkoutSukienModel->hasUserCheckedOut($this->user_id, $id);
-        
-        $data = [
-            'event' => $event,
-            'is_registered' => $is_registered,
-            'checked_in' => $checked_in,
-            'checked_out' => $checked_out,
-            // Additional data for layout
-            'user_name' => 'Nguyễn Văn A',
-            'user_role' => 'Sinh viên',
-            'user_progress' => 65,
-            'notification_count' => 3,
-            'event_count' => 5
-        ];
-        
-        return view('Modules/students/Views/events/detail', $data);
     }
     
-    public function registered()
+    // API endpoint để đăng ký sự kiện
+    public function register()
     {
-        // Get registered events for the current user
-        $registered_events = [];
-        $all_events = $this->sukienModel->getAllEvents();
-        
-        foreach ($all_events as $event) {
-            if ($this->dangKySukienModel->isRegistered($this->user_id, $event['id'])) {
-                // Get event status
-                $today = date('Y-m-d H:i:s');
-                if ($today < $event['ngay_to_chuc']) {
-                    $event['status'] = 'upcoming';
-                } elseif ($today <= $event['ngay_ket_thuc']) {
-                    $event['status'] = 'ongoing';
-                } else {
-                    $event['status'] = 'completed';
-                }
-                
-                // Get check-in/check-out status
-                $event['checked_in'] = $this->checkinSukienModel->hasUserCheckedIn($this->user_id, $event['id']);
-                $event['checked_out'] = $this->checkoutSukienModel->hasUserCheckedOut($this->user_id, $event['id']);
-                
-                $registered_events[] = $event;
-            }
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(403);
         }
         
-        $data = [
-            'registered_events' => $registered_events,
-            // Additional data for layout
-            'user_name' => 'Nguyễn Văn A',
-            'user_role' => 'Sinh viên',
-            'user_progress' => 65,
-            'notification_count' => 3,
-            'event_count' => count(array_filter($all_events, function($event) {
-                $today = date('Y-m-d H:i:s');
-                return ($today < $event['ngay_ket_thuc']);
-            }))
-        ];
+        $eventId = $this->request->getJSON()->event_id ?? null;
+        $userId = session()->get('user_id');
         
-        return view('Modules/students/Views/events/registered', $data);
-    }
-    
-    public function register($id)
-    {
-        // Check if event exists
-        $event = $this->sukienModel->getEventById($id);
+        if (!$eventId || !$userId) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Thông tin không hợp lệ'
+            ]);
+        }
         
-        if (empty($event)) {
-            $response = [
+        // Kiểm tra xem sự kiện có tồn tại không
+        $event = $this->sukienModel->find($eventId);
+        if (!$event) {
+            return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Sự kiện không tồn tại'
-            ];
-            return $this->response->setJSON($response);
+            ]);
         }
         
-        // Check if event is still open for registration
-        $today = date('Y-m-d H:i:s');
-        if ($today >= $event['ngay_to_chuc']) {
-            $response = [
+        // Kiểm tra xem người dùng đã đăng ký chưa
+        $registered = $this->dangKySukienModel
+            ->where('su_kien_id', $eventId)
+            ->where('user_id', $userId)
+            ->countAllResults() > 0;
+            
+        if ($registered) {
+            return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Sự kiện đã diễn ra, không thể đăng ký'
-            ];
-            return $this->response->setJSON($response);
+                'message' => 'Bạn đã đăng ký sự kiện này rồi'
+            ]);
         }
         
-        // Check if already registered
-        if ($this->dangKySukienModel->isRegistered($this->user_id, $id)) {
-            $response = [
-                'success' => false,
-                'message' => 'Bạn đã đăng ký tham gia sự kiện này'
-            ];
-            return $this->response->setJSON($response);
-        }
-        
-        // Register for the event
-        $registration_data = [
-            'su_kien_id' => $id,
-            'nguoi_dung_id' => $this->user_id,
+        // Đăng ký sự kiện
+        $data = [
+            'su_kien_id' => $eventId,
+            'user_id' => $userId,
             'ngay_dang_ky' => date('Y-m-d H:i:s'),
-            'nguon_gioi_thieu' => 'Website',
-            'loai_nguoi_dung' => 'Sinh viên',
-            'status' => 1
+            'trang_thai' => 'registered'
         ];
         
-        $result = $this->dangKySukienModel->registerEvent($registration_data);
+        $result = $this->dangKySukienModel->insert($data);
         
         if ($result) {
-            $response = [
+            // Cập nhật số người tham gia
+            $this->sukienModel->incrementParticipants($eventId);
+            
+            return $this->response->setJSON([
                 'success' => true,
-                'message' => 'Đăng ký tham gia sự kiện thành công'
-            ];
+                'message' => 'Đăng ký sự kiện thành công'
+            ]);
         } else {
-            $response = [
+            return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại sau'
-            ];
+                'message' => 'Đăng ký sự kiện thất bại'
+            ]);
         }
-        
-        return $this->response->setJSON($response);
     }
     
-    public function cancel($id)
+    // API endpoint để hủy đăng ký
+    public function cancel()
     {
-        // Check if user is registered
-        if (!$this->dangKySukienModel->isRegistered($this->user_id, $id)) {
-            $response = [
-                'success' => false,
-                'message' => 'Bạn chưa đăng ký tham gia sự kiện này'
-            ];
-            return $this->response->setJSON($response);
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(403);
         }
         
-        // Check if event has started
-        $event = $this->sukienModel->getEventById($id);
-        $today = date('Y-m-d H:i:s');
+        $data = $this->request->getJSON();
+        $registrationId = $data->registration_id ?? null;
+        $eventId = $data->event_id ?? null;
+        $userId = session()->get('user_id');
         
-        if ($today >= $event['ngay_to_chuc']) {
-            $response = [
+        if (!$registrationId || !$userId) {
+            return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Sự kiện đã diễn ra, không thể hủy đăng ký'
-            ];
-            return $this->response->setJSON($response);
+                'message' => 'Thông tin không hợp lệ'
+            ]);
         }
         
-        // Cancel registration
-        // Note: In real implementation, this would call the model's cancelRegistration method
-        $response = [
-            'success' => true,
-            'message' => 'Hủy đăng ký thành công'
-        ];
+        // Kiểm tra xem đăng ký có tồn tại không
+        $registration = $this->dangKySukienModel->find($registrationId);
+        if (!$registration || $registration['user_id'] != $userId) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Không tìm thấy thông tin đăng ký'
+            ]);
+        }
         
-        return $this->response->setJSON($response);
+        // Kiểm tra xem đã check-in chưa
+        $hasCheckin = $this->checkinSukienModel
+            ->where('dang_ky_id', $registrationId)
+            ->countAllResults() > 0;
+            
+        if ($hasCheckin) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Không thể hủy đăng ký vì bạn đã check-in tham gia sự kiện'
+            ]);
+        }
+        
+        // Xóa đăng ký
+        $result = $this->dangKySukienModel->delete($registrationId);
+        
+        if ($result) {
+            // Giảm số người tham gia
+            $this->sukienModel->decrementParticipants($eventId);
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Hủy đăng ký thành công'
+            ]);
+        } else {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Hủy đăng ký thất bại'
+            ]);
+        }
     }
     
-    public function checkin($id)
+    // API endpoint để lấy danh sách sự kiện đã đăng ký qua AJAX
+    public function registeredEvents()
     {
-        // Check if event exists and is ongoing
-        $event = $this->sukienModel->getEventById($id);
-        $today = date('Y-m-d H:i:s');
-        
-        if (empty($event)) {
-            $response = [
-                'success' => false,
-                'message' => 'Sự kiện không tồn tại'
-            ];
-            return $this->response->setJSON($response);
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(403);
         }
         
-        if ($today < $event['ngay_to_chuc'] || $today > $event['ngay_ket_thuc']) {
-            $response = [
-                'success' => false,
-                'message' => 'Sự kiện không đang diễn ra, không thể check-in'
-            ];
-            return $this->response->setJSON($response);
-        }
+        $registeredEvents = $this->getRegisteredEvents();
         
-        // Check if user is registered
-        if (!$this->dangKySukienModel->isRegistered($this->user_id, $id)) {
-            $response = [
-                'success' => false,
-                'message' => 'Bạn chưa đăng ký tham gia sự kiện này'
-            ];
-            return $this->response->setJSON($response);
-        }
+        // Render partial view
+        $html = view('Modules/students/Views/events/partials/registered_list', [
+            'registered_events' => $registeredEvents
+        ]);
         
-        // Check if already checked in
-        if ($this->checkinSukienModel->hasUserCheckedIn($this->user_id, $id)) {
-            $response = [
-                'success' => false,
-                'message' => 'Bạn đã check-in cho sự kiện này'
-            ];
-            return $this->response->setJSON($response);
-        }
-        
-        // Get check-in code from request
-        $json = $this->request->getJSON();
-        $checkin_code = isset($json->code) ? $json->code : '';
-        
-        // Verify check-in code - in real implementation, this would validate against a stored code
-        // For demo, we'll just check if code is not empty
-        if (empty($checkin_code)) {
-            $response = [
-                'success' => false,
-                'message' => 'Mã check-in không hợp lệ'
-            ];
-            return $this->response->setJSON($response);
-        }
-        
-        // Process check-in
-        // Note: In real implementation, this would call the model's methods
-        $response = [
+        return $this->response->setJSON([
             'success' => true,
-            'message' => 'Check-in thành công'
-        ];
-        
-        return $this->response->setJSON($response);
+            'html' => $html
+        ]);
     }
     
-    public function checkout($id)
+    // Tạo QR code
+    public function qrcode($eventId = null)
     {
-        // Check if event exists and is ongoing
-        $event = $this->sukienModel->getEventById($id);
-        $today = date('Y-m-d H:i:s');
-        
-        if (empty($event)) {
-            $response = [
-                'success' => false,
-                'message' => 'Sự kiện không tồn tại'
-            ];
-            return $this->response->setJSON($response);
+        if (!$eventId) {
+            return $this->response->setStatusCode(404);
         }
         
-        if ($today < $event['ngay_to_chuc'] || $today > $event['ngay_ket_thuc']) {
-            $response = [
-                'success' => false,
-                'message' => 'Sự kiện không đang diễn ra, không thể check-out'
-            ];
-            return $this->response->setJSON($response);
+        $userId = session()->get('user_id');
+        
+        // Kiểm tra xem người dùng đã đăng ký sự kiện chưa
+        $registration = $this->dangKySukienModel
+            ->where('su_kien_id', $eventId)
+            ->where('user_id', $userId)
+            ->first();
+            
+        if (!$registration) {
+            return $this->response->setStatusCode(403);
         }
         
-        // Check if user is registered
-        if (!$this->dangKySukienModel->isRegistered($this->user_id, $id)) {
-            $response = [
-                'success' => false,
-                'message' => 'Bạn chưa đăng ký tham gia sự kiện này'
-            ];
-            return $this->response->setJSON($response);
-        }
+        // Tạo nội dung QR code
+        $qrData = json_encode([
+            'event_id' => $eventId,
+            'user_id' => $userId,
+            'registration_id' => $registration['id'],
+            'timestamp' => time()
+        ]);
         
-        // Check if already checked out
-        if ($this->checkoutSukienModel->hasUserCheckedOut($this->user_id, $id)) {
-            $response = [
-                'success' => false,
-                'message' => 'Bạn đã check-out khỏi sự kiện này'
-            ];
-            return $this->response->setJSON($response);
-        }
+        // Sử dụng thư viện QR code để tạo QR
+        $this->response->setContentType('image/png');
         
-        // Check if user has checked in
-        if (!$this->checkinSukienModel->hasUserCheckedIn($this->user_id, $id)) {
-            $response = [
-                'success' => false,
-                'message' => 'Bạn chưa check-in vào sự kiện này'
-            ];
-            return $this->response->setJSON($response);
-        }
+        // Sử dụng thư viện QR code (ví dụ: endroid/qr-code)
+        $qrCode = new \Endroid\QrCode\QrCode($qrData);
+        $qrCode->setSize(300);
+        $qrCode->setMargin(10);
         
-        // Get check-out code from request
-        $json = $this->request->getJSON();
-        $checkout_code = isset($json->code) ? $json->code : '';
-        
-        // Verify check-out code - in real implementation, this would validate against a stored code
-        // For demo, we'll just check if code is not empty
-        if (empty($checkout_code)) {
-            $response = [
-                'success' => false,
-                'message' => 'Mã check-out không hợp lệ'
-            ];
-            return $this->response->setJSON($response);
-        }
-        
-        // Process check-out
-        // Note: In real implementation, this would call the model's methods
-        $response = [
-            'success' => true,
-            'message' => 'Check-out thành công'
-        ];
-        
-        return $this->response->setJSON($response);
+        return $qrCode->writeString();
     }
 } 

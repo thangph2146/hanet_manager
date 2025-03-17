@@ -1,343 +1,339 @@
-<?= $this->extend('students/layouts/layout') ?>
+<?= $this->extend('app\Views\students\layouts\layout') ?>
 
 <?= $this->section('content') ?>
-<div class="container-fluid">
-    <!-- Welcome Message & Stats Row -->
-    <div class="row mb-4">
-        <div class="col-lg-8 mb-4 mb-lg-0">
-            <div class="card shadow-sm h-100">
-                <div class="card-body p-4">
-                    <div class="d-flex flex-column flex-sm-row align-items-sm-center mb-3">
-                        <div class="avatar-container me-sm-3 mb-3 mb-sm-0 text-center">
-                            <?php if (isset($student_data) && !empty($student_data['picture'])): ?>
-                                <img src="<?= base_url($student_data['picture']) ?>" alt="Profile" class="rounded-circle" width="80" height="80">
-                            <?php else: ?>
-                                <div class="avatar-placeholder rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
-                                    <?= substr(isset($student_data['fullname']) ? $student_data['fullname'] : 'U', 0, 1) ?>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                        <div>
-                            <h4 class="mb-1">Xin chào, <?= $student_data['fullname'] ?></h4>
-                            <p class="mb-0 text-muted">MSSV: <?= $student_data['student_id'] ?></p>
-                        </div>
-                    </div>
-                    <p class="mb-0">Chào mừng bạn trở lại với Hệ thống Quản lý Sinh viên. Dưới đây là thông tin tổng quan về các sự kiện và hoạt động của bạn.</p>
-                </div>
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h2 class="dashboard-title">Dashboard</h2>
+        <p class="dashboard-subtitle">Xin chào, <?= session()->get('name') ?? 'Sinh viên' ?>!</p>
+        <div class="dashboard-welcome">Chào mừng bạn quay trở lại</div>
+        <div class="dashboard-date"><?= date('l, d F Y') ?></div>
+    </div>
+    
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value"><?= $stats['registered_events'] ?? 0 ?></div>
+                <div class="stat-label">Sự kiện đã đăng ký</div>
             </div>
         </div>
-        <div class="col-lg-4">
-            <div class="row h-100">
-                <div class="col-6 mb-4 mb-lg-0">
-                    <div class="card stat-card h-100">
-                        <div class="card-body d-flex flex-column align-items-center justify-content-center text-center p-3">
-                            <div class="rounded-circle bg-primary bg-opacity-10 p-3 mb-2">
-                                <i class="fas fa-calendar-event fs-4 text-primary"></i>
-                            </div>
-                            <h2 class="mb-0"><?= $active_events ?></h2>
-                            <p class="text-muted small mb-0">Sự kiện đang diễn ra</p>
-                        </div>
-                    </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value"><?= $stats['completed_events'] ?? 0 ?></div>
+                <div class="stat-label">Sự kiện đã hoàn thành</div>
+                <?php if (isset($stats['completed_percentage'])): ?>
+                <div class="stat-change up">
+                    <i class="fas fa-arrow-up"></i> <?= $stats['completed_percentage'] ?>%
                 </div>
-                <div class="col-6 mb-4 mb-lg-0">
-                    <div class="card stat-card h-100">
-                        <div class="card-body d-flex flex-column align-items-center justify-content-center text-center p-3">
-                            <div class="rounded-circle bg-success bg-opacity-10 p-3 mb-2">
-                                <i class="fas fa-check-circle fs-4 text-success"></i>
-                            </div>
-                            <h2 class="mb-0"><?= $registered_events ?></h2>
-                            <p class="text-muted small mb-0">Sự kiện đã đăng ký</p>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value"><?= $stats['upcoming_events'] ?? 0 ?></div>
+                <div class="stat-label">Sự kiện sắp diễn ra</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="fas fa-certificate"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value"><?= $stats['total_points'] ?? 0 ?></div>
+                <div class="stat-label">Điểm hoạt động</div>
             </div>
         </div>
     </div>
     
-    <!-- Upcoming Events Row -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Sự kiện sắp diễn ra</h5>
-                    <a href="<?= base_url('students/events') ?>" class="btn btn-sm btn-primary">Xem tất cả</a>
+    <div class="dashboard-two-columns">
+        <div class="column-left">
+            <!-- Upcoming Events -->
+            <div class="upcoming-events">
+                <div class="section-header">
+                    <h3 class="section-title">Sự kiện sắp diễn ra</h3>
+                    <a href="<?= base_url('students/events') ?>" class="section-link">
+                        Xem tất cả <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Tên sự kiện</th>
-                                    <th>Thời gian</th>
-                                    <th class="d-none d-md-table-cell">Địa điểm</th>
-                                    <th>Trạng thái</th>
-                                    <th>Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (isset($events) && count($events) > 0): ?>
-                                    <?php foreach ($events as $event): ?>
-                                    <tr>
-                                        <td>
-                                            <a href="<?= base_url('students/events/detail/' . $event['id']) ?>" class="text-decoration-none">
-                                                <?= $event['name'] ?>
-                                            </a>
-                                        </td>
-                                        <td><?= $event['time'] ?></td>
-                                        <td class="d-none d-md-table-cell"><?= $event['location'] ?></td>
-                                        <td>
-                                            <span class="badge bg-<?= $event['status_color'] ?>"><?= $event['status'] ?></span>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <a href="<?= base_url('students/events/detail/' . $event['id']) ?>" class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-info-circle d-inline d-md-none"></i>
-                                                    <span class="d-none d-md-inline">Chi tiết</span>
-                                                </a>
-                                                <?php if ($event['status'] === 'Đang mở đăng ký'): ?>
-                                                <button class="btn btn-sm btn-primary ms-1 event-register-btn" data-event-id="<?= $event['id'] ?>" data-event-name="<?= $event['name'] ?>">
-                                                    <i class="fas fa-check d-inline d-md-none"></i>
-                                                    <span class="d-none d-md-inline">Đăng ký</span>
-                                                </button>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr>
-                                        <td colspan="5" class="text-center py-3">Không có sự kiện sắp diễn ra</td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                
+                <div class="events-list">
+                    <?php if (empty($upcoming_events) || !is_array($upcoming_events)): ?>
+                    <div class="event-item" style="text-align: center; padding: 30px 15px;">
+                        <div style="color: var(--text-light);">
+                            <i class="fas fa-calendar-xmark" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                            <p>Không có sự kiện sắp diễn ra</p>
+                        </div>
                     </div>
+                    <?php else: ?>
+                        <?php foreach ($upcoming_events as $event): ?>
+                        <div class="event-item">
+                            <div class="event-date">
+                                <div class="event-day"><?= date('d', strtotime($event['ngay_to_chuc'])) ?></div>
+                                <div class="event-month"><?= date('M', strtotime($event['ngay_to_chuc'])) ?></div>
+                            </div>
+                            <div class="event-details">
+                                <div class="event-title"><?= $event['ten_su_kien'] ?></div>
+                                <div class="event-info">
+                                    <div class="event-time">
+                                        <i class="far fa-clock"></i>
+                                        <?= date('H:i', strtotime($event['ngay_to_chuc'])) ?>
+                                    </div>
+                                    <div class="event-location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <?= $event['dia_diem'] ?>
+                                    </div>
+                                </div>
+                                <div class="event-actions">
+                                    <a href="<?= base_url('students/events/detail/' . $event['id']) ?>" class="event-btn">
+                                        <i class="fas fa-info-circle"></i> Chi tiết
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- Event Stats & Notifications -->
-    <div class="row">
-        <!-- Event Stats -->
-        <div class="col-lg-5 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-transparent">
-                    <h5 class="mb-0">Thống kê sự kiện</h5>
+            
+            <!-- Announcements -->
+            <div class="announcements">
+                <div class="section-header">
+                    <h3 class="section-title">Thông báo gần đây</h3>
+                    <a href="#" class="section-link">
+                        Xem tất cả <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
-                <div class="card-body">
-                    <div class="row g-4">
-                        <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 p-3 rounded-circle mb-2">
-                                    <i class="fas fa-calendar fs-4 text-primary"></i>
-                                </div>
-                                <h3 class="mb-1"><?= $upcoming_events ?></h3>
-                                <p class="text-muted small mb-0">Sự kiện sắp tới</p>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 p-3 rounded-circle mb-2">
-                                    <i class="fas fa-check-double fs-4 text-success"></i>
-                                </div>
-                                <h3 class="mb-1"><?= $registered_events ?></h3>
-                                <p class="text-muted small mb-0">Đã đăng ký</p>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <div class="d-inline-flex align-items-center justify-content-center bg-info bg-opacity-10 p-3 rounded-circle mb-2">
-                                    <i class="fas fa-clock fs-4 text-info"></i>
-                                </div>
-                                <h3 class="mb-1"><?= $active_events ?></h3>
-                                <p class="text-muted small mb-0">Đang diễn ra</p>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 p-3 rounded-circle mb-2">
-                                    <i class="fas fa-certificate fs-4 text-warning"></i>
-                                </div>
-                                <h3 class="mb-1"><?= $certificates ?></h3>
-                                <p class="text-muted small mb-0">Chứng chỉ</p>
-                            </div>
+                
+                <div class="announcement-list">
+                    <?php if (empty($announcements)): ?>
+                    <div class="announcement-item" style="text-align: center; padding: 30px 15px;">
+                        <div style="color: var(--text-light);">
+                            <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                            <p>Không có thông báo mới</p>
                         </div>
                     </div>
-                </div>
-                <div class="card-footer bg-transparent text-center">
-                    <a href="<?= base_url('students/events/registered') ?>" class="btn btn-primary">Quản lý sự kiện của tôi</a>
+                    <?php else: ?>
+                        <?php foreach ($announcements as $announcement): ?>
+                        <div class="announcement-item">
+                            <div class="announcement-header">
+                                <div class="announcement-title"><?= $announcement['title'] ?></div>
+                                <div class="announcement-date"><?= date('d/m/Y', strtotime($announcement['created_at'])) ?></div>
+                            </div>
+                            <div class="announcement-content">
+                                <?= $announcement['content'] ?>
+                            </div>
+                            <div class="announcement-footer">
+                                <div class="announcement-author">
+                                    <img src="<?= base_url($announcement['author_avatar'] ?? 'assets/img/avatar-default.png') ?>" alt="Avatar">
+                                    <?= $announcement['author_name'] ?>
+                                </div>
+                                <div class="announcement-actions">
+                                    <a href="#">Xem chi tiết</a>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
         
-        <!-- Notifications -->
-        <div class="col-lg-7 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Thông báo gần đây</h5>
-                    <a href="<?= base_url('students/notifications') ?>" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+        <div class="column-right">
+            <!-- Calendar -->
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-title">Tháng <?= date('m/Y') ?></div>
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn prev-month">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="calendar-nav-btn next-month">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        <?php if (isset($recent_notifications) && count($recent_notifications) > 0): ?>
-                            <?php foreach ($recent_notifications as $notification): ?>
-                            <div class="list-group-item border-0 border-bottom p-3">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0">
-                                        <div class="notification-icon bg-light-<?= $notification['type'] ?>">
-                                            <i class="fas <?= str_replace('bx ', 'fa-', $notification['icon']) ?>"></i>
-                                        </div>
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h6 class="mb-1"><?= $notification['title'] ?></h6>
-                                        <p class="text-muted mb-1 small"><?= $notification['content'] ?></p>
-                                        <p class="text-muted mb-0 x-small"><?= $notification['time'] ?></p>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="text-center p-4">
-                                <div class="mb-3">
-                                    <i class="fas fa-bell-slash fs-1 text-muted"></i>
-                                </div>
-                                <p class="text-muted">Không có thông báo mới</p>
-                            </div>
-                        <?php endif; ?>
+                
+                <div class="calendar-grid">
+                    <div class="calendar-weekdays">
+                        <div class="calendar-weekday">CN</div>
+                        <div class="calendar-weekday">T2</div>
+                        <div class="calendar-weekday">T3</div>
+                        <div class="calendar-weekday">T4</div>
+                        <div class="calendar-weekday">T5</div>
+                        <div class="calendar-weekday">T6</div>
+                        <div class="calendar-weekday">T7</div>
+                    </div>
+                    
+                    <div class="calendar-days" id="calendarDays">
+                        <!-- Calendar days will be generated by JavaScript -->
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Đăng ký sự kiện -->
-<div class="modal fade" id="eventRegisterModal" tabindex="-1" aria-labelledby="eventRegisterModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="eventRegisterModalLabel">Đăng ký tham gia sự kiện</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn đang đăng ký tham gia sự kiện: <strong id="eventNameToRegister"></strong></p>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> Vui lòng xác nhận để hoàn tất đăng ký.
+            
+            <!-- Quick Links -->
+            <div class="quick-links">
+                <div class="section-header">
+                    <h3 class="section-title">Truy cập nhanh</h3>
+                </div>
+                
+                <div class="links-grid">
+                    <a href="<?= base_url('students/events') ?>" class="link-card">
+                        <div class="link-icon primary">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="link-title">Sự kiện</div>
+                    </a>
+                    
+                    <a href="<?= base_url('students/profile') ?>" class="link-card">
+                        <div class="link-icon success">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="link-title">Hồ sơ</div>
+                    </a>
+                    
+                    <a href="<?= base_url('students/certificates') ?>" class="link-card">
+                        <div class="link-icon warning">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <div class="link-title">Chứng chỉ</div>
+                    </a>
+                    
+                    <a href="<?= base_url('students/reports') ?>" class="link-card">
+                        <div class="link-icon danger">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="link-title">Báo cáo</div>
+                    </a>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" id="confirmRegisterBtn">Xác nhận đăng ký</button>
-            </div>
         </div>
     </div>
 </div>
+<?= $this->endSection() ?>
 
+<?= $this->section('scripts') ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Xử lý đăng ký sự kiện
-    const registerBtns = document.querySelectorAll('.event-register-btn');
-    const registerModal = new bootstrap.Modal(document.getElementById('eventRegisterModal'));
-    const eventNameToRegister = document.getElementById('eventNameToRegister');
-    const confirmRegisterBtn = document.getElementById('confirmRegisterBtn');
+    // Generate calendar
+    generateCalendar();
     
-    let currentEventId = null;
-    
-    registerBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            currentEventId = this.dataset.eventId;
-            eventNameToRegister.textContent = this.dataset.eventName;
-            registerModal.show();
-        });
+    // Handle month navigation
+    document.querySelector('.prev-month').addEventListener('click', function() {
+        changeMonth(-1);
     });
     
-    confirmRegisterBtn.addEventListener('click', function() {
-        // Hiển thị loading
-        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
-        this.disabled = true;
+    document.querySelector('.next-month').addEventListener('click', function() {
+        changeMonth(1);
+    });
+    
+    // Current month and year
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    
+    // Calendar days with events
+    const eventDays = <?= json_encode($event_days ?? []) ?>;
+    
+    // Change month and regenerate calendar
+    function changeMonth(delta) {
+        currentMonth += delta;
         
-        // Gửi yêu cầu đăng ký
-        fetch('/students/events/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({
-                event_id: currentEventId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            registerModal.hide();
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        } else if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        
+        document.querySelector('.calendar-title').textContent = `Tháng ${currentMonth + 1}/${currentYear}`;
+        generateCalendar();
+    }
+    
+    // Generate calendar days
+    function generateCalendar() {
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const calendarDays = document.getElementById('calendarDays');
+        
+        // Clear previous days
+        calendarDays.innerHTML = '';
+        
+        // Add days from previous month
+        const daysFromPrevMonth = firstDay.getDay();
+        const prevMonthLastDay = new Date(currentYear, currentMonth, 0).getDate();
+        
+        for (let i = 0; i < daysFromPrevMonth; i++) {
+            const dayNumber = prevMonthLastDay - daysFromPrevMonth + i + 1;
+            const dayEl = createDayElement(dayNumber, 'other-month');
+            calendarDays.appendChild(dayEl);
+        }
+        
+        // Add days from current month
+        const today = new Date();
+        
+        for (let i = 1; i <= lastDay.getDate(); i++) {
+            let classes = [];
             
-            // Hiển thị thông báo
-            const toastContainer = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${data.success ? 'bg-success' : 'bg-danger'} text-white`;
-            toast.setAttribute('role', 'alert');
-            toast.setAttribute('aria-live', 'assertive');
-            toast.setAttribute('aria-atomic', 'true');
-            
-            toast.innerHTML = `
-                <div class="toast-header ${data.success ? 'bg-success' : 'bg-danger'} text-white">
-                    <strong class="me-auto">${data.success ? 'Thành công' : 'Lỗi'}</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    ${data.message}
-                </div>
-            `;
-            
-            toastContainer.appendChild(toast);
-            new bootstrap.Toast(toast).show();
-            
-            // Cập nhật UI nếu thành công
-            if (data.success) {
-                const btn = document.querySelector(`.event-register-btn[data-event-id="${currentEventId}"]`);
-                if (btn) {
-                    btn.innerHTML = '<i class="fas fa-check-circle d-inline d-md-none"></i><span class="d-none d-md-inline">Đã đăng ký</span>';
-                    btn.classList.remove('btn-primary');
-                    btn.classList.add('btn-success');
-                    btn.disabled = true;
-                }
+            // Check if today
+            if (today.getDate() === i && today.getMonth() === currentMonth && today.getFullYear() === currentYear) {
+                classes.push('today');
             }
             
-            // Reset trạng thái nút
-            confirmRegisterBtn.innerHTML = 'Xác nhận đăng ký';
-            confirmRegisterBtn.disabled = false;
-        })
-        .catch(error => {
-            console.error('Error:', error);
+            // Check if day has event
+            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            if (eventDays.includes(dateStr)) {
+                classes.push('has-event');
+            }
             
-            // Hiển thị thông báo lỗi
-            const toastContainer = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast bg-danger text-white';
-            toast.setAttribute('role', 'alert');
-            toast.setAttribute('aria-live', 'assertive');
-            toast.setAttribute('aria-atomic', 'true');
+            const dayEl = createDayElement(i, classes.join(' '));
+            calendarDays.appendChild(dayEl);
+        }
+        
+        // Add days from next month
+        const remainingDays = 42 - (daysFromPrevMonth + lastDay.getDate()); // 6 rows x 7 days
+        
+        for (let i = 1; i <= remainingDays; i++) {
+            const dayEl = createDayElement(i, 'other-month');
+            calendarDays.appendChild(dayEl);
+        }
+    }
+    
+    // Create day element
+    function createDayElement(day, classes) {
+        const dayEl = document.createElement('div');
+        dayEl.className = `calendar-day ${classes}`;
+        dayEl.textContent = day;
+        
+        // Add click event
+        dayEl.addEventListener('click', function() {
+            // Remove selected class from all days
+            document.querySelectorAll('.calendar-day').forEach(el => {
+                el.classList.remove('selected');
+            });
             
-            toast.innerHTML = `
-                <div class="toast-header bg-danger text-white">
-                    <strong class="me-auto">Lỗi</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    Đã xảy ra lỗi khi xử lý yêu cầu.
-                </div>
-            `;
+            // Add selected class to clicked day
+            this.classList.add('selected');
             
-            toastContainer.appendChild(toast);
-            new bootstrap.Toast(toast).show();
-            
-            // Ẩn modal và reset trạng thái nút
-            registerModal.hide();
-            confirmRegisterBtn.innerHTML = 'Xác nhận đăng ký';
-            confirmRegisterBtn.disabled = false;
+            // If day has event, show event list
+            if (this.classList.contains('has-event')) {
+                // Handle click on event day
+                // You can show event details or navigate to events page
+            }
         });
-    });
+        
+        return dayEl;
+    }
 });
 </script>
 <?= $this->endSection() ?> 

@@ -3,7 +3,7 @@
 <?= $this->section('title') ?>Sự kiện đã đăng ký<?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/layouts/studentsapp/css/events.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/layouts/students/css/events.css') ?>">
 <style>
     .nav-pills .nav-link.active {
         background-color: var(--primary-color);
@@ -269,7 +269,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/layouts/studentsapp/js/events.js') ?>"></script>
+<script src="<?= base_url('assets/layouts/students/js/events.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Status filtering

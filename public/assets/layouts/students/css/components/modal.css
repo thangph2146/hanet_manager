@@ -1,0 +1,234 @@
+/* Modal Component - Mobile First */
+.st-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.st-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.st-modal {
+    background-color: var(--background-white);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.st-modal-overlay.active .st-modal {
+    transform: translateY(0) scale(1);
+}
+
+.st-modal-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.st-modal-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.st-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--background-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    color: var(--text-light);
+}
+
+.st-modal-close:hover {
+    background-color: var(--background-gray);
+    color: var(--text-color);
+}
+
+.st-modal-body {
+    padding: 15px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.st-modal-footer {
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Modal Sizes */
+.st-modal-sm {
+    max-width: 400px;
+}
+
+.st-modal-lg {
+    max-width: 700px;
+}
+
+.st-modal-xl {
+    max-width: 900px;
+}
+
+.st-modal-fullscreen {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+}
+
+/* Modal Variations */
+.st-modal-centered .st-modal-body {
+    text-align: center;
+}
+
+.st-modal-image .st-modal-body {
+    padding: 0;
+}
+
+.st-modal-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.st-modal-primary .st-modal-header {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.st-modal-primary .st-modal-title {
+    color: white;
+}
+
+.st-modal-primary .st-modal-close {
+    background-color: rgba(255,255,255,0.2);
+    color: white;
+}
+
+.st-modal-primary .st-modal-close:hover {
+    background-color: rgba(255,255,255,0.3);
+}
+
+/* Animations */
+.st-modal-fade .st-modal {
+    transform: scale(0.9);
+    opacity: 0;
+}
+
+.st-modal-fade.active .st-modal {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.st-modal-slide-top .st-modal {
+    transform: translateY(-50px);
+    opacity: 0;
+}
+
+.st-modal-slide-top.active .st-modal {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.st-modal-slide-bottom .st-modal {
+    transform: translateY(50px);
+    opacity: 0;
+}
+
+.st-modal-slide-bottom.active .st-modal {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Modal buttons */
+.st-modal-btn {
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.st-modal-btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.st-modal-btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+.st-modal-btn-secondary {
+    background-color: var(--background-light);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.st-modal-btn-secondary:hover {
+    background-color: var(--background-gray);
+}
+
+.st-modal-btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.st-modal-btn-danger:hover {
+    background-color: var(--danger-dark);
+}
+
+/* Tablet and Desktop */
+@media (min-width: 768px) {
+    .st-modal-header {
+        padding: 18px 20px;
+    }
+    
+    .st-modal-body {
+        padding: 20px;
+    }
+    
+    .st-modal-footer {
+        padding: 15px 20px;
+    }
+    
+    .st-modal-title {
+        font-size: 1.2rem;
+    }
+    
+    .st-modal-btn {
+        padding: 10px 20px;
+    }
+} 

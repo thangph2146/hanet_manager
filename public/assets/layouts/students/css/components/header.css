@@ -1,0 +1,152 @@
+/* Header Component - Mobile First */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(to right, var(--primary-dark), var(--primary-color));
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+}
+
+.header-logo img {
+    height: 40px;
+    width: auto;
+    margin-right: 10px;
+}
+
+.header-title {
+    display: none; /* Ẩn tiêu đề trên thiết bị di động */
+    font-weight: 600;
+}
+
+.header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.header-toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 15px;
+    transition: all 0.2s;
+}
+
+.header-toggle-btn:hover {
+    transform: scale(1.1);
+}
+
+.header-notification {
+    position: relative;
+    margin-right: 15px;
+}
+
+.header-notification-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    transition: all 0.2s;
+}
+
+.header-notification-btn:hover {
+    transform: scale(1.1);
+}
+
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: var(--secondary-color);
+    color: white;
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+}
+
+.header-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.3);
+}
+
+.header-user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.header-user-info {
+    display: none; /* Ẩn thông tin người dùng trên thiết bị di động */
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+    .header {
+        padding: 0 20px;
+    }
+    
+    .header-title {
+        display: block; /* Hiển thị tiêu đề trên tablet và desktop */
+        font-size: 1.2rem;
+    }
+    
+    .header-user-info {
+        display: block; /* Hiển thị thông tin người dùng trên tablet và desktop */
+        margin-left: 10px;
+        line-height: 1.2;
+    }
+    
+    .header-user-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .header-user-role {
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+}
+
+/* Desktop and up */
+@media (min-width: 992px) {
+    .header {
+        padding: 0 30px;
+    }
+    
+    .header-title {
+        font-size: 1.25rem;
+    }
+} 

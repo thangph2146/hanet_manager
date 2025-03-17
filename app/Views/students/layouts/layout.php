@@ -3,57 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $this->renderSection('title') ?> - Quản lý sinh viên</title>
+    <title><?= $title ?? 'Hệ thống quản lý sinh viên' ?></title>
     
     <!-- Favicon -->
-    <link rel="shortcut icon" href="<?= base_url('assets/images/favicon.ico') ?>" type="image/x-icon">
+    <link rel="icon" href="<?= base_url('favicon.ico') ?>" type="image/x-icon">
     
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="<?= base_url('assets/plugins/bootstrap/css/bootstrap.min.css') ?>">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="<?= base_url('assets/plugins/fontawesome/css/all.min.css') ?>">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="<?= base_url('assets/layouts/students/css/main.css') ?>">
     
-    <!-- StudentApp Main CSS -->
-    <link rel="stylesheet" href="<?= base_url('assets/layouts/studentsapp/css/main.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/layouts/studentsapp/css/header.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/layouts/studentsapp/css/sidebar.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/layouts/studentsapp/css/footer.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/layouts/studentsapp/css/notifications.css') ?>">
+    <!-- Component CSS -->
+    <link rel="stylesheet" href="<?= base_url('assets/layouts/students/css/components/header.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/layouts/students/css/components/sidebar.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/layouts/students/css/components/footer.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/layouts/students/css/components/notification.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/layouts/students/css/components/modal.css') ?>">
     
-    <!-- Page specific CSS -->
+    <!-- Page-specific CSS -->
+    <?php if (isset($page_css) && !empty($page_css)): ?>
+        <?php foreach ($page_css as $css): ?>
+        <link rel="stylesheet" href="<?= base_url('assets/layouts/students/css/pages/' . $css . '.css') ?>">
+        <?php endforeach; ?>
+    <?php endif; ?>
+
+    <!-- Additional styles -->
     <?= $this->renderSection('styles') ?>
 </head>
 <body>
-    <div class="student-app">
-        <!-- Header Component -->
-        <?= $this->include('students/layouts/components/header') ?>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="st-header">
+            <div class="st-header-logo">
+                <div class="st-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <a href="<?= base_url('students/dashboard') ?>" class="st-logo">
+                    <img src="<?= base_url('assets/img/logo.png') ?>" alt="Logo">
+                </a>
+                <div class="st-header-title">
+                    <span>Hệ thống sinh viên</span>
+                </div>
+            </div>
+            
+            <div class="st-header-right">
+                <div class="st-notification">
+                    <button class="st-notification-btn">
+                        <i class="far fa-bell"></i>
+                        <span class="st-notification-badge">5</span>
+                    </button>
+                </div>
+                
+                <div class="st-user-info">
+                    <div class="st-user-name"><?= session()->get('name') ?? 'Sinh viên' ?></div>
+                    <div class="st-user-avatar">
+                        <?php if (session()->has('avatar') && !empty(session()->get('avatar'))): ?>
+                            <img src="<?= base_url(session()->get('avatar')) ?>" alt="Avatar">
+                        <?php else: ?>
+                            <div class="st-avatar-text"><?= substr(session()->get('name') ?? 'User', 0, 1) ?></div>
+                        <?php endif; ?>
+                        <div class="st-user-dropdown">
+                            <a href="<?= base_url('students/profile') ?>" class="st-dropdown-item">
+                                <i class="fas fa-user"></i> Hồ sơ
+                            </a>
+                            <a href="<?= base_url('students/settings') ?>" class="st-dropdown-item">
+                                <i class="fas fa-cog"></i> Cài đặt
+                            </a>
+                            <a href="<?= base_url('logout') ?>" class="st-dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
         
-        <!-- Sidebar Component -->
-        <?= $this->include('students/layouts/components/sidebar') ?>
-        
-        <!-- Sidebar Overlay (for mobile) -->
-        <div class="sidebar-overlay"></div>
+        <!-- Sidebar -->
+        <aside class="st-sidebar">
+            <div class="st-sidebar-overlay"></div>
+            <div class="st-sidebar-content">
+                <div class="st-sidebar-profile">
+                    <div class="st-profile-avatar">
+                        <?php if (session()->has('avatar') && !empty(session()->get('avatar'))): ?>
+                            <img src="<?= base_url(session()->get('avatar')) ?>" alt="Avatar">
+                        <?php else: ?>
+                            <div class="st-avatar-text"><?= substr(session()->get('name') ?? 'User', 0, 1) ?></div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="st-profile-info">
+                        <div class="st-profile-name"><?= session()->get('name') ?? 'Sinh viên' ?></div>
+                        <div class="st-profile-role"><?= session()->get('student_id') ?? 'MSSV' ?></div>
+                    </div>
+                </div>
+                
+                <nav class="st-sidebar-menu">
+                    <ul>
+                        <li>
+                            <a href="<?= base_url('students/dashboard') ?>" class="<?= uri_string() == 'students/dashboard' ? 'active' : '' ?>">
+                                <i class="fas fa-home"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= base_url('students/events') ?>" class="<?= str_contains(uri_string(), 'students/events') ? 'active' : '' ?>">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sự kiện</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= base_url('students/certificates') ?>" class="<?= str_contains(uri_string(), 'students/certificates') ? 'active' : '' ?>">
+                                <i class="fas fa-certificate"></i>
+                                <span>Chứng chỉ</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= base_url('students/reports') ?>" class="<?= str_contains(uri_string(), 'students/reports') ? 'active' : '' ?>">
+                                <i class="fas fa-chart-pie"></i>
+                                <span>Báo cáo</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= base_url('students/profile') ?>" class="<?= uri_string() == 'students/profile' ? 'active' : '' ?>">
+                                <i class="fas fa-user"></i>
+                                <span>Hồ sơ</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= base_url('students/settings') ?>" class="<?= uri_string() == 'students/settings' ? 'active' : '' ?>">
+                                <i class="fas fa-cog"></i>
+                                <span>Cài đặt</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </aside>
         
         <!-- Main Content -->
-        <div class="content-wrapper">
+        <main class="st-main-content">
             <?= $this->renderSection('content') ?>
-        </div>
+        </main>
         
-        <!-- Footer Component -->
-        <?= $this->include('students/layouts/components/footer') ?>
+        <!-- Footer -->
+        <footer class="st-footer">
+            <div class="st-footer-content">
+                <div class="st-copyright">
+                    &copy; <?= date('Y') ?> Hệ thống quản lý sinh viên. Bản quyền thuộc về Trường.
+                </div>
+                <div class="st-footer-links">
+                    <a href="#">Chính sách</a>
+                    <a href="#">Điều khoản</a>
+                    <a href="#">Liên hệ</a>
+                </div>
+            </div>
+        </footer>
     </div>
     
-    <!-- jQuery -->
-    <script src="<?= base_url('assets/plugins/jquery/jquery.min.js') ?>"></script>
+    <!-- Notification container -->
+    <div class="notification-container" id="notification-container"></div>
     
-    <!-- Bootstrap JS -->
-    <script src="<?= base_url('assets/plugins/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
     
-    <!-- StudentApp Main JS -->
-    <script src="<?= base_url('assets/layouts/studentsapp/js/layout.js') ?>"></script>
+    <!-- Main JS -->
+    <script src="<?= base_url('assets/layouts/students/js/components/notification.js') ?>"></script>
+    <script src="<?= base_url('assets/layouts/students/js/components/modal.js') ?>"></script>
+    <script src="<?= base_url('assets/layouts/students/js/layout.js') ?>"></script>
     
-    <!-- Page specific JS -->
+    <!-- Page-specific JS -->
+    <?php if (isset($page_js) && !empty($page_js)): ?>
+        <?php foreach ($page_js as $js): ?>
+        <script src="<?= base_url('assets/layouts/students/js/pages/' . $js . '.js') ?>"></script>
+        <?php endforeach; ?>
+    <?php endif; ?>
+    
+    <!-- Additional scripts -->
     <?= $this->renderSection('scripts') ?>
 </body>
 </html> 
