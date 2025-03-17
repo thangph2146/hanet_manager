@@ -1,0 +1,307 @@
+/* Sidebar Styles */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.98));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    z-index: 1040;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.logo-icon {
+    font-size: 1.75rem;
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Sidebar Menu */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.sidebar-menu-divider {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    padding: 1.25rem 1.5rem 0.5rem;
+}
+
+.sidebar-menu-item {
+    margin: 0.25rem 0.75rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    color: #64748b;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    position: relative;
+    gap: 0.75rem;
+}
+
+.sidebar-link:hover {
+    color: var(--primary-color);
+    background: rgba(138, 43, 226, 0.05);
+}
+
+.sidebar-link.active {
+    color: var(--primary-color);
+    background: rgba(138, 43, 226, 0.1);
+    font-weight: 600;
+}
+
+.menu-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-link:hover .menu-icon {
+    transform: translateY(-2px);
+}
+
+.sidebar-link span:not(.badge-pro) {
+    flex-grow: 1;
+    font-size: 0.95rem;
+}
+
+.badge-pro {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    background: rgba(138, 43, 226, 0.1);
+    color: var(--primary-color);
+}
+
+/* Submenu Styles */
+.sidebar-link.has-submenu {
+    justify-content: space-between;
+}
+
+.submenu-arrow {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-link.has-submenu[aria-expanded="true"] .submenu-arrow {
+    transform: rotate(90deg);
+}
+
+.submenu {
+    padding-left: 2.5rem;
+    margin-top: 0.25rem;
+}
+
+.submenu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.submenu-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.submenu-link:hover {
+    color: var(--primary-color);
+    background: rgba(138, 43, 226, 0.05);
+}
+
+.submenu-link.active {
+    color: var(--primary-color);
+    background: rgba(138, 43, 226, 0.1);
+    font-weight: 500;
+}
+
+.badge-sub {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 4px;
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Enhanced Sidebar Footer */
+.sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.upgrade-pro-btn {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    text-align: center;
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    color: white;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(138, 43, 226, 0.15);
+}
+
+.upgrade-pro-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(138, 43, 226, 0.2);
+    color: white;
+}
+
+.upgrade-pro-btn i {
+    font-size: 1.2rem;
+}
+
+.sidebar-footer-stats {
+    padding-top: 1rem;
+}
+
+.storage-info {
+    background: rgba(138, 43, 226, 0.05);
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.storage-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.storage-text span:first-child {
+    color: #64748b;
+}
+
+.storage-text span:last-child {
+    color: #334155;
+    font-weight: 600;
+}
+
+.progress {
+    height: 6px;
+    background: rgba(138, 43, 226, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Enhanced Animation */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.submenu.show {
+    animation: slideIn 0.3s ease forwards;
+}
+
+/* Enhanced Mobile Styles */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 280px;
+    }
+
+    .submenu {
+        padding-left: 2rem;
+    }
+}
+
+/* Sidebar Backdrop */
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1035;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.sidebar-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+} 
