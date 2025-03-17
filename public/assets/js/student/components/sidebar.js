@@ -181,21 +181,33 @@ class Sidebar {
 
     toggleSidebar() {
         if (this.sidebar) {
+            const isShow = !this.sidebar.classList.contains('show');
             this.sidebar.classList.toggle('show');
             if (this.backdrop) {
                 this.backdrop.classList.toggle('show');
+                this.backdrop.style.visibility = isShow ? 'visible' : 'hidden';
+                this.backdrop.style.opacity = isShow ? '1' : '0';
             }
-            document.body.style.overflow = this.sidebar.classList.contains('show') ? 'hidden' : '';
+            document.body.style.overflow = isShow ? 'hidden' : '';
+            
+            // Trigger reflow để đảm bảo animation chạy mượt
+            this.sidebar.offsetHeight;
         }
     }
 
     closeSidebar() {
-        this.sidebar.classList.remove('show');
-        if (this.backdrop) {
-            this.backdrop.style.visibility = 'hidden';
-            this.backdrop.style.opacity = '0';
+        if (this.sidebar) {
+            this.sidebar.classList.remove('show');
+            if (this.backdrop) {
+                this.backdrop.classList.remove('show');
+                this.backdrop.style.visibility = 'hidden';
+                this.backdrop.style.opacity = '0';
+            }
+            document.body.style.overflow = '';
+            
+            // Trigger reflow để đảm bảo animation chạy mượt
+            this.sidebar.offsetHeight;
         }
-        document.body.style.overflow = '';
     }
 
     handleUpgradeHover(isHovering) {

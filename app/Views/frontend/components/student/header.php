@@ -21,13 +21,13 @@ $notifications = [
 <link rel="stylesheet" href="<?= base_url('assets/css/student/components/header.css') ?>">
 
 <nav class="content-navbar">
-    <!-- Sidebar Toggle -->
-    <button class="nav-action-btn sidebar-toggle-btn" id="sidebar-toggle" aria-label="Toggle Sidebar">
+    <!-- Sidebar Toggle - Chỉ hiển thị ở mobile -->
+    <button class="sidebar-toggle-btn d-lg-none">
         <i class="fas fa-bars"></i>
     </button>
     
-    <!-- Search Bar -->
-    <div class="nav-search">
+    <!-- Search Bar - Ẩn trên mobile -->
+    <div class="nav-search d-none d-lg-flex">
         <input type="text" placeholder="Tìm kiếm (Ctrl + /)" aria-label="Search">
         <i class="fas fa-search"></i>
     </div>
@@ -39,43 +39,47 @@ $notifications = [
     
     <!-- Action Buttons -->
     <div class="nav-actions">
-        <!-- Star Button -->
-        <button class="nav-action-btn star-btn" aria-label="Starred Items">
-            <i class="far fa-star"></i>
-            <span class="badge">32</span>
-        </button>
         
         <!-- Notifications Dropdown -->
         <div class="dropdown">
             <button class="nav-action-btn" id="notifications-dropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
                 <i class="far fa-bell"></i>
-                <span class="badge"><?= count($notifications) ?></span>
+                <span class="badge pulse"><?= count($notifications) ?></span>
             </button>
             
             <div class="dropdown-menu notification-dropdown" aria-labelledby="notifications-dropdown">
                 <div class="dropdown-header">
                     <h6 class="mb-0">Thông báo</h6>
-                    <span class="badge bg-primary"><?= count($notifications) ?> Mới</span>
+                    <a href="#" class="text-muted text-decoration-none">
+                        <i class="fas fa-check-double"></i>
+                        Đánh dấu tất cả đã đọc
+                    </a>
                 </div>
                 
-                <?php foreach($notifications as $notification): ?>
-                <div class="notification-item">
-                    <div class="notification-icon bg-<?= $notification['bg'] ?>">
-                        <i class="fas fa-<?= $notification['icon'] ?>"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-title"><?= $notification['title'] ?></div>
-                        <div class="notification-text"><?= $notification['text'] ?></div>
-                        <div class="notification-time">
-                            <i class="far fa-clock"></i>
-                            <?= $notification['time'] ?>
+                <div class="notification-list">
+                    <?php foreach($notifications as $notification): ?>
+                    <div class="notification-item">
+                        <div class="notification-icon bg-<?= $notification['bg'] ?>">
+                            <i class="fas fa-<?= $notification['icon'] ?>"></i>
                         </div>
+                        <div class="notification-content">
+                            <div class="notification-title"><?= $notification['title'] ?></div>
+                            <div class="notification-text"><?= $notification['text'] ?></div>
+                            <div class="notification-time">
+                                <i class="far fa-clock"></i>
+                                <?= $notification['time'] ?>
+                            </div>
+                        </div>
+                        <button class="notification-close" aria-label="Close">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
+                    <?php endforeach; ?>
                 </div>
-                <?php endforeach; ?>
                 
-                <a href="<?= base_url('student/notifications') ?>" class="dropdown-item text-center py-2">
+                <a href="<?= base_url('student/notifications') ?>" class="dropdown-item text-center view-all">
                     Xem tất cả thông báo
+                    <i class="fas fa-chevron-right ms-1"></i>
                 </a>
             </div>
         </div>
@@ -83,40 +87,65 @@ $notifications = [
         <!-- User Dropdown -->
         <div class="dropdown">
             <a href="#" class="user-dropdown" id="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <img src="<?= base_url('assets/images/avatars/default.jpg') ?>" alt="User Avatar">
+                <div class="user-avatar">
+                    <img src="<?= base_url('assets/images/avatars/default.jpg') ?>" alt="User Avatar">
+                    <span class="user-status"></span>
+                </div>
                 <div class="user-info d-none d-md-block">
                     <div class="user-name">John Doe</div>
                     <div class="user-role">Admin</div>
                 </div>
             </a>
             
-            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="user-dropdown">
+            <div class="dropdown-menu user-menu" aria-labelledby="user-dropdown">
                 <div class="dropdown-header">
                     <div class="d-flex align-items-center">
-                        <img src="<?= base_url('assets/images/avatars/default.jpg') ?>" alt="User Avatar" class="me-2" style="width: 32px; height: 32px; border-radius: 8px;">
+                        <div class="user-avatar me-3">
+                            <img src="<?= base_url('assets/images/avatars/default.jpg') ?>" alt="User Avatar">
+                            <span class="user-status"></span>
+                        </div>
                         <div>
                             <div class="fw-bold">John Doe</div>
-                            <small class="text-muted">Admin</small>
+                            <div class="text-muted small">@johndoe</div>
                         </div>
                     </div>
                 </div>
+                
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item d-flex align-items-center gap-2" href="<?= base_url('student/profile') ?>">
-                    <i class="fas fa-user"></i> Hồ sơ của tôi
-                </a>
-                <a class="dropdown-item d-flex align-items-center gap-2" href="<?= base_url('student/settings') ?>">
-                    <i class="fas fa-cog"></i> Cài đặt
-                </a>
-                <a class="dropdown-item d-flex align-items-center justify-content-between" href="<?= base_url('student/billing') ?>">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fas fa-file-invoice"></i> Thanh toán
-                    </div>
-                    <span class="badge bg-danger">4</span>
-                </a>
+                
+                <div class="user-menu-section">
+                    <small class="dropdown-header-text">Tài khoản</small>
+                    <a class="dropdown-item" href="<?= base_url('student/profile') ?>">
+                        <i class="fas fa-user"></i>
+                        <span>Hồ sơ của tôi</span>
+                    </a>
+                    <a class="dropdown-item" href="<?= base_url('student/settings') ?>">
+                        <i class="fas fa-cog"></i>
+                        <span>Cài đặt</span>
+                    </a>
+                </div>
+                
+                <div class="user-menu-section">
+                    <small class="dropdown-header-text">Thanh toán</small>
+                    <a class="dropdown-item" href="<?= base_url('student/billing') ?>">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Thanh toán</span>
+                        <span class="badge bg-danger ms-auto">4</span>
+                    </a>
+                    <a class="dropdown-item" href="<?= base_url('student/subscription') ?>">
+                        <i class="fas fa-crown"></i>
+                        <span>Nâng cấp Pro</span>
+                    </a>
+                </div>
+                
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="<?= base_url('auth/logout') ?>">
-                    <i class="fas fa-power-off"></i> Đăng xuất
-                </a>
+                
+                <div class="user-menu-section">
+                    <a class="dropdown-item text-danger" href="<?= base_url('login/logoutstudent') ?>">
+                        <i class="fas fa-power-off"></i>
+                        <span>Đăng xuất</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -130,8 +159,21 @@ $notifications = [
             <i class="fas fa-times"></i>
         </button>
     </div>
-    <input type="text" class="form-control" placeholder="Tìm kiếm (Ctrl + /)" aria-label="Mobile Search">
-    <div class="mobile-search-results"></div>
+    <div class="mobile-search-form">
+        <div class="search-input-group">
+            <i class="fas fa-search"></i>
+            <input type="text" class="form-control" placeholder="Tìm kiếm..." aria-label="Mobile Search">
+            <div class="search-shortcut d-none d-lg-flex">
+                <span>Ctrl</span> + <span>/</span>
+            </div>
+        </div>
+    </div>
+    <div class="mobile-search-results">
+        <div class="search-empty-state text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Nhập từ khóa để tìm kiếm</p>
+        </div>
+    </div>
 </div>
 
 <!-- Link JS file -->

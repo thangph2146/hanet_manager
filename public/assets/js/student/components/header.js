@@ -1,113 +1,150 @@
 // Header Component
 class Header {
     constructor() {
-        this.initElements();
-        this.initEventListeners();
+        this.init();
     }
 
-    initElements() {
-        // Search elements
-        this.searchInput = document.querySelector('.nav-search input');
-        this.mobileSearchBtn = document.querySelector('.mobile-search-btn');
-        this.mobileSearch = document.getElementById('mobile-search');
-        this.mobileSearchClose = document.getElementById('mobile-search-close');
-        this.mobileSearchInput = this.mobileSearch?.querySelector('input');
-
-        // Notification elements
-        this.notificationDropdown = document.getElementById('notifications-dropdown');
-        this.notificationItems = document.querySelectorAll('.notification-item');
-
-        // User dropdown
-        this.userDropdown = document.getElementById('user-dropdown');
+    init() {
+        this.initMobileSearch();
+        this.initNotifications();
+        this.initSearchShortcut();
+        this.initSidebarToggle();
     }
 
-    initEventListeners() {
-        // Search functionality
-        if (this.searchInput) {
-            this.searchInput.addEventListener('focus', () => this.handleSearchFocus());
-            this.searchInput.addEventListener('blur', () => this.handleSearchBlur());
+    initMobileSearch() {
+        const mobileSearchBtn = document.querySelector('.mobile-search-btn');
+        const mobileSearch = document.querySelector('.mobile-search');
+        const mobileSearchClose = document.querySelector('.mobile-search-close');
+        const searchInput = document.querySelector('.mobile-search input');
+
+        if (mobileSearchBtn && mobileSearch && mobileSearchClose) {
+            mobileSearchBtn.addEventListener('click', () => {
+                mobileSearch.classList.add('show');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => searchInput?.focus(), 300);
+            });
+
+            mobileSearchClose.addEventListener('click', () => {
+                mobileSearch.classList.remove('show');
+                document.body.style.overflow = '';
+                searchInput.value = '';
+                this.clearSearchResults();
+            });
         }
+    }
 
-        // Mobile search
-        if (this.mobileSearchBtn && this.mobileSearch && this.mobileSearchClose) {
-            this.mobileSearchBtn.addEventListener('click', () => this.toggleMobileSearch(true));
-            this.mobileSearchClose.addEventListener('click', () => this.toggleMobileSearch(false));
-        }
+    initNotifications() {
+        const notificationCloseButtons = document.querySelectorAll('.notification-close');
+        const markAllReadBtn = document.querySelector('.dropdown-header a');
+        const notificationBadge = document.querySelector('#notifications-dropdown .badge');
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
-
-        // Notifications hover effect
-        this.notificationItems.forEach(item => {
-            item.addEventListener('mouseenter', () => this.handleNotificationHover(item, true));
-            item.addEventListener('mouseleave', () => this.handleNotificationHover(item, false));
+        notificationCloseButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const item = btn.closest('.notification-item');
+                item.style.height = item.offsetHeight + 'px';
+                
+                // Trigger reflow
+                item.offsetHeight;
+                
+                item.style.height = '0';
+                item.style.opacity = '0';
+                item.style.marginTop = '0';
+                item.style.marginBottom = '0';
+                item.style.padding = '0';
+                
+                setTimeout(() => {
+                    item.remove();
+                    this.updateNotificationCount();
+                }, 300);
+            });
         });
 
-        // Handle dropdowns on mobile
-        if (this.notificationDropdown) {
-            this.notificationDropdown.addEventListener('show.bs.dropdown', () => this.handleDropdownShow());
-            this.notificationDropdown.addEventListener('hide.bs.dropdown', () => this.handleDropdownHide());
-        }
-
-        if (this.userDropdown) {
-            this.userDropdown.addEventListener('show.bs.dropdown', () => this.handleDropdownShow());
-            this.userDropdown.addEventListener('hide.bs.dropdown', () => this.handleDropdownHide());
-        }
-    }
-
-    handleSearchFocus() {
-        this.searchInput.parentElement.classList.add('focused');
-    }
-
-    handleSearchBlur() {
-        this.searchInput.parentElement.classList.remove('focused');
-    }
-
-    toggleMobileSearch(show) {
-        if (show) {
-            this.mobileSearch.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            this.mobileSearchInput?.focus();
-        } else {
-            this.mobileSearch.classList.remove('show');
-            document.body.style.overflow = '';
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const items = document.querySelectorAll('.notification-item');
+                items.forEach(item => {
+                    item.style.opacity = '0.5';
+                });
+                if (notificationBadge) {
+                    notificationBadge.style.display = 'none';
+                }
+            });
         }
     }
 
-    handleKeyboardShortcuts(e) {
-        // Search shortcut (Ctrl + /)
-        if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-            e.preventDefault();
-            if (window.innerWidth <= 992) {
-                this.toggleMobileSearch(true);
-            } else {
-                this.searchInput?.focus();
+    updateNotificationCount() {
+        const badge = document.querySelector('#notifications-dropdown .badge');
+        const items = document.querySelectorAll('.notification-item');
+        if (badge) {
+            const count = items.length;
+            badge.textContent = count;
+            if (count === 0) {
+                badge.style.display = 'none';
             }
         }
+    }
 
-        // Close mobile search with Escape
-        if (e.key === 'Escape' && this.mobileSearch?.classList.contains('show')) {
-            this.toggleMobileSearch(false);
+    initSearchShortcut() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl + / shortcut
+            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+                e.preventDefault();
+                if (window.innerWidth <= 992) {
+                    // Mobile: Show mobile search
+                    const mobileSearch = document.querySelector('.mobile-search');
+                    const searchInput = document.querySelector('.mobile-search input');
+                    if (mobileSearch && searchInput) {
+                        mobileSearch.classList.add('show');
+                        document.body.style.overflow = 'hidden';
+                        setTimeout(() => searchInput.focus(), 300);
+                    }
+                } else {
+                    // Desktop: Focus main search
+                    const searchInput = document.querySelector('.nav-search input');
+                    searchInput?.focus();
+                }
+            }
+
+            // Escape to close mobile search
+            if (e.key === 'Escape') {
+                const mobileSearch = document.querySelector('.mobile-search');
+                if (mobileSearch?.classList.contains('show')) {
+                    mobileSearch.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+    }
+
+    initSidebarToggle() {
+        const sidebarToggle = document.querySelector('.sidebar-toggle-btn');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                const sidebar = document.querySelector('.sidebar');
+                const backdrop = document.querySelector('.sidebar-backdrop');
+                
+                if (sidebar && backdrop) {
+                    sidebar.classList.toggle('show');
+                    backdrop.style.visibility = 'visible';
+                    backdrop.style.opacity = '1';
+                    document.body.style.overflow = 'hidden';
+                }
+            });
         }
     }
 
-    handleNotificationHover(item, isHovering) {
-        const icon = item.querySelector('.notification-icon');
-        if (icon) {
-            icon.style.transform = isHovering ? 'scale(1.1)' : '';
-            icon.style.transition = 'transform 0.3s ease';
-        }
-    }
-
-    handleDropdownShow() {
-        if (window.innerWidth <= 576) {
-            document.body.style.overflow = 'hidden';
-        }
-    }
-
-    handleDropdownHide() {
-        if (window.innerWidth <= 576) {
-            document.body.style.overflow = '';
+    clearSearchResults() {
+        const resultsContainer = document.querySelector('.mobile-search-results');
+        if (resultsContainer) {
+            resultsContainer.innerHTML = `
+                <div class="search-empty-state text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Nhập từ khóa để tìm kiếm</p>
+                </div>
+            `;
         }
     }
 }

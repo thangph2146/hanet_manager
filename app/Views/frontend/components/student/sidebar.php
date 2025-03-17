@@ -7,7 +7,6 @@ $menu_items = [
             'icon' => 'tachometer-alt',
             'text' => 'Bảng điều khiển',
             'url' => 'student/dashboard',
-            'badge' => '5',
             'submenu' => [
                 [
                     'text' => 'Phân tích',
@@ -21,7 +20,6 @@ $menu_items = [
                 [
                     'text' => 'Thành tích',
                     'url' => 'student/dashboard/achievements',
-                    'pro' => true
                 ]
             ]
         ]
@@ -31,7 +29,6 @@ $menu_items = [
             'icon' => 'envelope',
             'text' => 'Email',
             'url' => 'student/email',
-            'pro' => true,
             'submenu' => [
                 [
                     'text' => 'Hộp thư đến',
@@ -52,13 +49,11 @@ $menu_items = [
             'icon' => 'comments',
             'text' => 'Trò chuyện',
             'url' => 'student/chat',
-            'pro' => true
         ],
         [
             'icon' => 'calendar-alt',
             'text' => 'Lịch',
             'url' => 'student/calendar',
-            'pro' => true
         ]
     ],
     'interface' => [
@@ -97,7 +92,6 @@ $menu_items = [
                 [
                     'text' => 'Cards',
                     'url' => 'student/components/cards',
-                    'pro' => true
                 ]
             ]
         ]
@@ -119,9 +113,6 @@ function renderMenuItem($item, $current_url) {
             <?php if(isset($item['badge'])): ?>
                 <span class="badge-pro"><?= $item['badge'] ?></span>
             <?php endif; ?>
-            <?php if(isset($item['pro']) && $item['pro']): ?>
-                <span class="badge-pro">Pro</span>
-            <?php endif; ?>
             <?php if($hasSubmenu): ?>
                 <i class="fas fa-chevron-right submenu-arrow"></i>
             <?php endif; ?>
@@ -136,9 +127,6 @@ function renderMenuItem($item, $current_url) {
                                 <span><?= $subitem['text'] ?></span>
                                 <?php if(isset($subitem['badge'])): ?>
                                     <span class="badge-sub"><?= $subitem['badge'] ?></span>
-                                <?php endif; ?>
-                                <?php if(isset($subitem['pro']) && $subitem['pro']): ?>
-                                    <span class="badge-pro">Pro</span>
                                 <?php endif; ?>
                             </a>
                         </li>
@@ -162,7 +150,7 @@ function renderMenuItem($item, $current_url) {
     <div class="sidebar-header">
         <a href="<?= base_url() ?>" class="sidebar-logo">
             <i class="fas fa-graduation-cap logo-icon"></i>
-            <span>MATERIO</span>
+            <span>HUB Sự kiện</span>
         </a>
         <button class="sidebar-close d-lg-none" id="sidebar-close">
             <i class="fas fa-times"></i>
