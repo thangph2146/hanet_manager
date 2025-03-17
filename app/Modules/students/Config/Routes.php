@@ -3,53 +3,40 @@
 namespace Config;
 
 use CodeIgniter\Config\Services;
+use App\Modules\students\Controllers\StudentsController;
 
 // Lấy instance của RouteCollection
 $routes = Services::routes();
 
-// Định nghĩa namespace cho module students
-$routes->group('students', ['namespace' => 'App\Modules\students\Controllers'], function ($routes) {
-    // Route chính cho dashboard
-    $routes->get('dashboard', 'StudentsController::dashboard');
+// Student routes
+$routes->group('students', function ($routes) {
+    $routes->get('/', '\App\Modules\students\Controllers\StudentsController::dashboard');
+    $routes->get('dashboard', '\App\Modules\students\Controllers\StudentsController::dashboard');
+    $routes->get('profile', '\App\Modules\students\Controllers\StudentsController::profile');
+    $routes->get('logout', '\App\Modules\students\Controllers\StudentsController::logout');
     
-    // Routes cho events
+    // Các route khác cho student
+    $routes->get('courses', '\App\Modules\students\Controllers\StudentsController::courses');
+    $routes->get('schedules', '\App\Modules\students\Controllers\StudentsController::schedules');
+    $routes->get('exams', '\App\Modules\students\Controllers\StudentsController::exams');
+    $routes->get('grades', '\App\Modules\students\Controllers\StudentsController::grades');
+    $routes->get('fees', '\App\Modules\students\Controllers\StudentsController::fees');
+    $routes->get('certificates', '\App\Modules\students\Controllers\StudentsController::certificates');
+    $routes->get('notifications', '\App\Modules\students\Controllers\StudentsController::notifications');
+    $routes->get('help', '\App\Modules\students\Controllers\StudentsController::help');
+    $routes->get('settings', '\App\Modules\students\Controllers\StudentsController::settings');
+    
+    // Routes cho quản lý sự kiện
     $routes->group('events', function ($routes) {
-        $routes->get('/', 'EventsController::index');
-        $routes->get('view/(:num)', 'EventsController::view/$1');
-        $routes->get('register/(:num)', 'EventsController::register/$1');
-        $routes->post('register/(:num)', 'EventsController::saveRegistration/$1');
+        $routes->get('/', '\App\Modules\students\Controllers\StudentsController::events');
+        $routes->get('registered', '\App\Modules\students\Controllers\StudentsController::registeredEvents');
+        $routes->get('completed', '\App\Modules\students\Controllers\StudentsController::completedEvents');
+        $routes->get('detail/(:num)', '\App\Modules\students\Controllers\StudentsController::eventDetail/$1');
+        $routes->get('certificate/(:num)', '\App\Modules\students\Controllers\StudentsController::eventCertificate/$1');
+        
+        // Routes xử lý AJAX
+        $routes->post('register', '\App\Modules\students\Controllers\StudentsController::registerEvent');
+        $routes->post('cancel', '\App\Modules\students\Controllers\StudentsController::cancelRegistration');
+        $routes->post('attendance', '\App\Modules\students\Controllers\StudentsController::eventAttendance');
     });
-    
-    // Routes cho certificates
-    $routes->group('certificates', function ($routes) {
-        $routes->get('/', 'CertificatesController::index');
-        $routes->get('view/(:num)', 'CertificatesController::view/$1');
-        $routes->get('download/(:num)', 'CertificatesController::download/$1');
-    });
-    
-    // Routes cho profile
-    $routes->group('profile', function ($routes) {
-        $routes->get('/', 'ProfileController::index');
-        $routes->get('edit', 'ProfileController::edit');
-        $routes->post('update', 'ProfileController::update');
-        $routes->get('change-password', 'ProfileController::changePassword');
-        $routes->post('update-password', 'ProfileController::updatePassword');
-    });
-    
-    // Routes cho registrations (đăng ký của tôi)
-    $routes->group('registrations', function ($routes) {
-        $routes->get('/', 'RegistrationsController::index');
-        $routes->get('view/(:num)', 'RegistrationsController::view/$1');
-        $routes->get('cancel/(:num)', 'RegistrationsController::cancel/$1');
-        $routes->post('cancel/(:num)', 'RegistrationsController::saveCancel/$1');
-    });
-    
-    // Routes cho notifications (thông báo)
-    $routes->group('notifications', function ($routes) {
-        $routes->get('/', 'NotificationsController::index');
-        $routes->get('count', 'NotificationsController::getCount');
-        $routes->get('latest', 'NotificationsController::getLatest');
-        $routes->post('mark-as-read/(:num)', 'NotificationsController::markAsRead/$1');
-        $routes->post('mark-all-as-read', 'NotificationsController::markAllAsRead');
-    });
-}); 
+});

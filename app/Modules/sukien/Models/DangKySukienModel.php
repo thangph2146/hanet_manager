@@ -139,4 +139,29 @@ class DangKySukienModel extends Model
         // Trong bản demo, chỉ trả về true để giả lập thành công
         return true;
     }
+    
+    /**
+     * Kiểm tra xem người dùng đã đăng ký sự kiện chưa
+     * 
+     * @param int $userId ID của người dùng
+     * @param int $eventId ID của sự kiện
+     * @return bool
+     */
+    public function isRegistered($userId, $eventId)
+    {
+        // Trong triển khai thực tế:
+        // return $this->where('nguoi_dung_id', $userId)
+        //             ->where('su_kien_id', $eventId)
+        //             ->where('status', 1)
+        //             ->countAllResults() > 0;
+        
+        // Sử dụng mock data cho demo
+        foreach ($this->mockRegistrations as $registration) {
+            if ($registration['nguoi_dung_id'] == $userId && $registration['su_kien_id'] == $eventId && $registration['status'] == 1) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 } 
