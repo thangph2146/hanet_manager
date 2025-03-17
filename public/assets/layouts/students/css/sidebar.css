@@ -1,0 +1,162 @@
+/* Sidebar styles for Student App - Mobile First */
+.sidebar {
+    position: fixed;
+    top: 60px; /* Height of the header */
+    left: -250px; /* Hidden by default on mobile */
+    width: 250px;
+    height: calc(100vh - 60px);
+    background-color: var(--background-white);
+    border-right: 1px solid var(--border-color);
+    z-index: 90;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+}
+
+.sidebar.active {
+    left: 0; /* Show on mobile when active */
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 80;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+.sidebar-profile {
+    padding: 20px 15px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    overflow: hidden;
+    background-color: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sidebar-name {
+    font-weight: 500;
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.sidebar-role {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 10px;
+}
+
+.sidebar-progress {
+    margin-top: 10px;
+    height: 6px;
+    background-color: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.sidebar-progress-bar {
+    height: 100%;
+    background: linear-gradient(to right, var(--primary-color), var(--primary-light));
+    border-radius: 3px;
+}
+
+.sidebar-menu {
+    padding: 15px 0;
+}
+
+.sidebar-menu-title {
+    padding: 10px 15px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--text-light);
+    letter-spacing: 0.5px;
+}
+
+.menu-item {
+    position: relative;
+}
+
+.menu-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    text-decoration: none;
+    color: var(--text-color);
+    transition: all 0.3s;
+}
+
+.menu-icon {
+    width: 20px;
+    text-align: center;
+    margin-right: 10px;
+    font-size: 1rem;
+}
+
+.menu-text {
+    flex-grow: 1;
+    font-size: 0.9rem;
+}
+
+.menu-badge {
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    border-radius: 10px;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.menu-link:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.menu-link.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.menu-link.active .menu-badge {
+    background-color: white;
+    color: var(--primary-color);
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+    .sidebar {
+        left: 0; /* Always visible on tablet and up */
+    }
+    
+    .sidebar-overlay {
+        display: none !important; /* Never show overlay on tablet and up */
+    }
+    
+    body.sidebar-closed .sidebar {
+        left: -250px;
+    }
+    
+    body.sidebar-closed .content-wrapper {
+        margin-left: 0;
+    }
+} 

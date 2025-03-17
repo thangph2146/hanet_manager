@@ -1,0 +1,59 @@
+/* Footer styles for Student App - Mobile First */
+.footer {
+    background-color: var(--background-white);
+    border-top: 1px solid var(--border-color);
+    padding: 15px;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.footer-copyright {
+    margin-bottom: 10px;
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.footer-link {
+    margin: 0 8px;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.footer-link:hover {
+    text-decoration: underline;
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+    .footer {
+        padding: 15px 20px;
+    }
+    
+    .footer-content {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+    }
+    
+    .footer-copyright {
+        margin-bottom: 0;
+    }
+}
+
+/* Desktop and up */
+@media (min-width: 992px) {
+    .footer {
+        padding: 15px 30px;
+    }
+} 

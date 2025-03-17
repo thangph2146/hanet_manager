@@ -1,0 +1,345 @@
+/* Event styles for Student App - Mobile First */
+.event-dashboard {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.event-card {
+    background-color: var(--background-white);
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 100%;
+    position: relative;
+}
+
+.event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.event-img {
+    height: 180px;
+    width: 100%;
+    object-fit: cover;
+}
+
+.event-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+}
+
+.event-body {
+    padding: 15px;
+}
+
+.event-date {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.event-date i {
+    margin-right: 5px;
+}
+
+.event-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.event-description {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 4.5rem;
+}
+
+.event-details {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.event-detail {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+    margin-bottom: 5px;
+}
+
+.event-detail i {
+    margin-right: 5px;
+}
+
+.event-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.event-filter-group {
+    margin-bottom: 20px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.filter-title {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.filter-reset {
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    cursor: pointer;
+}
+
+.filter-body {
+    background-color: var(--background-white);
+    border-radius: 0.5rem;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.filter-group {
+    margin-bottom: 15px;
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.filter-group-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.filter-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.filter-checkbox input {
+    margin-right: 8px;
+}
+
+.filter-checkbox label {
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.filter-checkbox:last-child {
+    margin-bottom: 0;
+}
+
+.events-list-container {
+    flex: 1;
+}
+
+.event-tabs {
+    display: flex;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.event-tab {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-light);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.event-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.event-search {
+    margin-bottom: 20px;
+}
+
+.event-search-input {
+    width: 100%;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+}
+
+.event-pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.event-pagination-item {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 5px;
+    border-radius: 0.25rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.event-pagination-item.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.event-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.event-status.upcoming {
+    background-color: rgba(52, 144, 220, 0.1);
+    color: #3490dc;
+}
+
+.event-status.ongoing {
+    background-color: rgba(56, 193, 114, 0.1);
+    color: #38c172;
+}
+
+.event-status.completed {
+    background-color: rgba(102, 102, 102, 0.1);
+    color: #666666;
+}
+
+.event-status i {
+    margin-right: 5px;
+}
+
+.my-events-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.my-event-item {
+    background-color: var(--background-white);
+    border-radius: 0.5rem;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.my-event-header {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.my-event-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 0.25rem;
+    object-fit: cover;
+    margin-right: 15px;
+}
+
+.my-event-info {
+    flex: 1;
+}
+
+.my-event-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.my-event-date {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 5px;
+}
+
+.my-event-status {
+    align-self: flex-start;
+}
+
+.my-event-actions {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+    .event-dashboard {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .event-tabs {
+        overflow-x: visible;
+        flex-wrap: wrap;
+    }
+    
+    .my-events-list {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .my-event-item {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .my-event-header {
+        margin-bottom: 0;
+        margin-right: 15px;
+    }
+    
+    .my-event-actions {
+        margin-top: 0;
+        margin-left: auto;
+    }
+}
+
+/* Desktop and up */
+@media (min-width: 992px) {
+    .event-dashboard {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    
+    .my-events-list {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+} 

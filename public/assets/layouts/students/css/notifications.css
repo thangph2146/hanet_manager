@@ -1,0 +1,140 @@
+/* Notification styles for Student App - Mobile First */
+.notification-container {
+    position: fixed;
+    top: 70px;
+    right: 15px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: calc(100% - 30px);
+    max-width: 350px;
+}
+
+.notification {
+    background-color: var(--background-white);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 15px;
+    display: flex;
+    align-items: flex-start;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--primary-light);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+}
+
+.notification.success .notification-icon {
+    background-color: var(--success-color);
+}
+
+.notification.error .notification-icon {
+    background-color: var(--danger-color);
+}
+
+.notification.warning .notification-icon {
+    background-color: var(--warning-color);
+}
+
+.notification-content {
+    flex-grow: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.notification.success .notification-title {
+    color: var(--success-color);
+}
+
+.notification.error .notification-title {
+    color: var(--danger-color);
+}
+
+.notification.warning .notification-title {
+    color: var(--warning-color);
+}
+
+.notification-message {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    line-height: 1.4;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 5px;
+    flex-shrink: 0;
+}
+
+.notification-close:hover {
+    color: var(--text-color);
+}
+
+/* Progress bar for notification auto-close */
+.notification::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background-color: rgba(0,0,0,0.1);
+    animation: notification-progress 5s linear forwards;
+}
+
+.notification.success::after {
+    background-color: var(--success-color);
+}
+
+.notification.error::after {
+    background-color: var(--danger-color);
+}
+
+.notification.warning::after {
+    background-color: var(--warning-color);
+}
+
+@keyframes notification-progress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+    .notification-container {
+        right: 20px;
+        top: 80px;
+    }
+}
+
+/* Desktop and up */
+@media (min-width: 992px) {
+    .notification-container {
+        right: 30px;
+    }
+}
