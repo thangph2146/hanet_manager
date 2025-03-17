@@ -4,10 +4,6 @@
         <div class="mobile-menu-button" aria-label="Toggle sidebar" role="button" tabindex="0">
             <i class="bi bi-list"></i>
         </div>
-        <a href="<?= base_url('students/dashboard') ?>" class="brand-logo d-flex align-items-center">
-            <img src="<?= base_url('assets/images/logo-icon.png') ?>" alt="Logo" class="logo-icon me-2" width="36">
-            <span class="logo-text d-none d-xl-block fw-bold fs-5">BUH Events</span>
-        </a>
         <form class="searchbar" id="searchForm">
             <div class="position-absolute top-50 translate-middle-y search-icon ms-3" role="button" tabindex="0">
                 <i class="bi bi-search"></i>

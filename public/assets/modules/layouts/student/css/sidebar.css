@@ -100,7 +100,7 @@
   margin: 0;
   list-style: none;
   overflow-y: auto;
-  max-height: calc(100vh - 70px);
+  max-height: calc(100vh - 130px); /* 60px header + 70px sidebar header */
   overscroll-behavior: contain;
 }
 
@@ -161,28 +161,6 @@
   background-color: #c1c1c1;
 }
 
-/* Page content wrapper */
-.page-content-wrapper {
-  margin-left: 250px;
-  width: calc(100% - 250px);
-  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: margin-left, width;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  contain: layout style paint;
-}
-
-/* Page content */
-.page-content {
-  flex: 1;
-  padding: 1.5rem 0;
-  transition: padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: padding;
-  contain: layout style paint;
-}
-
 /* Overlay */
 .overlay {
   display: none;
@@ -227,8 +205,9 @@
 .wrapper.sidebar-mini.sidebar-hover .sidebar-wrapper,
 .wrapper.sidebar-mini .sidebar-wrapper:hover {
   width: 250px;
-  z-index: 300;
+  z-index: 900;
   box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .wrapper.sidebar-mini.sidebar-hover .sidebar-wrapper .logo-text-wrapper,
@@ -238,7 +217,7 @@
   opacity: 1;
   visibility: visible;
   width: auto;
-  transition-delay: 0.05s;
+  transition-delay: 0.1s;
 }
 
 /* Mobile - sidebar đóng */
@@ -315,7 +294,7 @@
 @media (min-width: 1025px) {
   .wrapper.sidebar-mini .sidebar-wrapper:hover {
     width: 250px;
-    z-index: 300;
+    z-index: 900;
     box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
     overflow: visible;
   }
@@ -331,7 +310,6 @@
   /* Đảm bảo navbar và content không bị chồng lên sidebar */
   .sidebar-wrapper {
     z-index: 200;
-    padding-top: 0; /* Header riêng của sidebar */
   }
 }
 
@@ -369,12 +347,6 @@
   color: #fff;
 }
 
-/* Fix layout wrapper */
-.page-content-wrapper {
-  position: relative;
-  overflow-x: hidden;
-}
-
 /* Animation class */
 .animate-sidebar {
   animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -382,7 +354,6 @@
 
 /* Performance optimizations */
 .sidebar-wrapper, 
-.page-content-wrapper,
 .toggle-icon i {
   backface-visibility: hidden;
   perspective: 1000px;

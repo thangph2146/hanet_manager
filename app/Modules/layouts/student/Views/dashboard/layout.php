@@ -169,11 +169,11 @@
         <!-- Sidebar -->
         <?php include(APPPATH . 'Modules/layouts/student/Views/components/sidebar.php'); ?>
         
+        <!-- Header - Tách riêng ra ngoài page-content-wrapper -->
+        <?php include(APPPATH . 'Modules/layouts/student/Views/components/header.php'); ?>
+        
         <!-- Main Content -->
         <div class="page-content-wrapper">
-            <!-- Header -->
-            <?php include(APPPATH . 'Modules/layouts/student/Views/components/header.php'); ?>
-            
             <!-- Page Content -->
             <div class="page-content">
                 <div class="container-fluid">

@@ -402,16 +402,94 @@ const HeaderManager = {
      * Thiết lập hiệu ứng cho header khi scroll
      */
     setupScrollHeader: function() {
-        const header = document.querySelector('.header');
+        const header = document.querySelector('.top-header');
         if (!header) return;
+        
+        // Thiết lập trạng thái ban đầu
+        if (window.scrollY > 10) {
+            header.classList.add('scrolled');
+        }
         
         window.addEventListener('scroll', this.throttle(() => {
             if (window.scrollY > 10) {
-                header.classList.add('header-scrolled');
+                header.classList.add('scrolled');
             } else {
-                header.classList.remove('header-scrolled');
+                header.classList.remove('scrolled');
             }
         }, 100));
+        
+        // Theo dõi trạng thái sidebar để điều chỉnh header
+        const sidebar = document.querySelector('.sidebar-wrapper');
+        const wrapper = document.querySelector('.wrapper');
+        
+        if (sidebar && wrapper) {
+            // Kiểm tra trạng thái ban đầu
+            this.adjustHeaderWidth(header, wrapper, sidebar);
+            
+            // Theo dõi sự kiện hover trên sidebar
+            let hoverTimeout; // Biến để lưu trữ timeout
+            
+            sidebar.addEventListener('mouseenter', () => {
+                clearTimeout(hoverTimeout);
+                if (wrapper.classList.contains('sidebar-mini')) {
+                    // Khi hover vào sidebar thu gọn, header mở rộng tạm thời
+                    setTimeout(() => {
+                        header.style.marginLeft = '250px'; 
+                        header.style.width = 'calc(100% - 250px)';
+                    }, 50); // Thêm độ trễ để đồng bộ với hiệu ứng của sidebar
+                }
+            });
+            
+            sidebar.addEventListener('mouseleave', () => {
+                // Khi hover ra, trở về trạng thái trước đó sau một khoảng thời gian
+                clearTimeout(hoverTimeout);
+                hoverTimeout = setTimeout(() => {
+                    this.adjustHeaderWidth(header, wrapper, sidebar);
+                }, 150); // Thêm độ trễ để tránh giật
+            });
+            
+            // Theo dõi sự kiện thay đổi class
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.attributeName === 'class') {
+                        // Khi class của wrapper thay đổi (mini/không mini)
+                        this.adjustHeaderWidth(header, wrapper, sidebar);
+                    }
+                });
+            });
+            
+            observer.observe(wrapper, { attributes: true });
+            
+            // Theo dõi sự kiện resize để điều chỉnh khi thay đổi kích thước màn hình
+            window.addEventListener('resize', this.throttle(() => {
+                this.adjustHeaderWidth(header, wrapper, sidebar);
+            }, 250));
+        }
+    },
+    
+    /**
+     * Điều chỉnh độ rộng header theo trạng thái sidebar
+     */
+    adjustHeaderWidth: function(header, wrapper, sidebar) {
+        if (!header || !wrapper || !sidebar) return;
+        
+        // Trên mobile
+        if (window.innerWidth < 1025) {
+            header.style.marginLeft = '0';
+            header.style.width = '100%';
+            return;
+        }
+        
+        // Trên desktop
+        if (wrapper.classList.contains('sidebar-mini')) {
+            // Sidebar đang thu gọn
+            header.style.marginLeft = '70px';
+            header.style.width = 'calc(100% - 70px)';
+        } else {
+            // Sidebar đang mở rộng
+            header.style.marginLeft = '250px';
+            header.style.width = 'calc(100% - 250px)';
+        }
     },
     
     /**
