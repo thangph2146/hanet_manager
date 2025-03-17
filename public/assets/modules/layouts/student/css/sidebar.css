@@ -1,33 +1,60 @@
 /*
  * Styles cho sidebar component
  * Tối ưu hiệu suất animation và hiển thị với CSS hiện đại
- * @version 2.1
+ * @version 2.5
  */
 
+:root {
+  --sidebar-width: 250px;
+  --sidebar-mini-width: 70px;
+  --sidebar-bg: #fff;
+  --sidebar-color: #5f5f5f;
+  --sidebar-border: #e9ecef;
+  --sidebar-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  --transition-speed: 0.25s;
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  --header-height: 60px;
+  --primary-color: #0d6efd;
+  --active-menu-bg: rgba(13, 110, 253, 0.1);
+}
+
+/* Sidebar container */
 .sidebar-wrapper {
-  width: 250px;
+  width: var(--sidebar-width);
   height: 100vh;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  z-index: 200;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--sidebar-bg);
+  box-shadow: var(--sidebar-shadow);
+  transition: transform var(--transition-speed) var(--transition-timing),
+              width var(--transition-speed) var(--transition-timing),
+              left var(--transition-speed) var(--transition-timing);
   will-change: transform, width, left;
-  border-right: 1px solid #e9ecef;
+  border-right: 1px solid var(--sidebar-border);
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   contain: layout style paint;
+  display: flex;
+  flex-direction: column;
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translateZ(0);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
 }
 
+/* Sidebar header */
 .sidebar-header {
-  padding: 1.2rem 1rem;
+  padding: 1.1rem 1rem;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--sidebar-border);
+  height: var(--header-height);
+  flex-shrink: 0;
+  position: relative;
 }
 
+/* Logo và icon */
 .sidebar-header .logo-icon {
   width: 36px;
   height: 36px;
@@ -35,6 +62,7 @@
   align-items: center;
   justify-content: center;
   min-width: 36px;
+  object-fit: contain;
 }
 
 .logo-icon-container {
@@ -51,22 +79,23 @@
   flex: 1;
   overflow: hidden;
   white-space: nowrap;
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity var(--transition-speed) var(--transition-timing), 
+              visibility var(--transition-speed) var(--transition-timing), 
+              width var(--transition-speed) var(--transition-timing);
   will-change: opacity, visibility, width;
+  margin-left: 10px;
 }
 
 .sidebar-header .logo-text {
-  margin-left: 10px;
-  margin-bottom: 0px;
+  margin-bottom: 0;
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--primary-color, #0d6efd);
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--primary-color);
+  transition: opacity var(--transition-speed) var(--transition-timing);
   white-space: nowrap;
 }
 
+/* Toggle icon */
 .toggle-icon {
   cursor: pointer;
   width: 34px;
@@ -80,18 +109,77 @@
   z-index: 10;
   margin-left: auto;
   flex-shrink: 0;
+  background-color: #f8f9fa;
 }
 
 .toggle-icon:hover {
-  background-color: rgba(13, 110, 253, 0.1);
-  color: var(--primary-color, #0d6efd);
+  background-color: var(--active-menu-bg);
+  color: var(--primary-color);
 }
 
 .toggle-icon i {
   font-size: 1.2rem;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--transition-speed) var(--transition-timing);
   will-change: transform;
   transform-origin: center center;
+}
+
+/* Search sidebar trên mobile */
+.sidebar-search {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--sidebar-border);
+  flex-shrink: 0;
+  display: none;
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon-sidebar {
+  position: absolute;
+  left: 10px;
+  color: #6c757d;
+  font-size: 0.9rem;
+  z-index: 1;
+}
+
+.search-input {
+  padding-left: 30px;
+  height: 36px;
+  font-size: 0.9rem;
+  border-radius: 18px;
+  background-color: #f8f9fa;
+  border: none;
+  width: 100%;
+}
+
+.search-input:focus {
+  background-color: #fff;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+  outline: none;
+}
+
+.sidebar-search-clear {
+  position: absolute;
+  right: 10px;
+  height: 18px;
+  width: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(108, 117, 125, 0.1);
+  color: #6c757d;
+  font-size: 0.7rem;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.sidebar-search-clear:hover {
+  background-color: rgba(108, 117, 125, 0.2);
 }
 
 /* Menu styles */
@@ -100,7 +188,7 @@
   margin: 0;
   list-style: none;
   overflow-y: auto;
-  max-height: calc(100vh - 130px); /* 60px header + 70px sidebar header */
+  flex: 1;
   overscroll-behavior: contain;
 }
 
@@ -109,24 +197,40 @@
 }
 
 .metismenu li a {
-  color: #5f5f5f;
+  color: var(--sidebar-color);
   text-decoration: none;
   display: flex;
   align-items: center;
   padding: 0.8rem 1.2rem;
   transition: all 0.3s;
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
 }
 
 .metismenu li a:hover {
-  color: var(--primary-color, #0d6efd);
-  background-color: rgba(13, 110, 253, 0.1);
+  background-color: rgba(13, 110, 253, 0.08);
+  transform: translateX(2px);
 }
 
 .metismenu li.mm-active > a {
-  color: var(--primary-color, #0d6efd);
-  background-color: rgba(13, 110, 253, 0.1);
+  position: relative;
+  overflow: hidden;
+  background-color: var(--active-menu-bg);
+  color: var(--primary-color);
   font-weight: 500;
+}
+
+.metismenu li.mm-active > a::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: var(--primary-color);
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
 }
 
 .metismenu li a .parent-icon {
@@ -144,19 +248,86 @@
 }
 
 .metismenu li.mm-active > a .parent-icon {
-  background-color: var(--primary-color, #0d6efd);
+  background-color: var(--primary-color);
   color: #fff;
 }
 
 .metismenu li a .menu-title {
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              visibility 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity var(--transition-speed) var(--transition-timing), 
+              visibility var(--transition-speed) var(--transition-timing), 
+              width var(--transition-speed) var(--transition-timing);
   will-change: opacity, visibility, width;
   overflow: hidden;
+  flex: 1;
 }
 
-/* Scollbar styles */
+.metismenu li a .menu-arrow {
+  transition: transform 0.3s;
+  margin-left: 0.5rem;
+}
+
+.metismenu li.mm-active > a .menu-arrow i {
+  transform: rotate(180deg);
+}
+
+/* Submenu styles */
+.metismenu .mm-collapse {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: max-height;
+}
+
+.metismenu .mm-collapse.mm-show {
+  max-height: 1000px;
+}
+
+.metismenu .mm-collapse li a {
+  padding: 0.5rem 1rem 0.5rem 3.5rem;
+  font-size: 0.9rem;
+}
+
+.metismenu .mm-collapse li a i {
+  font-size: 0.7rem;
+  margin-right: 0.5rem;
+}
+
+/* Footer sidebar */
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid var(--sidebar-border);
+  flex-shrink: 0;
+}
+
+.sidebar-footer-content {
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
+}
+
+.sidebar-footer-link {
+  color: var(--sidebar-color);
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.sidebar-footer-link:hover {
+  background-color: var(--active-menu-bg);
+  color: var(--primary-color);
+}
+
+.sidebar-footer-link i {
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+/* Scrollbar styles */
 .simplebar-scrollbar::before {
   background-color: #c1c1c1;
 }
@@ -169,71 +340,118 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 150;
   cursor: pointer;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   will-change: opacity;
-  transition: opacity 0.25s ease;
+  transition: opacity var(--transition-speed) ease;
+  opacity: 0;
+}
+
+.overlay.show {
+  opacity: 1;
 }
 
 /* Sidebar mini - thu gọn */
 .wrapper.sidebar-mini .sidebar-wrapper {
-  width: 70px;
-  overflow: visible;
-  contain: layout style paint;
+  width: var(--sidebar-mini-width);
+  overflow-x: hidden;
 }
 
 .wrapper.sidebar-mini .sidebar-wrapper .logo-text-wrapper,
-.wrapper.sidebar-mini .sidebar-wrapper .metismenu li a .menu-title {
+.wrapper.sidebar-mini .sidebar-wrapper .metismenu li a .menu-title,
+.wrapper.sidebar-mini .sidebar-wrapper .metismenu li a .menu-arrow,
+.wrapper.sidebar-mini .sidebar-wrapper .sidebar-footer span,
+.wrapper.sidebar-mini .sidebar-wrapper .sidebar-search {
   opacity: 0;
   visibility: hidden;
   width: 0;
-}
-
-.wrapper.sidebar-mini .page-content-wrapper {
-  margin-left: 70px;
-  width: calc(100% - 70px);
+  display: none;
 }
 
 .wrapper.sidebar-mini .toggle-icon i {
   transform: rotate(180deg);
 }
 
+.wrapper.sidebar-mini .sidebar-footer {
+  padding: 1rem 0.5rem;
+  text-align: center;
+}
+
+.wrapper.sidebar-mini .sidebar-footer-content {
+  flex-direction: column;
+  align-items: center;
+}
+
+.wrapper.sidebar-mini .sidebar-footer-link {
+  padding: 0.5rem;
+  width: 38px;
+  height: 38px;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.wrapper.sidebar-mini .sidebar-footer-link i {
+  margin-right: 0;
+}
+
 /* Hiệu ứng hover trên sidebar mini */
-.wrapper.sidebar-mini.sidebar-hover .sidebar-wrapper,
 .wrapper.sidebar-mini .sidebar-wrapper:hover {
-  width: 250px;
+  width: var(--sidebar-width);
   z-index: 900;
   box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.wrapper.sidebar-mini.sidebar-hover .sidebar-wrapper .logo-text-wrapper,
-.wrapper.sidebar-mini.sidebar-hover .sidebar-wrapper .metismenu li a .menu-title,
 .wrapper.sidebar-mini .sidebar-wrapper:hover .logo-text-wrapper,
-.wrapper.sidebar-mini .sidebar-wrapper:hover .metismenu li a .menu-title {
+.wrapper.sidebar-mini .sidebar-wrapper:hover .metismenu li a .menu-title,
+.wrapper.sidebar-mini .sidebar-wrapper:hover .metismenu li a .menu-arrow,
+.wrapper.sidebar-mini .sidebar-wrapper:hover .sidebar-footer span {
   opacity: 1;
   visibility: visible;
   width: auto;
+  display: block;
   transition-delay: 0.1s;
 }
 
+.wrapper.sidebar-mini .sidebar-wrapper:hover .sidebar-footer {
+  padding: 1rem;
+}
+
+.wrapper.sidebar-mini .sidebar-wrapper:hover .sidebar-footer-content {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.wrapper.sidebar-mini .sidebar-wrapper:hover .sidebar-footer-link {
+  width: auto;
+  height: auto;
+  justify-content: flex-start;
+  border-radius: 0.25rem;
+}
+
+.wrapper.sidebar-mini .sidebar-wrapper:hover .sidebar-footer-link i {
+  margin-right: 0.5rem;
+}
+
 /* Mobile - sidebar đóng */
-@media (max-width: 1024px) {
+@media (max-width: 1025px) {
   /* Mặc định ẩn sidebar trên mobile */
   .sidebar-wrapper {
-    left: -250px;
-    z-index: 1000; /* Tăng z-index để hiển thị trên các phần tử khác */
-    transform: translateX(0);
+    position: fixed;
+    top: var(--header-height);
+    height: calc(100vh - var(--header-height));
+    z-index: 1020;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
     will-change: transform;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   }
   
   .page-content-wrapper {
-    margin-left: 0;
-    width: 100%;
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-top: var(--header-height);
   }
   
   /* Mobile - khi mở sidebar */
@@ -245,72 +463,88 @@
   /* Hiển thị overlay khi mở sidebar */
   .sidebar-toggled .overlay {
     display: block;
-    opacity: 1;
   }
   
-  /* Button menu mobile */
-  .mobile-menu-button {
-    display: flex;
-    width: 40px;
-    height: 40px;
-    align-items: center;
-    justify-content: center;
-    background-color: transparent;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: none;
-    color: var(--dark-color, #343a40);
+  /* Tối ưu hiệu ứng đóng mở sidebar */
+  body.sidebar-toggled {
+    overflow: hidden;
   }
   
-  .mobile-menu-button:hover {
-    background-color: rgba(13, 110, 253, 0.1);
-    color: var(--primary-color, #0d6efd);
+  /* Menu items tối ưu trên mobile */
+  .metismenu li a {
+    padding: 0.85rem 1rem;
   }
   
-  .mobile-menu-button i {
-    font-size: 1.5rem;
+  .metismenu li a .parent-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
   }
   
-  /* Vô hiệu hóa hiệu ứng hover trên mobile */
-  .wrapper.sidebar-mini .sidebar-wrapper:hover {
-    width: 70px;
+  /* Hiển thị thanh tìm kiếm trên mobile */
+  .sidebar-search {
+    display: block;
   }
   
-  .wrapper.sidebar-mini .sidebar-wrapper:hover .logo-text-wrapper,
-  .wrapper.sidebar-mini .sidebar-wrapper:hover .metismenu li a .menu-title {
-    opacity: 0;
-    visibility: hidden;
-    width: 0;
+  /* Tối ưu hiển thị submenu */
+  .metismenu .mm-collapse li a {
+    padding-left: 3.2rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Tối ưu cho mobile cụ thể */
+@media (max-width: 480px) {
+  .sidebar-wrapper {
+    max-width: 280px;
+    width: 85%;
   }
   
-  /* Fix padding cho content trên mobile */
-  .page-content {
-    padding: 1rem 0;
+  .metismenu li a {
+    padding: 0.75rem 0.85rem;
+  }
+  
+  .metismenu li a .parent-icon {
+    min-width: 28px;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .sidebar-header {
+    padding: 0.8rem 0.75rem;
+    height: 56px;
+  }
+  
+  .sidebar-search {
+    padding: 0.6rem 0.7rem;
+  }
+  
+  .search-input {
+    height: 34px;
+    font-size: 0.85rem;
   }
 }
 
 /* Desktop - overflow fix */
-@media (min-width: 1025px) {
+@media (min-width: 1026px) {
   .wrapper.sidebar-mini .sidebar-wrapper:hover {
-    width: 250px;
-    z-index: 900;
-    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
     overflow: visible;
   }
   
   .wrapper.sidebar-mini .sidebar-wrapper:hover .logo-text-wrapper,
-  .wrapper.sidebar-mini .sidebar-wrapper:hover .metismenu li a .menu-title {
+  .wrapper.sidebar-mini .sidebar-wrapper:hover .metismenu li a .menu-title,
+  .wrapper.sidebar-mini .sidebar-wrapper:hover .metismenu li a .menu-arrow {
     opacity: 1;
     visibility: visible;
     width: auto;
     transition-delay: 0.05s;
   }
+}
 
-  /* Đảm bảo navbar và content không bị chồng lên sidebar */
-  .sidebar-wrapper {
-    z-index: 200;
-  }
+/* Animation và transição */
+.sidebar-wrapper.sidebar-initialized {
+  transition: transform var(--transition-speed) var(--transition-timing),
+              width var(--transition-speed) var(--transition-timing);
 }
 
 /* Dark theme cho sidebar */
@@ -328,6 +562,19 @@
   color: #fff;
 }
 
+.dark-theme .sidebar-search {
+  border-bottom-color: #2a3446;
+}
+
+.dark-theme .search-input {
+  background-color: #2a3446;
+  color: #e9ecef;
+}
+
+.dark-theme .search-input:focus {
+  background-color: #2c3953;
+}
+
 .dark-theme .metismenu li a {
   color: #a3adc2;
 }
@@ -342,21 +589,38 @@
   background-color: rgba(255, 255, 255, 0.08);
 }
 
+.dark-theme .toggle-icon {
+  background-color: #2a3446;
+}
+
 .dark-theme .toggle-icon:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.dark-theme .sidebar-footer {
+  border-top-color: #2a3446;
+}
+
+.dark-theme .sidebar-footer-link {
+  color: #a3adc2;
+}
+
+.dark-theme .sidebar-footer-link:hover {
   background-color: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
 
 /* Animation class */
 .animate-sidebar {
-  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideIn var(--transition-speed) var(--transition-timing);
 }
 
 /* Performance optimizations */
 .sidebar-wrapper, 
-.toggle-icon i {
+.toggle-icon i, 
+.metismenu li a {
   backface-visibility: hidden;
-  perspective: 1000px;
   transform: translateZ(0);
 }
 
@@ -369,6 +633,151 @@
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+/* Ripple effect cho menu items */
+.metismenu li a::after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #3f8cff 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform 0.5s, opacity 0.8s;
+}
+
+.metismenu li a:active::after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
+/* Tăng khu vực click trên mobile */
+@media (max-width: 768px) {
+  .metismenu li a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+  
+  .metismenu li a .parent-icon,
+  .metismenu li a .menu-title,
+  .metismenu li a .menu-arrow {
+    position: relative;
+    z-index: 2;
+  }
+  
+  /* Tăng contrast cho menu active */
+  .metismenu li.mm-active > a {
+    background-color: rgba(13, 110, 253, 0.15);
+  }
+  
+  /* Tối ưu hiển thị submenu */
+  .metismenu .mm-collapse li a {
+    padding-left: 3rem;
+  }
+}
+
+/* Tối ưu hiển thị cuộn trên mobile */
+@media (max-width: 1025px) {
+  .metismenu {
+    padding-bottom: 30px;
+  }
+  
+  /* Tối ưu hover/active trên mobile */
+  .metismenu li a:hover,
+  .metismenu li.mm-active > a {
+    padding-left: 1.3rem;
+  }
+  
+  /* Thêm tối ưu touch cho mobile */
+  .metismenu li a {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    transition: all 0.2s ease;
+  }
+  
+  /* Thêm dòng phân cách giữa các menu items */
+  .metismenu li:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  }
+  
+  .dark-theme .metismenu li:not(:last-child) {
+    border-bottom-color: rgba(255, 255, 255, 0.03);
+  }
+}
+
+/* Cải thiện trải nghiệm khi sidebar mở trên mobile */
+@media (max-width: 1025px) {
+  .sidebar-wrapper {
+    box-shadow: 2px 0 20px rgba(0,0,0,0.15);
+    height: 100%;
+    top: 0;
+    z-index: 1010;
+    padding-top: 0;
+  }
+  
+  /* Menu item focus và active states trên mobile */
+  .metismenu li a:active,
+  .metismenu li a:focus {
+    background-color: rgba(13, 110, 253, 0.15);
+  }
+  
+  /* Sidebar header tối ưu trên mobile */
+  .sidebar-header {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .sidebar-header .logo-text {
+    color: white;
+  }
+  
+  .toggle-icon {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+  
+  .toggle-icon:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
+  }
+}
+
+/* Hiệu ứng mới cho active menu */
+.metismenu li.mm-active > a {
+  position: relative;
+  overflow: hidden;
+}
+
+.metismenu li.mm-active > a::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: var(--primary-color);
+}
+
+/* Xử lý đồng bộ active giữa header và sidebar */
+body[data-active-menu] .metismenu li a[data-menu-id] {
+  position: relative;
+}
+
+body[data-active-menu] .metismenu li a[data-menu-id=var(--active-menu)] {
+  color: var(--primary-color);
+  background-color: var(--active-menu-bg);
 }
 
 /* Event cards in dashboard */
@@ -510,4 +919,45 @@
 
 .dark-theme .stats-info .stats-label {
   color: #a3adc2;
+}
+
+/* Active menu indicator */
+.menu-active-indicator {
+  display: block;
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  animation: pulse 1.5s infinite;
+}
+
+.dark-theme .menu-active-indicator {
+  background-color: #fff;
+}
+
+@keyframes pulse {
+  0% { transform: translateY(-50%) scale(1); opacity: 1; }
+  50% { transform: translateY(-50%) scale(1.3); opacity: 0.7; }
+  100% { transform: translateY(-50%) scale(1); opacity: 1; }
+}
+
+/* Style cụ thể cho từng loại menu active */
+body[data-active-menu="menu-item-dashboard"] .sidebar-wrapper,
+body[data-active-menu="menu-item-events"] .sidebar-wrapper,
+body[data-active-menu="menu-item-registered-events"] .sidebar-wrapper {
+  border-right: 1px solid var(--primary-color);
+}
+
+/* Menu active mặc định với CSS variable */
+.metismenu li a[data-menu-id] {
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.metismenu li a[data-menu-id]:hover .menu-title {
+  transform: translateX(3px);
 }

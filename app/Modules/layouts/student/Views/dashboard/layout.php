@@ -45,83 +45,7 @@
     <link href="<?= base_url('assets/modules/layouts/student/css/header.css') ?>" rel="stylesheet" />
     <link href="<?= base_url('assets/modules/layouts/student/css/sidebar.css') ?>" rel="stylesheet" />
     
-    <!-- Critical CSS Inline -->
-    <style>
-        /* Critical CSS inline for faster rendering */
-        .page-transition {
-            position: fixed;
-            z-index: 9999;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .page-transition.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-        
-        .skeleton-loading {
-            animation: pulse 1.5s ease-in-out 0.5s infinite;
-            padding: 15px;
-        }
-        
-        .skeleton-item {
-            background: #f0f0f0;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-        
-        .skeleton-title {
-            height: 32px;
-            width: 60%;
-            margin-bottom: 20px;
-        }
-        
-        .skeleton-text {
-            height: 16px;
-            width: 100%;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        
-        .dark-theme .skeleton-item {
-            background: #333;
-        }
-        
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 995;
-            display: none;
-        }
-        
-        .wrapper {
-            display: flex;
-            position: relative;
-            min-height: 100vh;
-            width: 100%;
-            overflow: hidden;
-        }
-    </style>
+   
     
     <!-- Non-Critical CSS (deferred) -->
     <link href="<?= base_url('assets/css/bootstrap-extended.css') ?>" rel="stylesheet" media="print" onload="this.media='all'" />
@@ -165,24 +89,26 @@
     <div class="wrapper">
         <!-- Overlay -->
         <div class="overlay" id="overlay"></div>
+         <!-- Header - Tách riêng ra ngoài page-content-wrapper -->
+         <?php include(APPPATH . 'Modules/layouts/student/Views/components/header.php'); ?>
         
-        <!-- Sidebar -->
-        <?php include(APPPATH . 'Modules/layouts/student/Views/components/sidebar.php'); ?>
-        
-        <!-- Header - Tách riêng ra ngoài page-content-wrapper -->
-        <?php include(APPPATH . 'Modules/layouts/student/Views/components/header.php'); ?>
+       
         
         <!-- Main Content -->
         <div class="page-content-wrapper">
+        <!-- Sidebar -->
+        <?php include(APPPATH . 'Modules/layouts/student/Views/components/sidebar.php'); ?>
+
             <!-- Page Content -->
             <div class="page-content">
                 <div class="container-fluid">
                     <?= $this->renderSection('content') ?>
                 </div>
+                  <!-- Footer -->
+            <?php include(APPPATH . 'Modules/layouts/student/Views/components/footer.php'); ?>
             </div>
             
-            <!-- Footer -->
-            <?php include(APPPATH . 'Modules/layouts/student/Views/components/footer.php'); ?>
+          
         </div>
     </div>
     
