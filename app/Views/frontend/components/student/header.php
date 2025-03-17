@@ -35,19 +35,10 @@ $userdropdown = [
         ]
     ],
     [
-        'title' => 'Thanh toán',
-        'actions' => [
-            [
-                'icon' => 'file-invoice',
-                'title' => 'Thanh toán',
-                'url' => 'students/billing'
-            ]
-        ]
-    ],
-    [
         'title' => 'Đăng xuất',
         'actions' => [
             [
+                'type' => 'danger',
                 'icon' => 'power-off',
                 'title' => 'Đăng xuất',
                 'url' => 'login/logoutstudent'
@@ -151,40 +142,18 @@ $userdropdown = [
                 </div>
                 
                 <div class="dropdown-divider"></div>
-                
+                <?php foreach($userdropdown as $user): ?>   
                 <div class="user-menu-section">
-                    <small class="dropdown-header-text">Tài khoản</small>
-                    <a class="dropdown-item" href="<?= base_url('student/profile') ?>">
-                        <i class="fas fa-user"></i>
-                        <span>Hồ sơ của tôi</span>
+                    <small class="dropdown-header-text"><?= $user['title'] ?></small>
+                    <?php foreach($user['actions'] as $action): ?>
+                    <a class="dropdown-item <?= isset($action['type']) && $action['type'] == 'danger' ? 'text-danger' : '' ?>" href="<?= base_url($action['url']) ?>">
+                        <i class="fas fa-<?= $action['icon'] ?>"></i>
+                        <span><?= $action['title'] ?></span>
                     </a>
-                    <a class="dropdown-item" href="<?= base_url('student/settings') ?>">
-                        <i class="fas fa-cog"></i>
-                        <span>Cài đặt</span>
-                    </a>
+                    <?php endforeach; ?>
                 </div>
                 
-                <div class="user-menu-section">
-                    <small class="dropdown-header-text">Thanh toán</small>
-                    <a class="dropdown-item" href="<?= base_url('student/billing') ?>">
-                        <i class="fas fa-file-invoice"></i>
-                        <span>Thanh toán</span>
-                        <span class="badge bg-danger ms-auto">4</span>
-                    </a>
-                    <a class="dropdown-item" href="<?= base_url('student/subscription') ?>">
-                        <i class="fas fa-crown"></i>
-                        <span>Nâng cấp Pro</span>
-                    </a>
-                </div>
-                
-                <div class="dropdown-divider"></div>
-                
-                <div class="user-menu-section">
-                    <a class="dropdown-item text-danger" href="<?= base_url('login/logoutstudent') ?>">
-                        <i class="fas fa-power-off"></i>
-                        <span>Đăng xuất</span>
-                    </a>
-                </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
