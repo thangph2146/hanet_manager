@@ -198,7 +198,7 @@ class GoogleAuthentication {
                 
                 // Đăng nhập sinh viên - sử dụng logInStudent tương tự như trong AuthenticationStudent
                 $this->logInStudent($student);
-                log_message('info', 'Student logged in successfully via Google: ' . $student->student_id);
+                log_message('info', 'Student logged in successfully via Google: ' . $student->nguoi_dung_id);
                 return true;
 
             default: // admin
@@ -273,6 +273,6 @@ class GoogleAuthentication {
     {
         $session = session();
         $session->regenerate();
-        $session->set('student_id', $student->student_id);
+        $session->set('nguoi_dung_id', $student->nguoi_dung_id);
     }
 } 

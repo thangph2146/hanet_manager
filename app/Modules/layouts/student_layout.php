@@ -141,7 +141,7 @@
             <img src="<?= base_url('assets/img/avatar/default.png') ?>" alt="Student Photo">
             <div>
                 <h6 class="mb-0"><?= session()->get('student_name') ?? 'Nguyễn Văn A' ?></h6>
-                <small><?= session()->get('student_id') ?? 'SV001' ?></small>
+                <small><?= session()->get('nguoi_dung_id') ?? 'SV001' ?></small>
             </div>
         </div>
         <div class="sidebar-sticky">

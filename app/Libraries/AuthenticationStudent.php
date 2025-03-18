@@ -59,7 +59,7 @@ class AuthenticationStudent
 
 		if ($remember_me) {
 
-			$this->rememberLogin($student->student_id);
+			$this->rememberLogin($student->nguoi_dung_id);
 			
 		}
 
@@ -73,17 +73,17 @@ class AuthenticationStudent
 	{
 		$session = session();
 		$session->regenerate();
-		$session->set('student_id', $student->student_id);
+		$session->set('nguoi_dung_id', $student->nguoi_dung_id);
 	}
 
 	/**
-	 * @param $student_id
+	 * @param $nguoi_dung_id
 	 */
-	private function rememberLogin($student_id)
+	private function rememberLogin($nguoi_dung_id)
 	{
 		$model = new \App\Models\RememberedLoginModel();
 		
-		list($token, $expiry) = $model->rememberStudentLogin($student_id);
+		list($token, $expiry) = $model->rememberStudentLogin($nguoi_dung_id);
 		
 		$response = service('response');
 		
@@ -114,7 +114,7 @@ class AuthenticationStudent
 	 */
 	private function getStudentFromSession()
 	{
-		if ( ! session()->has('student_id')) {
+		if ( ! session()->has('nguoi_dung_id')) {
 			
 			return null;
 			
@@ -122,7 +122,7 @@ class AuthenticationStudent
 		
 		$model = new \App\Models\StudentModel();
 		
-		$student = $model->where('student_id', session()->get('student_id'))->first();
+		$student = $model->where('nguoi_dung_id', session()->get('nguoi_dung_id'))->first();
 
 		if ($student && $student->status) {
 			
@@ -155,7 +155,7 @@ class AuthenticationStudent
 		
 		$student_model = new \App\Models\StudentModel();
 
-		$student = $student_model->where('student_id', $remembered_login['student_id'])->first();
+		$student = $student_model->where('nguoi_dung_id', $remembered_login['nguoi_dung_id'])->first();
 		
 		if ($student && $student->StudyStatusID) {
 			

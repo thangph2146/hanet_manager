@@ -8,9 +8,9 @@ class RememberedLoginModel extends \CodeIgniter\Model
 {
 	protected $table = 'remembered_login';
 
-	protected $allowedFields = ['token_hash', 'student_id', 'expires_at'];
+	protected $allowedFields = ['token_hash', 'nguoi_dung_id', 'expires_at'];
 
-	public function rememberStudentLogin($student_id)
+	public function rememberStudentLogin($nguoi_dung_id)
 	{
 		$token = new Token;
 
@@ -20,7 +20,7 @@ class RememberedLoginModel extends \CodeIgniter\Model
 
 		$data = [
 			'token_hash' => $token_hash,
-			'student_id'    => $student_id,
+			'nguoi_dung_id'    => $nguoi_dung_id,
 			'expires_at' => date('Y-m-d H:i:s', $expiry)
 		];
 

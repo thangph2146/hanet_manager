@@ -41,8 +41,8 @@
         'columns' => [
             [
                 'type' => 'checkbox',
-                'id_field' => 'student_id',
-                'name' => 'student_id[]'
+                'id_field' => 'nguoi_dung_id',
+                'name' => 'nguoi_dung_id[]'
             ],
             [
                 'field' => 'AccountId'
@@ -95,7 +95,7 @@ $(document).ready(function() {
         var selectedIds = [];
         
         // Lấy tất cả ID đã chọn
-        $('input[name="student_id[]"]:checked').each(function() {
+        $('input[name="nguoi_dung_id[]"]:checked').each(function() {
             selectedIds.push($(this).val());
         });
         
@@ -110,7 +110,7 @@ $(document).ready(function() {
         // Hiển thị hộp thoại xác nhận
         if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn những người dùng này? Hành động này không thể hoàn tác!')) {
             var data = {
-                student_ids: selectedIds
+                nguoi_dung_ids: selectedIds
             };
             data[csrfName] = csrfHash;
             
@@ -127,7 +127,7 @@ $(document).ready(function() {
                     
                     if (response.success) {
                         // Xóa các dòng đã chọn khỏi DataTable
-                        $('input[name="student_id[]"]:checked').each(function() {
+                        $('input[name="nguoi_dung_id[]"]:checked').each(function() {
                             var row = $(this).closest('tr');
                             dataTable.row(row).remove();
                         });
@@ -167,7 +167,7 @@ $(document).ready(function() {
         var url = $(this).attr('href');
         var row = $(this).closest('tr');
         var userName = $(this).attr('title').replace('Khôi phục ', '');
-        var userId = $(this).closest('tr').find('input[name="student_id[]"]').val();
+        var userId = $(this).closest('tr').find('input[name="nguoi_dung_id[]"]').val();
         
         // Đảm bảo URL chính xác
         if (!url || url === '#' || url === 'javascript:void(0)') {
@@ -235,7 +235,7 @@ $(document).ready(function() {
             var selectedIds = [];
             
             // Lấy tất cả ID đã chọn
-            $('input[name="student_id[]"]:checked').each(function() {
+            $('input[name="nguoi_dung_id[]"]:checked').each(function() {
                 selectedIds.push($(this).val());
             });
             
@@ -253,7 +253,7 @@ $(document).ready(function() {
             
             if (confirm('Bạn có chắc chắn muốn khôi phục ' + selectedIds.length + ' người dùng đã chọn?')) {
                 var data = {
-                    student_ids: selectedIds
+                    nguoi_dung_ids: selectedIds
                 };
                 data[csrfName] = csrfHash;
                 
@@ -270,7 +270,7 @@ $(document).ready(function() {
                         
                         if (response.success) {
                             // Xóa các dòng đã chọn khỏi DataTable
-                            $('input[name="student_id[]"]:checked').each(function() {
+                            $('input[name="nguoi_dung_id[]"]:checked').each(function() {
                                 var row = $(this).closest('tr');
                                 dataTable.row(row).remove();
                             });
@@ -312,7 +312,7 @@ $(document).ready(function() {
     
     // Xử lý sự kiện chọn tất cả
     $('#select-all').on('change', function() {
-        $('input[name="student_id[]"]').prop('checked', $(this).prop('checked'));
+        $('input[name="nguoi_dung_id[]"]').prop('checked', $(this).prop('checked'));
     });
     
     // Hàm hiển thị thông báo

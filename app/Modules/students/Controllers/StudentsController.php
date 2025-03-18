@@ -108,7 +108,7 @@ class StudentsController extends BaseController
             'title' => 'Dashboard Sinh viên',
             'student_data' => [
                 'fullname' => session()->get('student_name') ?? 'Nguyễn Văn A',
-                'student_id' => session()->get('student_id') ?? 'SV001',
+                'nguoi_dung_id' => session()->get('nguoi_dung_id') ?? 'SV001',
                 'picture' => null
             ],
             'active_events' => $activeEventsCount,
@@ -328,7 +328,7 @@ class StudentsController extends BaseController
                 'title' => 'Chi tiết sự kiện',
                 'student_data' => [
                     'fullname' => session()->get('student_name') ?? 'Nguyễn Văn A',
-                    'student_id' => session()->get('student_id') ?? 'SV001',
+                    'nguoi_dung_id' => session()->get('nguoi_dung_id') ?? 'SV001',
                     'picture' => null
                 ],
                 'notification_count' => 2,
@@ -361,7 +361,7 @@ class StudentsController extends BaseController
                 'title' => 'Chi tiết sự kiện',
                 'student_data' => [
                     'fullname' => session()->get('student_name') ?? 'Nguyễn Văn A',
-                    'student_id' => session()->get('student_id') ?? 'SV001',
+                    'nguoi_dung_id' => session()->get('nguoi_dung_id') ?? 'SV001',
                     'picture' => null
                 ],
                 'notification_count' => 2,

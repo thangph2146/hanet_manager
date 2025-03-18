@@ -9,7 +9,7 @@ class CreateNguoiDung extends Migration
     public function up()
     {
         $this->forge->addField([
-            'student_id' => [
+            'nguoi_dung_id' => [
                 'type'           => 'INT',
                 'constraint'     => 8,
                 'unsigned'       => true,
@@ -111,7 +111,7 @@ class CreateNguoiDung extends Migration
                 'null' => true,
             ],
         ]);
-        $this->forge->addKey('student_id', true);
+        $this->forge->addKey('nguoi_dung_id', true);
         $this->forge->createTable('students');
     }
 
