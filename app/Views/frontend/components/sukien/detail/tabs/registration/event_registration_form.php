@@ -116,65 +116,72 @@
     </div>
 </form>
 
-<!-- Modal Điều khoản với thiết kế tối ưu -->
-<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="termsModalLabel"><i class="bi bi-file-text me-2"></i>Điều khoản tham gia sự kiện</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="alert alert-danger mb-4">
-                    <i class="bi bi-info-circle-fill me-2"></i> Vui lòng đọc kỹ các điều khoản sau trước khi đăng ký tham gia sự kiện.
-                </div>
-                
-                <div class="card mb-3 border-start border-danger border-4 shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title"><i class="bi bi-1-circle-fill me-2 text-danger"></i>Quy định chung</h6>
-                        <p class="card-text">Người tham gia cần tuân thủ các quy định của Ban tổ chức và địa điểm tổ chức sự kiện.</p>
-                    </div>
-                </div>
-                
-                <div class="card mb-3 border-start border-danger border-4 shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title"><i class="bi bi-2-circle-fill me-2 text-danger"></i>Đăng ký và xác nhận</h6>
-                        <p class="card-text">Việc đăng ký tham gia sự kiện sẽ được xác nhận qua email. Người tham gia cần mang theo email xác nhận khi đến tham dự sự kiện.</p>
-                    </div>
-                </div>
-                
-                <div class="card mb-3 border-start border-danger border-4 shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title"><i class="bi bi-3-circle-fill me-2 text-danger"></i>Điểm danh và chứng nhận</h6>
-                        <p class="card-text">Người tham gia cần điểm danh khi đến tham dự sự kiện. Chứng nhận tham gia (nếu có) sẽ chỉ được cấp cho những người tham dự đầy đủ chương trình.</p>
-                    </div>
-                </div>
-                
-                <div class="card mb-3 border-start border-danger border-4 shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title"><i class="bi bi-4-circle-fill me-2 text-danger"></i>Quyền riêng tư và hình ảnh</h6>
-                        <p class="card-text">Ban tổ chức có quyền sử dụng hình ảnh, video được ghi lại trong sự kiện cho mục đích truyền thông và báo cáo.</p>
-                    </div>
-                </div>
-                
-                <div class="card mb-3 border-start border-danger border-4 shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title"><i class="bi bi-5-circle-fill me-2 text-danger"></i>Hủy đăng ký</h6>
-                        <p class="card-text">Nếu không thể tham gia, người đăng ký vui lòng thông báo cho Ban tổ chức ít nhất 24 giờ trước khi sự kiện diễn ra.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>Đóng
-                </button>
-                <button type="button" class="btn btn-danger rounded-pill" id="agreeTermsBtn">
-                    <i class="bi bi-check-circle me-2"></i>Đồng ý với điều khoản
-                </button>
-            </div>
-        </div>
+<!-- Sử dụng component modal chung -->
+<?php
+$modalParams = [
+    'id' => 'termsModal',
+    'title' => '<i class="bi bi-file-text me-2"></i>Điều khoản tham gia sự kiện',
+    'size' => 'lg',
+    'closeBtn' => true,
+    'saveBtn' => false,
+    'container' => true,
+    'centered' => true,
+    'scrollable' => true,
+    'backdrop' => 'static',
+    'keyboard' => false,
+    'content' => '
+<div class="alert alert-danger mb-4">
+    <i class="bi bi-info-circle-fill me-2"></i> Vui lòng đọc kỹ các điều khoản sau trước khi đăng ký tham gia sự kiện.
+</div>
+
+<div class="card mb-3 border-start border-danger border-4 shadow-sm">
+    <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-1-circle-fill me-2 text-danger"></i>Quy định chung</h6>
+        <p class="card-text">Người tham gia cần tuân thủ các quy định của Ban tổ chức và địa điểm tổ chức sự kiện.</p>
     </div>
 </div>
+
+<div class="card mb-3 border-start border-danger border-4 shadow-sm">
+    <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-2-circle-fill me-2 text-danger"></i>Đăng ký và xác nhận</h6>
+        <p class="card-text">Việc đăng ký tham gia sự kiện sẽ được xác nhận qua email. Người tham gia cần mang theo email xác nhận khi đến tham dự sự kiện.</p>
+    </div>
+</div>
+
+<div class="card mb-3 border-start border-danger border-4 shadow-sm">
+    <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-3-circle-fill me-2 text-danger"></i>Điểm danh và chứng nhận</h6>
+        <p class="card-text">Người tham gia cần điểm danh khi đến tham dự sự kiện. Chứng nhận tham gia (nếu có) sẽ chỉ được cấp cho những người tham dự đầy đủ chương trình.</p>
+    </div>
+</div>
+
+<div class="card mb-3 border-start border-danger border-4 shadow-sm">
+    <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-4-circle-fill me-2 text-danger"></i>Quyền riêng tư và hình ảnh</h6>
+        <p class="card-text">Ban tổ chức có quyền sử dụng hình ảnh, video được ghi lại trong sự kiện cho mục đích truyền thông và báo cáo.</p>
+    </div>
+</div>
+
+<div class="card mb-3 border-start border-danger border-4 shadow-sm">
+    <div class="card-body">
+        <h6 class="card-title"><i class="bi bi-5-circle-fill me-2 text-danger"></i>Hủy đăng ký</h6>
+        <p class="card-text">Nếu không thể tham gia, người đăng ký vui lòng thông báo cho Ban tổ chức ít nhất 24 giờ trước khi sự kiện diễn ra.</p>
+    </div>
+</div>
+',
+    'footer' => '
+<button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+    <i class="bi bi-x-circle me-2"></i>Đóng
+</button>
+<button type="button" class="btn btn-danger rounded-pill" id="agreeTermsBtn">
+    <i class="bi bi-check-circle me-2"></i>Đồng ý với điều khoản
+</button>
+'
+];
+
+// Include modal component
+include APPPATH . 'Views/components/_modal.php';
+?>
 
 <!-- Script để xử lý validate form và hiệu ứng -->
 <script>

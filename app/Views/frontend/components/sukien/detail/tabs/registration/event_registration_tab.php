@@ -15,9 +15,6 @@
             <!-- Registration Contact -->
             <?= $this->include('frontend\components\sukien\detail\tabs\registration\event_registration_contact') ?>
             
-            <!-- Contact Information -->
-            <?= $this->include('frontend\components\sukien\detail\tabs\registration\event_registration_contact') ?>
-           
         </div>
     </div>
     
