@@ -73,7 +73,7 @@ class Filters extends BaseConfig
      * @var array
      */
     public $filters = [
-		'loginUser' => [
+		'loginUser' => [ // đã đăng nhập mới vào được các trang này
 			'before' => [
 				'users*',
 				'roles*',
@@ -84,17 +84,14 @@ class Filters extends BaseConfig
 			]
 		],
 
-		'guestUser' => [
+		'guestUser' => [ // chưa đăng nhập mới vào được các trang này
 			'before' => [
                 'login*',
                 'login/admin*'
-            ],
-            'except' => [
-                '/'  // Không áp dụng filter cho API
             ]
 		],
 
-		'manager' => [
+		'manager' => [ // có phân quyền mới vào được
 			'before' => [
 				'users*',
 				'roles*',
@@ -105,14 +102,14 @@ class Filters extends BaseConfig
 			]
 		],
 
-		'loginStudent' => [
+		'loginStudent' => [ // đã đăng nhập mới vào được các trang này
 			'before' => [
 				'students*',
                 'login/logoutstudent*',
 			]
 		],
 
-		'guestStudent' => [
+		'guestStudent' => [ // chưa đăng nhập mới vào được các trang này
 			'before' => [
                 'login/admin',
                 'login/student',
