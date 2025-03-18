@@ -1,6 +1,6 @@
  <!-- Tabs Navigation -->
  <div class="w-100">
-                    <ul class="nav nav-tabs mb-4" id="eventTabs" role="tablist">
+    <ul class="nav nav-tabs mb-4" id="eventTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="event-details-tab" data-bs-toggle="tab" data-bs-target="#event-details" type="button" role="tab" aria-controls="event-details" aria-selected="true">
                                 <i class="lni lni-information"></i> Chi tiết sự kiện
@@ -23,10 +23,10 @@
                     <!-- Tab Chi tiết sự kiện -->
                     <?= $this->include('frontend\components\sukien\tabs\event_detail_tab') ?>
                     
-                    <!-- Tab Danh sách người tham gia -->
-                    <?= $this->include('frontend\components\sukien\tabs\event_participants_tab') ?>
+        <!-- Tab Danh sách người tham gia -->
+        <?= $this->include('frontend\components\sukien\tabs\event_participants_tab') ?>
                     
-                        <!-- Tab Form đăng ký -->
-                        <?= $this->include('frontend\components\sukien\tabs\event_registration_tab') ?>
-                    </div>
-                </div>
+        <!-- Tab Form đăng ký -->
+        <?= $this->include('frontend\components\sukien\tabs\event_registration_tab') ?>
+    </div>
+</div>
