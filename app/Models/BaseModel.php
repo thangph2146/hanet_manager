@@ -1,120 +1,390 @@
 <?php
-
 namespace App\Models;
 
 use CodeIgniter\Model;
+use CodeIgniter\Database\BaseBuilder;
 
 class BaseModel extends Model
 {
     protected $returnType = 'App\Entities\BaseEntity';
-    protected $useTimestamps = true; // Bật timestamp
-    protected $useSoftDeletes = true; // Bật soft delete
+    protected $useTimestamps = true;
+    protected $useSoftDeletes = true;
     protected $dateFormat = 'datetime';
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
     protected $deletedField = 'deleted_at';
-    protected $showExecutionTime = false; // Biến tùy chỉnh để hiển thị thời gian xử lý
+    protected $relations = [];
+    protected $searchableFields = [];
+    protected $filterableFields = [];
+    protected $beforeSpaceRemoval = [];
+    protected $concatFields = [];
 
-    // Insert và trả về ID
-    public function insertWithId($data, bool $returnId = true)
+    // Common validation rules that can be extended
+    protected $commonValidationRules = [
+        'status' => 'permit_empty|in_list[0,1]',
+        'email' => 'permit_empty|valid_email',
+        'phone' => 'permit_empty|numeric|min_length[10]|max_length[15]',
+    ];
+
+    public function __construct()
     {
-        $startTime = microtime(true);
-        $result = $this->insert($data, $returnId);
-        $this->showTime($startTime);
-        return $result;
+        parent::__construct();
+        $this->initializeModel();
     }
 
-    // Insert không trả về ID
-    public function insertWithoutId($data)
+    protected function initializeModel()
     {
-        return $this->insertWithId($data, false);
+        if (!empty($this->allowedFields)) {
+            foreach ($this->commonValidationRules as $field => $rules) {
+                if (in_array($field, $this->allowedFields)) {
+                    $this->validationRules[$field] = $rules;
+                }
+            }
+        }
     }
 
-    // Cập nhật dữ liệu
-    public function updateRecord($id, $data)
+    // Base query builder methods
+    protected function getBaseQuery()
     {
-        $startTime = microtime(true);
-        $result = $this->update($id, $data);
-        $this->showTime($startTime);
-        return $result;
+        return $this->builder();
     }
 
-    // Xóa cứng dữ liệu
-    public function deleteRecord($id)
+    // Generic join method
+    public function joinWith(array $joins = [], array $conditions = [], $select = '*')
     {
-        $startTime = microtime(true);
-        $result = $this->delete($id, true);
-        $this->showTime($startTime);
-        return $result;
+        $query = $this->select($select);
+
+        foreach ($joins as $join) {
+            $table = $join['table'];
+            $condition = $join['condition'];
+            $type = $join['type'] ?? 'inner';
+            $query->join($table, $condition, $type);
+        }
+
+        if (!empty($conditions)) {
+            foreach ($conditions as $condition) {
+                $field = $condition['field'];
+                $value = $condition['value'];
+                $operator = $condition['operator'] ?? '=';
+                
+                switch ($operator) {
+                    case 'in':
+                        $query->whereIn($field, $value);
+                        break;
+                    case 'not in':
+                        $query->whereNotIn($field, $value);
+                        break;
+                    case 'like':
+                        $query->like($field, $value);
+                        break;
+                    default:
+                        $query->where($field . ' ' . $operator, $value);
+                }
+            }
+        }
+
+        return $query;
     }
 
-    // Soft Delete
-    public function softDeleteRecord($id)
+    // Enhanced relationship handling
+    public function withRelations(array $relations = [])
     {
-        $startTime = microtime(true);
-        $result = $this->delete($id);
-        $this->showTime($startTime);
-        return $result;
+        $this->relations = $relations;
+        return $this;
     }
 
-    // Lấy tất cả bản ghi
-    public function getAll(bool $includeDeleted = false)
+    public function findWithRelations($id, $validate = false)
     {
-        $startTime = microtime(true);
-        $query = $includeDeleted ? $this->withDeleted() : $this;
-        $result = $query->findAll();
-        $this->showTime($startTime);
-        return $result;
+        $data = $this->find($id);
+        if (!$data) {
+            return null;
+        }
+
+        if ($validate && !$data->validate()) {
+            throw new \RuntimeException('Entity validation failed: ' . json_encode($data->getErrors()));
+        }
+
+        foreach ($this->relations as $relation => $config) {
+            $data->$relation = $this->fetchRelation($relation, $config, $data);
+        }
+
+        return $data;
     }
 
-    // Lấy bản ghi theo ID
-    public function getById($id, bool $includeDeleted = false)
+    protected function fetchRelation($relationName, $config, $data)
     {
-        $startTime = microtime(true);
-        $query = $includeDeleted ? $this->withDeleted() : $this;
-        $result = $query->find($id);
-        $this->showTime($startTime);
-        return $result;
+        $type = $config['type'] ?? '1-1';
+        $foreignTable = $config['table'];
+        $foreignKey = $config['foreignKey'];
+        $localKey = $config['localKey'] ?? $this->primaryKey;
+        $entityClass = $config['entity'] ?? 'App\Entities\BaseEntity';
+        $conditions = $config['conditions'] ?? [];
+        $select = $config['select'] ?? '*';
+        $orderBy = $config['orderBy'] ?? null;
+        $orderDir = $config['orderDir'] ?? 'ASC';
+
+        $query = $this->db->table($foreignTable)->select($select);
+
+        foreach ($conditions as $condition) {
+            $field = $condition['field'];
+            $value = $condition['value'];
+            $operator = $condition['operator'] ?? '=';
+            
+            switch ($operator) {
+                case 'in':
+                    $query->whereIn($field, $value);
+                    break;
+                case 'not in':
+                    $query->whereNotIn($field, $value);
+                    break;
+                case 'like':
+                    $query->like($field, $value);
+                    break;
+                default:
+                    $query->where($field . ' ' . $operator, $value);
+            }
+        }
+
+        if (isset($config['useSoftDeletes']) && $config['useSoftDeletes']) {
+            $query->where("{$foreignTable}.{$this->deletedField}", null);
+        }
+
+        if ($orderBy) {
+            $query->orderBy($orderBy, $orderDir);
+        }
+
+        switch ($type) {
+            case '1-1':
+                $result = $query->where($foreignKey, $data->get($localKey))
+                               ->get()
+                               ->getRow();
+                return $result ? new $entityClass((array) $result) : null;
+
+            case '1-n':
+                $results = $query->where($foreignKey, $data->get($localKey))
+                                ->get()
+                                ->getResult();
+                return array_map(fn($row) => new $entityClass((array) $row), $results);
+
+            case 'n-n':
+                $pivotTable = $config['pivotTable'];
+                $pivotLocalKey = $config['pivotLocalKey'];
+                $pivotForeignKey = $config['pivotForeignKey'];
+
+                $results = $query->join($pivotTable, "$pivotTable.$pivotForeignKey = $foreignTable.id")
+                                ->where("$pivotTable.$pivotLocalKey", $data->get($localKey))
+                                ->get()
+                                ->getResult();
+                return array_map(fn($row) => new $entityClass((array) $row), $results);
+
+            case 'n-1':
+                $result = $query->where('id', $data->get($foreignKey))
+                               ->get()
+                               ->getRow();
+                return $result ? new $entityClass((array) $result) : null;
+
+            default:
+                return null;
+        }
     }
 
-    // Lấy bản ghi theo điều kiện
-    public function getByCondition(array $conditions, bool $includeDeleted = false)
+    // Common CRUD operations with additional features
+    public function createWithRelations(array $data, array $relations = [])
     {
-        $startTime = microtime(true);
-        $query = $includeDeleted ? $this->withDeleted() : $this;
+        $this->db->transStart();
+        
+        $id = $this->insert($data);
+        
+        if ($id && !empty($relations)) {
+            foreach ($relations as $relation => $relatedData) {
+                $this->saveRelation($id, $relation, $relatedData);
+            }
+        }
+        
+        $this->db->transComplete();
+        return $id;
+    }
 
+    public function updateWithRelations($id, array $data, array $relations = [])
+    {
+        $this->db->transStart();
+        
+        $updated = $this->update($id, $data);
+        
+        if ($updated && !empty($relations)) {
+            foreach ($relations as $relation => $relatedData) {
+                $this->saveRelation($id, $relation, $relatedData);
+            }
+        }
+        
+        $this->db->transComplete();
+        return $updated;
+    }
+
+    protected function saveRelation($id, $relation, $relatedData)
+    {
+        if (!isset($this->relations[$relation])) {
+            return false;
+        }
+
+        $config = $this->relations[$relation];
+        $type = $config['type'] ?? '1-1';
+        
+        switch ($type) {
+            case 'n-n':
+                $pivotTable = $config['pivotTable'];
+                $pivotLocalKey = $config['pivotLocalKey'];
+                $pivotForeignKey = $config['pivotForeignKey'];
+                
+                $this->db->table($pivotTable)->where($pivotLocalKey, $id)->delete();
+                
+                foreach ($relatedData as $foreignId) {
+                    $this->db->table($pivotTable)->insert([
+                        $pivotLocalKey => $id,
+                        $pivotForeignKey => $foreignId
+                    ]);
+                }
+                break;
+                
+            case '1-n':
+                $foreignTable = $config['table'];
+                $foreignKey = $config['foreignKey'];
+                
+                $this->db->table($foreignTable)
+                         ->where($foreignKey, $id)
+                         ->update([$this->deletedField => date('Y-m-d H:i:s')]);
+                
+                foreach ($relatedData as $data) {
+                    $data[$foreignKey] = $id;
+                    $this->db->table($foreignTable)->insert($data);
+                }
+                break;
+                
+            case '1-1':
+                $foreignTable = $config['table'];
+                $foreignKey = $config['foreignKey'];
+                
+                $existing = $this->db->table($foreignTable)
+                                   ->where($foreignKey, $id)
+                                   ->get()
+                                   ->getRow();
+                
+                if ($existing) {
+                    $this->db->table($foreignTable)
+                             ->where($foreignKey, $id)
+                             ->update($relatedData);
+                } else {
+                    $relatedData[$foreignKey] = $id;
+                    $this->db->table($foreignTable)->insert($relatedData);
+                }
+                break;
+        }
+        
+        return true;
+    }
+
+    // Advanced search functionality
+    public function search(array $criteria = [], array $options = [])
+    {
+        $builder = $this->builder();
+        
+        if (!empty($criteria['search']) && !empty($this->searchableFields)) {
+            $builder->groupStart();
+            foreach ($this->searchableFields as $field) {
+                $builder->orLike($field, $criteria['search']);
+            }
+            $builder->groupEnd();
+        }
+        
+        if (!empty($criteria['filters']) && !empty($this->filterableFields)) {
+            foreach ($criteria['filters'] as $field => $value) {
+                if (in_array($field, $this->filterableFields)) {
+                    if (is_array($value)) {
+                        $builder->whereIn($field, $value);
+                    } else {
+                        $builder->where($field, $value);
+                    }
+                }
+            }
+        }
+        
+        if (!empty($options['sort'])) {
+            $direction = $options['sort_direction'] ?? 'ASC';
+            $builder->orderBy($options['sort'], $direction);
+        }
+        
+        if (isset($options['page']) && isset($options['limit'])) {
+            $offset = ($options['page'] - 1) * $options['limit'];
+            $builder->limit($options['limit'], $offset);
+        }
+        
+        return $builder->get()->getResult($this->returnType);
+    }
+
+    // Soft delete operations
+    public function restore($id)
+    {
+        return $this->update($id, [
+            $this->deletedField => null,
+            $this->updatedField => date('Y-m-d H:i:s')
+        ]);
+    }
+
+    public function getDeleted()
+    {
+        return $this->onlyDeleted()->findAll();
+    }
+
+    // Space removal utility
+    protected function removeSpaces(array $data)
+    {
+        if (!isset($data['data']) || empty($this->beforeSpaceRemoval)) {
+            return $data;
+        }
+
+        foreach ($this->beforeSpaceRemoval as $field) {
+            if (isset($data['data'][$field])) {
+                $data['data'][$field] = trim(preg_replace('/\s+/', ' ', $data['data'][$field]));
+            }
+        }
+
+        return $data;
+    }
+
+    // Utility methods
+    public function exists($id)
+    {
+        return $this->find($id) !== null;
+    }
+
+    public function countAll($conditions = [])
+    {
+        $builder = $this->builder();
         foreach ($conditions as $field => $value) {
-            $query->where($field, $value);
+            $builder->where($field, $value);
         }
-
-        $result = $query->findAll();
-        $this->showTime($startTime);
-        return $result;
+        return $builder->countAllResults();
     }
 
-    // Lấy ID của bản ghi cuối cùng
-    public function getLastInsertedId()
+    public function findOneBy(array $conditions)
     {
-        return $this->insertID();
+        return $this->where($conditions)->first();
     }
 
-    // Chèn nhiều dòng dữ liệu
-    public function bulkInsert(array $data)
+    public function findBy(array $conditions, $limit = null, $offset = 0)
     {
-        return $this->insertBatch($data);
-    }
-
-    // Cập nhật nhiều dòng dữ liệu
-    public function bulkUpdate(array $data, string $primaryKey = 'id')
-    {
-        return $this->updateBatch($data, $primaryKey);
-    }
-
-    // Hiển thị thời gian xử lý
-    protected function showTime($startTime)
-    {
-        if ($this->showExecutionTime) {
-            echo "Thời gian xử lý: " . (microtime(true) - $startTime) . " giây\n";
+        $query = $this->where($conditions);
+        
+        if ($limit !== null) {
+            $query->limit($limit, $offset);
         }
+        
+        return $query->findAll();
+    }
+
+    // Helper method to build CONCAT fields
+    protected function buildConcatFields(array $fields, string $separator = ' ')
+    {
+        return "CONCAT(" . implode(", '{$separator}', ", $fields) . ")";
     }
 }

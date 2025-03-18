@@ -15,7 +15,7 @@ class GuestUserFilter implements FilterInterface
 
             $blockedPages = ['login/admin', 'login/student'];
             if (in_array($currentURI, $blockedPages)) {
-                return redirect()->to('/Users/dashboard');
+                return redirect()->to('/users/dashboard');
             }
         }
 
