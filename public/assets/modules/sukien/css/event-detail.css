@@ -14,9 +14,23 @@
 }
 
 /* Tabs */
+.sukien-tabs {
+    margin-bottom: 30px;
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+}
+
 .nav-tabs {
     border-bottom: 2px solid var(--primary-transparent);
     margin-bottom: 25px;
+    background-color: #f8f9fa;
+    padding: 0 15px;
+}
+
+.nav-tabs .nav-item {
+    margin-bottom: -2px;
 }
 
 .nav-tabs .nav-link {
@@ -33,6 +47,7 @@
 .nav-tabs .nav-link:hover {
     background-color: var(--primary-transparent);
     color: var(--primary-color);
+    transform: translateY(-3px);
 }
 
 .nav-tabs .nav-link.active {
@@ -43,14 +58,28 @@
 
 .nav-tabs .nav-link i {
     margin-right: 8px;
+    font-size: 1.1em;
 }
 
 /* Tab Content */
 .tab-content {
     background-color: #fff;
-    border-radius: 0 var(--border-radius) var(--border-radius) var(--border-radius);
-    box-shadow: var(--box-shadow);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
     padding: 20px;
+}
+
+/* Media Queries cho Tab Navigation */
+@media (max-width: 768px) {
+    .nav-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 5px;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.8rem 1rem;
+        white-space: nowrap;
+    }
 }
 
 /* Event Meta */

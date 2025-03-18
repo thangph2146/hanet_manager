@@ -8,9 +8,7 @@
 	<!-- JavaScript Libraries -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
 	<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/parallax.js/1.5.0/parallax.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.0.0/countUp.min.js"></script>
-	
 	<!-- Custom JavaScript -->
 	<script>
 		// Initialize AOS
