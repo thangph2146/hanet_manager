@@ -17,8 +17,7 @@
 	<!-- Structured Data for Events -->
 	<?= $this->renderSection('structured_data') ?>
 	
-	<!-- Additional CSS -->
-	<?= $this->renderSection('additional_css') ?>
+	
 	
 	<!-- CSS tùy chỉnh để tối ưu màu sắc -->
 	<?= $this->include('frontend/components/sukien/head/style') ?>

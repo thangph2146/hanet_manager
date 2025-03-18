@@ -4,7 +4,8 @@
  * AUTHOR:PDV-PC
  */
 ?>
-
+<!-- Additional CSS -->
+<?= $this->renderSection('additional_css') ?>
 <style>
 		:root {
 			--primary: #800000;          /* Đỏ đô chủ đạo */
