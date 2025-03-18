@@ -26,6 +26,8 @@ class Filters extends BaseConfig
 		'loginUser'    		=> \App\Filters\LoginUserFilter::class,
 		'guestUser' 		=> \App\Filters\GuestUserFilter::class,
 		'manager' 		=> \App\Filters\ManagerFilter::class,
+		'loginStudent' 	=> \App\Filters\LoginStudentsFilter::class,
+		'guestStudent' 	=> \App\Filters\GuestStudentsFilter::class,
     ];
 
     /**
@@ -101,6 +103,20 @@ class Filters extends BaseConfig
 				'admin*',
 				'nguoidung*',
 			]
+		],
+
+		'loginStudent' => [
+			'before' => [
+				'students*',
+                'login/admin*',
+                'login/logoutstudent*'
+			]
+		],
+
+		'guestStudent' => [
+			'before' => [
+				'login/student*',
+            ]
 		],
 	];
 }
