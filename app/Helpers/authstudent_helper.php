@@ -27,16 +27,39 @@ if ( ! function_exists('current_student')) {
 }
 
 
-if ( ! function_exists('getFullName')) {
+if ( ! function_exists('getFullNameStudent')) {
 
 	/**
 	 * @return mixed
 	 */
-	function getFullName()
+	function getFullNameStudent()
 	{
-		$auth = service('authstudent');
-
-		return $auth->getFullName();
+		try {
+			$auth = service('authstudent');
+			$student = $auth->getCurrentStudent();
+			if ($student === null) {
+				log_message('error', 'Student is null');
+				return 'Guest';
+			}
+			
+			// Debug thông tin
+			log_message('info', 'Student data: ' . json_encode($student));
+			
+			// Kiểm tra và lấy FullName
+			$fullName = $student->FullName;
+			if (empty($fullName)) {
+				log_message('error', 'FullName is empty');
+				return 'N/A';
+			}
+			return $fullName;
+			
+		} catch (\Exception $e) {
+			log_message('error', 'Error in getFullName: ' . $e->getMessage());
+			return 'Error';
+		}
 	}
 }
+
+
+
 

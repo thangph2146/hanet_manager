@@ -1,4 +1,5 @@
 <?php
+
 $notifications = [
     [
         'icon' => 'bell',
@@ -122,8 +123,7 @@ $userdropdown = [
                     <span class="user-status"></span>
                 </div>
                 <div class="user-info d-none d-md-block">
-                    <div class="user-name"><?= getFullName() ?></div>
-                    <div class="user-role"><?= getFullRole() ?></div>
+                    <div class="user-name"><?= getFullNameStudent() ?></div>
                 </div>
             </a>
             
@@ -135,8 +135,7 @@ $userdropdown = [
                             <span class="user-status"></span>
                         </div>
                         <div>
-                            <div class="fw-bold"><?= getFullName() ?></div>
-                            <div class="text-muted small"><?= getFullRole() ?></div>
+                            <div class="fw-bold"><?= getFullNameStudent() ?></div>
                         </div>
                     </div>
                 </div>

@@ -80,7 +80,7 @@ class Filters extends BaseConfig
 				'permissions*',
 				'settings*',
 				'nguoidung*',
-				'login/logout'
+                'login/logout',
 			]
 		],
 
@@ -108,14 +108,14 @@ class Filters extends BaseConfig
 		'loginStudent' => [
 			'before' => [
 				'students*',
-                'login/admin*',
-                'login/logoutstudent*'
+                'login/logoutstudent*',
 			]
 		],
 
 		'guestStudent' => [
 			'before' => [
-				'login/student*',
+                'login/admin',
+                'login/student',
             ]
 		],
 	];

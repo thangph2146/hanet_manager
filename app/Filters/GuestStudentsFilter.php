@@ -13,7 +13,7 @@ class GuestStudentsFilter implements FilterInterface
             // Lấy đường dẫn hiện tại
             $currentURI = uri_string();
 
-            $blockedPages = ['login/student'];
+            $blockedPages = ['login/student', 'login/admin'];
             if (in_array($currentURI, $blockedPages)) {
                 return redirect()->to('/students/dashboard');
             }

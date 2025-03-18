@@ -198,5 +198,16 @@ class AuthenticationStudent
 		return $MD5Password == md5("UisStaffID=" . $StudentID . ";UisPassword=" . $password);
 	}*/
 
+	public function getFullName()
+	{
+		$student = $this->getCurrentStudent();
+		if ($student === null) {
+			return '';
+		}
+		$fullName = array_column($student, 'FullName');
+		return $fullName[0] ?? '';
+	}
+
+	
 }
 

@@ -13,7 +13,7 @@ class GuestUserFilter implements FilterInterface
             // Lấy đường dẫn hiện tại
             $currentURI = uri_string();
 
-            $blockedPages = ['login/admin'];
+            $blockedPages = ['login/admin', 'login/student'];
             if (in_array($currentURI, $blockedPages)) {
                 return redirect()->to('/Users/dashboard');
             }

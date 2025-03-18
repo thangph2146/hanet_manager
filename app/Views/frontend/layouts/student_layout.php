@@ -31,10 +31,10 @@
 </head>
 <body>
     <!-- Page Loader -->
-    <div class="page-loader">
+    <!-- <div class="page-loader">
         <div class="loader"></div>
     </div>
-    
+     -->
     <!-- Layout Wrapper -->
     <div class="layout-wrapper">
         <!-- Sidebar -->

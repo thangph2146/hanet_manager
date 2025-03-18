@@ -40,11 +40,11 @@ class Services extends BaseService
 		return new \App\Libraries\Authentication;
 	}
 
-	public static function authStudent($getShared = true)
+	public static function authstudent($getShared = true)
 	{
 		if ($getShared)
 		{
-			return static::getSharedInstance('authStudent');
+			return static::getSharedInstance('authstudent');
 		}
 
 		return new \App\Libraries\AuthenticationStudent;
