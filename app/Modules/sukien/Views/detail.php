@@ -64,12 +64,12 @@
             <!-- Main Content -->
             <div class="col-lg-8 animate__animated animate__fadeInLeft">
                 <!-- Tabs Navigation -->
-               <?= $this->include('frontend\components\sukien\tabs\tabs_detail') ?>
+               <?= $this->include('frontend\components\sukien\detail\tabs\tabs_detail') ?>
             </div>
 
             <!-- Sidebar -->
             <div class="col-lg-4 animate__animated animate__fadeInRight">
-                <?= $this->include('frontend\components\sukien\event_sidebar') ?>
+                <?= $this->include('frontend\components\sukien\detail\sidebar\event_sidebar') ?>
             </div>
         </div>
     </section>

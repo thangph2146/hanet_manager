@@ -14,19 +14,19 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="event-registration-tab" data-bs-toggle="tab" data-bs-target="#event-registration" type="button" role="tab" aria-controls="event-registration" aria-selected="false">
                                 <i class="lni lni-pencil-alt"></i> Đăng ký tham gia
-                            </button>
-                        </li>
-                    </ul>
+            </button>
+        </li>
+    </ul>
                 
-                <!-- Tabs Content -->
-                <div class="tab-content" id="eventTabsContent">
-                    <!-- Tab Chi tiết sự kiện -->
-                    <?= $this->include('frontend\components\sukien\tabs\event_detail_tab') ?>
+    <!-- Tabs Content -->
+    <div class="tab-content" id="eventTabsContent">
+        <!-- Tab Chi tiết sự kiện -->
+        <?= $this->include('frontend\components\sukien\detail\tabs\detail\event_detail_tab') ?>
                     
         <!-- Tab Danh sách người tham gia -->
-        <?= $this->include('frontend\components\sukien\tabs\event_participants_tab') ?>
+        <?= $this->include('frontend\components\sukien\detail\tabs\event_participants_tab') ?>
                     
         <!-- Tab Form đăng ký -->
-        <?= $this->include('frontend\components\sukien\tabs\event_registration_tab') ?>
+        <?= $this->include('frontend\components\sukien\detail\tabs\event_registration_tab') ?>
     </div>
 </div>

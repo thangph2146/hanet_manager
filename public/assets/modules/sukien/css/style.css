@@ -777,7 +777,6 @@ footer a:hover {
 .countdown-label {
     font-size: 1.2rem;
     font-weight: 500;
-    color: var(--text-on-primary);
     opacity: 0.9;
 }
 
