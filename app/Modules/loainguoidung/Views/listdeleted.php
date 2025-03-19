@@ -1,176 +1,456 @@
-<?= $this->extend('layouts/default'); ?>
+<?= $this->extend('layouts/default') ?>
+<?= $this->section('linkHref') ?>
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/dataTables.bootstrap5.min.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/buttons.bootstrap5.min.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/responsive.bootstrap5.min.css') ?>">
+<?= $this->endSection() ?>
+<?= $this->section('title') ?>DANH SÁCH LOẠI NGƯỜI DÙNG ĐÃ XÓA<?= $this->endSection() ?>
 
-<?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/plugins/sweetalert2/sweetalert2.min.css') ?>">
+<?= $this->section('bread_cum_link') ?>
+<?= view('components/_breakcrump', [
+    'title' => 'Danh sách Loại Người Dùng đã xóa',
+    'dashboard_url' => site_url('users/dashboard'),
+    'breadcrumbs' => [
+        ['title' => 'Quản lý Loại Người Dùng', 'url' => site_url('/loainguoidung')],
+        ['title' => 'Danh sách Loại Người Dùng đã xóa', 'active' => true]
+    ],
+    'actions' => [
+		['url' => site_url('/loainguoidung/new'), 'title' => 'Tạo Loại Người Dùng'],
+		['url' => site_url('/loainguoidung'), 'title' => 'Danh sách Loại Người Dùng']
+	]
+]) ?>
 <?= $this->endSection() ?>
 
-<?= $this->section('content'); ?>
-
-<!-- Content Header (Page header) -->
-<div class="content-header">
-    <!-- Breadcrumb -->
-    <?= view('components/_breakcrump', [
-        'title' => $title,
-        'dashboard_url' => site_url('admin'),
-        'breadcrumbs' => [
-            ['url' => site_url('loainguoidung'), 'title' => 'Loại người dùng'],
-            ['title' => 'Thùng rác', 'active' => true]
-        ],
-        'actions' => [
-            ['url' => site_url('loainguoidung'), 'title' => 'Quay lại danh sách', 'icon' => 'fas fa-arrow-left']
-        ]
-    ]) ?>
-</div>
-<!-- /.content-header -->
-
-<!-- Main content -->
-<section class="content">
-    <div class="container-fluid">
-        <!-- Thông báo -->
-        <?php if (session()->has('success')) : ?>
-            <div class="alert alert-success alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                <h5><i class="icon fas fa-check"></i> Thành công!</h5>
-                <?= session('success') ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if (session()->has('error')) : ?>
-            <div class="alert alert-danger alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                <h5><i class="icon fas fa-ban"></i> Lỗi!</h5>
-                <?= session('error') ?>
-            </div>
-        <?php endif; ?>
-        
-        <!-- Danh sách loại người dùng đã xóa -->
-        <?= $this->include('App\Modules\loainguoidung\Views\_list_deleted', ['loai_nguoi_dungs' => $loai_nguoi_dungs]) ?>
+<?= $this->section("content") ?>
+<div class="table-responsive">
+    <?= form_open("loainguoidung/restoreMultiple", ['class' => 'row g3', 'id' => 'restore-form']) ?>
+    <div class="col-12 mb-3">
+        <button type="submit" class="btn btn-success">Khôi phục loại người dùng đã chọn</button>
+        <button type="button" id="force-delete-btn" class="btn btn-danger">Xóa vĩnh viễn</button>
     </div>
-</section>
-<!-- /.content -->
+    <input type="hidden" name="selected_ids" id="selected_ids" value="">
+    <?= view('components/_table', [
+        'caption' => 'Danh Sách Loại Người Dùng đã xóa',
+        'headers' => [
+            '<input type="checkbox" id="select-all" />', 
+            'ID', 
+            'Tên loại', 
+            'Mô tả',
+            'Ngày xóa',
+            'Thao tác'
+        ],    
+        'data' => $loai_nguoi_dungs,
+        'columns' => [
+            [
+                'type' => 'checkbox',
+                'id_field' => 'loai_nguoi_dung_id',
+                'name' => 'loai_nguoi_dung_id[]'
+            ],
+            [
+                'field' => 'loai_nguoi_dung_id'
+            ],
+            [
+                'field' => 'ten_loai'
+            ],
+            [
+                'field' => 'mo_ta'
+            ],
+            [
+                'field' => 'deleted_at',
+                'format' => 'date'
+            ],
+            [
+                'type' => 'actions',
+                'buttons' => [
+                    [
+                        'url_prefix' => site_url('loainguoidung/permanentDelete/'),
+                        'id_field' => 'loai_nguoi_dung_id',
+                        'title_field' => 'ten_loai',
+                        'title' => 'Xóa vĩnh viễn %s',
+                        'icon' => 'lni lni-trash',
+                    ]
+                ]
+            ]
+        ],
+        'options' => [
+            'table_id' => setting('App.table_id')
+        ]
+    ]) 
+    ?>
+    </form>
+</div>
+<?= $this->endSection() ?> 
 
-<?= $this->endSection(); ?>
-
-<?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
-<script src="<?= base_url('assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') ?>"></script>
-<script src="<?= base_url('assets/plugins/datatables-responsive/js/dataTables.responsive.min.js') ?>"></script>
-<script src="<?= base_url('assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js') ?>"></script>
-<script src="<?= base_url('assets/plugins/datatables-buttons/js/dataTables.buttons.min.js') ?>"></script>
-<script src="<?= base_url('assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js') ?>"></script>
-<script src="<?= base_url('assets/plugins/sweetalert2/sweetalert2.min.js') ?>"></script>
+<?= $this->section('script') ?>
+<!-- DataTables JS -->
+<script src="<?= base_url('assets/plugins/datatable/js/jquery.dataTables.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/dataTables.bootstrap5.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/dataTables.buttons.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/buttons.bootstrap5.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/jszip.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/pdfmake.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/vfs_fonts.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/buttons.html5.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/buttons.print.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/buttons.colVis.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/dataTables.responsive.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatable/js/responsive.bootstrap5.min.js') ?>"></script>
 
 <script>
-$(function() {
-    $("#example2_wrapper").DataTable({
-        "responsive": true,
-        "lengthChange": false,
-        "autoWidth": false,
-        "language": {
-            "url": "<?= base_url('assets/plugins/datatables/Vietnamese.json') ?>"
-        }
-    });
-
-    // Xử lý sự kiện khôi phục
-    $(document).on('click', '.btn-restore', function(e) {
+$(document).ready(function() {
+    // Khởi tạo DataTable
+    var dataTable = $('#<?= setting('App.table_id') ?>').DataTable();
+    
+    // Biến lưu trữ CSRF token
+    var csrfName = '<?= csrf_token() ?>';
+    var csrfHash = '<?= csrf_hash() ?>';
+    
+    // Xử lý sự kiện xóa vĩnh viễn
+    $('#force-delete-btn').on('click', function(e) {
         e.preventDefault();
-        const id = $(this).data('id');
         
-        Swal.fire({
-            title: 'Bạn có chắc chắn?',
-            text: "Loại người dùng sẽ được khôi phục!",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Đồng ý',
-            cancelButtonText: 'Hủy bỏ'
-        }).then((result) => {
-            if (result.isConfirmed) {
+        var selectedIds = [];
+        
+        // Lấy tất cả ID đã chọn
+        $('input[name="loai_nguoi_dung_id[]"]:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+        
+        if (selectedIds.length === 0) {
+            showNotification('warning', 'Vui lòng chọn ít nhất một loại người dùng để xóa vĩnh viễn.');
+            return false;
+        }
+        
+        // Lưu thông tin trang hiện tại
+        var currentPage = dataTable.page();
+        
+        // Hiển thị hộp thoại xác nhận
+        if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn những loại người dùng này? Hành động này không thể hoàn tác!')) {
+            // Cập nhật hidden input với danh sách ID
+            $('#selected_ids').val(selectedIds.join(','));
+            
+            // Xử lý xóa vĩnh viễn cho từng ID
+            var successCount = 0;
+            var totalIds = selectedIds.length;
+            var processedCount = 0;
+            
+            selectedIds.forEach(function(id) {
+                var data = {};
+                data[csrfName] = csrfHash;
+                
                 $.ajax({
-                    url: '<?= base_url('loainguoidung/restore') ?>/' + id,
+                    url: '<?= site_url('loainguoidung/permanentDelete') ?>/' + id,
                     type: 'POST',
                     dataType: 'json',
+                    data: data,
                     success: function(response) {
+                        processedCount++;
+                        
+                        // Cập nhật CSRF hash nếu có
+                        if (response.csrf_hash) {
+                            csrfHash = response.csrf_hash;
+                        }
+                        
                         if (response.success) {
-                            Swal.fire(
-                                'Đã khôi phục!',
-                                response.message,
-                                'success'
-                            ).then(() => {
-                                location.reload();
-                            });
+                            successCount++;
+                            
+                            // Xóa dòng khỏi DataTable
+                            var row = $('input[name="loai_nguoi_dung_id[]"][value="' + id + '"]').closest('tr');
+                            dataTable.row(row).remove();
+                            
+                            // Kiểm tra nếu đã xử lý tất cả các ID
+                            if (processedCount === totalIds) {
+                                // Vẽ lại bảng
+                                dataTable.draw(false);
+                                
+                                // Quay lại trang hiện tại nếu cần
+                                if (dataTable.page() !== currentPage && dataTable.page.info().pages > currentPage) {
+                                    dataTable.page(currentPage).draw(false);
+                                }
+                                
+                                // Bỏ chọn checkbox "chọn tất cả"
+                                $('#select-all').prop('checked', false);
+                                
+                                // Hiển thị thông báo thành công
+                                showNotification('success', 'Đã xóa vĩnh viễn ' + successCount + ' loại người dùng thành công.');
+                            }
                         } else {
-                            Swal.fire(
-                                'Lỗi!',
-                                response.message,
-                                'error'
-                            );
+                            // Kiểm tra nếu đã xử lý tất cả các ID
+                            if (processedCount === totalIds) {
+                                // Vẽ lại bảng
+                                dataTable.draw(false);
+                                
+                                // Hiển thị thông báo với số lượng thành công
+                                if (successCount > 0) {
+                                    showNotification('info', 'Đã xóa vĩnh viễn ' + successCount + ' loại người dùng thành công và ' + (totalIds - successCount) + ' thất bại.');
+                                } else {
+                                    showNotification('error', 'Không thể xóa vĩnh viễn loại người dùng. Vui lòng thử lại.');
+                                }
+                            }
                         }
                     },
-                    error: function() {
-                        Swal.fire(
-                            'Lỗi!',
-                            'Đã xảy ra lỗi khi xử lý yêu cầu.',
-                            'error'
-                        );
+                    error: function(xhr, status, error) {
+                        processedCount++;
+                        
+                        // Kiểm tra nếu đã xử lý tất cả các ID
+                        if (processedCount === totalIds) {
+                            // Vẽ lại bảng
+                            dataTable.draw(false);
+                            
+                            // Hiển thị thông báo với số lượng thành công
+                            if (successCount > 0) {
+                                showNotification('info', 'Đã xóa vĩnh viễn ' + successCount + ' loại người dùng thành công và ' + (totalIds - successCount) + ' thất bại.');
+                            } else {
+                                showNotification('error', 'Không thể xóa vĩnh viễn loại người dùng. Vui lòng thử lại.');
+                            }
+                        }
                     }
                 });
-            }
-        });
-    });
-
-    // Xử lý sự kiện xóa vĩnh viễn
-    $(document).on('click', '.btn-delete', function(e) {
-        e.preventDefault();
-        const id = $(this).data('id');
+            });
+        }
         
-        Swal.fire({
-            title: 'Bạn có chắc chắn?',
-            text: "Dữ liệu sẽ bị xóa vĩnh viễn và không thể khôi phục!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Đồng ý xóa',
-            cancelButtonText: 'Hủy bỏ'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '<?= base_url('loainguoidung/purge') ?>/' + id,
-                    type: 'DELETE',
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire(
-                                'Đã xóa!',
-                                response.message,
-                                'success'
-                            ).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire(
-                                'Lỗi!',
-                                response.message,
-                                'error'
-                            );
-                        }
-                    },
-                    error: function() {
-                        Swal.fire(
-                            'Lỗi!',
-                            'Đã xảy ra lỗi khi xử lý yêu cầu.',
-                            'error'
-                        );
-                    }
-                });
-            }
-        });
+        return false;
     });
+    
+    // Xử lý sự kiện khôi phục loại người dùng bằng Ajax
+    $(document).on('click', '.restore-loai', function(e) {
+        e.preventDefault();
+        
+        var url = $(this).attr('href');
+        var row = $(this).closest('tr');
+        var loaiName = $(this).attr('title').replace('Khôi phục ', '');
+        
+        // Lưu thông tin trang hiện tại
+        var currentPage = dataTable.page();
+        
+        // Hiển thị hộp thoại xác nhận
+        if (confirm('Bạn có chắc chắn muốn khôi phục loại người dùng "' + loaiName + '"?')) {
+            var data = {};
+            data[csrfName] = csrfHash;
+            
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function(response) {
+                    // Cập nhật CSRF hash nếu có
+                    if (response.csrf_hash) {
+                        csrfHash = response.csrf_hash;
+                    }
+                    
+                    if (response.success) {
+                        // Xóa dòng khỏi DataTable mà không tải lại trang
+                        dataTable.row(row).remove().draw(false);
+                        
+                        // Quay lại trang hiện tại nếu cần
+                        if (dataTable.page() !== currentPage && dataTable.page.info().pages > currentPage) {
+                            dataTable.page(currentPage).draw(false);
+                        }
+                        
+                        // Lưu thông tin loại người dùng đã khôi phục vào localStorage để cập nhật trang index
+                        var loaiData = {
+                            id: row.find('input[name="loai_nguoi_dung_id[]"]').val(),
+                            loai_nguoi_dung_id: row.find('input[name="loai_nguoi_dung_id[]"]').val(),
+                            ten_loai: loaiName,
+                            mo_ta: row.find('td:eq(3)').text().trim()
+                        };
+                        localStorage.setItem('restored_loai', JSON.stringify(loaiData));
+                        
+                        // Hiển thị thông báo thành công
+                        showNotification('success', 'Khôi phục loại người dùng thành công.');
+                    } else {
+                        // Hiển thị thông báo lỗi
+                        showNotification('error', response.message || 'Không thể khôi phục loại người dùng. Vui lòng thử lại.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showNotification('error', 'Đã xảy ra lỗi: ' + error);
+                }
+            });
+        }
+        
+        return false;
+    });
+    
+    // Xử lý sự kiện xóa vĩnh viễn một loại người dùng
+    $(document).on('click', '.delete-permanent', function(e) {
+        e.preventDefault();
+        
+        var url = $(this).attr('href');
+        var row = $(this).closest('tr');
+        var loaiName = $(this).attr('title').replace('Xóa vĩnh viễn ', '');
+        
+        // Hiển thị hộp thoại xác nhận
+        if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn loại người dùng "' + loaiName + '"? Hành động này không thể hoàn tác!')) {
+            var data = {};
+            data[csrfName] = csrfHash;
+            
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function(response) {
+                    // Cập nhật CSRF hash nếu có
+                    if (response.csrf_hash) {
+                        csrfHash = response.csrf_hash;
+                    }
+                    
+                    if (response.success) {
+                        // Xóa dòng khỏi DataTable mà không tải lại trang
+                        dataTable.row(row).remove().draw(false);
+                        
+                        // Hiển thị thông báo thành công
+                        showNotification('success', 'Xóa vĩnh viễn loại người dùng thành công.');
+                    } else {
+                        // Hiển thị thông báo lỗi
+                        showNotification('error', response.message || 'Không thể xóa vĩnh viễn loại người dùng. Vui lòng thử lại.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showNotification('error', 'Đã xảy ra lỗi: ' + error);
+                }
+            });
+        }
+        
+        return false;
+    });
+    
+    // Xử lý sự kiện khôi phục nhiều loại người dùng
+    $('#restore-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        var selectedIds = [];
+        
+        // Lấy tất cả ID đã chọn
+        $('input[name="loai_nguoi_dung_id[]"]:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+        
+        if (selectedIds.length === 0) {
+            showNotification('warning', 'Vui lòng chọn ít nhất một loại người dùng để khôi phục.');
+            return false;
+        }
+        
+        // Lưu thông tin trang hiện tại
+        var currentPage = dataTable.page();
+        
+        if (confirm('Bạn có chắc chắn muốn khôi phục ' + selectedIds.length + ' loại người dùng đã chọn?')) {
+            // Cập nhật hidden input với danh sách ID
+            $('#selected_ids').val(selectedIds.join(','));
+            
+            var data = {
+                selected_ids: selectedIds.join(',')
+            };
+            data[csrfName] = csrfHash;
+            
+            $.ajax({
+                url: '<?= site_url('loainguoidung/restoreMultiple') ?>',
+                type: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function(response) {
+                    // Cập nhật CSRF hash nếu có
+                    if (response.csrf_hash) {
+                        csrfHash = response.csrf_hash;
+                    }
+                    
+                    if (response.success) {
+                        // Xóa các dòng đã chọn khỏi DataTable
+                        $('input[name="loai_nguoi_dung_id[]"]:checked').each(function() {
+                            var row = $(this).closest('tr');
+                            // Lưu thông tin loại người dùng trước khi xóa dòng
+                            var loaiData = {
+                                id: $(this).val(),
+                                loai_nguoi_dung_id: $(this).val(),
+                                ten_loai: row.find('td:eq(2)').text().trim(),
+                                mo_ta: row.find('td:eq(3)').text().trim()
+                            };
+                            
+                            // Xóa dòng
+                            dataTable.row(row).remove();
+                            
+                            // Lưu thông tin loại người dùng đầu tiên vào localStorage để cập nhật trang index
+                            if (selectedIds.indexOf($(this).val()) === 0) {
+                                localStorage.setItem('restored_loai', JSON.stringify(loaiData));
+                            }
+                        });
+                        
+                        // Vẽ lại bảng
+                        dataTable.draw(false);
+                        
+                        // Quay lại trang hiện tại nếu cần
+                        if (dataTable.page() !== currentPage && dataTable.page.info().pages > currentPage) {
+                            dataTable.page(currentPage).draw(false);
+                        }
+                        
+                        // Bỏ chọn checkbox "chọn tất cả"
+                        $('#select-all').prop('checked', false);
+                        
+                        // Hiển thị thông báo thành công
+                        showNotification('success', response.message || 'Khôi phục loại người dùng thành công.');
+                    } else {
+                        // Hiển thị thông báo lỗi
+                        showNotification('error', response.message || 'Không thể khôi phục loại người dùng. Vui lòng thử lại.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showNotification('error', 'Đã xảy ra lỗi: ' + error);
+                }
+            });
+        }
+        
+        return false;
+    });
+    
+    // Xử lý sự kiện chọn tất cả
+    $('#select-all').on('change', function() {
+        $('input[name="loai_nguoi_dung_id[]"]').prop('checked', $(this).prop('checked'));
+    });
+    
+    // Cập nhật trạng thái Select All khi chọn từng checkbox
+    $(document).on('change', 'input[name="loai_nguoi_dung_id[]"]', function() {
+        var allChecked = $('input[name="loai_nguoi_dung_id[]"]:checked').length === $('input[name="loai_nguoi_dung_id[]"]').length;
+        $('#select-all').prop('checked', allChecked);
+    });
+    
+    // Hàm hiển thị thông báo
+    function showNotification(type, message) {
+        var bgClass = 'bg-success';
+        var icon = 'bx bx-check-circle';
+        
+        if (type === 'error') {
+            bgClass = 'bg-danger';
+            icon = 'bx bx-error-circle';
+        } else if (type === 'warning') {
+            bgClass = 'bg-warning';
+            icon = 'bx bx-error';
+        } else if (type === 'info') {
+            bgClass = 'bg-info';
+            icon = 'bx bx-info-circle';
+        }
+        
+        var html = '<div class="toast-container position-fixed top-0 end-0 p-3">' +
+                   '<div class="toast fade show" role="alert" aria-live="assertive" aria-atomic="true">' +
+                   '<div class="toast-header ' + bgClass + ' text-white">' +
+                   '<i class="' + icon + ' me-2"></i>' +
+                   '<strong class="me-auto">' + (type === 'success' ? 'Thành công' : 'Thông báo') + '</strong>' +
+                   '<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>' +
+                   '</div>' +
+                   '<div class="toast-body">' + message + '</div>' +
+                   '</div>' +
+                   '</div>';
+        
+        // Thêm thông báo vào body
+        $('body').append(html);
+        
+        // Tự động đóng thông báo sau 3 giây
+        setTimeout(function() {
+            $('.toast-container').remove();
+        }, 3000);
+    }
 });
 </script>
-<?= $this->endSection() ?> 
+<?= $this->endSection() ?>

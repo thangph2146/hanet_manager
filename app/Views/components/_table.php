@@ -60,7 +60,7 @@
         <div class="table-responsive" style="padding:10px;">
             <?php
             $table = new \CodeIgniter\View\Table();
-
+ 
             // Thiết lập template mặc định
             $template = [
                 'table_open' => '<table id="example2_wrapper" class="table table-hover table-striped table-bordered mb-0 w-100">',

@@ -27,11 +27,11 @@ class LoaiNguoiDung extends BaseController
         return view('App\Modules\loainguoidung\Views\index', $data);
     }
 
-    public function deleted()
+    public function listdeleted()
     {
         $data = [
             'title' => 'Danh sách loại người dùng đã xóa',
-            'loai_nguoi_dungs' => $this->loaiNguoiDungModel->getBinnedItems()
+            'loai_nguoi_dungs' => $this->loaiNguoiDungModel->getSoftDeleted()
         ];
 
         return view('App\Modules\loainguoidung\Views\listdeleted', $data);
@@ -129,10 +129,11 @@ class LoaiNguoiDung extends BaseController
             $response = [
                 'success' => false,
                 'message' => '',
+                'csrf_hash' => csrf_hash()
             ];
 
             // Kiểm tra ID hợp lệ
-            if (!$id || !$this->loaiNguoiDungModel->exists($id)) {
+            if (!$id || !$this->loaiNguoiDungModel->find($id)) {
                 $response['message'] = 'Loại người dùng không tồn tại.';
                 return $this->response->setJSON($response);
             }
@@ -170,18 +171,48 @@ class LoaiNguoiDung extends BaseController
 
     public function restore($id = null)
     {
+        // Kiểm tra nếu là request AJAX
+        if ($this->request->isAJAX()) {
+            $response = [
+                'success' => false,
+                'message' => '',
+                'csrf_hash' => csrf_hash()
+            ];
+
+            // Kiểm tra ID hợp lệ
+            if (!$id || !$this->loaiNguoiDungModel->find($id)) {
+                $response['message'] = 'Loại người dùng không tồn tại.';
+                return $this->response->setJSON($response);
+            }
+
+            try {
+                // Khôi phục loại người dùng
+                if ($this->loaiNguoiDungModel->restoreDeleted($id)) {
+                    $response['success'] = true;
+                    $response['message'] = 'Loại người dùng đã được khôi phục thành công.';
+                } else {
+                    $response['message'] = 'Không thể khôi phục loại người dùng. Vui lòng thử lại.';
+                }
+            } catch (\Exception $e) {
+                $response['message'] = 'Đã xảy ra lỗi: ' . $e->getMessage();
+            }
+
+            return $this->response->setJSON($response);
+        }
+
+        // Xử lý cho request thông thường (không phải AJAX)
         if (!$id) {
-            return redirect()->to('loainguoidung/deleted')->with('error', 'ID loại người dùng không được cung cấp.');
+            return redirect()->to('loainguoidung/listdeleted')->with('error', 'ID loại người dùng không được cung cấp.');
         }
 
         try {
             if ($this->loaiNguoiDungModel->restoreDeleted($id)) {
-                return redirect()->to('loainguoidung/deleted')->with('success', 'Loại người dùng đã được khôi phục thành công.');
+                return redirect()->to('loainguoidung/listdeleted')->with('success', 'Loại người dùng đã được khôi phục thành công.');
             } else {
-                return redirect()->to('loainguoidung/deleted')->with('error', 'Không thể khôi phục loại người dùng. Vui lòng thử lại.');
+                return redirect()->to('loainguoidung/listdeleted')->with('error', 'Không thể khôi phục loại người dùng. Vui lòng thử lại.');
             }
         } catch (\Exception $e) {
-            return redirect()->to('loainguoidung/deleted')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
+            return redirect()->to('loainguoidung/listdeleted')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
         }
     }
 
@@ -250,8 +281,40 @@ class LoaiNguoiDung extends BaseController
         // Lấy danh sách ID từ form
         $ids = $this->request->getPost('selected_ids');
         
+        // Kiểm tra nếu là request AJAX
+        if ($this->request->isAJAX()) {
+            $response = [
+                'success' => false,
+                'message' => '',
+                'csrf_hash' => csrf_hash()
+            ];
+            
+            if (empty($ids)) {
+                $response['message'] = 'Không có loại người dùng nào được chọn để khôi phục.';
+                return $this->response->setJSON($response);
+            }
+            
+            // Chuyển chuỗi ID thành mảng
+            $idArray = explode(',', $ids);
+            
+            try {
+                // Khôi phục các loại người dùng đã chọn
+                if ($this->loaiNguoiDungModel->restoreMultiple($idArray)) {
+                    $response['success'] = true;
+                    $response['message'] = 'Đã khôi phục thành công ' . count($idArray) . ' loại người dùng.';
+                } else {
+                    $response['message'] = 'Không thể khôi phục một số loại người dùng. Vui lòng thử lại.';
+                }
+            } catch (\Exception $e) {
+                $response['message'] = 'Đã xảy ra lỗi: ' . $e->getMessage();
+            }
+            
+            return $this->response->setJSON($response);
+        }
+        
+        // Xử lý cho request thông thường (không phải AJAX)
         if (empty($ids)) {
-            return redirect()->to('loainguoidung/deleted')->with('error', 'Không có loại người dùng nào được chọn để khôi phục.');
+            return redirect()->to('loainguoidung/listdeleted')->with('error', 'Không có loại người dùng nào được chọn để khôi phục.');
         }
         
         // Chuyển chuỗi ID thành mảng
@@ -260,29 +323,58 @@ class LoaiNguoiDung extends BaseController
         try {
             // Khôi phục các loại người dùng đã chọn
             if ($this->loaiNguoiDungModel->restoreMultiple($idArray)) {
-                return redirect()->to('loainguoidung/deleted')->with('success', 'Đã khôi phục thành công ' . count($idArray) . ' loại người dùng.');
+                return redirect()->to('loainguoidung/listdeleted')->with('success', 'Đã khôi phục thành công ' . count($idArray) . ' loại người dùng.');
             } else {
-                return redirect()->to('loainguoidung/deleted')->with('error', 'Không thể khôi phục một số loại người dùng. Vui lòng thử lại.');
+                return redirect()->to('loainguoidung/listdeleted')->with('error', 'Không thể khôi phục một số loại người dùng. Vui lòng thử lại.');
             }
         } catch (\Exception $e) {
-            return redirect()->to('loainguoidung/deleted')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
+            return redirect()->to('loainguoidung/listdeleted')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
         }
     }
 
     public function permanentDelete($id = null)
     {
+        // Kiểm tra nếu là request AJAX
+        if ($this->request->isAJAX()) {
+            $response = [
+                'success' => false,
+                'message' => '',
+                'csrf_hash' => csrf_hash()
+            ];
+
+            // Kiểm tra ID hợp lệ
+            if (!$id) {
+                $response['message'] = 'ID loại người dùng không được cung cấp.';
+                return $this->response->setJSON($response);
+            }
+
+            try {
+                if ($this->loaiNguoiDungModel->permanentDelete($id)) {
+                    $response['success'] = true;
+                    $response['message'] = 'Loại người dùng đã được xóa vĩnh viễn.';
+                } else {
+                    $response['message'] = 'Không thể xóa vĩnh viễn loại người dùng. Vui lòng thử lại.';
+                }
+            } catch (\Exception $e) {
+                $response['message'] = 'Đã xảy ra lỗi: ' . $e->getMessage();
+            }
+
+            return $this->response->setJSON($response);
+        }
+
+        // Xử lý cho request thông thường (không phải AJAX)
         if (!$id) {
-            return redirect()->to('loainguoidung/deleted')->with('error', 'ID loại người dùng không được cung cấp.');
+            return redirect()->to('loainguoidung/listdeleted')->with('error', 'ID loại người dùng không được cung cấp.');
         }
 
         try {
             if ($this->loaiNguoiDungModel->permanentDelete($id)) {
-                return redirect()->to('loainguoidung/deleted')->with('success', 'Loại người dùng đã được xóa vĩnh viễn.');
+                return redirect()->to('loainguoidung/listdeleted')->with('success', 'Loại người dùng đã được xóa vĩnh viễn.');
             } else {
-                return redirect()->to('loainguoidung/deleted')->with('error', 'Không thể xóa vĩnh viễn loại người dùng. Vui lòng thử lại.');
+                return redirect()->to('loainguoidung/listdeleted')->with('error', 'Không thể xóa vĩnh viễn loại người dùng. Vui lòng thử lại.');
             }
         } catch (\Exception $e) {
-            return redirect()->to('loainguoidung/deleted')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
+            return redirect()->to('loainguoidung/listdeleted')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
         }
     }
 } 
