@@ -58,6 +58,19 @@ if ( ! function_exists('getFullNameStudent')) {
 			return 'Error';
 		}
 	}
+
+	if ( ! function_exists('isLoggedInStudent')) {
+
+		/**
+		 * @return mixed
+		 */
+		function isLoggedInStudent()
+		{
+			$auth = service('authstudent');
+			
+			return $auth->isLoggedInStudent();
+		}
+	}
 }
 
 

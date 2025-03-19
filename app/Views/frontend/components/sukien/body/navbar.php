@@ -41,10 +41,39 @@
 					<a href="https://hub.edu.vn" target="_blank" class="btn btn-outline-light btn-sm px-3">
 						<i class="fas fa-external-link-alt me-1"></i> HUB
 					</a>
+					<?php if (!isLoggedInStudent()): ?>
 					<a href="<?= site_url('login') ?>" class="btn btn-light btn-sm px-3 me-2 btn-login">
 						<i class="fas fa-user-plus me-1"></i> Đăng nhập
 					</a>
-					
+					<?php else: ?>
+					 <!-- User Dropdown -->
+					 <?php 
+                     // Định nghĩa menu người dùng
+                     $userMenuGroups = [
+                         [
+                             'actions' => [
+                                 [
+                                     'title' => 'Settings',
+                                     'url' => site_url('students/dashboard'),
+                                     'icon' => 'cog'
+                                 ],
+                                 [
+                                     'title' => 'Đăng xuất',
+                                     'url' => site_url('login/logoutstudent'),
+                                     'icon' => 'sign-out-alt',
+                                     'type' => 'danger'
+                                 ]
+                             ]
+                         ]
+                     ];
+                       // Hiển thị dropdown người dùng với dữ liệu đã định nghĩa
+                     echo view('frontend/components/user_dropdown', [
+						'username' => getFullNameStudent(),
+						'avatar' => base_url('assets/images/avatars/default.jpg'),
+						'menu_groups' => $userMenuGroups
+					]);
+					 ?>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>

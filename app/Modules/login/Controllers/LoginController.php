@@ -25,7 +25,7 @@ class LoginController extends BaseController
         $authStudent = service('authStudent');
 
         if ($authStudent->login($email, $password, $remember_me)) {
-            $redirect_url = session('redirect_url') ?? 'students/dashboard';
+            $redirect_url = session('redirect_url') ?? '/';
             unset($_SESSION['redirect_url']);
 
             return redirect()->to($redirect_url)
@@ -82,7 +82,7 @@ class LoginController extends BaseController
         
         // Đăng nhập sinh viên
         if ($googleAuth->loginWithGoogle($googleUser, $login_type)) {
-            $redirect_url = session('redirect_url') ?? 'students/dashboard';
+            $redirect_url = session('redirect_url') ?? '/';
             unset($_SESSION['redirect_url']);
             
             return redirect()->to($redirect_url)

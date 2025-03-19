@@ -1,123 +1,206 @@
-<!-- Form đăng ký sự kiện với UX/UI đã tối ưu -->
-<form action="<?= site_url('su-kien/register') ?>" method="post" id="registration-form" class="needs-validation" novalidate>
-    <input type="hidden" name="sukien_id" value="<?= $event['id_su_kien'] ?>">
-    <input type="hidden" name="user_id" value="<?= session()->get('user_id') ?? '' ?>">
-    
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-danger bg-gradient text-white py-3">
-            <h5 class="card-title mb-0 text-white"><i class="bi bi-person-plus-fill me-2"></i>Thông tin đăng ký</h5>
-        </div>
-        <div class="card-body p-4">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="ho_ten" name="ho_ten" required>
-                        <label for="ho_ten">Họ và tên <span class="text-danger">*</span></label>
-                        <div class="invalid-feedback">Vui lòng nhập họ và tên</div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating mb-3">
-                        <input type="email" class="form-control" id="email" name="email" required>
-                        <label for="email">Email <span class="text-danger">*</span></label>
-                        <div class="invalid-feedback">Vui lòng nhập email hợp lệ</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="form-floating mb-3">
-                        <input type="tel" class="form-control" id="so_dien_thoai" name="so_dien_thoai" required>
-                        <label for="so_dien_thoai">Số điện thoại <span class="text-danger">*</span></label>
-                        <div class="invalid-feedback">Vui lòng nhập số điện thoại hợp lệ (10-11 số)</div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="student_id" name="student_id">
-                        <label for="student_id">Mã sinh viên (nếu có)</label>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="form-floating mb-3">
-                        <select class="form-select" id="loai_nguoi_dang_ky" name="loai_nguoi_dang_ky" required>
-                            <option value="" selected disabled>Chọn loại người đăng ký</optio   n>
-                            <option value="khach">Khách</option>
-                            <option value="sinh_vien">Sinh viên</option>
-                            <option value="giang_vien">Giảng viên</option>
-                        </select>
-                        <label for="loai_nguoi_dang_ky">Bạn là <span class="text-danger">*</span></label>
-                        <div class="invalid-feedback">Vui lòng chọn loại người đăng ký</div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="loai_nguoi_dung" name="loai_nguoi_dung">
-                        <label for="loai_nguoi_dung">Chức danh/Vai trò (nếu có)</label>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="form-floating mb-3">
-                        <select class="form-select" id="trinh_do_hoc_van" name="trinh_do_hoc_van">
-                            <option value="" selected disabled>Chọn trình độ học vấn</option>
-                            <option value="Trung học">Trung học</option>
-                            <option value="Trung cấp">Trung cấp</option>
-                            <option value="Cao đẳng">Cao đẳng</option>
-                            <option value="Đại học">Đại học</option>
-                            <option value="Thạc sĩ">Thạc sĩ</option>
-                            <option value="Tiến sĩ">Tiến sĩ</option>
-                            <option value="Khác">Khác</option>
-                        </select>
-                        <label for="trinh_do_hoc_van">Trình độ học vấn</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating mb-3">
-                        <select class="form-select" id="nguon_gioi_thieu" name="nguon_gioi_thieu">
-                            <option value="" selected disabled>Chọn nguồn thông tin</option>
-                            <option value="Website trường">Website trường</option>
-                            <option value="Facebook">Facebook</option>
-                            <option value="Email từ trường">Email từ trường</option>
-                            <option value="Bạn bè">Bạn bè</option>
-                            <option value="Khác">Khác</option>
-                        </select>
-                        <label for="nguon_gioi_thieu">Bạn biết đến sự kiện này từ đâu?</label>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-floating mb-4">
-                <textarea class="form-control" id="noi_dung_gop_y" name="noi_dung_gop_y" rows="3" style="height: 100px" placeholder="Nội dung góp ý"></textarea>
-                <label for="noi_dung_gop_y">Góp ý/Câu hỏi (nếu có)</label>
-            </div>
-            
-            <div class="form-check mb-4">
-                <input type="checkbox" class="form-check-input" id="agree_terms" name="agree_terms" required>
-                <label class="form-check-label" for="agree_terms">
-                    Tôi đồng ý với <a href="javascript:void(0)" id="showTermsBtn" class="text-decoration-none fw-bold text-danger">điều khoản tham gia</a> của sự kiện
-                </label>
-                <div class="invalid-feedback">Bạn phải đồng ý với điều khoản để tiếp tục</div>
-            </div>
-            
-            <div class="d-grid">
-                <button type="submit" class="btn btn-danger btn-lg rounded-pill" id="submit-btn">
-                    <span class="spinner-border spinner-border-sm d-none me-2" id="loading-spinner" role="status"></span>
-                    <i class="bi bi-check-circle-fill me-2"></i>Đăng ký tham gia
-                </button>
-            </div>
-        </div>
-    </div>
-</form>
-
-<!-- Sử dụng component modal chung -->
 <?php
+// Include form component
+include APPPATH . 'Views/components/_form.php';
+
+// Định nghĩa form đăng ký sự kiện
+$formElements = [
+    [
+        'type' => 'hidden',
+        'name' => 'sukien_id',
+        'value' => $event['id_su_kien'] ?? ''
+    ],
+    [
+        'type' => 'hidden',
+        'name' => 'user_id',
+        'value' => session()->get('user_id') ?? ''
+    ],
+    // Row 1: Họ tên và Email
+    [
+        'isRow' => true,
+        'rowClass' => 'row g-3',
+        'elements' => [
+            [
+                'type' => 'text',
+                'name' => 'ho_ten',
+                'label' => 'Họ và tên <span class="text-danger">*</span>',
+                'placeholder' => 'Họ và tên',
+                'class' => 'form-control',
+                'required' => true,
+                'error' => 'Vui lòng nhập họ và tên',
+                'floating' => true,
+                'colClass' => 'col-md-6'
+            ],
+            [
+                'type' => 'email',
+                'name' => 'email',
+                'label' => 'Email <span class="text-danger">*</span>',
+                'placeholder' => 'Email',
+                'class' => 'form-control',
+                'required' => true,
+                'error' => 'Vui lòng nhập email hợp lệ',
+                'floating' => true,
+                'colClass' => 'col-md-6'
+            ]
+        ]
+    ],
+    // Row 2: Số điện thoại và Mã sinh viên
+    [
+        'isRow' => true,
+        'rowClass' => 'row g-3',
+        'elements' => [
+            [
+                'type' => 'tel',
+                'name' => 'so_dien_thoai',
+                'label' => 'Số điện thoại <span class="text-danger">*</span>',
+                'placeholder' => 'Số điện thoại',
+                'class' => 'form-control',
+                'required' => true,
+                'error' => 'Vui lòng nhập số điện thoại hợp lệ (10-11 số)',
+                'floating' => true,
+                'colClass' => 'col-md-6'
+            ],
+            [
+                'type' => 'text',
+                'name' => 'student_id',
+                'label' => 'Mã sinh viên (nếu có)',
+                'placeholder' => 'Mã sinh viên',
+                'class' => 'form-control',
+                'floating' => true,
+                'colClass' => 'col-md-6'
+            ]
+        ]
+    ],
+    // Row 3: Bạn là và Chức danh/vai trò
+    [
+        'isRow' => true,
+        'rowClass' => 'row g-3',
+        'elements' => [
+            [
+                'type' => 'select',
+                'name' => 'loai_nguoi_dang_ky',
+                'label' => 'Bạn là <span class="text-danger">*</span>',
+                'class' => 'form-select',
+                'required' => true,
+                'options' => [
+                    '' => 'Chọn loại người đăng ký',
+                    'khach' => 'Khách',
+                    'sinh_vien' => 'Sinh viên',
+                    'giang_vien' => 'Giảng viên'
+                ],
+                'error' => 'Vui lòng chọn loại người đăng ký',
+                'floating' => true,
+                'colClass' => 'col-md-6'
+            ],
+            [
+                'type' => 'text',
+                'name' => 'loai_nguoi_dung',
+                'label' => 'Chức danh/Vai trò (nếu có)',
+                'placeholder' => 'Chức danh/Vai trò',
+                'class' => 'form-control',
+                'floating' => true,
+                'colClass' => 'col-md-6'
+            ]
+        ]
+    ],
+    // Row 4: Trình độ học vấn và Nguồn giới thiệu
+    [
+        'isRow' => true,
+        'rowClass' => 'row g-3',
+        'elements' => [
+            [
+                'type' => 'select',
+                'name' => 'trinh_do_hoc_van',
+                'label' => 'Trình độ học vấn',
+                'class' => 'form-select',
+                'options' => [
+                    '' => 'Chọn trình độ học vấn',
+                    'Trung học' => 'Trung học',
+                    'Trung cấp' => 'Trung cấp',
+                    'Cao đẳng' => 'Cao đẳng',
+                    'Đại học' => 'Đại học',
+                    'Thạc sĩ' => 'Thạc sĩ',
+                    'Tiến sĩ' => 'Tiến sĩ',
+                    'Khác' => 'Khác'
+                ],
+                'floating' => true,
+                'colClass' => 'col-md-6'
+            ],
+            [
+                'type' => 'select',
+                'name' => 'nguon_gioi_thieu',
+                'label' => 'Bạn biết đến sự kiện này từ đâu?',
+                'class' => 'form-select',
+                'options' => [
+                    '' => 'Chọn nguồn thông tin',
+                    'Website trường' => 'Website trường',
+                    'Facebook' => 'Facebook',
+                    'Email từ trường' => 'Email từ trường',
+                    'Bạn bè' => 'Bạn bè',
+                    'Khác' => 'Khác'
+                ],
+                'floating' => true,
+                'colClass' => 'col-md-6'
+            ]
+        ]
+    ],
+    // Góp ý/Câu hỏi
+    [
+        'type' => 'textarea',
+        'name' => 'noi_dung_gop_y',
+        'label' => 'Góp ý/Câu hỏi (nếu có)',
+        'placeholder' => 'Nội dung góp ý',
+        'class' => 'form-control',
+        'style' => 'height: 100px',
+        'floating' => true,
+        'wrapperClass' => 'mb-4'
+    ],
+    // Đồng ý điều khoản
+    [
+        'type' => 'checkbox',
+        'name' => 'agree_terms',
+        'label' => 'Tôi đồng ý với <a href="javascript:void(0)" id="showTermsBtn" class="text-decoration-none fw-bold text-danger">điều khoản tham gia</a> của sự kiện',
+        'required' => true,
+        'error' => 'Bạn phải đồng ý với điều khoản để tiếp tục',
+        'class' => 'form-check-input',
+        'wrapperClass' => 'mb-4'
+    ]
+];
+
+// Wrap form trong card
+echo '<div class="card border-0 shadow-sm mb-4">';
+echo '<div class="card-header bg-danger bg-gradient text-white py-3">';
+echo '<h5 class="card-title mb-0 text-white"><i class="bi bi-person-plus-fill me-2"></i>Thông tin đăng ký</h5>';
+echo '</div>';
+echo '<div class="card-body p-4">';
+
+// Render form
+renderForm([
+    'method' => 'POST',
+    'action' => site_url('su-kien/register'),
+    'attributes' => [
+        'id' => 'registration-form',
+        'class' => 'needs-validation',
+        'novalidate' => 'novalidate'
+    ],
+    'layout' => [
+        'useGrid' => true,
+        'gridClass' => 'row g-3',
+        'useFloatingLabels' => false
+    ],
+    'buttonOptions' => [
+        'submitText' => '<i class="bi bi-check-circle-fill me-2"></i>Đăng ký tham gia',
+        'showReset' => false,
+        'submitClass' => 'btn btn-danger btn-lg rounded-pill',
+        'wrapperClass' => 'd-grid',
+        'containerClass' => 'mb-3'
+    ],
+    'elements' => $formElements
+]);
+
+echo '</div>'; // card-body
+echo '</div>'; // card
+
+// Sử dụng component modal chung
 $modalParams = [
     'id' => 'termsModal',
     'title' => '<i class="bi bi-file-text me-2"></i>Điều khoản tham gia sự kiện',
@@ -213,26 +296,276 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Form validation
     const form = document.getElementById('registration-form');
-    const submitBtn = document.getElementById('submit-btn');
-    const loadingSpinner = document.getElementById('loading-spinner');
+    const submitBtn = document.querySelector('#registration-form button[type="submit"]');
+    const loadingSpinner = document.getElementById('loading-spinner') || document.createElement('span');
+    let isSubmitting = false; // Biến theo dõi trạng thái đang gửi form
+    let hasValidationError = false; // Biến theo dõi trạng thái lỗi validation
+    
+    // Hàm đặt lại trạng thái nút
+    function resetButtonState() {
+        submitBtn.disabled = false;
+        if (loadingSpinner.parentNode) {
+        loadingSpinner.classList.add('d-none');
+        }
+        submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Đăng ký tham gia';
+        isSubmitting = false;
+        hasValidationError = false;
+    }
+    
+    // Hàm hiển thị trạng thái loading
+    function showLoadingState() {
+        if (hasValidationError) {
+            console.log('Không hiển thị loading vì có lỗi validation');
+            return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang xử lý...';
+    }
+    
+    // Reset nút mỗi khi DOM được tải
+    resetButtonState();
+    
+    // Kiểm soát việc nút submit bị vô hiệu hóa
+    document.addEventListener('invalid', function(e) {
+        // Đảm bảo nút không bị vô hiệu hóa khi có lỗi validation
+        if (form.contains(e.target)) {
+            // Reset nút về trạng thái ban đầu
+            setTimeout(resetButtonState, 0);
+        }
+    }, true);
+    
+    // Tự động reset nút submit khi có thao tác trên form
+    form.addEventListener('click', function() {
+        if (hasValidationError || isSubmitting) {
+            resetButtonState();
+        }
+    });
+    
+    // Xử lý validation và hiển thị lỗi
+    function checkAndResetSubmitButton() {
+        // Kiểm tra nếu bất kỳ field nào không hợp lệ
+        const invalidFields = form.querySelectorAll(':invalid');
+        
+        if (invalidFields.length > 0) {
+            console.log('Đã phát hiện', invalidFields.length, 'field không hợp lệ');
+            hasValidationError = true;
+            resetButtonState();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Bắt sự kiện invalid ở cấp document
+    document.addEventListener('invalid', function(e) {
+        if (form.contains(e.target)) {
+            console.log('Phát hiện lỗi validation ở field:', e.target.name || e.target.id);
+            hasValidationError = true;
+            resetButtonState();
+            
+            // Ngăn thông báo mặc định của trình duyệt
+            e.preventDefault();
+            
+            // Đánh dấu field là invalid
+            e.target.classList.add('is-invalid');
+            
+            // Đánh dấu form đã validate
+            form.classList.add('was-validated');
+        }
+    }, true); // Capture phase
+    
+    // Xử lý kiểm tra validation và hiển thị lỗi
+    function validateForm(showErrors = true) {
+        // Thêm class was-validated để hiển thị feedback
+        if (showErrors) {
+            form.classList.add('was-validated');
+        }
+        
+        // Kiểm tra tính hợp lệ
+        const isValid = form.checkValidity();
+        
+        if (!isValid) {
+            // Đánh dấu có lỗi validation
+            hasValidationError = true;
+            
+            if (showErrors) {
+                // Hiệu ứng rung khi có lỗi
+                form.classList.add('animate__animated', 'animate__shakeX');
+                setTimeout(() => {
+                    form.classList.remove('animate__animated', 'animate__shakeX');
+                }, 1000);
+                
+                // Cuộn đến trường lỗi đầu tiên
+                const firstInvalidField = form.querySelector(':invalid');
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+            
+            // Luôn tắt trạng thái loading khi có lỗi
+            resetButtonState();
+        } else {
+            hasValidationError = false;
+        }
+        
+        return isValid;
+    }
+    
+    // Kiểm tra field có hợp lệ không và reset nút nếu cần
+    function validateField(field) {
+        // Kiểm tra field có valid không
+        const isValid = field.checkValidity();
+        
+        // Nếu field không hợp lệ, đánh dấu và reset nút
+        if (!isValid) {
+            field.classList.add('is-invalid');
+            hasValidationError = true;
+            
+            // Nếu đang trong trạng thái submit, reset nút
+            if (isSubmitting) {
+                resetButtonState();
+            }
+        } else {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+        }
+        
+        return isValid;
+    }
     
     form.addEventListener('submit', function(event) {
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
+        // Luôn ngăn gửi form mặc định trước khi kiểm tra
+        event.preventDefault();
+        
+        // Nếu đang trong quá trình gửi, không làm gì cả
+        if (isSubmitting) return;
+        
+        // Reset biến tracking
+        hasValidationError = false;
+        
+        // Đánh dấu đang bắt đầu gửi
+        isSubmitting = true;
+        
+        // Hiển thị trạng thái đang xử lý trước khi kiểm tra
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang xử lý...';
+        
+        // Kiểm tra form ngay lập tức
+        let isValid = form.checkValidity();
+        
+        // Nếu không hợp lệ, đánh dấu và hiển thị lỗi
+        if (!isValid) {
+            hasValidationError = true;
+            form.classList.add('was-validated');
             
-            // Hiệu ứng rung khi có lỗi
-            this.classList.add('animate__animated', 'animate__shakeX');
-            setTimeout(() => {
-                this.classList.remove('animate__animated', 'animate__shakeX');
-            }, 1000);
-        } else {
-            // Hiển thị trạng thái loading khi submit form
-            submitBtn.disabled = true;
-            loadingSpinner.classList.remove('d-none');
-            submitBtn.querySelector('i').classList.add('d-none');
+            // Kiểm tra các field và highlight lỗi
+            const invalidFields = form.querySelectorAll(':invalid');
+            invalidFields.forEach(field => {
+                field.classList.add('is-invalid');
+            });
+            
+            // Reset trạng thái nút ngay lập tức
+            setTimeout(function() {
+                resetButtonState();
+                
+                // Hiệu ứng rung form khi có lỗi
+                form.classList.add('animate__animated', 'animate__shakeX');
+                setTimeout(() => {
+                    form.classList.remove('animate__animated', 'animate__shakeX');
+                }, 1000);
+                
+                // Cuộn đến trường lỗi đầu tiên
+                const firstInvalidField = form.querySelector(':invalid');
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 50);
+            
+            return;
         }
-        form.classList.add('was-validated');
+        
+        // Nếu không có lỗi, tiếp tục giữ trạng thái loading và gửi form
+        console.log('Form hợp lệ, đang gửi...');
+        try {
+            setTimeout(function() {
+                form.submit();
+            }, 50);
+        } catch (e) {
+            console.error('Form submission error:', e);
+            resetButtonState();
+        }
+    });
+    
+    // Kiểm tra validation ngay khi người dùng tương tác với các field
+    form.querySelectorAll('input, select, textarea').forEach(element => {
+        // Xử lý khi nhập liệu
+        element.addEventListener('input', function() {
+            // Nếu form đã được đánh dấu là validated, kiểm tra field này
+            if (form.classList.contains('was-validated')) {
+                validateField(this);
+            }
+            
+            // Luôn reset nút nếu đang trong trạng thái submit
+            if (isSubmitting) {
+                resetButtonState();
+            }
+        });
+        
+        // Xử lý khi thay đổi giá trị
+        element.addEventListener('change', function() {
+            validateField(this);
+            
+            // Reset nút nếu đang trong trạng thái submit
+            if (isSubmitting) {
+                resetButtonState();
+            }
+        });
+        
+        // Xử lý khi rời khỏi field
+        element.addEventListener('blur', function() {
+            validateField(this);
+        });
+        
+        // Xử lý khi nhấn Enter
+        element.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                
+                // Validate field hiện tại trước
+                if (!validateField(this)) {
+                    // Field không hợp lệ, không làm gì cả
+                    return;
+                }
+                
+                // Nếu không đang trong quá trình submit, thực hiện submit
+                if (!isSubmitting) {
+                    submitBtn.click();
+                }
+            }
+        });
+    });
+    
+    // Theo dõi thay đổi class của form
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && 
+                mutation.attributeName === 'class' &&
+                form.classList.contains('was-validated')) {
+                
+                // Kiểm tra lại nút submit khi form được đánh dấu là validated
+                checkAndResetSubmitButton();
+            }
+        });
+    });
+    
+    // Bắt đầu theo dõi form
+    observer.observe(form, { attributes: true });
+    
+    // Xử lý khi window trước khi unload
+    window.addEventListener('beforeunload', function() {
+        resetButtonState();
     });
     
     // Xử lý đồng ý điều khoản từ modal

@@ -184,4 +184,6 @@ $userdropdown = [
 </div>
 
 <!-- Link JS file -->
+<?= $this->section('scripts_student_header') ?>
 <script src="<?= base_url('assets/js/student/components/header.js') ?>"></script> 
+<?= $this->endSection() ?>
