@@ -44,6 +44,7 @@
             <?= $this->include('frontend/components/student/footer') ?>
         </div>
     </div>
+    
     <?= $this->renderSection('scripts') ?>
     
 </body>

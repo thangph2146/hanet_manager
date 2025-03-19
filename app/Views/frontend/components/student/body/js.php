@@ -9,6 +9,4 @@
 
 <!-- Layout JS -->
 <script src="<?= base_url('assets/js/student/layouts/student_layout.js') ?>"></script>
-
-<!-- Page specific scripts -->
-<?= $this->renderSection('scripts') ?>
+<script src="<?= base_url('assets/js/student/scripts.js') ?>"></script>
