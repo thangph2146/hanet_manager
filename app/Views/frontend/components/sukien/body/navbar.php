@@ -1,10 +1,3 @@
-<?php
-/**
- * 9/15/2022
- * AUTHOR:PDV-PC
- */
-?>
-
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
 		<div class="container">
 			<a class="navbar-brand" href="<?= site_url() ?>">

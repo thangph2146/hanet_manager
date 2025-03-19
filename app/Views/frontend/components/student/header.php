@@ -117,7 +117,7 @@ $userdropdown = [
         
         <!-- User Dropdown -->
         <div class="dropdown">
-            <a href="#" class="user-dropdown" id="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <a href="#" class="user-dropdown" id="user-dropdown" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false">
                 <div class="user-avatar">
                     <img src="<?= base_url('assets/images/avatars/default.jpg') ?>" alt="User Avatar">
                     <span class="user-status"></span>
@@ -127,7 +127,7 @@ $userdropdown = [
                 </div>
             </a>
             
-            <div class="dropdown-menu user-menu" aria-labelledby="user-dropdown">
+            <div class="dropdown-menu user-menu" aria-labelledby="user-dropdown" data-bs-popper="none">
                 <div class="dropdown-header">
                     <div class="d-flex align-items-center">
                         <div class="user-avatar me-3">
@@ -184,6 +184,6 @@ $userdropdown = [
 </div>
 
 <!-- Link JS file -->
-<?= $this->section('scripts_student_header') ?>
+<?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/js/student/components/header.js') ?>"></script> 
 <?= $this->endSection() ?>

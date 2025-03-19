@@ -9,6 +9,9 @@
 
     <!-- Additional CSS -->
     <?= $this->include('frontend/components/student/head/styles') ?>
+
+    <!-- Additional CSS -->
+    <?= $this->renderSection('styles') ?>
 </head>
 <body>
     <!-- Page Loader -->
@@ -41,7 +44,7 @@
             <?= $this->include('frontend/components/student/footer') ?>
         </div>
     </div>
-    <?= $this->renderSection('scripts_student_layout') ?>
+    <?= $this->renderSection('scripts') ?>
     
 </body>
 </html>

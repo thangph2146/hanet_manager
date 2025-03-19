@@ -9,6 +9,7 @@ class Header {
         this.initNotifications();
         this.initSearchShortcut();
         this.initSidebarToggle();
+        this.initUserDropdown();
     }
 
     initMobileSearch() {
@@ -131,6 +132,42 @@ class Header {
                     backdrop.style.visibility = 'visible';
                     backdrop.style.opacity = '1';
                     document.body.style.overflow = 'hidden';
+                }
+            });
+        }
+    }
+
+    initUserDropdown() {
+        const userDropdownToggle = document.getElementById('user-dropdown');
+        const userMenu = document.querySelector('.dropdown-menu.user-menu');
+        
+        if (userDropdownToggle && userMenu) {
+            userDropdownToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                if (userMenu.classList.contains('show')) {
+                    userMenu.classList.remove('show');
+                } else {
+                    // Đóng các dropdown khác nếu đang mở
+                    document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                        if (menu !== userMenu) menu.classList.remove('show');
+                    });
+                    
+                    // Hiển thị dropdown người dùng
+                    userMenu.classList.add('show');
+                    
+                    // Định vị dropdown
+                    const rect = userDropdownToggle.getBoundingClientRect();
+                    userMenu.style.top = rect.bottom + 'px';
+                    userMenu.style.left = (window.innerWidth <= 576) ? '0' : (rect.left - userMenu.offsetWidth + rect.width) + 'px';
+                    userMenu.style.width = (window.innerWidth <= 576) ? '100%' : '';
+                }
+            });
+            
+            // Đóng dropdown khi click ra ngoài
+            document.addEventListener('click', (e) => {
+                if (!userDropdownToggle.contains(e.target) && !userMenu.contains(e.target)) {
+                    userMenu.classList.remove('show');
                 }
             });
         }

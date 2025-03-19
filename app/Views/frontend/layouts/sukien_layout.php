@@ -17,10 +17,11 @@
 	<!-- Structured Data for Events -->
 	<?= $this->renderSection('structured_data') ?>
 	
-	
-	
 	<!-- CSS tùy chỉnh để tối ưu màu sắc -->
 	<?= $this->include('frontend/components/sukien/head/style') ?>
+
+	<!-- Additional CSS -->
+	<?= $this->renderSection('styles') ?>
 
 </head>
 
@@ -41,6 +42,9 @@
 
 	<!-- JS -->
 	<?= $this->include('frontend/components/sukien/body/js') ?>
+
+	<!-- Additional JS -->
+	<?= $this->renderSection('scripts') ?>
 	
 </body>
 
