@@ -431,49 +431,38 @@ $(document).ready(function() {
     
     // Hàm hiển thị thông báo
     function showNotification(type, message) {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: type,
-                title: message,
-                showConfirmButton: false,
-                timer: 3000
-            });
-        } else {
-            var bgClass = 'bg-success';
-            var icon = 'bx bx-check-circle';
-            
-            if (type === 'error') {
-                bgClass = 'bg-danger';
-                icon = 'bx bx-error-circle';
-            } else if (type === 'warning') {
-                bgClass = 'bg-warning';
-                icon = 'bx bx-error';
-            } else if (type === 'info') {
-                bgClass = 'bg-info';
-                icon = 'bx bx-info-circle';
-            }
-            
-            var html = '<div class="toast-container position-fixed top-0 end-0 p-3">' +
-                      '<div class="toast fade show" role="alert" aria-live="assertive" aria-atomic="true">' +
-                      '<div class="toast-header ' + bgClass + ' text-white">' +
-                      '<i class="' + icon + ' me-2"></i>' +
-                      '<strong class="me-auto">' + (type === 'success' ? 'Thành công' : 'Thông báo') + '</strong>' +
-                      '<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>' +
-                      '</div>' +
-                      '<div class="toast-body">' + message + '</div>' +
-                      '</div>' +
-                      '</div>';
-            
-            // Thêm thông báo vào body
-            $('body').append(html);
-            
-            // Tự động đóng thông báo sau 3 giây
-            setTimeout(function() {
-                $('.toast-container').remove();
-            }, 3000);
+        var bgClass = 'bg-success';
+        var icon = 'bx bx-check-circle';
+        
+        if (type === 'error') {
+            bgClass = 'bg-danger';
+            icon = 'bx bx-error-circle';
+        } else if (type === 'warning') {
+            bgClass = 'bg-warning';
+            icon = 'bx bx-error';
+        } else if (type === 'info') {
+            bgClass = 'bg-info';
+            icon = 'bx bx-info-circle';
         }
+        
+        var html = '<div class="toast-container position-fixed top-0 end-0 p-3">' +
+                   '<div class="toast fade show" role="alert" aria-live="assertive" aria-atomic="true">' +
+                   '<div class="toast-header ' + bgClass + ' text-white">' +
+                   '<i class="' + icon + ' me-2"></i>' +
+                   '<strong class="me-auto">' + (type === 'success' ? 'Thành công' : 'Thông báo') + '</strong>' +
+                   '<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>' +
+                   '</div>' +
+                   '<div class="toast-body">' + message + '</div>' +
+                   '</div>' +
+                   '</div>';
+        
+        // Thêm thông báo vào body
+        $('body').append(html);
+        
+        // Tự động đóng thông báo sau 3 giây
+        setTimeout(function() {
+            $('.toast-container').remove();
+        }, 3000);
     }
 });
 </script>
