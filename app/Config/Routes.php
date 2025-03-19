@@ -106,6 +106,14 @@ $routes->get('students/logout', 'Students::logout');
 $routes->post('sidebar/update-state', 'SidebarController::updateState');
 $routes->get('sidebar/get-state', 'SidebarController::getState');
 
+// Thêm routes cho việc xóa loại người dùng
+$routes->post('loainguoidung/delete/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::delete/$1');
+$routes->post('loainguoidung/deleteMultiple', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::deleteMultiple');
+$routes->get('loainguoidung/deleted', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::deleted');
+$routes->get('loainguoidung/restore/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::restore/$1');
+$routes->post('loainguoidung/restoreMultiple', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::restoreMultiple');
+$routes->get('loainguoidung/permanentDelete/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::permanentDelete/$1');
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing

@@ -55,7 +55,6 @@ $title = $title ?? 'Danh sách loại người dùng';
                     'url_prefix' => site_url('loainguoidung/edit/'),
                     'id_field' => 'loai_nguoi_dung_id',
                     'title_field' => 'ten_loai',
-                    'title' => 'Sửa %s',
                     'icon' => 'fas fa-edit',
                     'class' => 'btn btn-sm btn-info rounded-circle action-btn'
                 ],
@@ -63,7 +62,6 @@ $title = $title ?? 'Danh sách loại người dùng';
                     'url_prefix' => '#',
                     'id_field' => 'loai_nguoi_dung_id',
                     'title_field' => 'ten_loai',
-                    'title' => 'Xóa %s',
                     'icon' => 'fas fa-trash',
                     'class' => 'btn btn-sm btn-danger rounded-circle action-btn',
                     'js' => 'data-id="' . '{{$item->loai_nguoi_dung_id}}' . '"'
@@ -72,9 +70,6 @@ $title = $title ?? 'Danh sách loại người dùng';
                     'url_prefix' => '#',
                     'id_field' => 'loai_nguoi_dung_id',
                     'title_field' => 'ten_loai',
-                    'title' => function($item) {
-                        return $item->status == 1 ? 'Vô hiệu hóa %s' : 'Kích hoạt %s';
-                    },
                     'icon' => function($item) {
                         return $item->status == 1 ? 'fas fa-lock' : 'fas fa-lock-open';
                     },

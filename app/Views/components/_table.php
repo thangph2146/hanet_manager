@@ -57,7 +57,7 @@
         </div>
         <?php endif; ?>
         
-        <div class="table-responsive" style="padding: 10px;">
+        <div class="table-responsive" style="padding:10px;">
             <?php
             $table = new \CodeIgniter\View\Table();
 

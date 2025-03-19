@@ -109,4 +109,92 @@ class LoaiNguoiDungModel extends BaseModel
                     ->orderBy('updated_at', 'DESC')
                     ->findAll();
     }
+    
+    /**
+     * Xóa tạm thời loại người dùng (soft delete)
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function softDelete(int $id)
+    {
+        return $this->delete($id);
+    }
+    
+    /**
+     * Xóa tạm thời nhiều loại người dùng
+     *
+     * @param array $ids Mảng các ID cần xóa
+     * @return bool
+     */
+    public function softDeleteMultiple(array $ids)
+    {
+        return $this->delete($ids);
+    }
+    
+    /**
+     * Khôi phục loại người dùng đã xóa tạm thời
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function restoreDeleted(int $id)
+    {
+        return $this->restore($id);
+    }
+    
+    /**
+     * Khôi phục nhiều loại người dùng đã xóa tạm thời
+     *
+     * @param array $ids Mảng các ID cần khôi phục
+     * @return bool
+     */
+    public function restoreMultiple(array $ids)
+    {
+        $success = true;
+        foreach ($ids as $id) {
+            if (!$this->restore($id)) {
+                $success = false;
+            }
+        }
+        return $success;
+    }
+    
+    /**
+     * Lấy danh sách loại người dùng đã xóa tạm thời
+     *
+     * @return array
+     */
+    public function getSoftDeleted()
+    {
+        return $this->onlyDeleted()->findAll();
+    }
+    
+    /**
+     * Xóa vĩnh viễn loại người dùng
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function permanentDelete(int $id)
+    {
+        return $this->delete($id, true);
+    }
+    
+    /**
+     * Xóa vĩnh viễn nhiều loại người dùng
+     *
+     * @param array $ids Mảng các ID cần xóa vĩnh viễn
+     * @return bool
+     */
+    public function permanentDeleteMultiple(array $ids)
+    {
+        $success = true;
+        foreach ($ids as $id) {
+            if (!$this->delete($id, true)) {
+                $success = false;
+            }
+        }
+        return $success;
+    }
 }
