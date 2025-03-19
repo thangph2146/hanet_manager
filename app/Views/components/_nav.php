@@ -81,6 +81,21 @@
 		</ul>
 	</li>
 	<li>
+		<a href="javascript:;" class="has-arrow">
+			<div class="parent-icon"><i class='bx bx-user-pin'></i>
+			</div>
+			<div class="menu-title">Quản lý Loại Người Dùng</div>	
+		</a>
+		<ul>
+			<li> <a href="<?= site_url('loainguoidung') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Loại Người Dùng</a>
+			</li>
+			<li> <a href="<?= site_url('loainguoidung/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Loại Người Dùng bị xóa</a>
+			</li>
+			<li> <a href="<?= site_url('loainguoidung/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Loại Người Dùng mới</a>
+			</li>
+		</ul>
+	</li>
+	<li>
 		<a href="https://phongqlcntt.hub.edu.vn/" target="_blank">
 			<div class="parent-icon"><i class="bx bx-support"></i>
 			</div>

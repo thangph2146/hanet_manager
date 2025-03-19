@@ -11,22 +11,53 @@
  */
 ?>
 
-<div class="card">
+<div class="card shadow-sm border-0 rounded-lg overflow-hidden">
     <?php if (isset($card_title)): ?>
-    <div class="card-header border-bottom">
+    <div class="card-header border-bottom bg-white">
         <div class="d-flex align-items-center justify-content-between py-2">
-            <h6 class="mb-0 fw-bold text-uppercase"><?= $card_title ?></h6>
-            <?php if (isset($options['add_button'])): ?>
-            <a href="<?= $options['add_button']['url'] ?>" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i> <?= $options['add_button']['label'] ?? 'Thêm mới' ?>
-            </a>
-            <?php endif; ?>
+            <div class="d-flex align-items-center">
+                <h5 class="mb-0 fw-bold text-uppercase text-primary"><i class="fas fa-table me-2"></i><?= $card_title ?></h5>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <?php if (isset($card_tools) && count($card_tools) > 0): ?>
+                    <?php foreach ($card_tools as $tool): ?>
+                        <a href="<?= $tool['url'] ?? '#' ?>" class="<?= $tool['class'] ?? 'btn btn-primary btn-sm' ?>">
+                            <?php if (isset($tool['icon'])): ?>
+                                <i class="<?= $tool['icon'] ?> me-1"></i>
+                            <?php endif; ?>
+                            <?= $tool['title'] ?>
+                        </a>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                
+                <?php if (isset($options['add_button'])): ?>
+                <a href="<?= $options['add_button']['url'] ?>" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i> <?= $options['add_button']['label'] ?? 'Thêm mới' ?>
+                </a>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
     <?php endif; ?>
     
-    <div class="card-body">
-        <div class="table-responsive">
+    <div class="card-body p-0">
+        <?php if (isset($bulk_actions) && count($bulk_actions) > 0): ?>
+        <div class="bg-light p-3 border-bottom">
+            <div class="d-flex gap-2">
+                <?php foreach ($bulk_actions as $action): ?>
+                    <button id="<?= $action['id'] ?? '' ?>" class="<?= $action['class'] ?? 'btn btn-sm btn-danger' ?>">
+                        <?php if (isset($action['icon'])): ?>
+                            <i class="<?= $action['icon'] ?> me-1"></i>
+                        <?php endif; ?>
+                        <?= $action['title'] ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <div class="table-responsive" style="padding: 10px;">
             <?php
             $table = new \CodeIgniter\View\Table();
 
@@ -94,13 +125,50 @@
                                 case 'actions':
                                     $actions = '<div class="d-flex gap-1 justify-content-center">';
                                     foreach ($column['buttons'] as $button) {
-                                        $icon = isset($button['icon']) ? "<i class='{$button['icon']}'></i>" : '';
-                                        $label = isset($button['label']) ? $button['label'] : '';
-                                        $title = sprintf($button['title'], $item->{$button['title_field']});
-                                        $class = $button['class'] ?? 'btn btn-sm btn-outline-primary';
+                                        // Xử lý icon - có thể là closure hoặc chuỗi
+                                        $icon = '';
+                                        if (isset($button['icon'])) {
+                                            if (is_callable($button['icon'])) {
+                                                $iconClass = $button['icon']($item);
+                                                $icon = "<i class='{$iconClass}'></i>";
+                                            } else {
+                                                $icon = "<i class='{$button['icon']}'></i>";
+                                            }
+                                        }
+                                        
+                                        // Kiểm tra xem title có cần định dạng không
+                                        $title = '';
+                                        if (isset($button['title'])) {
+                                            if (is_callable($button['title'])) {
+                                                $title = $button['title']($item);
+                                                if (isset($button['title_field']) && strpos($title, '%s') !== false) {
+                                                    $title = sprintf($title, $item->{$button['title_field']});
+                                                }
+                                            } else if (isset($button['title_field'])) {
+                                                $title = sprintf($button['title'], $item->{$button['title_field']});
+                                            } else {
+                                                $title = $button['title'];
+                                            }
+                                        }
+                                        
+                                        // Xử lý class - có thể là closure hoặc chuỗi
+                                        $class = 'btn btn-sm btn-outline-primary';
+                                        if (isset($button['class'])) {
+                                            if (is_callable($button['class'])) {
+                                                $class = $button['class']($item);
+                                            } else {
+                                                $class = $button['class'];
+                                            }
+                                        }
                                         
                                         // Đảm bảo URL được tạo đúng
-                                        $url = $button['url_prefix'] . $item->{$button['id_field']};
+                                        if (isset($button['url_prefix'])) {
+                                            $url = $button['url_prefix'] . $item->{$button['id_field']};
+                                        } else if (isset($button['url'])) {
+                                            $url = $button['url'] . '/' . $item->{$button['id_field']};
+                                        } else {
+                                            $url = '#';
+                                        }
                                         
                                         // Thêm các thuộc tính JavaScript nếu có
                                         $js_attrs = '';
@@ -108,7 +176,8 @@
                                             $js_attrs = ' ' . $button['js'];
                                         }
                                         
-                                        $actions .= "<a href='{$url}' class='{$class}' title='{$title}'{$js_attrs}>{$icon} {$label}</a>";
+                                        // Chỉ hiển thị icon, không hiển thị label
+                                        $actions .= "<a href='{$url}' class='{$class}' title='{$title}'{$js_attrs}>{$icon}</a>";
                                     }
                                     $actions .= '</div>';
                                     $row[] = $actions;
@@ -120,6 +189,15 @@
 
                                 case 'date':
                                     $row[] = date($column['format'] ?? 'd/m/Y', strtotime($item->{$column['field']}));
+                                    break;
+
+                                case 'custom':
+                                    if (isset($column['render']) && is_callable($column['render'])) {
+                                        $index = array_search($column, $columns);
+                                        $row[] = $column['render']($item, $index);
+                                    } else {
+                                        $row[] = $item->{$column['field']} ?? '';
+                                    }
                                     break;
 
                                 default:
@@ -238,12 +316,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const checkedCheckboxes = $('.check-select-p:checked').length;
         $('.check-all').prop('checked', totalCheckboxes === checkedCheckboxes);
     });
+    
+    // Khởi tạo tooltips bằng jQuery
+    $('[title]').tooltip({
+        placement: 'top',
+        trigger: 'hover'
+    });
 });
 </script>
 
 <style>
 .table {
     margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .table th {
@@ -252,15 +338,36 @@ document.addEventListener('DOMContentLoaded', function() {
     text-transform: uppercase;
     font-size: 0.85rem;
     white-space: nowrap;
+    border-top: 0;
+    padding: 0.75rem 1rem;
+    position: relative;
+}
+
+.table th:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 1px;
+    background-color: #dee2e6;
 }
 
 .table td {
     font-size: 0.9rem;
     vertical-align: middle;
+    padding: 0.85rem 1rem;
+    border-color: #edf2f9;
+}
+
+/* Zebra striping with softer colors */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0,0,0,.02);
 }
 
 .table-hover tbody tr:hover {
-    background-color: rgba(0,0,0,.075);
+    background-color: rgba(90, 141, 238, 0.05);
+    transition: background-color 0.2s ease;
 }
 
 .dataTables_wrapper .btn-group {
@@ -271,22 +378,244 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-bottom: 0.5rem;
 }
 
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #dce7f1;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.075);
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
 .dataTables_wrapper .dataTables_length select {
     min-width: 80px;
+    border: 1px solid #dce7f1;
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
 }
 
+/* Styling cho badge (status) */
 .badge {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 600;
     padding: 0.35em 0.65em;
+    border-radius: 50rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
+.badge.bg-success {
+    background-color: #28a745 !important;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.badge.bg-danger {
+    background-color: #dc3545 !important;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+/* Styling cho checkbox */
 .check-all,
 .check-select-p {
     width: 1.2rem;
     height: 1.2rem;
     cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #dce7f1;
+    position: relative;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: all 0.3s;
+    vertical-align: middle;
 }
 
+.check-all:checked,
+.check-select-p:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.check-all:checked:after,
+.check-select-p:checked:after {
+    content: '✓';
+    position: absolute;
+    color: #fff;
+    font-size: 12px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.check-all:focus,
+.check-select-p:focus {
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Thiết lập các style cho nút action */
+.action-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    margin: 0 3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+    position: relative;
+    overflow: hidden;
+    border-radius: 50%;
+}
+
+.action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.18);
+}
+
+.action-btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    transform: scale(0);
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.action-btn:hover::before {
+    transform: scale(1.2);
+}
+
+.action-btn i {
+    font-size: 14px;
+    color: white;
+    z-index: 2;
+    transition: all 0.3s;
+}
+
+.action-btn:hover i {
+    transform: scale(1.2);
+}
+
+.d-flex.gap-1 {
+    gap: 0.75rem !important;
+    justify-content: center;
+}
+
+/* Phân trang */
+.pagination .page-link {
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+    margin: 0 2px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.pagination .page-link:hover {
+    background-color: #f8f9fa;
+    color: #0d6efd;
+    border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #dee2e6;
+    pointer-events: none;
+}
+
+/* Card styling */
+.card.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    transition: all 0.3s;
+}
+
+.card.shadow-sm:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.10) !important;
+}
+
+.text-primary {
+    color: #0d6efd !important;
+}
+
+/* Buttons styling */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.2);
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    box-shadow: 0 2px 6px rgba(220, 53, 69, 0.2);
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-info {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    box-shadow: 0 2px 6px rgba(13, 202, 240, 0.2);
+}
+
+.btn-info:hover {
+    background-color: #31d2f2;
+    border-color: #25cff2;
+    box-shadow: 0 4px 12px rgba(13, 202, 240, 0.3);
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    box-shadow: 0 2px 6px rgba(255, 193, 7, 0.2);
+}
+
+.btn-warning:hover {
+    background-color: #ffca2c;
+    border-color: #ffc720;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+/* Responsive styling */
 @media (max-width: 768px) {
     .dataTables_wrapper .dataTables_filter {
         margin-top: 0.5rem;
@@ -309,6 +638,14 @@ document.addEventListener('DOMContentLoaded', function() {
     .table td,
     .table th {
         white-space: nowrap;
+    }
+    
+    .card-header {
+        flex-direction: column;
+    }
+    
+    .card-header .d-flex {
+        margin-bottom: 0.5rem;
     }
 }
 </style>

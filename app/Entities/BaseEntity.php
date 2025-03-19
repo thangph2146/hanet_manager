@@ -199,8 +199,12 @@ abstract class BaseEntity extends Entity
         return empty($this->attributes[$key]);
     }
 
-    public function fill(array $data = [])
+    public function fill(?array $data = null)
     {
+        if ($data === null) {
+            return $this;
+        }
+        
         foreach ($data as $key => $value) {
             if ($this->hasAttribute($key)) {
                 $this->attributes[$key] = $value;
