@@ -116,7 +116,7 @@ class LoaiNguoiDung extends BaseController
         ];
 
         if ($this->loaiNguoiDungModel->update($id, $data)) {
-            return redirect()->to('/loainguoidung')->with('success', 'Đã cập nhật loại người dùng thành công');
+            return redirect()->to('/loainguoidung/edit/' . $id)->with('success', 'Đã cập nhật loại người dùng thành công');
         } else {
             return redirect()->back()->withInput()->with('error', 'Có lỗi xảy ra, vui lòng thử lại');
         }
