@@ -188,10 +188,22 @@ class PhongKhoa extends BaseController
             }
 
             try {
+                // Lấy thông tin phòng khoa trước khi khôi phục
+                $phongKhoa = $this->phongKhoaModel->withDeleted()->find($id);
+                
                 // Khôi phục phòng khoa
                 if ($this->phongKhoaModel->restoreDeleted($id)) {
                     $response['success'] = true;
                     $response['message'] = 'Phòng khoa đã được khôi phục thành công.';
+                    
+                    // Thêm thông tin phòng khoa vào response
+                    if ($phongKhoa) {
+                        $response['phong_khoa_id'] = $phongKhoa->phong_khoa_id;
+                        $response['ma_phong_khoa'] = $phongKhoa->ma_phong_khoa;
+                        $response['ten_phong_khoa'] = $phongKhoa->ten_phong_khoa;
+                        $response['ghi_chu'] = $phongKhoa->ghi_chu;
+                        $response['status'] = $phongKhoa->status;
+                    }
                 } else {
                     $response['message'] = 'Không thể khôi phục phòng khoa. Vui lòng thử lại.';
                 }
@@ -300,10 +312,31 @@ class PhongKhoa extends BaseController
             $idArray = explode(',', $ids);
             
             try {
+                // Lấy thông tin phòng khoa trước khi khôi phục để gửi về client
+                $phongKhoaInfo = [];
+                if (!empty($idArray) && count($idArray) > 0) {
+                    // Lấy thông tin phòng khoa đầu tiên
+                    $firstPhongKhoa = $this->phongKhoaModel->withDeleted()->find($idArray[0]);
+                    if ($firstPhongKhoa) {
+                        $phongKhoaInfo = [
+                            'phong_khoa_id' => $firstPhongKhoa->phong_khoa_id,
+                            'ma_phong_khoa' => $firstPhongKhoa->ma_phong_khoa,
+                            'ten_phong_khoa' => $firstPhongKhoa->ten_phong_khoa,
+                            'ghi_chu' => $firstPhongKhoa->ghi_chu,
+                            'status' => $firstPhongKhoa->status
+                        ];
+                    }
+                }
+                
                 // Khôi phục các phòng khoa đã chọn
                 if ($this->phongKhoaModel->restoreMultiple($idArray)) {
                     $response['success'] = true;
                     $response['message'] = 'Đã khôi phục thành công ' . count($idArray) . ' phòng khoa.';
+                    
+                    // Thêm thông tin phòng khoa vào response
+                    if (!empty($phongKhoaInfo)) {
+                        $response = array_merge($response, $phongKhoaInfo);
+                    }
                 } else {
                     $response['message'] = 'Không thể khôi phục một số phòng khoa. Vui lòng thử lại.';
                 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * View thêm mới loại người dùng
+ * View thêm mới phòng khoa
  */
 ?>
 
@@ -8,6 +8,6 @@
 
 <?= $this->section('content'); ?>
 
-<?= $this->include('App\Modules\loainguoidung\Views\form'); ?>
+<?= $this->include('App\Modules\phongkhoa\Views\form'); ?>
 
 <?= $this->endSection(); ?> 

@@ -96,6 +96,21 @@
 		</ul>
 	</li>
 	<li>
+		<a href="javascript:;" class="has-arrow">
+			<div class="parent-icon"><i class='bx bx-user-pin'></i>
+			</div>
+			<div class="menu-title">Quản lý Phòng Khoa</div>
+		</a>
+		<ul>
+			<li> <a href="<?= site_url('phongkhoa') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Phòng Khoa</a>
+			</li>
+			<li> <a href="<?= site_url('phongkhoa/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Phòng Khoa bị xóa</a>
+			</li>
+			<li> <a href="<?= site_url('phongkhoa/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Phòng Khoa mới</a>
+			</li>
+		</ul>
+	</li>	
+	<li>
 		<a href="https://phongqlcntt.hub.edu.vn/" target="_blank">
 			<div class="parent-icon"><i class="bx bx-support"></i>
 			</div>

@@ -209,4 +209,16 @@ class PhongKhoaModel extends BaseModel
         }
         return $success;
     }
+    
+    /**
+     * Truy vấn bao gồm cả các bản ghi đã xóa
+     *
+     * @param bool $val True để bao gồm bản ghi đã xóa, false để không bao gồm
+     * @return $this
+     */
+    public function withDeleted(bool $val = true)
+    {
+        $this->tempUseSoftDeletes = !$val;
+        return $this;
+    }
 }

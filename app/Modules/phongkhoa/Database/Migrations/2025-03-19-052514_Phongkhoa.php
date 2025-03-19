@@ -53,7 +53,6 @@ class PhongKhoa extends Migration
         ]);
         
         $this->forge->addKey('phong_khoa_id', true);
-        $this->forge->addKey('ma_phong_khoa', false, false, 'idx_ma_phong_khoa');
         $this->forge->addKey('ten_phong_khoa', false, false, 'idx_ten_phong_khoa');
         $this->forge->addUniqueKey('ma_phong_khoa', 'uk_ma_phong_khoa');
         $this->forge->createTable('phong_khoa');

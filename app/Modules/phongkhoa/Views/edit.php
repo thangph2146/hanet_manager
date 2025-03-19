@@ -1,15 +1,15 @@
 <?php
 /**
- * View cập nhật loại người dùng
+ * View cập nhật phòng khoa
  */
 ?>
 
 <?= $this->extend('layouts/default'); ?>
 
-<?= $this->section('title') ?>CẬP NHẬT LOẠI NGƯỜI DÙNG<?= $this->endSection() ?>
+<?= $this->section('title') ?>CẬP NHẬT PHÒNG KHOA<?= $this->endSection() ?>
 
 <?= $this->section('content'); ?>
 
-<?= $this->include('App\Modules\loainguoidung\Views\form'); ?>
+<?= $this->include('App\Modules\phongkhoa\Views\form'); ?>
 
 <?= $this->endSection(); ?> 

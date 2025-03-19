@@ -11,56 +11,58 @@
     }
 </style>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>QUẢN LÝ LOẠI NGƯỜI DÙNG<?= $this->endSection() ?>
-
-
+<?= $this->section('title') ?>QUẢN LÝ PHÒNG KHOA<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Quản lý Loại Người Dùng',
+	'title' => 'Quản lý Phòng Khoa',
 	'dashboard_url' => site_url('users/dashboard'),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Loại Người Dùng', 'active' => true]
+		['title' => 'Quản lý Phòng Khoa', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/loainguoidung/new'), 'title' => 'Tạo Loại Người Dùng'],
-		['url' => site_url('/loainguoidung/listdeleted'), 'title' => 'Danh sách Loại Người Dùng đã xóa']
+		['url' => site_url('/phongkhoa/new'), 'title' => 'Tạo Phòng Khoa'],
+		['url' => site_url('/phongkhoa/listdeleted'), 'title' => 'Danh sách Phòng Khoa đã xóa']
 	]
 ]) ?>
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
 <div class="table-responsive">
-	<?= form_open("loainguoidung/deleteMultiple", ['class' => 'row g3', 'id' => 'delete-form']) ?>
+	<?= form_open("phongkhoa/deleteMultiple", ['class' => 'row g3', 'id' => 'delete-form']) ?>
 	<div class="col-12 mb-3">
 		<button type="button" id="delete-selected" class="btn btn-danger ms-2">Xóa tất cả đã chọn</button>
 	</div>
     <input type="hidden" name="selected_ids" id="selected_ids" value="">
 <?= view('components/_table', [
-    'caption' => 'Danh Sách Loại Người Dùng',
+    'caption' => 'Danh Sách Phòng Khoa',
     'headers' => [
         '<input type="checkbox" id="select-all" />', 
         'ID', 
-        'Tên loại', 
-        'Mô tả',
+        'Mã phòng khoa',
+        'Tên phòng khoa', 
+        'Ghi chú',
         'Status',
         'Action'
     ],	
-    'data' => $loai_nguoi_dungs,
+    'data' => $phong_khoas,
     'columns' => [
         [
             'type' => 'checkbox',
-            'id_field' => 'loai_nguoi_dung_id',
-            'name' => 'loai_nguoi_dung_id[]'
+            'id_field' => 'phong_khoa_id',
+            'name' => 'phong_khoa_id[]'
         ],
         [
-            'field' => 'loai_nguoi_dung_id'
+            'field' => 'phong_khoa_id'
         ],
         [
-            'field' => 'ten_loai'
+            'field' => 'ma_phong_khoa'
         ],
         [
-            'field' => 'mo_ta'
+            'field' => 'ten_phong_khoa'
+        ],
+        [
+            'field' => 'ghi_chu'
         ],
         [
             'type' => 'status',
@@ -72,16 +74,16 @@
             'type' => 'actions',
             'buttons' => [
                 [
-                    'url_prefix' => site_url('loainguoidung/edit/'),
-                    'id_field' => 'loai_nguoi_dung_id',
-                    'title_field' => 'ten_loai',
+                    'url_prefix' => site_url('phongkhoa/edit/'),
+                    'id_field' => 'phong_khoa_id',
+                    'title_field' => 'ten_phong_khoa',
                     'title' => 'Edit %s',
                     'icon' => 'fadeIn animated bx bx-edit'
                 ],
                 [
-                    'url_prefix' => site_url('loainguoidung/delete/'),
-                    'id_field' => 'loai_nguoi_dung_id',
-                    'title_field' => 'ten_loai',
+                    'url_prefix' => site_url('phongkhoa/delete/'),
+                    'id_field' => 'phong_khoa_id',
+                    'title_field' => 'ten_phong_khoa',
                     'title' => 'Delete %s',
                     'icon' => 'lni lni-trash'
                 ]
@@ -121,27 +123,27 @@ $(document).ready(function() {
     var csrfName = '<?= csrf_token() ?>';
     var csrfHash = '<?= csrf_hash() ?>';
     
-    // Lắng nghe sự kiện từ localStorage để cập nhật bảng khi có loại người dùng được khôi phục
+    // Lắng nghe sự kiện từ localStorage để cập nhật bảng khi có phòng khoa được khôi phục
     window.addEventListener('storage', function(e) {
-        if (e.key === 'restored_loai') {
+        if (e.key === 'restored_phongkhoa') {
             try {
-                var loaiData = JSON.parse(e.newValue);
-                console.log('Received restored loai data:', loaiData); // Log để debug
+                var phongKhoaData = JSON.parse(e.newValue);
+                console.log('Received restored phongkhoa data:', phongKhoaData); // Log để debug
                 
-                if (loaiData && loaiData.id) {
-                    // Kiểm tra xem loại người dùng đã tồn tại trong bảng chưa
+                if (phongKhoaData && phongKhoaData.id) {
+                    // Kiểm tra xem phòng khoa đã tồn tại trong bảng chưa
                     var existingRow = null;
                     dataTable.rows().every(function() {
                         var rowData = this.data();
                         var rowId = $(rowData[0]).val();
-                        if (rowId == loaiData.loai_nguoi_dung_id) {
+                        if (rowId == phongKhoaData.phong_khoa_id) {
                             existingRow = this;
                             return false; // Break the loop
                         }
                     });
                     
                     if (existingRow) {
-                        console.log('Loại người dùng already exists in table, updating...');
+                        console.log('Phòng khoa already exists in table, updating...');
                         // Cập nhật dòng hiện tại
                         existingRow.draw(false);
                         $(existingRow.node()).addClass('highlight-row');
@@ -149,16 +151,17 @@ $(document).ready(function() {
                             $(existingRow.node()).removeClass('highlight-row');
                         }, 3000);
                     } else {
-                        console.log('Adding new loai to table...');
-                        // Thêm loại người dùng đã khôi phục vào bảng
+                        console.log('Adding new phongkhoa to table...');
+                        // Thêm phòng khoa đã khôi phục vào bảng
                         var newRow = dataTable.row.add([
-                            '<input type="checkbox" class="check-select-p" name="loai_nguoi_dung_id[]" value="' + loaiData.loai_nguoi_dung_id + '" />',
-                            loaiData.loai_nguoi_dung_id,
-                            loaiData.ten_loai,
-                            loaiData.mo_ta,
+                            '<input type="checkbox" class="check-select-p" name="phong_khoa_id[]" value="' + phongKhoaData.phong_khoa_id + '" />',
+                            phongKhoaData.phong_khoa_id,
+                            phongKhoaData.ma_phong_khoa,
+                            phongKhoaData.ten_phong_khoa,
+                            phongKhoaData.ghi_chu,
                             '<span class="badge rounded-pill bg-success">Hoạt động</span>',
-                            '<a href="<?= site_url('loainguoidung/edit') ?>/' + loaiData.loai_nguoi_dung_id + '" title="Edit ' + loaiData.ten_loai + '" class="btn btn-sm btn-primary"><i class="fadeIn animated bx bx-edit"></i></a> ' +
-                            '<a href="<?= site_url('loainguoidung/delete') ?>/' + loaiData.loai_nguoi_dung_id + '" title="Delete ' + loaiData.ten_loai + '" class="btn btn-sm btn-danger"><i class="lni lni-trash"></i></a>'
+                            '<a href="<?= site_url('phongkhoa/edit') ?>/' + phongKhoaData.phong_khoa_id + '" title="Edit ' + phongKhoaData.ten_phong_khoa + '" class="btn btn-sm btn-primary"><i class="fadeIn animated bx bx-edit"></i></a> ' +
+                            '<a href="<?= site_url('phongkhoa/delete') ?>/' + phongKhoaData.phong_khoa_id + '" title="Delete ' + phongKhoaData.ten_phong_khoa + '" class="btn btn-sm btn-danger"><i class="lni lni-trash"></i></a>'
                         ]).draw(false).node();
                         
                         // Làm nổi bật dòng mới thêm
@@ -169,27 +172,27 @@ $(document).ready(function() {
                     }
                     
                     // Hiển thị thông báo
-                    showNotification('success', 'Loại người dùng "' + loaiData.ten_loai + '" đã được khôi phục.');
+                    showNotification('success', 'Phòng khoa "' + phongKhoaData.ten_phong_khoa + '" đã được khôi phục.');
                     
                     // Xóa dữ liệu từ localStorage
-                    localStorage.removeItem('restored_loai');
+                    localStorage.removeItem('restored_phongkhoa');
                 }
             } catch (error) {
-                console.error('Error parsing restored loai data:', error);
+                console.error('Error parsing restored phongkhoa data:', error);
             }
         }
     });
     
-    // Xử lý sự kiện xóa loại người dùng bằng Ajax
+    // Xử lý sự kiện xóa phòng khoa bằng Ajax
     $(document).on('click', '.lni-trash', function(e) {
         e.preventDefault();
         
         var url = $(this).parent().attr('href');
         var row = $(this).closest('tr');
-        var loaiName = $(this).parent().attr('title').replace('Delete ', '');
+        var phongKhoaName = $(this).parent().attr('title').replace('Delete ', '');
         
         // Hiển thị hộp thoại xác nhận
-        if (confirm('Bạn thật sự muốn xóa Loại Người Dùng này?')) {
+        if (confirm('Bạn thật sự muốn xóa Phòng Khoa này?')) {
             var data = {};
             data[csrfName] = csrfHash;
             
@@ -209,10 +212,10 @@ $(document).ready(function() {
                         dataTable.row(row).remove().draw(false);
                         
                         // Hiển thị thông báo thành công
-                        showNotification('success', response.message || 'Xóa loại người dùng thành công.');
+                        showNotification('success', response.message || 'Xóa phòng khoa thành công.');
                     } else {
                         // Hiển thị thông báo lỗi
-                        showNotification('error', response.message || 'Không thể xóa loại người dùng. Vui lòng thử lại.');
+                        showNotification('error', response.message || 'Không thể xóa phòng khoa. Vui lòng thử lại.');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -224,7 +227,7 @@ $(document).ready(function() {
         return false;
     });
     
-    // Xử lý sự kiện xóa tất cả loại người dùng đã chọn
+    // Xử lý sự kiện xóa tất cả phòng khoa đã chọn
     $('#delete-selected').on('click', function() {
         var selectedIds = [];
         
@@ -234,11 +237,11 @@ $(document).ready(function() {
         });
         
         if (selectedIds.length === 0) {
-            showNotification('warning', 'Vui lòng chọn ít nhất một loại người dùng để xóa.');
+            showNotification('warning', 'Vui lòng chọn ít nhất một phòng khoa để xóa.');
             return;
         }
         
-        if (confirm('Bạn thật sự muốn xóa ' + selectedIds.length + ' loại người dùng đã chọn?')) {
+        if (confirm('Bạn thật sự muốn xóa ' + selectedIds.length + ' phòng khoa đã chọn?')) {
             // Cập nhật hidden input với danh sách ID
             $('#selected_ids').val(selectedIds.join(','));
             
@@ -248,50 +251,31 @@ $(document).ready(function() {
     });
     
     // Chọn tất cả
-    $('#select-all').on('click', function() {
-        $('.check-select-p').prop('checked', this.checked);
+    $('#select-all').on('change', function() {
+        var isChecked = $(this).prop('checked');
+        $('.check-select-p').prop('checked', isChecked);
     });
     
-    // Cập nhật trạng thái Select All khi chọn từng checkbox
+    // Cập nhật trạng thái "chọn tất cả" khi các checkbox riêng lẻ thay đổi
     $(document).on('change', '.check-select-p', function() {
         var allChecked = $('.check-select-p:checked').length === $('.check-select-p').length;
         $('#select-all').prop('checked', allChecked);
     });
     
-    // Hàm hiển thị thông báo
+    // Xử lý sự kiện để hiển thị thông báo
     function showNotification(type, message) {
-        var bgClass = 'bg-success';
-        var icon = 'bx bx-check-circle';
-        
-        if (type === 'error') {
-            bgClass = 'bg-danger';
-            icon = 'bx bx-error-circle';
-        } else if (type === 'warning') {
-            bgClass = 'bg-warning';
-            icon = 'bx bx-error';
-        } else if (type === 'info') {
-            bgClass = 'bg-info';
-            icon = 'bx bx-info-circle';
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: type,
+                title: message,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        } else {
+            alert(message);
         }
-        
-        var html = '<div class="toast-container position-fixed top-0 end-0 p-3">' +
-                   '<div class="toast fade show" role="alert" aria-live="assertive" aria-atomic="true">' +
-                   '<div class="toast-header ' + bgClass + ' text-white">' +
-                   '<i class="' + icon + ' me-2"></i>' +
-                   '<strong class="me-auto">' + (type === 'success' ? 'Thành công' : 'Thông báo') + '</strong>' +
-                   '<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>' +
-                   '</div>' +
-                   '<div class="toast-body">' + message + '</div>' +
-                   '</div>' +
-                   '</div>';
-        
-        // Thêm thông báo vào body
-        $('body').append(html);
-        
-        // Tự động đóng thông báo sau 3 giây
-        setTimeout(function() {
-            $('.toast-container').remove();
-        }, 3000);
     }
 });
 </script>
