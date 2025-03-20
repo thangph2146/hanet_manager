@@ -19,6 +19,9 @@ class TableBuilder
     protected $dataTableOptions = [];
     protected $exportOptions = [];
     protected $filters = [];
+    protected $actions = [];
+    protected $enableCheckbox = false;
+    protected $checkboxColumn = 'checkbox';
     
     /**
      * Khởi tạo TableBuilder
@@ -41,6 +44,9 @@ class TableBuilder
             'print' => false
         ];
         $this->filters = [];
+        $this->actions = [];
+        $this->enableCheckbox = false;
+        $this->checkboxColumn = 'checkbox';
         
         // Thiết lập template mặc định để bảng đẹp hơn
         $this->table->setTemplate([
@@ -191,13 +197,21 @@ class TableBuilder
      */
     public function setHeading($heading)
     {
+        // Chuyển đổi tham số thành mảng
         if (is_array($heading)) {
-            $this->heading = $heading;
-            call_user_func_array([$this->table, 'setHeading'], $heading);
+            $headingArray = $heading;
         } else {
-            $this->heading = func_get_args();
-            call_user_func_array([$this->table, 'setHeading'], func_get_args());
+            $headingArray = func_get_args();
         }
+        
+        // Lưu lại tiêu đề gốc để có thể sử dụng khi cần
+        $this->heading = $headingArray;
+        
+        // Nếu có bật checkbox, chúng ta sẽ xử lý khi gọi hàm generate()
+        // không thêm cột checkbox ở đây để tránh trùng lặp
+        
+        // Gọi hàm setHeading của Table class
+        call_user_func_array([$this->table, 'setHeading'], $headingArray);
         
         return $this;
     }
@@ -295,66 +309,107 @@ class TableBuilder
     }
     
     /**
-     * Generate HTML for the table
+     * Tạo HTML cho bảng dữ liệu
      * 
+     * @param array $data Dữ liệu bảng
      * @return string
      */
-    public function generate($data = null)
+    public function generate($data = [])
     {
-        // Cập nhật dữ liệu nếu có
-        if ($data !== null) {
+        // Thiết lập dữ liệu
+        if (!empty($data)) {
             $this->setData($data);
         }
-
+        
+        // Lưu lại heading gốc để xử lý
+        $originalHeading = $this->heading;
+        
+        // Khởi tạo lại heading để thêm checkbox và cột action nếu cần
+        $newHeading = $originalHeading;
+        
+        // Kiểm tra xem có sử dụng checkbox hay không
+        if ($this->enableCheckbox) {
+            // Thêm checkbox column vào đầu heading 
+            array_unshift($newHeading, $this->renderCheckboxHeader());
+            
+            // Thêm checkbox vào từng hàng dữ liệu
+            foreach ($this->data as $index => $row) {
+                array_unshift($this->data[$index], $this->renderCheckboxCell($row));
+            }
+        }
+        
+        // Kiểm tra xem có sử dụng actions hay không
+        $hasActions = !empty($this->actions);
+        
+        // Xử lý nếu có định nghĩa actions nhưng không có cột hành động trong data
+        if ($hasActions) {
+            $hasActionColumn = false;
+            
+            // Kiểm tra xem cột cuối có phải cột "Thao tác" hay không
+            if (!empty($originalHeading) && count($originalHeading) > 0) {
+                $lastHeading = end($originalHeading);
+                if (strtolower($lastHeading) === 'thao tác' || strtolower($lastHeading) === 'action' || strtolower($lastHeading) === 'actions') {
+                    $hasActionColumn = true;
+                }
+            }
+            
+            // Nếu không có cột hành động, thêm vào
+            if (!$hasActionColumn) {
+                $newHeading[] = 'Thao tác';
+            }
+        }
+        
+        // Cập nhật heading mới vào bảng
+        $this->table->setHeading($newHeading);
+        
         // Sử dụng phương thức Generate của CodeIgniter's Table class
         $html = $this->table->generate($this->data);
         
-        // Thêm id duy nhất cho bảng nếu chưa có
+        // Lấy ID bảng
         $tableId = '';
-        $dom = new \DOMDocument();
-        @$dom->loadHTML($html);
-        $tables = $dom->getElementsByTagName('table');
-        if ($tables->length > 0) {
-            $tableElement = $tables->item(0);
-            if ($tableElement->hasAttribute('id')) {
-                $tableId = $tableElement->getAttribute('id');
-            } else {
-                $tableId = 'table_' . uniqid();
-                // Thêm ID vào thẻ table
-                $html = preg_replace('/<table/', '<table id="' . $tableId . '"', $html, 1);
-            }
-            
-            // Thêm class table-builder để đánh dấu bảng cần xử lý bởi JS
-            if ($this->useDataTable) {
-                $html = preg_replace('/<table(.*?)class="(.*?)"/', '<table$1class="$2 table-builder"', $html, 1);
-                if (strpos($html, 'table-builder') === false) {
-                    $html = preg_replace('/<table/', '<table class="table-builder"', $html, 1);
-                }
-            }
+        preg_match('/id="([^"]*)"/', $html, $matches);
+        if (isset($matches[1])) {
+            $tableId = $matches[1];
+        } else {
+            $tableId = 'table_' . uniqid();
+            $html = str_replace('<table', '<table id="' . $tableId . '"', $html);
         }
         
-        // Thêm data-config nếu có tùy chọn DataTable
-        if ($this->useDataTable && !empty($this->dataTableOptions)) {
-            $configJson = htmlspecialchars(json_encode($this->dataTableOptions), ENT_QUOTES, 'UTF-8');
-            $html = preg_replace('/<table(.*?)>/', '<table$1 data-config="' . $configJson . '">', $html, 1);
+        // Thêm class table-builder để JS có thể nhận diện
+        if (strpos($html, 'class="') !== false) {
+            $html = str_replace('class="', 'class="table-builder ', $html);
+        } else {
+            $html = str_replace('<table', '<table class="table-builder"', $html);
         }
         
-        // Hiển thị bộ lọc nếu có
-        $filterHtml = '';
-        if (!empty($this->filters)) {
-            $filterHtml = $this->renderFilters();
+        // Thêm class để JavaScript có thể nhận diện bảng có checkbox
+        if ($this->enableCheckbox) {
+            $html = str_replace('class="table-builder', 'class="table-builder table-checkable', $html);
         }
         
-        // Thêm các nút export thủ công nếu cần
-        $exportButtons = '';
+        // Thêm data-config để JavaScript có thể đọc
+        $config = [
+            'use_datatable' => $this->useDataTable,
+            'export_options' => $this->exportOptions,
+            'has_filters' => !empty($this->filters),
+            'has_actions' => $hasActions,
+            'has_checkbox' => $this->enableCheckbox
+        ];
+        
+        $configJson = htmlspecialchars(json_encode($config), ENT_QUOTES, 'UTF-8');
+        $html = str_replace('<table', '<table data-config="' . $configJson . '"', $html);
+        
+        // Thêm nút xuất nếu cần
         if ($this->useDataTable && !empty($this->exportOptions) && $this->exportOptions['enable']) {
-            $exportButtons = $this->getManualExportButtons($tableId);
-            
-            // Thêm script flag để đánh dấu trang có sử dụng TableBuilder
-            $html .= '<script>document.documentElement.classList.add("table-builder-enabled");</script>';
+            $html = $this->getManualExportButtons($tableId) . $html;
         }
         
-        return $filterHtml . $exportButtons . $html;
+        // Hiển thị bộ lọc nếu cần
+        if (!empty($this->filters)) {
+            $html = $this->renderFilters() . $html;
+        }
+        
+        return $html;
     }
     
     /**
@@ -601,6 +656,50 @@ class TableBuilder
                     </div>
                 </div>
             </div>
+        </div>';
+    }
+    
+    /**
+     * Bật/tắt chức năng checkbox cho bảng
+     * 
+     * @param bool $enable Bật/tắt chức năng checkbox
+     * @param string $column Tên cột để lưu checkbox
+     * @return TableBuilder
+     */
+    public function setEnableCheckbox($enable = true, $column = 'checkbox')
+    {
+        $this->enableCheckbox = $enable;
+        if ($enable && !empty($column)) {
+            $this->checkboxColumn = $column;
+        }
+        return $this;
+    }
+    
+    /**
+     * Tạo checkbox header cho bảng để chọn tất cả
+     * 
+     * @return string HTML của checkbox header
+     */
+    protected function renderCheckboxHeader()
+    {
+        return '<div class="form-check d-flex justify-content-center">
+            <input type="checkbox" class="form-check-input check-all" id="check-all" 
+                style="width: 18px; height: 18px; opacity: 1; visibility: visible; pointer-events: auto;">
+        </div>';
+    }
+    
+    /**
+     * Tạo checkbox cell cho từng hàng
+     *
+     * @param array $row Dữ liệu hàng
+     * @return string
+     */
+    protected function renderCheckboxCell($row)
+    {
+        $id = isset($row[0]) ? $row[0] : ''; // Lấy ID từ cột đầu tiên
+        return '<div class="form-check d-flex justify-content-center">
+            <input type="checkbox" class="form-check-input table-check-row" name="selected[]" value="'.$id.'"
+                style="width: 18px; height: 18px; opacity: 1; visibility: visible; pointer-events: auto;">
         </div>';
     }
     

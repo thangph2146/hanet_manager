@@ -93,6 +93,9 @@ class DemoTableController extends BaseController
             'pdf' => true
         ]);
         
+        // Bật chức năng checkbox
+        $filterBuilder->setEnableCheckbox(true, 'checkbox');
+
         // Thiết lập các bộ lọc
         $filterBuilder->setFilters([
             [

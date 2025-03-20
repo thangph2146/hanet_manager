@@ -588,45 +588,354 @@ document.addEventListener('DOMContentLoaded', function() {
                 setupFilters(tableId, dataTable);
                 setupActionButtons();
             }
+            
+            // Nếu bảng có checkbox, thiết lập chức năng checkbox
+            if (table.classList.contains('table-checkable') || (config && config.has_checkbox)) {
+                setupCheckboxes(tableId);
+            }
         });
     }
     
     // Thêm icons vào các nút hành động
     function setupActionButtons() {
+        console.log('Thiết lập các nút hành động...');
+        
         // Kiểm tra và thêm bootstrap-icons nếu cần
         if (!document.querySelector('link[href*="bootstrap-icons"]')) {
             var iconLink = document.createElement('link');
             iconLink.rel = 'stylesheet';
             iconLink.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css';
             document.head.appendChild(iconLink);
+            console.log('Đã thêm CSS cho Bootstrap Icons');
         }
         
+        // Thêm CSS để đảm bảo biểu tượng hiển thị đúng
+        var style = document.createElement('style');
+        style.textContent = `
+            .btn-group a.btn, .action-buttons a.btn {
+                display: inline-block !important;
+                margin-right: 2px;
+                min-width: 30px;
+                text-align: center;
+            }
+            .btn-group a.btn i.bi, .action-buttons a.btn i.bi {
+                display: inline-block !important;
+                font-size: 16px;
+                line-height: 1;
+                vertical-align: middle;
+            }
+            .bi {
+                display: inline-block !important;
+            }
+        `;
+        document.head.appendChild(style);
+        
         // Kiểm tra các nút hành động và thêm icon
-        document.querySelectorAll('.btn-group a.btn, .action-buttons a.btn').forEach(function(button) {
-            // Nếu nút đã có icon, bỏ qua
-            if (button.querySelector('i.bi')) {
-                var icon = button.querySelector('i.bi');
-                if (!icon.style.display) {
-                    icon.style.display = 'inline-block';
-                }
+        document.querySelectorAll('.btn-group a.btn, .action-buttons a.btn, td .btn-group .btn, td .action-buttons .btn').forEach(function(button) {
+            console.log('Tìm thấy nút thao tác:', button);
+            
+            // Nếu nút đã có icon, đảm bảo nó hiển thị
+            var existingIcon = button.querySelector('i.bi');
+            if (existingIcon) {
+                existingIcon.style.display = 'inline-block';
+                console.log('Nút đã có icon, đặt style hiển thị');
                 return;
             }
             
-            // Xác định loại nút thông qua class
+            // Xác định loại nút thông qua class hoặc text
+            var buttonText = button.textContent.trim().toLowerCase();
             var icon = '';
-            if (button.classList.contains('btn-info')) {
+            
+            if (button.classList.contains('btn-info') || buttonText.includes('xem') || buttonText.includes('chi tiết') || buttonText.includes('view')) {
                 icon = '<i class="bi bi-eye" style="display:inline-block;"></i>';
-            } else if (button.classList.contains('btn-primary')) {
+            } else if (button.classList.contains('btn-primary') || buttonText.includes('sửa') || buttonText.includes('cập nhật') || buttonText.includes('edit')) {
                 icon = '<i class="bi bi-pencil" style="display:inline-block;"></i>';
-            } else if (button.classList.contains('btn-danger')) {
+            } else if (button.classList.contains('btn-danger') || buttonText.includes('xóa') || buttonText.includes('delete')) {
                 icon = '<i class="bi bi-trash" style="display:inline-block;"></i>';
+            } else if (button.classList.contains('btn-success') || buttonText.includes('thêm') || buttonText.includes('add')) {
+                icon = '<i class="bi bi-plus" style="display:inline-block;"></i>';
+            } else if (buttonText.includes('duyệt') || buttonText.includes('accept')) {
+                icon = '<i class="bi bi-check-circle" style="display:inline-block;"></i>';
+            } else if (buttonText.includes('từ chối') || buttonText.includes('reject')) {
+                icon = '<i class="bi bi-x-circle" style="display:inline-block;"></i>';
             }
             
-            // Nếu không có nội dung và có icon, thêm icon
-            if (button.innerHTML.trim() === '' && icon) {
-                button.innerHTML = icon;
+            // Thêm icon và giữ lại text nếu có
+            if (icon) {
+                // Giữ lại text nếu có
+                var originalText = button.innerHTML.trim();
+                if (originalText === '' || originalText.includes('i class="bi')) {
+                    button.innerHTML = icon;
+                } else {
+                    button.innerHTML = icon + ' ' + originalText;
+                }
+                console.log('Đã thêm icon cho nút:', buttonText);
+            }
+            
+            // Đảm bảo hiển thị
+            button.style.display = 'inline-block';
+        });
+        
+        // Tìm kiếm các cột thao tác để đảm bảo chúng hiển thị đúng
+        document.querySelectorAll('table thead th:last-child, table tbody td:last-child').forEach(function(cell) {
+            var text = cell.textContent.trim().toLowerCase();
+            if (text === 'thao tác' || text === 'action' || text === 'actions' || cell.classList.contains('action-column')) {
+                // Đảm bảo các nút trong cột này hiển thị chính xác
+                var buttons = cell.querySelectorAll('.btn');
+                console.log('Tìm thấy cột thao tác với', buttons.length, 'nút');
+                
+                buttons.forEach(function(btn) {
+                    btn.style.display = 'inline-block';
+                    var icon = btn.querySelector('i.bi');
+                    if (icon) {
+                        icon.style.display = 'inline-block';
+                    }
+                });
             }
         });
+        
+        console.log('Đã thiết lập xong các nút hành động');
+    }
+    
+    // Thiết lập các checkbox và chức năng chọn tất cả
+    function setupCheckboxes(tableId) {
+        console.log('Thiết lập checkbox cho bảng:', tableId);
+        
+        // Lấy bảng từ DOM
+        var table = document.getElementById(tableId);
+        if (!table) {
+            console.warn('Không tìm thấy bảng:', tableId);
+            return;
+        }
+        
+        console.log('Kiểm tra bảng có class table-checkable:', table.classList.contains('table-checkable'));
+        
+        // Thêm CSS tùy chỉnh cho checkbox
+        var style = document.createElement('style');
+        style.textContent = `
+            .table-checkable .form-check {
+                display: flex;
+                justify-content: center;
+                margin: 0;
+                padding: 0;
+            }
+            .table-checkable .form-check-input {
+                margin: 0;
+                cursor: pointer;
+                width: 18px;
+                height: 18px;
+                opacity: 1;
+                visibility: visible;
+            }
+            .check-all {
+                position: relative;
+                margin: 0;
+                width: 18px !important;
+                height: 18px !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+            .selected-count {
+                display: none;
+                margin-left: 10px;
+                font-weight: bold;
+                color: #007bff;
+            }
+            .selected-count.active {
+                display: inline-block;
+            }
+            .selected-actions {
+                display: none;
+                margin-left: 10px;
+            }
+            .selected-actions.active {
+                display: inline-block;
+            }
+            /* Đảm bảo checkbox luôn hiển thị */
+            input[type="checkbox"] {
+                opacity: 1 !important;
+                visibility: visible !important;
+                pointer-events: auto !important;
+            }
+            /* Làm rõ vùng của cột checkbox */
+            table.table-checkable th:first-child,
+            table.table-checkable td:first-child {
+                width: 40px;
+                text-align: center;
+                vertical-align: middle;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Tìm checkbox "chọn tất cả" trong bảng
+        var checkAllCheckbox = table.querySelector('.check-all');
+        if (!checkAllCheckbox) {
+            console.warn('Không tìm thấy checkbox chọn tất cả, tìm kiếm theo cách khác');
+            // Thử tìm theo cách khác nếu không có class trực tiếp
+            checkAllCheckbox = table.querySelector('th:first-child input[type="checkbox"]');
+            
+            if (!checkAllCheckbox) {
+                console.error('Không thể tìm thấy checkbox "chọn tất cả" trong bảng', tableId);
+                return;
+            } else {
+                console.log('Đã tìm thấy checkbox chọn tất cả bằng cách khác');
+                checkAllCheckbox.classList.add('check-all');
+            }
+        }
+        
+        // Tìm tất cả checkbox hàng trong bảng
+        var rowCheckboxes = table.querySelectorAll('.table-check-row');
+        if (!rowCheckboxes.length) {
+            console.warn('Không tìm thấy checkbox hàng, tìm kiếm theo cách khác');
+            // Thử tìm theo cách khác nếu không có class trực tiếp
+            rowCheckboxes = table.querySelectorAll('tbody td:first-child input[type="checkbox"]');
+            
+            if (!rowCheckboxes.length) {
+                console.error('Không thể tìm thấy checkbox hàng trong bảng', tableId);
+                return;
+            } else {
+                console.log('Đã tìm thấy', rowCheckboxes.length, 'checkbox hàng bằng cách khác');
+                rowCheckboxes.forEach(function(cb) {
+                    cb.classList.add('table-check-row');
+                });
+            }
+        }
+        
+        console.log('Tìm thấy', rowCheckboxes.length, 'checkbox hàng');
+        
+        // Thêm phần tử hiển thị số lượng đã chọn
+        var selectedCountElement = document.createElement('span');
+        selectedCountElement.className = 'selected-count';
+        selectedCountElement.textContent = '0 được chọn';
+        table.parentNode.insertBefore(selectedCountElement, table);
+        
+        // Thêm các nút hành động cho các mục đã chọn
+        var selectedActionsElement = document.createElement('div');
+        selectedActionsElement.className = 'selected-actions';
+        selectedActionsElement.innerHTML = '<button type="button" class="btn btn-danger btn-sm delete-selected me-2"><i class="bi bi-trash"></i> Xóa đã chọn</button>' +
+            '<button type="button" class="btn btn-success btn-sm export-selected"><i class="bi bi-file-earmark-excel"></i> Xuất dữ liệu đã chọn</button>';
+        table.parentNode.insertBefore(selectedActionsElement, table);
+        
+        // Hàm cập nhật trạng thái chọn tất cả
+        function updateCheckAllState() {
+            console.log('Cập nhật trạng thái checkbox');
+            
+            var checkedCount = table.querySelectorAll('.table-check-row:checked, tbody td:first-child input[type="checkbox"]:checked').length;
+            var totalCount = rowCheckboxes.length;
+            
+            console.log('Số lượng đã chọn:', checkedCount, '/', totalCount);
+            
+            // Cập nhật trạng thái checkbox "chọn tất cả"
+            checkAllCheckbox.checked = checkedCount > 0 && checkedCount === totalCount;
+            checkAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < totalCount;
+            
+            // Cập nhật hiển thị số lượng đã chọn
+            selectedCountElement.textContent = checkedCount + ' được chọn';
+            
+            // Hiển thị/ẩn phần tử hiển thị số lượng đã chọn
+            if (checkedCount > 0) {
+                selectedCountElement.classList.add('active');
+                selectedActionsElement.classList.add('active');
+            } else {
+                selectedCountElement.classList.remove('active');
+                selectedActionsElement.classList.remove('active');
+            }
+        }
+        
+        // Xử lý sự kiện click vào checkbox "chọn tất cả"
+        checkAllCheckbox.addEventListener('click', function() {
+            console.log('Click vào checkbox chọn tất cả, trạng thái:', this.checked);
+            
+            var isChecked = this.checked;
+            
+            // Chọn/bỏ chọn tất cả các checkbox hàng
+            rowCheckboxes.forEach(function(checkbox) {
+                checkbox.checked = isChecked;
+            });
+            
+            // Cập nhật trạng thái
+            updateCheckAllState();
+        });
+        
+        // Xử lý sự kiện click vào checkbox hàng
+        rowCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('click', function() {
+                console.log('Click vào checkbox hàng, trạng thái:', this.checked);
+                
+                // Cập nhật trạng thái
+                updateCheckAllState();
+            });
+        });
+        
+        // Xử lý sự kiện cho nút Xóa đã chọn
+        var deleteSelectedButton = selectedActionsElement.querySelector('.delete-selected');
+        if (deleteSelectedButton) {
+            deleteSelectedButton.addEventListener('click', function() {
+                var selectedIds = [];
+                
+                // Lấy tất cả ID của các hàng đã chọn
+                table.querySelectorAll('.table-check-row:checked, tbody td:first-child input[type="checkbox"]:checked').forEach(function(checkbox) {
+                    selectedIds.push(checkbox.value);
+                });
+                
+                if (selectedIds.length > 0) {
+                    if (confirm('Bạn có chắc chắn muốn xóa ' + selectedIds.length + ' mục đã chọn?')) {
+                        console.log('Đã chọn các ID để xóa:', selectedIds);
+                        // Thực hiện xóa dữ liệu
+                        alert('Đã chọn ' + selectedIds.length + ' mục để xóa. ID: ' + selectedIds.join(', '));
+                    }
+                }
+            });
+        }
+        
+        // Xử lý sự kiện cho nút Xuất dữ liệu đã chọn
+        var exportSelectedButton = selectedActionsElement.querySelector('.export-selected');
+        if (exportSelectedButton) {
+            exportSelectedButton.addEventListener('click', function() {
+                var selectedRows = [];
+                
+                // Lấy tất cả hàng đã chọn
+                table.querySelectorAll('.table-check-row:checked, tbody td:first-child input[type="checkbox"]:checked').forEach(function(checkbox) {
+                    var row = checkbox.closest('tr');
+                    if (row) {
+                        selectedRows.push(row);
+                    }
+                });
+                
+                if (selectedRows.length > 0) {
+                    // Tạo bảng tạm thời với các hàng đã chọn
+                    var tempTable = document.createElement('table');
+                    
+                    // Sao chép thead
+                    var thead = table.querySelector('thead');
+                    if (thead) {
+                        tempTable.appendChild(thead.cloneNode(true));
+                    }
+                    
+                    // Tạo tbody mới
+                    var tbody = document.createElement('tbody');
+                    
+                    // Thêm các hàng đã chọn
+                    selectedRows.forEach(function(row) {
+                        tbody.appendChild(row.cloneNode(true));
+                    });
+                    
+                    tempTable.appendChild(tbody);
+                    
+                    // Xuất dữ liệu
+                    console.log('Xuất dữ liệu cho', selectedRows.length, 'hàng đã chọn');
+                    alert('Đã chọn ' + selectedRows.length + ' mục để xuất dữ liệu');
+                    
+                    // Code xuất dữ liệu sẽ được thực hiện ở đây
+                    // Có thể gọi hàm exportTableToExcel, exportTableToPdf với tempTable
+                }
+            });
+        }
+        
+        // Thực hiện cập nhật trạng thái ban đầu
+        updateCheckAllState();
+        
+        console.log('Đã thiết lập xong checkbox cho bảng');
     }
     
     // Ẩn các nút DataTable tự động tạo
@@ -685,6 +994,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         exportToPdf: function(tableId) {
             exportTableToPdf(tableId);
-        }
+        },
+        setupCheckboxes: setupCheckboxes
     };
 }); 
