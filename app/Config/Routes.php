@@ -114,6 +114,41 @@ $routes->get('loainguoidung/restore/(:num)', 'App\Modules\loainguoidung\Controll
 $routes->post('loainguoidung/restoreMultiple', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::restoreMultiple');
 $routes->get('loainguoidung/permanentDelete/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::permanentDelete/$1');
 
+// Form builder example
+$routes->group('form', static function ($routes) {
+    $routes->get('basic', 'FormExampleController::basic');
+    $routes->post('basic', 'FormExampleController::basic');
+    
+    $routes->get('advanced', 'FormExampleController::advanced');
+    $routes->post('advanced', 'FormExampleController::advanced');
+    
+    $routes->get('edit-user', 'FormExampleController::editUser');
+    $routes->post('edit-user', 'FormExampleController::editUser');
+    
+    $routes->get('time', 'FormExampleController::timeExample');
+    $routes->post('time', 'FormExampleController::timeExample');
+    
+    $routes->get('product-table', 'FormExampleController::productTableExample');
+    $routes->post('product-table', 'FormExampleController::productTableExample');
+    
+    $routes->get('timeline', 'FormExampleController::timelineExample');
+    $routes->post('timeline', 'FormExampleController::timelineExample');
+    
+    $routes->get('upload', 'FormExampleController::uploadExample');
+    $routes->post('upload', 'FormExampleController::uploadExample');
+});
+
+// Thêm routes cho TableBuilder
+$routes->group('/table', static function ($routes) {
+    $routes->get('basic', 'TableExampleController::basicExample');
+    $routes->get('heading-footing', 'TableExampleController::headingFootingExample');
+    $routes->get('custom-template', 'TableExampleController::customTemplateExample');
+    $routes->get('datatable', 'TableExampleController::dataTableExample');
+    $routes->get('export', 'TableExampleController::exportExample');
+    $routes->get('database', 'TableExampleController::databaseExample');
+    $routes->get('report', 'TableExampleController::reportExample');
+});
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing
