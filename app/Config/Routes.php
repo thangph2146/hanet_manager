@@ -149,6 +149,19 @@ $routes->group('/table', static function ($routes) {
     $routes->get('report', 'TableExampleController::reportExample');
 });
 
+// Table Examples
+$routes->get('table/basic', 'TableExampleController::basicExample');
+$routes->get('table/heading', 'TableExampleController::headingFootingExample');
+$routes->get('table/template', 'TableExampleController::customTemplateExample');
+$routes->get('table/datatable', 'TableExampleController::dataTableExample');
+$routes->get('table/export', 'TableExampleController::exportExample');
+$routes->get('table/database', 'TableExampleController::databaseExample');
+$routes->get('table/report', 'TableExampleController::reportExample');
+
+// Demo TableBuilder
+$routes->get('demo/tables', 'DemoTableController::index');
+$routes->get('demo/table', 'DemoTableController::index');
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing

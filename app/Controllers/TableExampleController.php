@@ -24,7 +24,7 @@ class TableExampleController extends BaseController
         $tableBuilder = new TableBuilder();
         $tableHtml = $tableBuilder->generate($data);
         
-        return view('table_examples/basic', [
+        return view('table_examples/layout_example', [
             'title' => 'Bảng cơ bản',
             'table' => $tableHtml
         ]);
@@ -50,7 +50,7 @@ class TableExampleController extends BaseController
         
         $tableHtml = $tableBuilder->generate($data);
         
-        return view('table_examples/basic', [
+        return view('table_examples/layout_example', [
             'title' => 'Bảng với tiêu đề và footer',
             'table' => $tableHtml
         ]);
@@ -82,7 +82,7 @@ class TableExampleController extends BaseController
         
         $tableHtml = $tableBuilder->generate($data);
         
-        return view('table_examples/basic', [
+        return view('table_examples/layout_example', [
             'title' => 'Bảng với template tùy chỉnh',
             'table' => $tableHtml
         ]);
@@ -148,7 +148,7 @@ class TableExampleController extends BaseController
         // Tạo HTML bảng
         $tableHtml = $tableBuilder->generate($data);
         
-        return view('table_examples/datatable', [
+        return view('table_examples/layout_example', [
             'title' => 'Bảng với DataTable',
             'table' => $tableHtml
         ]);
@@ -184,12 +184,14 @@ class TableExampleController extends BaseController
         // Bật DataTable và tính năng xuất dữ liệu
         $tableBuilder->useDataTable(true);
         
-        // Cấu hình nút xuất dữ liệu - thêm tất cả các loại hoặc chỉ định rõ
-        // Cách 1: Thêm tất cả các loại xuất
-        $tableBuilder->setExportOptions(true);
-        
-        // Cách 2: Thêm chỉ định các loại xuất cụ thể
-        // $tableBuilder->setExportOptions(['copy', 'excel', 'pdf', 'print']);
+        // Cấu hình nút xuất dữ liệu - thêm tất cả các loại
+        $tableBuilder->setExportOptions([
+            'enable' => true,
+            'copy' => true, 
+            'excel' => true, 
+            'pdf' => true, 
+            'print' => true
+        ]);
         
         // Tùy chọn cho DataTable
         $tableBuilder->setDataTableOptions([
@@ -230,7 +232,7 @@ class TableExampleController extends BaseController
         // Tạo HTML bảng
         $tableHtml = $tableBuilder->generate($data);
         
-        return view('table_examples/datatable', [
+        return view('table_examples/layout_example', [
             'title' => 'Bảng với chức năng xuất dữ liệu',
             'table' => $tableHtml
         ]);
@@ -241,9 +243,14 @@ class TableExampleController extends BaseController
      */
     public function databaseExample()
     {
-        // Lấy dữ liệu từ CSDL
-        $userModel = new \App\Models\UserModel();
-        $users = $userModel->findAll();
+        // Dữ liệu mẫu (thay vì lấy từ CSDL)
+        $users = [
+            ['id' => 1, 'name' => 'Nguyễn Văn A', 'email' => 'nguyenvana@example.com', 'created_at' => '2023-01-05 10:15:22'],
+            ['id' => 2, 'name' => 'Trần Thị B', 'email' => 'tranthib@example.com', 'created_at' => '2023-01-10 14:20:35'],
+            ['id' => 3, 'name' => 'Lê Văn C', 'email' => 'levanc@example.com', 'created_at' => '2023-02-12 09:30:15'],
+            ['id' => 4, 'name' => 'Phạm Thị D', 'email' => 'phamthid@example.com', 'created_at' => '2023-02-20 16:45:10'],
+            ['id' => 5, 'name' => 'Hoàng Văn E', 'email' => 'hoangvane@example.com', 'created_at' => '2023-03-07 11:25:40']
+        ];
         
         // Thiết lập cấu hình bảng
         $tableBuilder = new TableBuilder([
@@ -265,8 +272,8 @@ class TableExampleController extends BaseController
                 $user['email'],
                 $user['created_at'],
                 '<div class="btn-group">
-                    <a href="'.base_url('users/edit/'.$user['id']).'" class="btn btn-sm btn-primary">Sửa</a>
-                    <a href="'.base_url('users/delete/'.$user['id']).'" class="btn btn-sm btn-danger">Xóa</a>
+                    <a href="javascript:void(0)" class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i> Sửa</a>
+                    <a href="javascript:void(0)" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i> Xóa</a>
                 </div>'
             ];
         }
@@ -274,8 +281,8 @@ class TableExampleController extends BaseController
         // Tạo HTML bảng
         $tableHtml = $tableBuilder->generate($data);
         
-        return view('table_examples/datatable', [
-            'title' => 'Bảng từ cơ sở dữ liệu',
+        return view('table_examples/layout_example', [
+            'title' => 'Bảng từ cơ sở dữ liệu (mô phỏng)',
             'table' => $tableHtml
         ]);
     }
@@ -377,7 +384,13 @@ class TableExampleController extends BaseController
         
         // Bật DataTable và tính năng xuất dữ liệu
         $tableBuilder->useDataTable(true);
-        $tableBuilder->setExportOptions(true);
+        $tableBuilder->setExportOptions([
+            'enable' => true,
+            'copy' => true, 
+            'excel' => true, 
+            'pdf' => true, 
+            'print' => true
+        ]);
         
         // Thiết lập các bộ lọc báo cáo
         $tableBuilder->setFilters([
@@ -454,7 +467,7 @@ class TableExampleController extends BaseController
         // Tạo HTML bảng
         $tableHtml = $tableBuilder->generate($data);
         
-        return view('table_examples/datatable', [
+        return view('table_examples/layout_example', [
             'title' => 'Báo cáo với bộ lọc dữ liệu',
             'table' => $tableHtml
         ]);

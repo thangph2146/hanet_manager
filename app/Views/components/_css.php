@@ -22,6 +22,12 @@
 <link href="<?= site_url('assets/plugins/datatable/css/dataTables.bootstrap5.min.css') ?>" rel="stylesheet" />
 <link href="<?= site_url('assets/plugins/datatable/css/fixedHeader.bootstrap5.min.css') ?>" rel="stylesheet" />
 <link href="<?= site_url('assets/plugins/datatable/css/responsive.bootstrap.min.css') ?>" rel="stylesheet" />
+<!-- DataTables Buttons -->
+<link href="<?= site_url('assets/plugins/datatable/css/buttons.bootstrap5.min.css') ?>" rel="stylesheet" />
+<!-- FlatPickr -->
+<link href="<?= site_url('assets/plugins/flatpickr/flatpickr.min.css') ?>" rel="stylesheet" />
+<!-- Bootstrap Icons -->
+<link href="<?= site_url('assets/plugins/bootstrap-icons/bootstrap-icons.css') ?>" rel="stylesheet">
 <!-- loader-->
 <link href="<?= site_url('assets/css/pace.min.css') ?>" rel="stylesheet" />
 <script src="<?= site_url('assets/js/pace.min.js') ?>"></script>

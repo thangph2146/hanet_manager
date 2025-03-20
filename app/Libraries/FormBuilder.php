@@ -506,22 +506,18 @@ class FormBuilder
      */
     protected function getTimepickerScript($fieldId, $fieldConfig)
     {
+        // Thay vì trả về script trực tiếp, chúng ta chỉ thêm class và data attributes
         $id = $fieldConfig['id'] ?? $fieldId;
         $timeFormat = $fieldConfig['time_format'] ?? 'default';
         $format = $this->timeFormats[$timeFormat] ?? $this->timeFormats['default'];
         
-        return "<script>
-            document.addEventListener('DOMContentLoaded', function() {
-                if (typeof flatpickr !== 'undefined') {
-                    flatpickr('#$id', {
-                        enableTime: true,
-                        noCalendar: true,
-                        dateFormat: '$format',
-                        time_24hr: " . (strpos($format, 'H') !== false ? 'true' : 'false') . "
-                    });
-                }
-            });
-        </script>";
+        return "<script>document.addEventListener('DOMContentLoaded', function() { 
+            if (document.getElementById('" . $id . "')) {
+                document.getElementById('" . $id . "').classList.add('timepicker');
+                document.getElementById('" . $id . "').setAttribute('data-time-format', '" . $format . "');
+                document.documentElement.classList.add('form-builder-enabled');
+            }
+        });</script>";
     }
     
     /**
@@ -593,34 +589,10 @@ class FormBuilder
         // Tạo HTML cho các trường
         $fieldsHtml = '';
         
-        // Thêm CSS và JS nếu sử dụng timepicker
+        // Thêm thẻ script để thêm class và flag cho JS
         $headerScripts = '';
         if ($this->useTimepicker) {
-            $headerScripts .= '
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-            <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-            <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                if (typeof flatpickr !== "undefined") {
-                    flatpickr(".timepicker", {
-                        enableTime: true,
-                        noCalendar: true,
-                        dateFormat: "H:i",
-                        time_24hr: true
-                    });
-                    
-                    flatpickr(".datepicker", {
-                        enableTime: false,
-                        dateFormat: "Y-m-d"
-                    });
-                    
-                    flatpickr(".datetimepicker", {
-                        enableTime: true,
-                        dateFormat: "Y-m-d H:i"
-                    });
-                }
-            });
-            </script>';
+            $headerScripts .= '<script>document.documentElement.classList.add("form-builder-enabled");</script>';
         }
         
         // Nếu có nhóm, render theo nhóm
@@ -655,7 +627,8 @@ class FormBuilder
             'form_data' => $this->formData,
             'errors' => $this->errorMessages,
             'form_builder' => $this,
-            'header_scripts' => $headerScripts
+            'header_scripts' => $headerScripts,
+            'use_timepicker' => $this->useTimepicker
         ]);
         
         // Render view
