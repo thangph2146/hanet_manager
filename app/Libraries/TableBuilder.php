@@ -682,7 +682,7 @@ class TableBuilder
      */
     protected function renderCheckboxHeader()
     {
-        return '<div class="form-check d-flex justify-content-center">
+        return '<div class="form-check d-flex justify-content-center no-sort" data-orderable="false" style="background-image: none !important;">
             <input type="checkbox" class="form-check-input check-all" id="check-all" 
                 style="width: 18px; height: 18px; opacity: 1; visibility: visible; pointer-events: auto;">
         </div>';
