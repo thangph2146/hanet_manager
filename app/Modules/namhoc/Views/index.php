@@ -20,13 +20,6 @@
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<!-- Debug thông tin -->
-<?php if (ENVIRONMENT === 'development'): ?>
-<div class="alert alert-info">
-    <p><strong>Debug:</strong> Số lượng năm học: <?= count($nam_hoc ?? []) ?></p>
-</div>
-<?php endif; ?>
-
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
