@@ -130,6 +130,7 @@ $routes->post('loainguoidung/deleteMultiple', 'App\Modules\loainguoidung\Control
 $routes->post('loainguoidung/restoreMultiple', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::restoreMultiple');
 $routes->post('loainguoidung/deletePermanentMultiple', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::deletePermanentMultiple');
 $routes->post('loainguoidung/permanentDelete/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::permanentDelete/$1');
+$routes->post('loainguoidung/statusMultiple', '\App\Modules\loainguoidung\Controllers\LoaiNguoiDung::statusMultiple');
 
 // Form builder example
 $routes->group('form', static function ($routes) {

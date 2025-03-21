@@ -54,6 +54,7 @@ class LoaiNguoiDung extends BaseController
                 'id' => $loai->loai_nguoi_dung_id,
                 'ten_loai_nguoi_dung' => esc($loai->ten_loai),
                 'mo_ta' => esc($loai->mo_ta),
+                'status' => $loai->status ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-warning">Không hoạt động</span>',
                 'deleted_at' => $loai->deleted_at
             ];
         }
@@ -68,12 +69,7 @@ class LoaiNguoiDung extends BaseController
 
     public function new()
     {
-        $data = [
-            'title' => 'Thêm loại người dùng mới',
-            'loaiNguoiDung' => new \App\Modules\loainguoidung\Entities\LoaiNguoiDung()
-        ];
-
-        return view('App\Modules\loainguoidung\Views\form', $data);
+        return view('App\Modules\loainguoidung\Views\new');
     }
 
     public function create()
@@ -105,18 +101,19 @@ class LoaiNguoiDung extends BaseController
 
     public function edit($id = null)
     {
-        $loaiNguoiDung = $this->loaiNguoiDungModel->find($id);
-
-        if (!$loaiNguoiDung) {
-            return redirect()->to('/loainguoidung')->with('error', 'Không tìm thấy loại người dùng');
+        if (!$id) {
+            return redirect()->to('/loainguoidung')->with('error', 'ID loại người dùng không hợp lệ');
         }
 
-        $data = [
-            'title' => 'Cập nhật loại người dùng',
-            'loaiNguoiDung' => $loaiNguoiDung
-        ];
-
-        return view('App\Modules\loainguoidung\Views\form', $data);
+        $loaiNguoiDung = $this->loaiNguoiDungModel->find($id);
+        
+        if (!$loaiNguoiDung) {
+            return redirect()->to('/loainguoidung')->with('error', 'Loại người dùng không tồn tại');
+        }
+        
+        return view('App\Modules\loainguoidung\Views\edit', [
+            'loai_nguoi_dung' => $loaiNguoiDung
+        ]);
     }
 
     public function update($id = null)
@@ -145,7 +142,7 @@ class LoaiNguoiDung extends BaseController
         ];
 
         if ($this->loaiNguoiDungModel->update($id, $data)) {
-            return redirect()->to('/loainguoidung/edit/' . $id)->with('success', 'Đã cập nhật loại người dùng thành công');
+            return redirect()->to('/loainguoidung')->with('success', 'Đã cập nhật loại người dùng thành công');
         } else {
             return redirect()->back()->withInput()->with('error', 'Có lỗi xảy ra, vui lòng thử lại');
         }
@@ -198,45 +195,21 @@ class LoaiNguoiDung extends BaseController
         }
     }
 
+    /**
+     * Khôi phục một loại người dùng đã xóa
+     *
+     * @param int $id ID của loại người dùng
+     * @return \CodeIgniter\HTTP\RedirectResponse
+     */
     public function restore($id = null)
     {
-        // Kiểm tra nếu là request AJAX
-        if ($this->request->isAJAX()) {
-            $response = [
-                'success' => false,
-                'message' => '',
-                'csrf_hash' => csrf_hash()
-            ];
-
-            // Kiểm tra ID hợp lệ
-            if (!$id || !$this->loaiNguoiDungModel->find($id)) {
-                $response['message'] = 'Loại người dùng không tồn tại.';
-                return $this->response->setJSON($response);
-            }
-
-            try {
-                // Khôi phục loại người dùng
-                if ($this->loaiNguoiDungModel->restoreDeleted($id)) {
-                    $response['success'] = true;
-                    $response['message'] = 'Loại người dùng đã được khôi phục thành công.';
-                } else {
-                    $response['message'] = 'Không thể khôi phục loại người dùng. Vui lòng thử lại.';
-                }
-            } catch (\Exception $e) {
-                $response['message'] = 'Đã xảy ra lỗi: ' . $e->getMessage();
-            }
-
-            return $this->response->setJSON($response);
-        }
-
-        // Xử lý cho request thông thường (không phải AJAX)
         if (!$id) {
-            return redirect()->to('loainguoidung/listdeleted')->with('error', 'ID loại người dùng không được cung cấp.');
+            return redirect()->to('loainguoidung/listdeleted')->with('error', 'ID loại người dùng không hợp lệ');
         }
-
+        
         try {
-            if ($this->loaiNguoiDungModel->restoreDeleted($id)) {
-                return redirect()->to('loainguoidung/listdeleted')->with('success', 'Loại người dùng đã được khôi phục thành công.');
+            if ($this->loaiNguoiDungModel->restore($id)) {
+                return redirect()->to('loainguoidung/listdeleted')->with('success', 'Đã khôi phục loại người dùng thành công.');
             } else {
                 return redirect()->to('loainguoidung/listdeleted')->with('error', 'Không thể khôi phục loại người dùng. Vui lòng thử lại.');
             }
@@ -307,8 +280,8 @@ class LoaiNguoiDung extends BaseController
             return redirect()->to('loainguoidung')->with('error', 'Không có mục nào được chọn để xóa.');
         }
         
-        // Chuyển chuỗi IDs thành mảng
-        $idArray = explode(',', $ids);
+        // selected_ids đã là một mảng, không cần explode
+        $idArray = $ids;
         
         try {
             if ($this->loaiNguoiDungModel->softDeleteMultiple($idArray)) {
@@ -333,8 +306,8 @@ class LoaiNguoiDung extends BaseController
             return redirect()->to('loainguoidung/listdeleted')->with('error', 'Không có mục nào được chọn để khôi phục.');
         }
         
-        // Chuyển chuỗi IDs thành mảng
-        $idArray = explode(',', $ids);
+        // selected_ids đã là một mảng, không cần explode
+        $idArray = $ids;
         
         try {
             if ($this->loaiNguoiDungModel->restoreMultiple($idArray)) {
@@ -421,8 +394,8 @@ class LoaiNguoiDung extends BaseController
             return redirect()->to('loainguoidung/listdeleted')->with('error', 'Không có mục nào được chọn để xóa vĩnh viễn.');
         }
         
-        // Chuyển chuỗi IDs thành mảng
-        $idArray = explode(',', $ids);
+        // selected_ids đã là một mảng, không cần explode
+        $idArray = $ids;
         
         try {
             if ($this->loaiNguoiDungModel->permanentDeleteMultiple($idArray)) {
@@ -432,6 +405,55 @@ class LoaiNguoiDung extends BaseController
             }
         } catch (\Exception $e) {
             return redirect()->to('loainguoidung/listdeleted')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cập nhật trạng thái nhiều loại người dùng
+     */
+    public function statusMultiple()
+    {
+        $request = $this->request;
+        $ids = $request->getPost('selected_ids');
+        
+        if (empty($ids)) {
+            return redirect()->to('loainguoidung')->with('error', 'Không có mục nào được chọn để đổi trạng thái.');
+        }
+        
+        // selected_ids đã là một mảng, không cần explode
+        $idArray = $ids;
+        
+        try {
+            $success = 0;
+            $failed = 0;
+            
+            foreach ($idArray as $id) {
+                $loaiNguoiDung = $this->loaiNguoiDungModel->find($id);
+                if ($loaiNguoiDung) {
+                    // Đảo ngược trạng thái
+                    $newStatus = $loaiNguoiDung->status == 1 ? 0 : 1;
+                    
+                    if ($this->loaiNguoiDungModel->update($id, ['status' => $newStatus])) {
+                        $success++;
+                    } else {
+                        $failed++;
+                    }
+                } else {
+                    $failed++;
+                }
+            }
+            
+            if ($success > 0) {
+                $message = 'Đã cập nhật trạng thái ' . $success . ' loại người dùng thành công.';
+                if ($failed > 0) {
+                    $message .= ' Có ' . $failed . ' loại người dùng không thể cập nhật.';
+                }
+                return redirect()->to('loainguoidung')->with('success', $message);
+            } else {
+                return redirect()->to('loainguoidung')->with('error', 'Không thể cập nhật trạng thái loại người dùng. Vui lòng thử lại.');
+            }
+        } catch (\Exception $e) {
+            return redirect()->to('loainguoidung')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
         }
     }
 } 

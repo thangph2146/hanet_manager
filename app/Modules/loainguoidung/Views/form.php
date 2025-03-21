@@ -1,154 +1,69 @@
-<?= $this->extend('layouts/default'); ?>
+<?php
+/**
+ * Form component for creating and updating loai_nguoi_dung
+ * 
+ * @var string $action Form submission URL
+ * @var string $method Form method (POST or PUT)
+ * @var array $loai_nguoi_dung LoaiNguoiDung entity data for editing (optional)
+ */
 
-<?= $this->section('linkHref') ?>
-<link rel="stylesheet" href="<?= base_url('assets/plugins/sweetalert2/sweetalert2.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/plugins/summernote/summernote-bs4.min.css') ?>">
-<?= $this->endSection() ?>
+// Set default values if editing
+$ten_loai = isset($loai_nguoi_dung) ? $loai_nguoi_dung->getTenLoai() : '';
+$mo_ta = isset($loai_nguoi_dung) ? $loai_nguoi_dung->getMoTa() : '';
+$status = isset($loai_nguoi_dung) ? $loai_nguoi_dung->isActive() : 1;
+$id = isset($loai_nguoi_dung) ? $loai_nguoi_dung->getId() : '';
 
-<?= $this->section('title') ?><?= $title ?><?= $this->endSection() ?>
+// Set default values for form action and method
+$action = isset($action) ? $action : site_url('loainguoidung/create');
+$method = isset($method) ? $method : 'POST';
+?>
 
-<?= $this->section('bread_cum_link') ?>
-<?= view('components/_breakcrump', [
-    'title' => $title,
-    'dashboard_url' => site_url('users/dashboard'),
-    'breadcrumbs' => [
-        ['url' => site_url('loainguoidung'), 'title' => lang('LoaiNguoiDung.manageTitle')],
-        ['title' => isset($loaiNguoiDung->loai_nguoi_dung_id) ? lang('LoaiNguoiDung.edit') : lang('LoaiNguoiDung.createNew'), 'active' => true]
-    ],
-    'actions' => [
-        ['url' => site_url('loainguoidung'), 'title' => lang('LoaiNguoiDung.backToList')]
-    ]
-]) ?>
-<?= $this->endSection() ?>
-
-<?= $this->section('content'); ?>
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="card radius-10">
-            <div class="card-body">
-                <!-- Hiển thị thông báo lỗi nếu có -->
-                <?php if (session()->has('error')) : ?>
-                    <div class="alert alert-danger border-0 bg-danger alert-dismissible fade show">
-                        <div class="text-white"><?= session('error') ?></div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-
-                <?php if (session()->has('errors')) : ?>
-                    <div class="alert alert-danger border-0 bg-danger alert-dismissible fade show">
-                        <div class="text-white">
-                            <ul class="mb-0">
-                                <?php foreach (session('errors') as $error) : ?>
-                                    <li><?= $error ?></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-
-                <?php if (session()->has('success')) : ?>
-                    <div class="alert alert-success border-0 bg-success alert-dismissible fade show">
-                        <div class="text-white"><?= session('success') ?></div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Form sử dụng helper formRender -->
-                <?php
-                // Tải helper formRender
-                helper('formRender');
-                
-                // Mở form
-                $formAction = $loaiNguoiDung->loai_nguoi_dung_id ? base_url('loainguoidung/update/' . $loaiNguoiDung->loai_nguoi_dung_id) : base_url('loainguoidung/create');
-                echo render_form_open($formAction, ['id' => 'loai-nguoi-dung-form', 'class' => 'needs-validation', 'novalidate' => '']);
-                ?>
-                
-                <div class="form-group mb-3">
-                    <?= render_form_input(
-                        'ten_loai', 
-                        old('ten_loai', $loaiNguoiDung->ten_loai ?? ''), 
-                        ['placeholder' => lang('LoaiNguoiDung.namePlaceholder')], 
-                        'text', 
-                        lang('LoaiNguoiDung.name') . ' <span class="text-danger">*</span>', 
-                        true, 
-                        session('errors.ten_loai') ?? ''
-                    ) ?>
-                </div>
-
-                <div class="form-group mb-3">
-                    <?= render_form_textarea(
-                        'mo_ta', 
-                        old('mo_ta', $loaiNguoiDung->mo_ta ?? ''), 
-                        ['id' => 'summernote', 'class' => 'form-control summernote', 'placeholder' => lang('LoaiNguoiDung.descPlaceholder')], 
-                        lang('LoaiNguoiDung.description'), 
-                        false, 
-                        session('errors.mo_ta') ?? ''
-                    ) ?>
-                </div>
-
-                <div class="form-group mb-3">
-                    <?php
-                    $statusOptions = [
-                        '1' => lang('LoaiNguoiDung.statusActive'),
-                        '0' => lang('LoaiNguoiDung.statusInactive')
-                    ];
-                    
-                    echo render_form_dropdown(
-                        'status', 
-                        $statusOptions, 
-                        old('status', $loaiNguoiDung->status ?? '1'), 
-                        ['class' => 'form-control form-select'], 
-                        lang('LoaiNguoiDung.status')
-                    );
-                    ?>
-                </div>
-
-                <div class="form-group mb-3">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bx bx-save me-1"></i> <?= lang('LoaiNguoiDung.save') ?>
-                    </button>
-                    <a href="<?= base_url('loainguoidung') ?>" class="btn btn-secondary">
-                        <i class="bx bx-arrow-back me-1"></i> <?= lang('LoaiNguoiDung.back') ?>
-                    </a>
-                </div>
-
-                <?= render_form_close() ?>
-            </div>
-        </div>
-    </div>
-</div>
-
-<?= $this->endSection(); ?>
-
-<?= $this->section('script') ?>
-<script src="<?= base_url('assets/plugins/sweetalert2/sweetalert2.min.js') ?>"></script>
-<script src="<?= base_url('assets/plugins/summernote/summernote-bs4.min.js') ?>"></script>
-<script>
-$(document).ready(function() {
-    $('.summernote').summernote({
-        height: 200,
-        toolbar: [
-            ['style', ['style']],
-            ['font', ['bold', 'underline', 'clear']],
-            ['fontname', ['fontname']],
-            ['color', ['color']],
-            ['para', ['ul', 'ol', 'paragraph']],
-            ['table', ['table']],
-            ['view', ['fullscreen', 'help']]
-        ],
-        placeholder: '<?= lang('LoaiNguoiDung.descPlaceholder') ?>'
-    });
+<?= form_open($action, ['class' => 'row g-3 needs-validation', 'novalidate' => true]) ?>
+    <?php if (isset($loai_nguoi_dung)): ?>
+        <input type="hidden" name="loai_nguoi_dung_id" value="<?= $id ?>">
+    <?php endif; ?>
     
-    // Xác thực form
-    $('#loai-nguoi-dung-form').on('submit', function(e) {
-        if (!this.checkValidity()) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        $(this).addClass('was-validated');
-    });
-});
-</script>
-<?= $this->endSection() ?> 
+    <!-- ten_loai -->
+    <div class="col-md-12">
+        <label for="ten_loai" class="form-label">Tên loại người dùng <span class="text-danger">*</span></label>
+        <input type="text" class="form-control <?= session('errors.ten_loai') ? 'is-invalid' : '' ?>" 
+                id="ten_loai" name="ten_loai" 
+                value="<?= old('ten_loai', $ten_loai) ?>" 
+                required minlength="3" maxlength="50">
+        <?php if (session('errors.ten_loai')): ?>
+            <div class="invalid-feedback">
+                <?= session('errors.ten_loai') ?>
+            </div>
+        <?php else: ?>
+            <div class="invalid-feedback">Vui lòng nhập tên loại người dùng (tối thiểu 3 ký tự)</div>
+        <?php endif; ?>
+    </div>
+
+    <!-- mo_ta -->
+    <div class="col-md-12">
+        <label for="mo_ta" class="form-label">Mô tả</label>
+        <textarea class="form-control <?= session('errors.mo_ta') ? 'is-invalid' : '' ?>" 
+                    id="mo_ta" name="mo_ta" rows="4"><?= old('mo_ta', $mo_ta) ?></textarea>
+        <?php if (session('errors.mo_ta')): ?>
+            <div class="invalid-feedback">
+                <?= session('errors.mo_ta') ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Status -->
+    <div class="col-md-6">
+        <label for="status" class="form-label">Trạng thái</label>
+        <select class="form-select" id="status" name="status">
+            <option value="1" <?= old('status', $status) == '1' ? 'selected' : '' ?>>Hoạt động</option>
+            <option value="0" <?= old('status', $status) == '0' ? 'selected' : '' ?>>Không hoạt động</option>
+        </select>
+    </div>
+
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">
+            <?= isset($loai_nguoi_dung) ? 'Cập nhật' : 'Thêm mới' ?>
+        </button>
+        <a href="<?= site_url('loainguoidung') ?>" class="btn btn-secondary">Hủy</a>
+    </div>
+<?= form_close() ?> 

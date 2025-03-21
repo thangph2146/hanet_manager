@@ -221,4 +221,17 @@ class LoaiNguoiDungModel extends BaseModel
         }
         return $success;
     }
+    
+    /**
+     * Khôi phục một loại người dùng đã xóa
+     * 
+     * @param int $id ID loại người dùng cần khôi phục
+     * @return bool Kết quả khôi phục
+     */
+    public function restore($id)
+    {
+        return $this->db->table($this->table)
+            ->where($this->primaryKey, $id)
+            ->update([$this->deletedField => null]);
+    }
 }
