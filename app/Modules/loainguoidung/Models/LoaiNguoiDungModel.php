@@ -46,6 +46,30 @@ class LoaiNguoiDungModel extends BaseModel
     // Các phương thức tùy chỉnh cho LoaiNguoiDungModel
     
     /**
+     * Lấy danh sách tất cả loại người dùng đang hoạt động và không bị xóa
+     *
+     * @return array
+     */
+    public function getAllActive()
+    {
+        return $this->where('bin', 0)
+                    ->orderBy('ten_loai', 'ASC')
+                    ->findAll();
+    }
+    
+    /**
+     * Lấy danh sách tất cả loại người dùng đã bị xóa tạm thời
+     *
+     * @return array
+     */
+    public function getAllDeleted()
+    {
+        return $this->onlyDeleted()
+                    ->orderBy('deleted_at', 'DESC')
+                    ->findAll();
+    }
+    
+    /**
      * Lấy danh sách loại người dùng đang hoạt động
      *
      * @return array

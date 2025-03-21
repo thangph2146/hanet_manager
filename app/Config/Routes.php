@@ -114,6 +114,23 @@ $routes->get('loainguoidung/restore/(:num)', 'App\Modules\loainguoidung\Controll
 $routes->post('loainguoidung/restoreMultiple', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::restoreMultiple');
 $routes->get('loainguoidung/permanentDelete/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::permanentDelete/$1');
 
+// Loại người dùng routes
+$routes->get('loainguoidung', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::index');
+$routes->get('loainguoidung/listdeleted', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::listdeleted');
+$routes->get('loainguoidung/new', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::new');
+$routes->get('loainguoidung/edit/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::edit/$1');
+$routes->get('loainguoidung/delete/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::delete/$1');
+$routes->post('loainguoidung/create', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::create');
+$routes->post('loainguoidung/update/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::update/$1');
+$routes->post('loainguoidung/delete/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::delete/$1');
+$routes->post('loainguoidung/restore/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::restore/$1');
+$routes->post('loainguoidung/purge/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::purge/$1');
+$routes->post('loainguoidung/status/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::status/$1');
+$routes->post('loainguoidung/deleteMultiple', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::deleteMultiple');
+$routes->post('loainguoidung/restoreMultiple', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::restoreMultiple');
+$routes->post('loainguoidung/deletePermanentMultiple', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::deletePermanentMultiple');
+$routes->post('loainguoidung/permanentDelete/(:num)', 'App\Modules\loainguoidung\Controllers\LoaiNguoiDung::permanentDelete/$1');
+
 // Form builder example
 $routes->group('form', static function ($routes) {
     $routes->get('basic', 'FormExampleController::basic');

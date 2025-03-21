@@ -8,6 +8,8 @@ $routes = Services::routes();
 // Định nghĩa routes cho module LoaiNguoiDung
 $routes->group('loainguoidung', ['namespace' => 'App\Modules\loainguoidung\Controllers'], function ($routes) {
     $routes->get('/', 'LoaiNguoiDung::index');
+    $routes->get('dashboard', 'Dashboard::index');
+    $routes->get('statistics', 'Dashboard::statistics');
     $routes->get('listdeleted', 'LoaiNguoiDung::listdeleted');
     $routes->get('new', 'LoaiNguoiDung::new');
     $routes->post('create', 'LoaiNguoiDung::create');

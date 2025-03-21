@@ -1,0 +1,29 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# tham khảo module nguoidung app\Modules\nguoidung, cách tổ chức của folder, file.
+# tham khảo thêm file [formRender_helper.php](mdc:app/Helpers/formRender_helper.php) và [tableRender_helper.php](mdc:app/Helpers/tableRender_helper.php)
+# tạo model dựa theo tài liệu https://codeigniter4.github.io/userguide/models/model.html
+# tạo entity dựa theo tài liệu https://codeigniter4.github.io/userguide/models/entities.html
+# tạo module với cấu trúc dữ liệu được cung cấp.
+TABLE loai_nguoi_dung (
+    loai_nguoi_dung_id INT AUTO_INCREMENT PRIMARY KEY,
+    ten_loai VARCHAR(50) NOT NULL,
+    mo_ta TEXT NULL,
+    status TINYINT(1) DEFAULT 1,
+    bin TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
+    INDEX idx_ten_loai (ten_loai)
+)
+# views theo cầu của tôi là:
+- danh sách loại người dùng [index.php](mdc:app/Modules/loainguoidung/Views/index.php)
+- danh sách loại người dùng đã xóa [listdeleted.php](mdc:app/Modules/loainguoidung/Views/listdeleted.php)
+- form dùng chung cho tạo người dùng và update người dùng [form.php](mdc:app/Modules/loainguoidung/Views/form.php)
+- tạo mới người dùng [new.php](mdc:app/Modules/loainguoidung/Views/new.php)
+- edit người dùng [edit.php](mdc:app/Modules/loainguoidung/Views/edit.php) 
+# Các chức năng cần thiết theo CRUD và restore loại người dùng

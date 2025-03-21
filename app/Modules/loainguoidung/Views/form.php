@@ -1,103 +1,128 @@
 <?= $this->extend('layouts/default'); ?>
 
-<?= $this->section('styles') ?>
+<?= $this->section('linkHref') ?>
 <link rel="stylesheet" href="<?= base_url('assets/plugins/sweetalert2/sweetalert2.min.css') ?>">
 <link rel="stylesheet" href="<?= base_url('assets/plugins/summernote/summernote-bs4.min.css') ?>">
 <?= $this->endSection() ?>
 
+<?= $this->section('title') ?><?= $title ?><?= $this->endSection() ?>
+
+<?= $this->section('bread_cum_link') ?>
+<?= view('components/_breakcrump', [
+    'title' => $title,
+    'dashboard_url' => site_url('users/dashboard'),
+    'breadcrumbs' => [
+        ['url' => site_url('loainguoidung'), 'title' => lang('LoaiNguoiDung.manageTitle')],
+        ['title' => isset($loaiNguoiDung->loai_nguoi_dung_id) ? lang('LoaiNguoiDung.edit') : lang('LoaiNguoiDung.createNew'), 'active' => true]
+    ],
+    'actions' => [
+        ['url' => site_url('loainguoidung'), 'title' => lang('LoaiNguoiDung.backToList')]
+    ]
+]) ?>
+<?= $this->endSection() ?>
+
 <?= $this->section('content'); ?>
 
-<!-- Content Header (Page header) -->
-<div class="content-header">
-    <!-- Breadcrumb -->
-    <?= view('components/_breakcrump', [
-        'title' => $title,
-        'dashboard_url' => site_url('admin'),
-        'breadcrumbs' => [
-            ['url' => site_url('loainguoidung'), 'title' => 'Loại người dùng'],
-            ['title' => isset($loaiNguoiDung->loai_nguoi_dung_id) ? 'Cập nhật' : 'Thêm mới', 'active' => true]
-        ],
-        'actions' => [
-            ['url' => site_url('loainguoidung'), 'title' => 'Quay lại danh sách', 'icon' => 'fas fa-arrow-left']
-        ]
-    ]) ?>
-</div>
-<!-- /.content-header -->
-
-<!-- Main content -->
-<section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title"><?= $title ?></h3>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card radius-10">
+            <div class="card-body">
+                <!-- Hiển thị thông báo lỗi nếu có -->
+                <?php if (session()->has('error')) : ?>
+                    <div class="alert alert-danger border-0 bg-danger alert-dismissible fade show">
+                        <div class="text-white"><?= session('error') ?></div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                    <!-- Hiển thị thông báo lỗi nếu có -->
-                    <?php if (session()->has('error')) : ?>
-                        <div class="alert alert-danger">
-                            <?= session('error') ?>
-                        </div>
-                    <?php endif; ?>
+                <?php endif; ?>
 
-                    <?php if (session()->has('errors')) : ?>
-                        <div class="alert alert-danger">
-                            <ul>
+                <?php if (session()->has('errors')) : ?>
+                    <div class="alert alert-danger border-0 bg-danger alert-dismissible fade show">
+                        <div class="text-white">
+                            <ul class="mb-0">
                                 <?php foreach (session('errors') as $error) : ?>
                                     <li><?= $error ?></li>
                                 <?php endforeach; ?>
                             </ul>
                         </div>
-                    <?php endif; ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
 
-                    <?php if (session()->has('success')) : ?>
-                        <div class="alert alert-success">
-                            <?= session('success') ?>
-                        </div>
-                    <?php endif; ?>
+                <?php if (session()->has('success')) : ?>
+                    <div class="alert alert-success border-0 bg-success alert-dismissible fade show">
+                        <div class="text-white"><?= session('success') ?></div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
 
-                    <!-- Form -->
-                    <form action="<?= $loaiNguoiDung->loai_nguoi_dung_id ? base_url('loainguoidung/update/' . $loaiNguoiDung->loai_nguoi_dung_id) : base_url('loainguoidung/create') ?>" method="post">
-                        <?= csrf_field() ?>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label for="ten_loai">Tên loại người dùng <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="ten_loai" name="ten_loai" value="<?= old('ten_loai', $loaiNguoiDung->ten_loai ?? '') ?>" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="mo_ta">Mô tả</label>
-                                <textarea class="form-control summernote" id="mo_ta" name="mo_ta" rows="5"><?= old('mo_ta', $loaiNguoiDung->mo_ta ?? '') ?></textarea>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="status">Trạng thái</label>
-                                <select class="form-control" id="status" name="status">
-                                    <option value="1" <?= (old('status', $loaiNguoiDung->status ?? 1) == 1) ? 'selected' : '' ?>>Kích hoạt</option>
-                                    <option value="0" <?= (old('status', $loaiNguoiDung->status ?? 1) == 0) ? 'selected' : '' ?>>Vô hiệu hóa</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save mr-1"></i> Lưu
-                            </button>
-                            <a href="<?= base_url('loainguoidung') ?>" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left mr-1"></i> Quay lại
-                            </a>
-                        </div>
-                    </form>
+                <!-- Form sử dụng helper formRender -->
+                <?php
+                // Tải helper formRender
+                helper('formRender');
+                
+                // Mở form
+                $formAction = $loaiNguoiDung->loai_nguoi_dung_id ? base_url('loainguoidung/update/' . $loaiNguoiDung->loai_nguoi_dung_id) : base_url('loainguoidung/create');
+                echo render_form_open($formAction, ['id' => 'loai-nguoi-dung-form', 'class' => 'needs-validation', 'novalidate' => '']);
+                ?>
+                
+                <div class="form-group mb-3">
+                    <?= render_form_input(
+                        'ten_loai', 
+                        old('ten_loai', $loaiNguoiDung->ten_loai ?? ''), 
+                        ['placeholder' => lang('LoaiNguoiDung.namePlaceholder')], 
+                        'text', 
+                        lang('LoaiNguoiDung.name') . ' <span class="text-danger">*</span>', 
+                        true, 
+                        session('errors.ten_loai') ?? ''
+                    ) ?>
                 </div>
+
+                <div class="form-group mb-3">
+                    <?= render_form_textarea(
+                        'mo_ta', 
+                        old('mo_ta', $loaiNguoiDung->mo_ta ?? ''), 
+                        ['id' => 'summernote', 'class' => 'form-control summernote', 'placeholder' => lang('LoaiNguoiDung.descPlaceholder')], 
+                        lang('LoaiNguoiDung.description'), 
+                        false, 
+                        session('errors.mo_ta') ?? ''
+                    ) ?>
+                </div>
+
+                <div class="form-group mb-3">
+                    <?php
+                    $statusOptions = [
+                        '1' => lang('LoaiNguoiDung.statusActive'),
+                        '0' => lang('LoaiNguoiDung.statusInactive')
+                    ];
+                    
+                    echo render_form_dropdown(
+                        'status', 
+                        $statusOptions, 
+                        old('status', $loaiNguoiDung->status ?? '1'), 
+                        ['class' => 'form-control form-select'], 
+                        lang('LoaiNguoiDung.status')
+                    );
+                    ?>
+                </div>
+
+                <div class="form-group mb-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-save me-1"></i> <?= lang('LoaiNguoiDung.save') ?>
+                    </button>
+                    <a href="<?= base_url('loainguoidung') ?>" class="btn btn-secondary">
+                        <i class="bx bx-arrow-back me-1"></i> <?= lang('LoaiNguoiDung.back') ?>
+                    </a>
+                </div>
+
+                <?= render_form_close() ?>
             </div>
         </div>
     </div>
-</section>
-<!-- /.content -->
+</div>
 
 <?= $this->endSection(); ?>
 
-<?= $this->section('scripts') ?>
+<?= $this->section('script') ?>
 <script src="<?= base_url('assets/plugins/sweetalert2/sweetalert2.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/summernote/summernote-bs4.min.js') ?>"></script>
 <script>
@@ -113,7 +138,16 @@ $(document).ready(function() {
             ['table', ['table']],
             ['view', ['fullscreen', 'help']]
         ],
-        placeholder: 'Nhập mô tả ở đây...'
+        placeholder: '<?= lang('LoaiNguoiDung.descPlaceholder') ?>'
+    });
+    
+    // Xác thực form
+    $('#loai-nguoi-dung-form').on('submit', function(e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        $(this).addClass('was-validated');
     });
 });
 </script>
