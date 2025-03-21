@@ -1,15 +1,7 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
-<!-- DataTables CSS -->
-<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/dataTables.bootstrap5.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/buttons.bootstrap5.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/responsive.bootstrap5.min.css') ?>">
-<style>
-    .highlight-row {
-        background-color: #e6f7ff !important;
-        transition: background-color 1s ease;
-    }
-</style>
+<?php include __DIR__ . '/master_scripts.php'; ?>
+<?= loainguoidung_css('table') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>QUẢN LÝ LOẠI NGƯỜI DÙNG<?= $this->endSection() ?>
 
@@ -31,8 +23,8 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <?= form_open("loainguoidung/delete", ['id' => 'form-delete-multiple', 'class' => 'row g-3']) ?>
             <div class="col-12 mb-3">
+                <?= form_open("loainguoidung/delete", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
                 <button type="button" id="delete-selected" class="btn btn-danger me-2">Xóa mục đã chọn</button>
                 <?= form_close() ?>
                 
@@ -115,30 +107,33 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<!-- DataTables JS -->
-<script src="<?= base_url('assets/plugins/datatable/js/jquery.dataTables.min.js') ?>"></script>
-<script src="<?= base_url('assets/plugins/datatable/js/dataTables.bootstrap5.min.js') ?>"></script>
+<?= loainguoidung_js('table') ?>
 
 <script>
     $(document).ready(function() {
-        // DataTable
-        $('#dataTable').DataTable({
-            language: {
-                url: '<?= base_url('assets/plugins/datatable/locale/vi.json') ?>'
-            }
-        });
-        
-        // Xử lý checkbox select all
-        $('#select-all').on('click', function() {
-            $('.checkbox-item').prop('checked', $(this).prop('checked'));
-        });
-        
         // Xử lý button xóa nhiều
         $('#delete-selected').on('click', function() {
             if ($('.checkbox-item:checked').length > 0) {
                 if (confirm('Bạn có chắc chắn muốn xóa các loại người dùng đã chọn?')) {
-                    $('#form-delete-multiple').attr('action', '<?= site_url('loainguoidung/deleteMultiple') ?>');
-                    $('#form-delete-multiple').submit();
+                    // Tạo form tạm thời chứa các checkbox đã chọn
+                    var tempForm = $('#form-delete-multiple');
+                    
+                    // Xóa form cũ và tạo form mới
+                    tempForm.empty();
+                    
+                    // Thêm các checkbox đã chọn vào form
+                    $('.checkbox-item:checked').each(function() {
+                        var input = $('<input>').attr({
+                            type: 'hidden',
+                            name: 'selected_ids[]',
+                            value: $(this).val()
+                        });
+                        tempForm.append(input);
+                    });
+                    
+                    // Cập nhật action và submit form
+                    tempForm.attr('action', '<?= site_url('loainguoidung/deleteMultiple') ?>');
+                    tempForm.submit();
                 }
             } else {
                 alert('Vui lòng chọn ít nhất một loại người dùng để xóa');
@@ -149,9 +144,24 @@
         $('#status-selected').on('click', function() {
             if ($('.checkbox-item:checked').length > 0) {
                 if (confirm('Bạn có chắc chắn muốn đổi trạng thái các loại người dùng đã chọn?')) {
-                    // Copy các checkbox đã chọn sang form đổi trạng thái
-                    $('.checkbox-item:checked').clone().appendTo('#form-status-multiple');
-                    $('#form-status-multiple').submit();
+                    // Tạo form tạm thời chứa các checkbox đã chọn
+                    var tempForm = $('#form-status-multiple');
+                    
+                    // Xóa form cũ và tạo form mới
+                    tempForm.empty();
+                    
+                    // Thêm các checkbox đã chọn vào form
+                    $('.checkbox-item:checked').each(function() {
+                        var input = $('<input>').attr({
+                            type: 'hidden',
+                            name: 'selected_ids[]',
+                            value: $(this).val()
+                        });
+                        tempForm.append(input);
+                    });
+                    
+                    // Submit form
+                    tempForm.submit();
                 }
             } else {
                 alert('Vui lòng chọn ít nhất một loại người dùng để đổi trạng thái');

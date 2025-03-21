@@ -1,15 +1,7 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
-<!-- DataTables CSS -->
-<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/dataTables.bootstrap5.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/buttons.bootstrap5.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/responsive.bootstrap5.min.css') ?>">
-<style>
-    .highlight-row {
-        background-color: #e6f7ff !important;
-        transition: background-color 1s ease;
-    }
-</style>
+<?php include __DIR__ . '/master_scripts.php'; ?>
+<?= loainguoidung_css('table') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>DANH SÁCH LOẠI NGƯỜI DÙNG ĐÃ XÓA<?= $this->endSection() ?>
 
@@ -31,10 +23,14 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <?= form_open("loainguoidung/restoreMultiple", ['id' => 'form-restore-multiple', 'class' => 'row g-3']) ?>
             <div class="col-12 mb-3">
-                <button type="button" id="restore-selected" class="btn btn-success">Khôi phục mục đã chọn</button>
+                <?= form_open("loainguoidung/restoreMultiple", ['id' => 'form-restore-multiple', 'class' => 'd-inline']) ?>
+                <button type="button" id="restore-selected" class="btn btn-success me-2">Khôi phục mục đã chọn</button>
+                <?= form_close() ?>
+                
+                <?= form_open("loainguoidung/permanentDeleteMultiple", ['id' => 'form-permanent-delete-multiple', 'class' => 'd-inline']) ?>
                 <button type="button" id="permanent-delete-selected" class="btn btn-danger">Xóa vĩnh viễn mục đã chọn</button>
+                <?= form_close() ?>
             </div>
             
             <table id="dataTable" class="table table-striped table-bordered table-hover">
@@ -81,7 +77,6 @@
                     <?php endif; ?>
                 </tbody>
             </table>
-            <?= form_close() ?>
         </div>
     </div>
 </div>
@@ -107,29 +102,32 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<!-- DataTables JS -->
-<script src="<?= base_url('assets/plugins/datatable/js/jquery.dataTables.min.js') ?>"></script>
-<script src="<?= base_url('assets/plugins/datatable/js/dataTables.bootstrap5.min.js') ?>"></script>
+<?= loainguoidung_js('table') ?>
 
 <script>
-    $(document).ready(function() {
-        // DataTable
-        $('#dataTable').DataTable({
-            language: {
-                url: '<?= base_url('assets/plugins/datatable/locale/vi.json') ?>'
-            }
-        });
-        
-        // Xử lý checkbox select all
-        $('#select-all').on('click', function() {
-            $('.checkbox-item').prop('checked', $(this).prop('checked'));
-        });
-        
+    $(document).ready(function() {        
         // Xử lý button khôi phục nhiều
         $('#restore-selected').on('click', function() {
             if ($('.checkbox-item:checked').length > 0) {
                 if (confirm('Bạn có chắc chắn muốn khôi phục các loại người dùng đã chọn?')) {
-                    $('#form-restore-multiple').submit();
+                    // Tạo form tạm thời chứa các checkbox đã chọn
+                    var tempForm = $('#form-restore-multiple');
+                    
+                    // Xóa form cũ và tạo form mới
+                    tempForm.empty();
+                    
+                    // Thêm các checkbox đã chọn vào form
+                    $('.checkbox-item:checked').each(function() {
+                        var input = $('<input>').attr({
+                            type: 'hidden',
+                            name: 'selected_ids[]',
+                            value: $(this).val()
+                        });
+                        tempForm.append(input);
+                    });
+                    
+                    // Submit form
+                    tempForm.submit();
                 }
             } else {
                 alert('Vui lòng chọn ít nhất một loại người dùng để khôi phục');
@@ -140,8 +138,24 @@
         $('#permanent-delete-selected').on('click', function() {
             if ($('.checkbox-item:checked').length > 0) {
                 if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn các loại người dùng đã chọn? Hành động này không thể hoàn tác.')) {
-                    $('#form-restore-multiple').attr('action', '<?= site_url('loainguoidung/permanentDeleteMultiple') ?>');
-                    $('#form-restore-multiple').submit();
+                    // Tạo form tạm thời chứa các checkbox đã chọn
+                    var tempForm = $('#form-permanent-delete-multiple');
+                    
+                    // Xóa form cũ và tạo form mới
+                    tempForm.empty();
+                    
+                    // Thêm các checkbox đã chọn vào form
+                    $('.checkbox-item:checked').each(function() {
+                        var input = $('<input>').attr({
+                            type: 'hidden',
+                            name: 'selected_ids[]',
+                            value: $(this).val()
+                        });
+                        tempForm.append(input);
+                    });
+                    
+                    // Submit form
+                    tempForm.submit();
                 }
             } else {
                 alert('Vui lòng chọn ít nhất một loại người dùng để xóa vĩnh viễn');
