@@ -43,13 +43,21 @@ class Nganh extends BaseController
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Danh sách', current_url());
         
-        // Lấy dữ liệu từ model với phân trang và sắp xếp
-        // Tận dụng withRelations từ BaseModel
-        $data = $this->model->where('nganh.bin', 0)
-                          ->withRelations(['phong_khoa'])
-                          ->orderBy('nganh.updated_at', 'DESC')
-                          ->paginate(10);
-                          
+        // Thiết lập tiêu chí tìm kiếm mặc định
+        $criteria = ['filters' => ['bin' => 0]];
+        
+        // Thiết lập tùy chọn
+        $options = [
+            'sort' => 'updated_at',
+            'sort_direction' => 'DESC',
+            'page' => 1,
+            'limit' => 10,
+            'withRelations' => true
+        ];
+        
+        // Sử dụng phương thức search từ BaseModel thông qua NganhModel
+        $data = $this->model->withRelations(['phong_khoa'])->search($criteria, $options);
+        
         // Lấy đối tượng phân trang
         $pager = $this->model->pager;
         
@@ -330,16 +338,8 @@ class Nganh extends BaseController
         }
         
         try {
-            // Lấy thông tin của mục cần khôi phục với relationships
-            $nganh = $this->model->withDeleted()->findWithRelations($id, ['phong_khoa']);
-            
-            if (empty($nganh)) {
-                $this->alert->set('danger', 'Không tìm thấy ngành', true);
-                return redirect()->to("{$this->moduleUrl}/listdeleted");
-            }
-            
-            // Khôi phục bản ghi
-            if ($this->model->update($id, ['deleted_at' => null])) {
+            // Sử dụng phương thức restore từ BaseModel
+            if ($this->model->restore($id)) {
                 $this->alert->set('success', 'Khôi phục ngành thành công', true);
             } else {
                 $this->alert->set('danger', 'Khôi phục ngành thất bại', true);
@@ -390,17 +390,20 @@ class Nganh extends BaseController
         $this->breadcrumb->add('Tìm kiếm', current_url());
         
         // Thiết lập tiêu chí tìm kiếm
-        $criteria = ['keyword' => $keyword];
+        $criteria = [
+            'search' => $keyword,
+            'filters' => ['bin' => 0]
+        ];
         
         // Thiết lập tùy chọn sắp xếp và phân trang
         $options = [
-            'sort_field' => $this->request->getGet('sort') ?? 'updated_at',
+            'sort' => $this->request->getGet('sort') ?? 'updated_at',
             'sort_direction' => $this->request->getGet('direction') ?? 'DESC',
-            'withPhongKhoa' => true // Chỉ định rõ ràng rằng cần tải quan hệ phòng khoa
+            'withRelations' => true
         ];
         
-        // Sử dụng phương thức search đã được tối ưu hóa
-        $results = $this->model->search($criteria, $options);
+        // Sử dụng phương thức search từ BaseModel
+        $results = $this->model->withRelations(['phong_khoa'])->search($criteria, $options);
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [

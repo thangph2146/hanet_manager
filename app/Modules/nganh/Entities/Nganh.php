@@ -252,30 +252,6 @@ class Nganh extends BaseEntity
     }
     
     /**
-     * Kiểm tra tính duy nhất của mã ngành
-     * 
-     * @param string $maNganh Mã ngành cần kiểm tra
-     * @param int|null $exceptId ID ngành cần loại trừ khỏi việc kiểm tra (khi cập nhật)
-     * @return bool True nếu mã ngành là duy nhất, False nếu đã tồn tại
-     */
-    public function validateUniqueMaNganh(string $maNganh, ?int $exceptId = null): bool
-    {
-        return $this->validateUniqueField('ma_nganh', $maNganh, $exceptId);
-    }
-    
-    /**
-     * Kiểm tra tính duy nhất của tên ngành
-     * 
-     * @param string $tenNganh Tên ngành cần kiểm tra
-     * @param int|null $exceptId ID ngành cần loại trừ khỏi việc kiểm tra (khi cập nhật)
-     * @return bool True nếu tên ngành là duy nhất, False nếu đã tồn tại
-     */
-    public function validateUniqueTenNganh(string $tenNganh, ?int $exceptId = null): bool
-    {
-        return $this->validateUniqueField('ten_nganh', $tenNganh, $exceptId);
-    }
-    
-    /**
      * Kiểm tra tính duy nhất của một trường
      * 
      * @param string $field Tên trường cần kiểm tra
