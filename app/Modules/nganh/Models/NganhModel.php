@@ -284,11 +284,16 @@ class NganhModel extends BaseModel
     }
     
     /**
-     * Lấy tất cả dữ liệu không ở thùng rác
+     * Lấy tất cả các ngành kèm theo quan hệ phòng khoa
+     * 
+     * @return array
      */
-    public function getAll() 
+    public function getAll()
     {
-        return $this->where('bin', 0)->findAll();
+        return $this->where('bin', 0)
+                ->orderBy('updated_at', 'DESC')
+                ->withRelations(['phong_khoa'])
+                ->findAll();
     }
     
     /**
@@ -305,15 +310,16 @@ class NganhModel extends BaseModel
     }
     
     /**
-     * Lấy tất cả ngành có trong thùng rác
-     *
+     * Lấy tất cả các bản ghi trong thùng rác
+     * 
      * @return array
      */
     public function getAllInRecycleBin()
     {
         return $this->where('bin', 1)
-                    ->orderBy('updated_at', 'DESC')
-                    ->findAll();
+                ->orderBy('deleted_at', 'DESC')
+                ->withRelations(['phong_khoa'])
+                ->findAll();
     }
     
     /**

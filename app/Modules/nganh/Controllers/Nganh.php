@@ -94,12 +94,15 @@ class Nganh extends BaseController
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Thêm ' . $this->moduleName,
+            'validation' => $this->validator,
             'phongkhoas' => $phongkhoas,
             'moduleUrl' => $this->moduleUrl,
-            'nganh' => $nganh
+            'nganh' => $nganh,
+            'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
+            'is_new' => true
         ];
         
-        return view('App\Modules\nganh\Views\new', $viewData);
+        return view('App\Modules\nganh\Views\form', $viewData);
     }
     
     /**
@@ -209,10 +212,10 @@ class Nganh extends BaseController
             'nganh' => $nganh,
             'phong_khoa_list' => $phongKhoaList,
             'moduleUrl' => $this->moduleUrl,
-            'errors' => session()->getFlashdata('errors') ?? $this->validator->getErrors(),
+            'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
         ];
         
-        return view('App\Modules\nganh\Views\form', $viewData);
+        return view('App\Modules\nganh\Views\edit', $viewData);
     }
     
     /**
@@ -544,5 +547,295 @@ class Nganh extends BaseController
         } else {
             return redirect()->back()->with('error', 'Có lỗi xảy ra khi thay đổi trạng thái các mục đã chọn');
         }
+    }
+    
+    /**
+     * Xuất danh sách ngành ra file Excel
+     */
+    public function exportExcel()
+    {
+        // Sử dụng thư viện PhpSpreadsheet
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // Thiết lập tiêu đề
+        $sheet->setCellValue('A1', 'DANH SÁCH NGÀNH');
+        $sheet->mergeCells('A1:E1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        
+        // Thiết lập header
+        $sheet->setCellValue('A3', 'STT');
+        $sheet->setCellValue('B3', 'MÃ NGÀNH');
+        $sheet->setCellValue('C3', 'TÊN NGÀNH');
+        $sheet->setCellValue('D3', 'PHÒNG/KHOA');
+        $sheet->setCellValue('E3', 'TRẠNG THÁI');
+        
+        // Định dạng header
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => [
+                    'argb' => 'FFE0E0E0',
+                ],
+            ],
+        ];
+        $sheet->getStyle('A3:E3')->applyFromArray($headerStyle);
+        
+        // Lấy dữ liệu
+        $nganhs = $this->model->getAll();
+        
+        // Đổ dữ liệu vào sheet
+        $row = 4;
+        $i = 1;
+        foreach ($nganhs as $nganh) {
+            $sheet->setCellValue('A' . $row, $i);
+            $sheet->setCellValue('B' . $row, $nganh->ma_nganh);
+            $sheet->setCellValue('C' . $row, $nganh->ten_nganh);
+            
+            // Xử lý phòng khoa
+            $phongKhoa = 'Không có';
+            if (isset($nganh->phong_khoa) && !empty($nganh->phong_khoa)) {
+                $phongKhoa = $nganh->phong_khoa->ten_phong_khoa . ' (' . $nganh->phong_khoa->ma_phong_khoa . ')';
+            }
+            $sheet->setCellValue('D' . $row, $phongKhoa);
+            
+            // Xử lý trạng thái
+            $status = $nganh->status == 1 ? 'Hoạt động' : 'Không hoạt động';
+            $sheet->setCellValue('E' . $row, $status);
+            
+            $row++;
+            $i++;
+        }
+        
+        // Định dạng dữ liệu
+        $dataStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ];
+        $sheet->getStyle('A4:E' . ($row - 1))->applyFromArray($dataStyle);
+        
+        // Điều chỉnh kích thước cột
+        $sheet->getColumnDimension('A')->setWidth(10);
+        $sheet->getColumnDimension('B')->setWidth(15);
+        $sheet->getColumnDimension('C')->setWidth(40);
+        $sheet->getColumnDimension('D')->setWidth(30);
+        $sheet->getColumnDimension('E')->setWidth(15);
+        
+        // Thêm ngày xuất báo cáo
+        $row += 1;
+        $sheet->setCellValue('A' . $row, 'Ngày xuất báo cáo: ' . date('d/m/Y H:i:s'));
+        $sheet->mergeCells('A' . $row . ':E' . $row);
+        
+        // Tạo writer để ghi file
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        
+        // Thiết lập header để tải xuống
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="danh_sach_nganh_' . date('dmY_His') . '.xlsx"');
+        header('Cache-Control: max-age=0');
+        
+        // Ghi file và kết thúc
+        $writer->save('php://output');
+        exit();
+    }
+    
+    /**
+     * Xuất danh sách ngành ra file PDF
+     */
+    public function exportPdf()
+    {
+        // Lấy dữ liệu
+        $nganhs = $this->model->getAll();
+        
+        // Chuẩn bị dữ liệu cho view
+        $data = [
+            'title' => 'DANH SÁCH NGÀNH',
+            'nganh' => $nganhs,
+            'date' => date('d/m/Y H:i:s')
+        ];
+        
+        // Render view thành HTML
+        $html = view('App\Modules\nganh\Views\export_pdf', $data);
+        
+        // Tạo đối tượng DOMPDF
+        $options = new \Dompdf\Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        
+        // Render PDF
+        $dompdf->render();
+        
+        // Stream file PDF để tải xuống
+        $dompdf->stream('danh_sach_nganh_' . date('dmY_His') . '.pdf', ['Attachment' => true]);
+        exit();
+    }
+    
+    /**
+     * Xuất danh sách ngành đã xóa ra file Excel
+     */
+    public function exportDeletedExcel()
+    {
+        // Sử dụng thư viện PhpSpreadsheet
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // Thiết lập tiêu đề
+        $sheet->setCellValue('A1', 'DANH SÁCH NGÀNH ĐÃ XÓA');
+        $sheet->mergeCells('A1:F1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        
+        // Thiết lập header
+        $sheet->setCellValue('A3', 'STT');
+        $sheet->setCellValue('B3', 'MÃ NGÀNH');
+        $sheet->setCellValue('C3', 'TÊN NGÀNH');
+        $sheet->setCellValue('D3', 'PHÒNG/KHOA');
+        $sheet->setCellValue('E3', 'TRẠNG THÁI');
+        $sheet->setCellValue('F3', 'NGÀY XÓA');
+        
+        // Định dạng header
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => [
+                    'argb' => 'FFE0E0E0',
+                ],
+            ],
+        ];
+        $sheet->getStyle('A3:F3')->applyFromArray($headerStyle);
+        
+        // Lấy dữ liệu đã xóa
+        $deletedItems = $this->model->getAllInRecycleBin();
+        
+        // Đổ dữ liệu vào sheet
+        $row = 4;
+        $i = 1;
+        foreach ($deletedItems as $nganh) {
+            $sheet->setCellValue('A' . $row, $i);
+            $sheet->setCellValue('B' . $row, $nganh->ma_nganh);
+            $sheet->setCellValue('C' . $row, $nganh->ten_nganh);
+            
+            // Xử lý phòng khoa
+            $phongKhoa = 'Không có';
+            if (isset($nganh->phong_khoa) && !empty($nganh->phong_khoa)) {
+                $phongKhoa = $nganh->phong_khoa->ten_phong_khoa . ' (' . $nganh->phong_khoa->ma_phong_khoa . ')';
+            }
+            $sheet->setCellValue('D' . $row, $phongKhoa);
+            
+            // Xử lý trạng thái
+            $status = $nganh->status == 1 ? 'Hoạt động' : 'Không hoạt động';
+            $sheet->setCellValue('E' . $row, $status);
+            
+            // Ngày xóa
+            $deletedAt = '';
+            if (!empty($nganh->deleted_at)) {
+                $deletedAt = date('d/m/Y H:i', strtotime($nganh->deleted_at));
+            }
+            $sheet->setCellValue('F' . $row, $deletedAt);
+            
+            $row++;
+            $i++;
+        }
+        
+        // Định dạng dữ liệu
+        $dataStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ];
+        $sheet->getStyle('A4:F' . ($row - 1))->applyFromArray($dataStyle);
+        
+        // Điều chỉnh kích thước cột
+        $sheet->getColumnDimension('A')->setWidth(10);
+        $sheet->getColumnDimension('B')->setWidth(15);
+        $sheet->getColumnDimension('C')->setWidth(40);
+        $sheet->getColumnDimension('D')->setWidth(30);
+        $sheet->getColumnDimension('E')->setWidth(15);
+        $sheet->getColumnDimension('F')->setWidth(20);
+        
+        // Thêm ngày xuất báo cáo
+        $row += 1;
+        $sheet->setCellValue('A' . $row, 'Ngày xuất báo cáo: ' . date('d/m/Y H:i:s'));
+        $sheet->mergeCells('A' . $row . ':F' . $row);
+        
+        // Tạo writer để ghi file
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        
+        // Thiết lập header để tải xuống
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="danh_sach_nganh_da_xoa_' . date('dmY_His') . '.xlsx"');
+        header('Cache-Control: max-age=0');
+        
+        // Ghi file và kết thúc
+        $writer->save('php://output');
+        exit();
+    }
+    
+    /**
+     * Xuất danh sách ngành đã xóa ra file PDF
+     */
+    public function exportDeletedPdf()
+    {
+        // Lấy dữ liệu
+        $deletedItems = $this->model->getAllInRecycleBin();
+        
+        // Chuẩn bị dữ liệu cho view
+        $data = [
+            'title' => 'DANH SÁCH NGÀNH ĐÃ XÓA',
+            'nganh' => $deletedItems,
+            'date' => date('d/m/Y H:i:s'),
+            'is_deleted' => true
+        ];
+        
+        // Render view thành HTML
+        $html = view('App\Modules\nganh\Views\export_pdf', $data);
+        
+        // Tạo đối tượng DOMPDF
+        $options = new \Dompdf\Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        
+        // Render PDF
+        $dompdf->render();
+        
+        // Stream file PDF để tải xuống
+        $dompdf->stream('danh_sach_nganh_da_xoa_' . date('dmY_His') . '.pdf', ['Attachment' => true]);
+        exit();
     }
 } 

@@ -30,4 +30,6 @@ $routes->group('nganh', ['namespace' => 'App\Modules\nganh\Controllers'], functi
     $routes->post('statusMultiple', 'Nganh::statusMultiple');
     $routes->get('deleted', 'Nganh::deleted');
     $routes->get('view/(:num)', 'Nganh::view/$1');
+    $routes->get('exportPdf', 'Nganh::exportPdf');
+    $routes->get('exportExcel', 'Nganh::exportExcel');
 }); 

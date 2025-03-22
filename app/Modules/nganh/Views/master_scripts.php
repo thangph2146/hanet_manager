@@ -45,6 +45,9 @@ function nganh_css($type = 'all') {
         .badge {
             padding: 0.5em 0.75em;
         }
+        .btn i {
+            margin-right: 0;
+        }
     </style>
     <?php
     endif;

@@ -138,7 +138,7 @@
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <form action="<?= site_url('nganh/restore/' . $item->nganh_id) ?>" method="post" style="display:inline;">
                                                 <button type="submit" class="btn btn-success btn-sm" title="Khôi phục" data-bs-toggle="tooltip">
-                                                    <i class="bx bx-revision"></i>
+                                                    <i class="bx bx-revision mr-0"></i>
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-danger btn-sm btn-permanent-delete" 
@@ -443,12 +443,12 @@
         // Xuất dữ liệu
         $('#export-excel').on('click', function(e) {
             e.preventDefault();
-            alert('Chức năng xuất Excel đang được phát triển');
+            window.location.href = '<?= site_url("nganh/exportDeletedExcel") ?>';
         });
         
         $('#export-pdf').on('click', function(e) {
             e.preventDefault();
-            alert('Chức năng xuất PDF đang được phát triển');
+            window.location.href = '<?= site_url("nganh/exportDeletedPdf") ?>';
         });
     });
 </script>

@@ -45,7 +45,7 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới ngành' : 'Cập nhật ng
     <?php endif; ?>
 
     <!-- Hiển thị lỗi validation -->
-    <?php if (session('errors') && is_array(session('errors'))): ?>
+    <?php if (isset($errors) && (is_array($errors) || is_object($errors)) && count($errors) > 0): ?>
         <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
             <div class="d-flex">
                 <div class="me-3">
@@ -54,8 +54,8 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới ngành' : 'Cập nhật ng
                 <div>
                     <strong>Lỗi nhập liệu:</strong>
                     <ul class="mb-0 ps-3 mt-1">
-                        <?php foreach (session('errors') as $error): ?>
-                            <li><?= $error ?></li>
+                        <?php foreach ($errors as $field => $error): ?>
+                            <li><?= is_array($error) ? implode(', ', $error) : $error ?></li>
                         <?php endforeach; ?>
                     </ul>
                 </div>
@@ -137,8 +137,10 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới ngành' : 'Cập nhật ng
                                 id="phong_khoa_id" name="phong_khoa_id"
                                 data-placeholder="-- Chọn phòng/khoa --">
                             <option value="">-- Chọn phòng/khoa --</option>
-                            <?php if (!empty($phongkhoas)): ?>
-                                <?php foreach ($phongkhoas as $pk): ?>
+                            <?php 
+                            $phongkhoaData = isset($phongkhoas) ? $phongkhoas : (isset($phong_khoa_list) ? $phong_khoa_list : []);
+                            if (!empty($phongkhoaData)): ?>
+                                <?php foreach ($phongkhoaData as $pk): ?>
                                     <option value="<?= $pk->phong_khoa_id ?>" 
                                         <?= old('phong_khoa_id', $phong_khoa_id) == $pk->phong_khoa_id ? 'selected' : '' ?>>
                                         <?= esc($pk->ten_phong_khoa) ?> (<?= esc($pk->ma_phong_khoa) ?>)

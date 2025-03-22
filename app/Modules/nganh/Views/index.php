@@ -128,13 +128,13 @@
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <a href="<?= site_url("nganh/view/{$item->nganh_id}") ?>" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
-                                                <i class="bx bx-info-circle"></i>
+                                            <a href="<?= site_url("nganh/view/{$item->nganh_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                <i class="bx bx-info-circle text-white"></i>
                                             </a>
-                                            <a href="<?= site_url("nganh/edit/{$item->nganh_id}") ?>" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Sửa">
+                                            <a href="<?= site_url("nganh/edit/{$item->nganh_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
                                                 <i class="bx bx-edit"></i>
                                             </a>
-                                            <button type="button" class="btn btn-danger btn-sm btn-delete" 
+                                            <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
                                                     data-id="<?= $item->nganh_id ?>" 
                                                     data-name="<?= esc($item->ten_nganh) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa">
@@ -270,8 +270,7 @@
                 lengthMenu: [10, 25, 50, 100],
                 dom: '<"row mx-0"<"col-sm-12 px-0"tr>><"row mx-0 mt-2"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
                 ordering: true,
-                responsive: false,
-                scrollX: false,
+                responsive: true,
                 columnDefs: [
                     { orderable: false, targets: [0, 5] },
                     { className: 'align-middle', targets: '_all' }
@@ -288,22 +287,20 @@
                     dataTable.search($(this).val()).draw();
                 }
             });
-
-            // Cập nhật tổng số bản ghi
-            dataTable.on('draw', function() {
-                $('#total-records').text(dataTable.page.info().recordsTotal);
-            });
-        } else {
-            // Nếu bảng đã được khởi tạo, lấy instance hiện tại
-            const dataTable = $('#dataTable').DataTable();
-            
-            // Cập nhật lại dữ liệu
-            dataTable.draw();
         }
         
         // Làm mới bảng
         $('#refresh-table').on('click', function() {
             location.reload();
+        });
+        
+        // Xử lý nút xóa
+        $('.btn-delete').on('click', function() {
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            $('#delete-item-name').text(name);
+            $('#delete-form').attr('action', '<?= site_url('nganh/delete/') ?>' + id);
+            $('#deleteModal').modal('show');
         });
         
         // Chọn tất cả
@@ -338,16 +335,7 @@
             }
         }
         
-        // Xử lý xóa một mục
-        $('.btn-delete').on('click', function() {
-            const id = $(this).data('id');
-            const name = $(this).data('name');
-            $('#delete-item-name').text(name);
-            $('#delete-form').attr('action', '<?= site_url('nganh/delete/') ?>' + id);
-            $('#deleteModal').modal('show');
-        });
-        
-        // Xử lý xóa nhiều mục
+        // Xử lý nút xóa nhiều
         $('#delete-selected').on('click', function() {
             if ($('.checkbox-item:checked').length > 0) {
                 $('#selected-count').text($('.checkbox-item:checked').length);
@@ -355,6 +343,7 @@
             }
         });
         
+        // Xử lý xác nhận xóa nhiều
         $('#confirm-delete-multiple').on('click', function() {
             // Tạo form tạm thời chứa các checkbox đã chọn
             const tempForm = $('#form-delete-multiple');
@@ -379,7 +368,7 @@
             $('#deleteMultipleModal').modal('hide');
         });
         
-        // Xử lý đổi trạng thái nhiều mục
+        // Xử lý nút đổi trạng thái nhiều
         $('#status-selected').on('click', function() {
             if ($('.checkbox-item:checked').length > 0) {
                 $('#status-count').text($('.checkbox-item:checked').length);
@@ -387,6 +376,7 @@
             }
         });
         
+        // Xử lý xác nhận đổi trạng thái nhiều
         $('#confirm-status-multiple').on('click', function() {
             // Tạo form tạm thời chứa các checkbox đã chọn
             const tempForm = $('#form-status-multiple');
@@ -411,15 +401,16 @@
             $('#statusMultipleModal').modal('hide');
         });
         
-        // Xuất dữ liệu
+        // Xuất Excel
         $('#export-excel').on('click', function(e) {
             e.preventDefault();
-            alert('Chức năng xuất Excel đang được phát triển');
+            window.location.href = '<?= site_url("nganh/exportExcel") ?>';
         });
         
+        // Xuất PDF
         $('#export-pdf').on('click', function(e) {
             e.preventDefault();
-            alert('Chức năng xuất PDF đang được phát triển');
+            window.location.href = '<?= site_url("nganh/exportPdf") ?>';
         });
     });
 </script>
