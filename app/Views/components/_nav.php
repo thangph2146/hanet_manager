@@ -109,6 +109,21 @@
 			<li> <a href="<?= site_url('phongkhoa/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Phòng Khoa mới</a>
 			</li>
 		</ul>
+	</li>
+	<li>
+		<a href="javascript:;" class="has-arrow">
+			<div class="parent-icon"><i class='bx bx-user-pin'></i>
+			</div>
+			<div class="menu-title">Quản lý Năm Học</div>
+		</a>
+		<ul>
+			<li> <a href="<?= site_url('namhoc') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Năm học</a>
+			</li>
+			<li> <a href="<?= site_url('namhoc/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Năm học bị xóa</a>
+			</li>
+			<li> <a href="<?= site_url('namhoc/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Năm học mới</a>
+			</li>
+		</ul>
 	</li>	
 	<li>
 		<a href="javascript:;" class="has-arrow">
