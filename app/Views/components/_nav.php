@@ -111,6 +111,21 @@
 		</ul>
 	</li>	
 	<li>
+		<a href="javascript:;" class="has-arrow">
+			<div class="parent-icon"><i class='bx bx-user-pin'></i>
+			</div>
+			<div class="menu-title">Quản lý Khóa Học</div>
+		</a>
+		<ul>
+			<li> <a href="<?= site_url('khoahoc') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Khóa Học</a>
+			</li>
+			<li> <a href="<?= site_url('khoahoc/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Khóa Học bị xóa</a>
+			</li>
+			<li> <a href="<?= site_url('khoahoc/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Khóa Học mới</a>
+			</li>
+		</ul>
+	</li>	
+	<li>
 		<a href="https://phongqlcntt.hub.edu.vn/" target="_blank">
 			<div class="parent-icon"><i class="bx bx-support"></i>
 			</div>
