@@ -3,822 +3,174 @@ description:
 globs: 
 alwaysApply: false
 ---
----
-description: Guide for creating and standardizing CodeIgniter 4 modules based on the loainguoidung pattern
-globs: 
-alwaysApply: false
----
+# Hướng Dẫn Tạo Module Mới Trong CodeIgniter 4.6
 
-# Hướng dẫn tạo và chuẩn hóa module cho CodeIgniter 4
+## Cấu Trúc Module
 
-## 1. Cấu trúc thư mục module chuẩn
-Module cần có cấu trúc thư mục chuẩn sau (VD: App/Modules/example):
+Các module CodeIgniter 4.6 cần tuân theo cấu trúc sau:
 ```
-App/Modules/example/
-  ├── Config/
-  │   └── Routes.php             # Định nghĩa routes cho module
-  ├── Controllers/
-  │   └── Example.php            # Controller chính (theo tên module)
-  ├── Models/
-  │   └── ExampleModel.php       # Model chính
-  ├── Entities/
-  │   └── Example.php            # Entity chính
-  ├── Views/
-  │   ├── index.php              # Danh sách chính
-  │   ├── new.php                # Form tạo mới
-  │   ├── edit.php               # Form chỉnh sửa
-  │   ├── form.php               # Form chung (dùng cho cả new và edit)
-  │   ├── listdeleted.php        # Danh sách đã xóa
-  │   ├── master_scripts.php     # File quản lý JS và CSS
-  │   └── partials/              # Các thành phần giao diện nhỏ (nếu cần)
-  └── Database/
-      ├── Migrations/            # Migration tạo bảng
-      └── Seeds/                 # Seed dữ liệu mẫu
+app/Modules/TenModule/
+├── Config/
+│   └── Routes.php
+├── Controllers/
+│   ├── TenModule.php
+│   └── Dashboard.php (tùy chọn)
+├── Models/
+│   └── TenModuleModel.php
+├── Entities/
+│   └── TenModule.php
+├── Views/
+│   ├── index.php
+│   ├── new.php
+│   ├── edit.php
+│   ├── listdeleted.php
+│   └── master_scripts.php
+└── Database/
+    └── Migrations/
+        └── YYYY-MM-DD-HHMMSS_TenModule.php
 ```
 
-## 2. Quy trình chi tiết xây dựng module
+## Quy Tắc Đặt Tên
 
-### 2.1. Thiết kế bảng dữ liệu và Migration
-Chuẩn hóa cấu trúc bảng với các trường cơ bản:
-```php
-$this->forge->addField([
-    'id' => [                      // ID chính (theo chuẩn module_id)
-        'type'           => 'INT',
-        'auto_increment' => true
-    ],
-    // Các trường thông tin chính của module
-    'name' => [
-        'type'       => 'VARCHAR',
-        'constraint' => 100,
-        'null'       => false
-    ],
-    'description' => [
-        'type' => 'TEXT',
-        'null' => true
-    ],
-    // Trường trạng thái
-    'status' => [
-        'type'       => 'TINYINT',
-        'constraint' => 1,
-        'default'    => 1          // 1: Active, 0: Inactive
-    ],
-    'bin' => [
-        'type'       => 'TINYINT',
-        'constraint' => 1,
-        'default'    => 0          // 0: Not in bin, 1: In bin
-    ],
-    // Trường thời gian
-    'created_at' => [
-        'type'    => 'TIMESTAMP',
-        'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
-    ],
-    'updated_at' => [
-        'type'       => 'TIMESTAMP',
-        'null'       => true,
-        'on update'  => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
-    ],
-    'deleted_at' => [
-        'type'       => 'TIMESTAMP',
-        'null'       => true
-    ],
-]);
+1. **Tên module**: PascalCase cho thư mục (VD: `HeDaoTao`)
+2. **Controller**: PascalCase, trùng với tên module (VD: `HeDaoTao.php`)
+3. **Model**: PascalCase, thêm hậu tố "Model" (VD: `HeDaoTaoModel.php`)
+4. **Entity**: PascalCase, trùng với tên module (VD: `HeDaoTao.php`)
+5. **Table**: snake_case (VD: `he_dao_tao`)
+6. **Primary key**: snake_case, tên bảng + "_id" (VD: `he_dao_tao_id`)
 
-$this->forge->addKey('id', true);  // Primary key
-$this->forge->addKey('name', false, false, 'idx_name');  // Index cho tìm kiếm
-```
+## Config/Routes.php
 
-### 2.2. Entity chuẩn
-Entity phải kế thừa từ BaseEntity và triển khai các phương thức sau:
-```php
-namespace App\Modules\example\Entities;
-
-use App\Entities\BaseEntity;
-use CodeIgniter\I18n\Time;
-
-class Example extends BaseEntity
-{
-    protected $tableName = 'example';
-    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
-    
-    protected $casts = [
-        'id' => 'int',
-        'status' => 'int', 
-        'bin' => 'int'
-    ];
-    
-    protected $datamap = [];
-    protected $jsonFields = [];
-    protected $hiddenFields = ['deleted_at'];
-    
-    // Validation rules
-    protected $validationRules = [
-        'name' => 'required|min_length[3]|max_length[100]',
-        'description' => 'permit_empty|max_length[1000]',
-        'status' => 'permit_empty|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
-    ];
-    
-    // GETTER/SETTER METHODS
-    
-    public function getId(): int
-    {
-        return (int)$this->attributes['id'] ?? 0;
-    }
-    
-    public function getName(): string
-    {
-        return $this->attributes['name'] ?? '';
-    }
-    
-    public function setName(string $name)
-    {
-        $this->attributes['name'] = $name;
-        return $this;
-    }
-    
-    public function getDescription(): ?string
-    {
-        return $this->attributes['description'] ?? null;
-    }
-    
-    public function setDescription(?string $description)
-    {
-        $this->attributes['description'] = $description;
-        return $this;
-    }
-    
-    public function isActive(): bool
-    {
-        return (bool)($this->attributes['status'] ?? false);
-    }
-    
-    public function setStatus(bool $status)
-    {
-        $this->attributes['status'] = (int)$status;
-        return $this;
-    }
-    
-    public function isInBin(): bool
-    {
-        return (bool)($this->attributes['bin'] ?? false);
-    }
-    
-    public function setBinStatus(bool $binStatus)
-    {
-        $this->attributes['bin'] = (int)$binStatus;
-        return $this;
-    }
-    
-    // Format date helpers
-    public function getCreatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
-    {
-        return $this->created_at instanceof Time 
-            ? $this->created_at->format($format) 
-            : '';
-    }
-    
-    public function getUpdatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
-    {
-        return $this->updated_at instanceof Time 
-            ? $this->updated_at->format($format) 
-            : '';
-    }
-}
-```
-
-### 2.3. Model chuẩn
-Model phải kế thừa từ BaseModel và triển khai các phương thức sau:
-```php
-namespace App\Modules\example\Models;
-
-use App\Models\BaseModel;
-
-class ExampleModel extends BaseModel
-{
-    protected $table = 'example';
-    protected $primaryKey = 'id';
-    protected $returnType = 'App\Modules\example\Entities\Example';
-    protected $useSoftDeletes = true;
-    protected $useTimestamps = true;
-    
-    protected $allowedFields = [
-        'name',
-        'description',
-        'status',
-        'bin',
-        'created_at',
-        'updated_at',
-        'deleted_at'
-    ];
-    
-    // Các trường có thể tìm kiếm
-    protected $searchableFields = [
-        'name',
-        'description'
-    ];
-    
-    // Các trường có thể lọc
-    protected $filterableFields = [
-        'status',
-        'bin'
-    ];
-    
-    // Các phương thức truy vấn tiêu chuẩn
-    
-    /**
-     * Lấy danh sách tất cả items đang hoạt động và không bị xóa
-     */
-    public function getAllActive()
-    {
-        return $this->where('bin', 0)
-                    ->orderBy('name', 'ASC')
-                    ->findAll();
-    }
-    
-    /**
-     * Lấy danh sách tất cả items đã bị xóa tạm thời
-     */
-    public function getAllDeleted()
-    {
-        return $this->onlyDeleted()
-                    ->orderBy('deleted_at', 'DESC')
-                    ->findAll();
-    }
-    
-    /**
-     * Lấy danh sách items đang hoạt động (status = 1)
-     */
-    public function getActive()
-    {
-        return $this->where('status', 1)
-                    ->where('bin', 0)
-                    ->orderBy('name', 'ASC')
-                    ->findAll();
-    }
-    
-    /**
-     * Kiểm tra tên đã tồn tại chưa
-     */
-    public function isNameExists(string $name, int $exceptId = null)
-    {
-        $builder = $this->where('name', $name);
-        
-        if ($exceptId !== null) {
-            $builder->where($this->primaryKey.' !=', $exceptId);
-        }
-        
-        return $builder->countAllResults() > 0;
-    }
-    
-    /**
-     * Chuyển item vào thùng rác
-     */
-    public function moveToBin(int $id)
-    {
-        return $this->update($id, ['bin' => 1]);
-    }
-    
-    /**
-     * Khôi phục item từ thùng rác
-     */
-    public function restoreFromBin(int $id)
-    {
-        return $this->update($id, ['bin' => 0]);
-    }
-    
-    /**
-     * Xóa tạm thời item (soft delete)
-     */
-    public function softDelete(int $id)
-    {
-        return $this->delete($id);
-    }
-    
-    /**
-     * Xóa tạm thời nhiều items
-     */
-    public function softDeleteMultiple(array $ids)
-    {
-        return $this->delete($ids);
-    }
-    
-    /**
-     * Khôi phục item đã xóa tạm thời
-     */
-    public function restoreDeleted(int $id)
-    {
-        return $this->restore($id);
-    }
-    
-    /**
-     * Khôi phục nhiều items đã xóa tạm thời
-     */
-    public function restoreMultiple(array $ids)
-    {
-        $success = true;
-        foreach ($ids as $id) {
-            if (!$this->restore($id)) {
-                $success = false;
-            }
-        }
-        return $success;
-    }
-    
-    /**
-     * Xóa vĩnh viễn item
-     */
-    public function permanentDelete(int $id)
-    {
-        return $this->delete($id, true);
-    }
-    
-    /**
-     * Xóa vĩnh viễn nhiều items
-     */
-    public function permanentDeleteMultiple(array $ids)
-    {
-        $success = true;
-        foreach ($ids as $id) {
-            if (!$this->delete($id, true)) {
-                $success = false;
-            }
-        }
-        return $success;
-    }
-    
-    /**
-     * Khôi phục một item đã xóa
-     */
-    public function restore($id)
-    {
-        return $this->db->table($this->table)
-            ->where($this->primaryKey, $id)
-            ->update([$this->deletedField => null]);
-    }
-}
-```
-
-### 2.4. Script Management với master_scripts.php
-Tạo file `master_scripts.php` trong thư mục Views để tổ chức JS và CSS:
-
-```php
-<?php
-/**
- * Master script file for module
- * Contains common CSS and JS for all views
- */
-
-// CSS section
-function module_css($type = 'all') {
-    ob_start();
-    
-    // Common CSS for DataTables
-    if (in_array($type, ['all', 'table'])):
-    ?>
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/dataTables.bootstrap5.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/buttons.bootstrap5.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/plugins/datatable/css/responsive.bootstrap5.min.css') ?>">
-    <style>
-        .highlight-row {
-            background-color: #e6f7ff !important;
-            transition: background-color 1s ease;
-        }
-    </style>
-    <?php
-    endif;
-    
-    // Form specific CSS
-    if (in_array($type, ['all', 'form'])):
-    ?>
-    <!-- Form CSS -->
-    <link rel="stylesheet" href="<?= base_url('assets/plugins/select2/css/select2.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') ?>">
-    <?php
-    endif;
-    
-    return ob_get_clean();
-}
-
-// JS section
-function module_js($type = 'all') {
-    ob_start();
-    
-    // DataTable scripts
-    if (in_array($type, ['all', 'table'])):
-    ?>
-    <!-- DataTables JS -->
-    <script src="<?= base_url('assets/plugins/datatable/js/jquery.dataTables.min.js') ?>"></script>
-    <script src="<?= base_url('assets/plugins/datatable/js/dataTables.bootstrap5.min.js') ?>"></script>
-    <script src="<?= base_url('assets/plugins/datatable/js/dataTables.responsive.min.js') ?>"></script>
-    
-    <script>
-        $(document).ready(function() {
-            // Initialize DataTable
-            $('#dataTable').DataTable({
-                responsive: true,
-                language: {
-                    url: "<?= base_url('assets/plugins/datatable/language/vi.json') ?>"
-                }
-            });
-            
-            // Select all checkboxes
-            $('#select-all').on('click', function() {
-                $('.checkbox-item').prop('checked', this.checked);
-            });
-            
-            // Update "select all" state based on checkbox states
-            $('.checkbox-item').on('click', function() {
-                if ($('.checkbox-item:checked').length === $('.checkbox-item').length) {
-                    $('#select-all').prop('checked', true);
-                } else {
-                    $('#select-all').prop('checked', false);
-                }
-            });
-        });
-    </script>
-    <?php
-    endif;
-    
-    // Form validation scripts
-    if (in_array($type, ['all', 'form'])):
-    ?>
-    <!-- Form Validation JS -->
-    <script src="<?= base_url('assets/plugins/select2/js/select2.full.min.js') ?>"></script>
-    <script>
-        $(document).ready(function() {
-            // Initialize Select2
-            $('.select2').select2({
-                theme: 'bootstrap4'
-            });
-            
-            // Validate form
-            (function() {
-                'use strict';
-                window.addEventListener('load', function() {
-                    var forms = document.getElementsByClassName('needs-validation');
-                    var validation = Array.prototype.filter.call(forms, function(form) {
-                        form.addEventListener('submit', function(event) {
-                            if (form.checkValidity() === false) {
-                                event.preventDefault();
-                                event.stopPropagation();
-                            }
-                            form.classList.add('was-validated');
-                        }, false);
-                    });
-                }, false);
-            })();
-        });
-    </script>
-    <?php
-    endif;
-    
-    return ob_get_clean();
-}
-```
-
-### 2.5. Views
-
-#### 2.5.1. View Index (Danh sách chính)
-```php
-<?= $this->extend('layouts/default') ?>
-<?= $this->section('linkHref') ?>
-<?php include __DIR__ . '/master_scripts.php'; ?>
-<?= module_css('table') ?>
-<?= $this->endSection() ?>
-<?= $this->section('title') ?>QUẢN LÝ MODULE<?= $this->endSection() ?>
-
-<?= $this->section('bread_cum_link') ?>
-<?= view('components/_breakcrump', [
-    'title' => 'Quản lý Module',
-    'dashboard_url' => site_url('module/dashboard'),
-    'breadcrumbs' => [
-        ['title' => 'Quản lý Module', 'active' => true]
-    ],
-    'actions' => [
-        ['url' => site_url('/module/new'), 'title' => 'Tạo mới'],
-        ['url' => site_url('/module/listdeleted'), 'title' => 'Danh sách đã xóa']
-    ]
-]) ?>
-<?= $this->endSection() ?>
-
-<?= $this->section("content") ?>
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <div class="col-12 mb-3">
-                <?= form_open("module/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
-                <button type="button" id="delete-selected" class="btn btn-danger me-2">Xóa mục đã chọn</button>
-                <?= form_close() ?>
-                
-                <?= form_open("module/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
-                <button type="button" id="status-selected" class="btn btn-warning">Đổi trạng thái mục đã chọn</button>
-                <?= form_close() ?>
-            </div>
-            
-            <table id="dataTable" class="table table-striped table-bordered table-hover">
-                <thead>
-                    <tr>
-                        <th width="5%"><input type="checkbox" id="select-all" /></th>
-                        <th width="20%">Tên</th>
-                        <th width="40%">Mô tả</th>
-                        <th width="15%">Trạng thái</th>
-                        <th width="10%">Ngày tạo</th>
-                        <th width="10%">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- ITEMS LIST -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Xác nhận xóa -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Bạn có chắc chắn muốn xóa "<span id="delete-item-name"></span>"?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <form id="delete-form" method="post" style="display: inline;">
-                    <button type="submit" id="btn-confirm-delete" class="btn btn-danger">Xóa</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<?= $this->endSection() ?>
-
-<?= $this->section('script') ?>
-<?= module_js('table') ?>
-
-<script>
-    // Xử lý JavaScript cho table
-</script>
-<?= $this->endSection() ?>
-```
-
-#### 2.5.2. View Form Chung (form.php)
-```php
-<?php
-/**
- * Form component for creating and updating module
- * 
- * @var string $action Form submission URL
- * @var string $method Form method (POST or PUT)
- * @var array $item Entity data for editing (optional)
- */
-
-// Set default values if editing
-$name = isset($item) ? $item->getName() : '';
-$description = isset($item) ? $item->getDescription() : '';
-$status = isset($item) ? $item->isActive() : 1;
-$id = isset($item) ? $item->getId() : '';
-
-// Set default values for form action and method
-$action = isset($action) ? $action : site_url('module/create');
-$method = isset($method) ? $method : 'POST';
-?>
-
-<?= form_open($action, ['class' => 'row g-3 needs-validation', 'novalidate' => true]) ?>
-    <?php if (isset($item)): ?>
-        <input type="hidden" name="id" value="<?= $id ?>">
-    <?php endif; ?>
-    
-    <!-- name -->
-    <div class="col-md-12">
-        <label for="name" class="form-label">Tên <span class="text-danger">*</span></label>
-        <input type="text" class="form-control <?= session('errors.name') ? 'is-invalid' : '' ?>" 
-                id="name" name="name" 
-                value="<?= old('name', $name) ?>" 
-                required minlength="3" maxlength="100">
-        <?php if (session('errors.name')): ?>
-            <div class="invalid-feedback">
-                <?= session('errors.name') ?>
-            </div>
-        <?php else: ?>
-            <div class="invalid-feedback">Vui lòng nhập tên (tối thiểu 3 ký tự)</div>
-        <?php endif; ?>
-    </div>
-
-    <!-- description -->
-    <div class="col-md-12">
-        <label for="description" class="form-label">Mô tả</label>
-        <textarea class="form-control <?= session('errors.description') ? 'is-invalid' : '' ?>" 
-                    id="description" name="description" rows="4"><?= old('description', $description) ?></textarea>
-        <?php if (session('errors.description')): ?>
-            <div class="invalid-feedback">
-                <?= session('errors.description') ?>
-            </div>
-        <?php endif; ?>
-    </div>
-
-    <!-- Status -->
-    <div class="col-md-6">
-        <label for="status" class="form-label">Trạng thái</label>
-        <select class="form-select" id="status" name="status">
-            <option value="1" <?= old('status', $status) == '1' ? 'selected' : '' ?>>Hoạt động</option>
-            <option value="0" <?= old('status', $status) == '0' ? 'selected' : '' ?>>Không hoạt động</option>
-        </select>
-    </div>
-
-    <div class="col-12">
-        <button class="btn btn-primary" type="submit">
-            <?= isset($item) ? 'Cập nhật' : 'Thêm mới' ?>
-        </button>
-        <a href="<?= site_url('module') ?>" class="btn btn-secondary">Hủy</a>
-    </div>
-<?= form_close() ?>
-```
-
-### 2.6. Controller chuẩn
-Các phương thức cần triển khai trong controller:
-
-1. index() - Danh sách chính
-2. listdeleted() - Danh sách đã xóa
-3. new() - Form tạo mới
-4. create() - Xử lý tạo mới
-5. edit() - Form chỉnh sửa
-6. update() - Xử lý cập nhật
-7. delete() - Xóa tạm thời
-8. restore() - Khôi phục từ thùng rác
-9. permanentDelete() - Xóa vĩnh viễn
-10. deleteMultiple() - Xóa nhiều
-11. restoreMultiple() - Khôi phục nhiều
-12. statusMultiple() - Cập nhật trạng thái nhiều
-13. permanentDeleteMultiple() - Xóa vĩnh viễn nhiều
-
-### 2.7. Routes chuẩn
 ```php
 <?php
 namespace Config;
 
-// Create a new instance of our RouteCollection class.
 $routes = Services::routes();
 
-// Định nghĩa routes cho module
-$routes->group('module', ['namespace' => 'App\Modules\module\Controllers'], function ($routes) {
-    $routes->get('/', 'Module::index');
+$routes->group('tenmodule', ['namespace' => 'App\Modules\tenmodule\Controllers'], function ($routes) {
+    $routes->get('/', 'TenModule::index');
     $routes->get('dashboard', 'Dashboard::index');
-    $routes->get('listdeleted', 'Module::listdeleted');
-    $routes->get('new', 'Module::new');
-    $routes->post('create', 'Module::create');
-    $routes->get('edit/(:num)', 'Module::edit/$1');
-    $routes->post('update/(:num)', 'Module::update/$1');
-    $routes->get('delete/(:num)', 'Module::delete/$1');
-    $routes->post('delete/(:num)', 'Module::delete/$1');
-    $routes->get('restore/(:num)', 'Module::restore/$1');
-    $routes->post('restore/(:num)', 'Module::restore/$1');
-    $routes->post('status/(:num)', 'Module::status/$1');
-    $routes->post('deleteMultiple', 'Module::deleteMultiple');
-    $routes->post('restoreMultiple', 'Module::restoreMultiple');
-    $routes->get('permanentDelete/(:num)', 'Module::permanentDelete/$1');
-    $routes->post('permanentDelete/(:num)', 'Module::permanentDelete/$1');
-    $routes->post('permanentDeleteMultiple', 'Module::permanentDeleteMultiple');
-    $routes->post('statusMultiple', 'Module::statusMultiple');
+    $routes->get('statistics', 'Dashboard::statistics');
+    $routes->get('listdeleted', 'TenModule::listdeleted');
+    $routes->get('new', 'TenModule::new');
+    $routes->post('create', 'TenModule::create');
+    $routes->get('edit/(:num)', 'TenModule::edit/$1');
+    $routes->post('update/(:num)', 'TenModule::update/$1');
+    $routes->get('delete/(:num)', 'TenModule::delete/$1');
+    $routes->post('delete/(:num)', 'TenModule::delete/$1');
+    $routes->get('restore/(:num)', 'TenModule::restore/$1');
+    $routes->post('restore/(:num)', 'TenModule::restore/$1');
+    $routes->post('status/(:num)', 'TenModule::status/$1');
+    $routes->post('deleteMultiple', 'TenModule::deleteMultiple');
+    $routes->post('restoreMultiple', 'TenModule::restoreMultiple');
+    $routes->post('statusMultiple', 'TenModule::statusMultiple');
+    $routes->get('deleted', 'TenModule::deleted');
 });
 ```
 
-# Prompt for Creating New Modules Based on LoaiNguoiDung Pattern
+## Controllers/TenModule.php
 
-To create a new module following the LoaiNguoiDung pattern, use this prompt structure:
+Controller cần kế thừa `BaseController` và có các phương thức:
 
+- `__construct()`: Khởi tạo model và validation
+- `index()`: Hiển thị danh sách
+- `listdeleted()`: Hiển thị danh sách đã xóa
+- `new()`: Form tạo mới
+- `create()`: Xử lý tạo mới
+- `edit($id)`: Form chỉnh sửa
+- `update($id)`: Xử lý cập nhật
+- `delete($id)`: Xóa tạm thời
+- `restore($id)`: Khôi phục
+- `permanentDelete($id)`: Xóa vĩnh viễn
+- `status($id)`: Đổi trạng thái
+- `deleteMultiple()`: Xóa nhiều
+- `restoreMultiple()`: Khôi phục nhiều
+- `statusMultiple()`: Đổi trạng thái nhiều
+
+## Models/TenModuleModel.php
+
+Model cần kế thừa `BaseModel` và có:
+
+```php
+protected $table = 'ten_module';
+protected $primaryKey = 'ten_module_id';
+protected $returnType = 'App\Modules\tenmodule\Entities\TenModule';
+protected $useSoftDeletes = true;
+protected $useTimestamps = true;
+
+protected $allowedFields = [
+    'ten_ten_module',
+    'ma_ten_module',
+    'status',
+    'bin',
+    'created_at',
+    'updated_at',
+    'deleted_at'
+];
+
+// Phương thức chuẩn
+public function getAllActive() { }
+public function getAllDeleted() { }
+public function getActive() { }
+public function isNameExists($ten, $exceptId = null) { }
+public function isCodeExists($ma, $exceptId = null) { }
+public function restore($id) { }
 ```
-Create a new CodeIgniter 4 module with the following specifications:
 
-1. Module Name: [MODULE_NAME]
-   - Primary table name: [TABLE_NAME]
-   - Primary key: [TABLE_NAME]_id
-   - Entity class name: [MODULE_NAME_CAPITALIZED]
-   
-2. Database Structure:
-   Required fields:
-   - id ([TABLE_NAME]_id) - INT, auto_increment, primary key
-   - name ([NAME_FIELD]) - VARCHAR(100), required
-   - description - TEXT, nullable
-   - status - TINYINT(1), default 1 (1: Active, 0: Inactive)
-   - bin - TINYINT(1), default 0 (0: Not in bin, 1: In bin)
-   - created_at - TIMESTAMP
-   - updated_at - TIMESTAMP
-   - deleted_at - TIMESTAMP, nullable
-   [Add any additional custom fields specific to your module]
+## Entities/TenModule.php
 
-3. Entity Requirements:
-   - Extend BaseEntity
-   - Include standard getter/setter methods for all fields
-   - Define validation rules for all fields
-   - Include date formatting helpers
-   Example format:
-   ```php
-   protected $attributes = [
-       'id' => null,
-       'name' => null,
-       'description' => null,
-       'status' => 1,
-       'bin' => 0
-   ];
+Entity cần kế thừa `BaseEntity` và có:
 
-   protected $validationRules = [
-       'name' => 'required|min_length[3]|max_length[100]',
-       'description' => 'permit_empty|max_length[1000]',
-       'status' => 'permit_empty|in_list[0,1]',
-       'bin' => 'permit_empty|in_list[0,1]'
-   ];
-   ```
+- Thuộc tính: validationRules, validationMessages
+- Getter/setter cho từng trường
+- Phương thức định dạng ngày tháng
 
-4. Model Requirements:
-   - Extend BaseModel
-   - Include standard CRUD methods
-   - Implement soft delete functionality
-   - Include methods for:
-     * getAllActive()
-     * getAllDeleted()
-     * getActive()
-     * isNameExists()
-     * moveToBin()
-     * restoreFromBin()
-     * softDelete()
-     * softDeleteMultiple()
-     * restoreDeleted()
-     * restoreMultiple()
-     * permanentDelete()
-     * permanentDeleteMultiple()
+## Migrations
 
-5. Views Required:
-   - index.php (main listing)
-   - listdeleted.php (deleted items)
-   - form.php (shared create/edit form)
-   - new.php (create view)
-   - edit.php (edit view)
-   - master_scripts.php (JS/CSS management)
+Tạo migration với cấu trúc bảng cơ bản:
+- Primary key (id)
+- Tên (thường là trường bắt buộc)
+- Mã (tùy chọn)
+- Trạng thái (status)
+- Thùng rác (bin)
+- Thời gian (created_at, updated_at, deleted_at)
 
-6. Controller Methods:
-   Base methods:
-   - index() - Main listing
-   - listdeleted() - Show deleted items
-   - new() - Create form
-   - create() - Handle creation
-   - edit($id) - Edit form
-   - update($id) - Handle update
-   - delete($id) - Soft delete
-   - restore($id) - Restore deleted item
-   - permanentDelete($id) - Hard delete
-   
-   Bulk operation methods:
-   - deleteMultiple() - Bulk soft delete
-   - restoreMultiple() - Bulk restore
-   - statusMultiple() - Bulk status update
-   - permanentDeleteMultiple() - Bulk hard delete
+## Views
 
-7. Routes Configuration:
-   ```php
-   $routes->group('[module-name]', ['namespace' => 'App\Modules\[module-name]\Controllers'], function ($routes) {
-       $routes->get('/', '[Controller]::index');
-       $routes->get('listdeleted', '[Controller]::listdeleted');
-       $routes->get('new', '[Controller]::new');
-       $routes->post('create', '[Controller]::create');
-       $routes->get('edit/(:num)', '[Controller]::edit/$1');
-       $routes->post('update/(:num)', '[Controller]::update/$1');
-       $routes->get('delete/(:num)', '[Controller]::delete/$1');
-       $routes->post('delete/(:num)', '[Controller]::delete/$1');
-       $routes->get('restore/(:num)', '[Controller]::restore/$1');
-       $routes->post('restore/(:num)', '[Controller]::restore/$1');
-       $routes->post('status/(:num)', '[Controller]::status/$1');
-       $routes->post('deleteMultiple', '[Controller]::deleteMultiple');
-       $routes->post('restoreMultiple', '[Controller]::restoreMultiple');
-       $routes->get('permanentDelete/(:num)', '[Controller]::permanentDelete/$1');
-       $routes->post('permanentDelete/(:num)', '[Controller]::permanentDelete/$1');
-       $routes->post('permanentDeleteMultiple', '[Controller]::permanentDeleteMultiple');
-       $routes->post('statusMultiple', '[Controller]::statusMultiple');
-   });
-   ```
+Các view cần tuân thủ mẫu giao diện chung của hệ thống:
 
-8. Implementation Features:
-   - Full CRUD operations with soft delete
-   - Restore functionality from trash
-   - Bulk operations (delete, restore, status change)
-   - Active/Inactive status toggle
-   - Bin (trash) system
-   - Form validation with error handling
-   - AJAX support for status changes and deletions
-   - DataTables integration for listings
-   - Search and filter functionality
-   - Breadcrumb navigation
-   - Modal confirmations for deletions
+1. **index.php**: Danh sách với DataTable và các nút chức năng
+2. **new.php**: Form thêm mới
+3. **edit.php**: Form chỉnh sửa
+4. **listdeleted.php**: Danh sách đã xóa
+5. **master_scripts.php**: Tập hợp CSS/JS chung
 
-Please specify the following when requesting a new module:
-1. Module name (in lowercase)
-2. Table name (if different from module name)
-3. Display name (for UI)
-4. Additional fields (beyond standard fields)
-5. Any custom validation rules
-6. Any additional features specific to the module
-```
+## Quy Tắc UX/UI
+
+1. **DataTable**: Sử dụng DataTable cho danh sách
+2. **Form**: Có validation client và server
+3. **Thông báo**: SweetAlert2 cho thông báo thành công/lỗi
+4. **Modal**: Sử dụng modal để xác nhận các thao tác xóa, đổi trạng thái
+5. **Responsive**: Đảm bảo giao diện responsive
+
+## Quy Tắc Bảo Mật
+
+1. **Validation**: Luôn kiểm tra dữ liệu đầu vào
+2. **Escaping**: Sử dụng esc() cho output
+3. **CSRF**: Sử dụng CSRF token trong form
+
+## Quy Tắc Hiệu Suất
+
+1. **Model caching**: Sử dụng cache cho truy vấn lặp lại
+2. **Lazy loading**: Tránh N+1 query problem
+
+## Checklist Tạo Module Mới
+
+1. ✅ Tạo cấu trúc thư mục đầy đủ
+2. ✅ Tạo migration và chạy
+3. ✅ Tạo Entity với validation
+4. ✅ Tạo Model với các phương thức chuẩn
+5. ✅ Tạo Controller với đầy đủ chức năng
+6. ✅ Tạo Routes cho module
+7. ✅ Tạo Views với giao diện chuẩn
+8. ✅ Kiểm thử toàn bộ chức năng
