@@ -172,6 +172,21 @@
 		</ul>
 	</li>
 	<li>
+		<a href="javascript:;" class="has-arrow">
+			<div class="parent-icon"><i class='bx bx-user-pin'></i>
+			</div>
+			<div class="menu-title">Quản lý Ngành</div>
+		</a>
+		<ul>
+			<li> <a href="<?= site_url('nganh') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Ngành</a>
+			</li>
+			<li> <a href="<?= site_url('nganh/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Ngành bị xóa</a>
+			</li>
+			<li> <a href="<?= site_url('nganh/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Ngành mới</a>
+			</li>
+		</ul>
+	</li>	
+	<li>
 		<a href="https://phongqlcntt.hub.edu.vn/" target="_blank">
 			<div class="parent-icon"><i class="bx bx-support"></i>
 			</div>

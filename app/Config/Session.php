@@ -124,4 +124,20 @@ class Session extends BaseConfig
      * seconds.
      */
     public $lockMaxRetries = 300;
+    
+    /**
+     * --------------------------------------------------------------------------
+     * Session Cookie Samesite
+     * --------------------------------------------------------------------------
+     *
+     * Cookie setting for sessions
+     *
+     * Default Value: "Lax"
+     * Allowed Values: "None", "Lax", "Strict"
+     *
+     * @var string
+     *
+     * @see https://www.php.net/manual/en/session.configuration.php#ini.session.cookie-samesite
+     */
+    public $cookieSameSite = 'Lax';
 } 

@@ -71,6 +71,21 @@ class PhongKhoaModel extends BaseModel
     }
     
     /**
+     * Lấy tất cả các bản ghi phòng khoa đang hoạt động
+     *
+     * @param array $select Danh sách các trường cần lấy
+     * @return array
+     */
+    public function getAllActive(array $select = ['*'])
+    {
+        return $this->select($select)
+            ->where('status', 1)
+            ->where('bin', 0)
+            ->orderBy('ten_phong_khoa', 'ASC')
+            ->findAll();
+    }
+    
+    /**
      * Kiểm tra mã phòng khoa đã tồn tại chưa
      *
      * @param string $maPhongKhoa
