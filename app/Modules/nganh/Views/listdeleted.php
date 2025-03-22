@@ -2,6 +2,7 @@
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
 <?= nganh_css('table') ?>
+<?= nganh_section_css('modal') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>THÙNG RÁC - NGÀNH<?= $this->endSection() ?>
 
@@ -27,6 +28,15 @@
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
             </button>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class='bx bx-export'></i> Xuất
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" id="export-excel">Excel</a></li>
+                    <li><a class="dropdown-item" href="#" id="export-pdf">PDF</a></li>
+                </ul>
+            </div>
         </div>
     </div>
     <div class="card-body p-0">
@@ -35,18 +45,18 @@
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
                     <?= form_open("nganh/restoreMultiple", ['id' => 'form-restore-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="restore-selected" class="btn btn-success btn-sm me-2" disabled>
-                        <i class='bx bx-reset'></i> Khôi phục mục đã chọn
+                        <i class='bx bx-revision'></i> Khôi phục mục đã chọn
                     </button>
                     <?= form_close() ?>
                     
                     <?= form_open("nganh/permanentDeleteMultiple", ['id' => 'form-permanent-delete-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="permanent-delete-selected" class="btn btn-danger btn-sm" disabled>
-                        <i class='bx bx-x-circle'></i> Xóa vĩnh viễn
+                        <i class='bx bx-trash-alt'></i> Xóa vĩnh viễn
                     </button>
                     <?= form_close() ?>
                 </div>
                 <div class="col-12 col-md-6">
-                    <div class="input-group">
+                    <div class="input-group search-box">
                         <input type="text" class="form-control form-control-sm" id="table-search" placeholder="Tìm kiếm...">
                         <button class="btn btn-outline-secondary btn-sm" type="button" id="search-btn">
                             <i class='bx bx-search'></i>
@@ -55,9 +65,24 @@
                 </div>
             </div>
         </div>
+        
+        <?php if (session()->has('error')) : ?>
+            <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                <?= session('error') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (session()->has('success')) : ?>
+            <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+                <?= session('success') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        
         <div class="table-responsive">
             <div class="table-container">
-                <table id="dataTable" class="table table-striped table-bordered table-hover m-0 w-100">
+                <table id="dataTable" class="table table-striped table-hover m-0 w-100">
                     <thead class="table-light">
                         <tr>
                             <th width="5%" class="text-center align-middle">
@@ -65,9 +90,9 @@
                                     <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
                                 </div>
                             </th>
-                            <th width="20%" class="align-middle">Mã ngành</th>
+                            <th width="15%" class="align-middle">Mã ngành</th>
                             <th width="30%" class="align-middle">Tên ngành</th>
-                            <th width="10%" class="align-middle">Phòng/Khoa</th>
+                            <th width="15%" class="align-middle">Phòng/Khoa</th>
                             <th width="10%" class="align-middle">Trạng thái</th>
                             <th width="10%" class="align-middle">Ngày xóa</th>
                             <th width="15%" class="text-center align-middle">Hành động</th>
@@ -77,32 +102,26 @@
                         <?php if (!empty($nganh)): ?>
                             <?php foreach ($nganh as $item): ?>
                                 <tr>
-                                    <td class="text-center py-2">
+                                    <td class="text-center">
                                         <div class="form-check">
                                             <input type="checkbox" name="selected_ids[]" value="<?= $item->nganh_id ?>" class="form-check-input checkbox-item cursor-pointer">
                                         </div>
                                     </td>
-                                    <td class="py-2"><?= esc($item->ma_nganh) ?></td>
-                                    <td class="py-2"><?= esc($item->ten_nganh) ?></td>
-                                    <td class="py-2">
-                                        <?= $item->getPhongKhoaInfo() ?>
-                                    </td>
-                                    <td class="py-2">
-                                        <?= $item->getStatusLabel() ?>
-                                    </td>
-                                    <td class="py-2">
-                                        <?= $item->getDeletedAtFormatted() ?>
-                                    </td>
-                                    <td class="text-center py-2">
-                                        <div class="d-flex justify-content-center gap-1">
+                                    <td><?= esc($item->ma_nganh) ?></td>
+                                    <td><?= esc($item->ten_nganh) ?></td>
+                                    <td><?= $item->getPhongKhoaInfo() ?></td>
+                                    <td><?= $item->getStatusLabel() ?></td>
+                                    <td><?= $item->getDeletedAtFormatted() ?></td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <form action="<?= site_url('nganh/restore/' . $item->nganh_id) ?>" method="post" style="display:inline;">
                                                 <button type="submit" class="btn btn-success btn-sm" title="Khôi phục" data-bs-toggle="tooltip">
-                                                    <i class="bx bx-reset"></i>
+                                                    <i class="bx bx-revision"></i>
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-danger btn-sm btn-permanent-delete" 
                                             data-id="<?= $item->nganh_id ?>" data-name="<?= $item->ten_nganh ?>" title="Xóa vĩnh viễn" data-bs-toggle="tooltip">
-                                                <i class="bx bx-x-circle"></i>
+                                                <i class="bx bx-trash-alt"></i>
                                             </button>
                                         </div>
                                     </td>
@@ -111,7 +130,7 @@
                         <?php else: ?>
                             <tr>
                                 <td colspan="7" class="text-center py-3">
-                                    <div class="d-flex flex-column align-items-center py-3">
+                                    <div class="empty-state">
                                         <i class='bx bx-trash text-secondary mb-2' style="font-size: 2rem;"></i>
                                         <p class="mb-0">Thùng rác trống</p>
                                     </div>
@@ -139,7 +158,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center mb-3">
+                <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-help-circle text-success' style="font-size: 4rem;"></i>
                 </div>
                 <p class="text-center">Bạn có chắc chắn muốn khôi phục ngành:</p>
@@ -164,13 +183,13 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center mb-3">
+                <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-error-circle text-danger' style="font-size: 4rem;"></i>
                 </div>
                 <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn ngành:</p>
                 <p class="text-center fw-bold" id="permanent-delete-item-name"></p>
                 <div class="alert alert-warning mt-3">
-                    <i class='bx bx-info-circle'></i> Lưu ý: Hành động này không thể hoàn tác.
+                    <i class='bx bx-warning me-1'></i> Lưu ý: Hành động này không thể hoàn tác!
                 </div>
             </div>
             <div class="modal-footer">
@@ -192,7 +211,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center mb-3">
+                <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-help-circle text-success' style="font-size: 4rem;"></i>
                 </div>
                 <p class="text-center">Bạn có chắc chắn muốn khôi phục <span id="restore-count" class="fw-bold"></span> ngành đã chọn?</p>
@@ -214,12 +233,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center mb-3">
+                <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-error-circle text-danger' style="font-size: 4rem;"></i>
                 </div>
                 <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn <span id="permanent-delete-count" class="fw-bold"></span> ngành đã chọn?</p>
                 <div class="alert alert-warning mt-3">
-                    <i class='bx bx-info-circle'></i> Lưu ý: Hành động này không thể hoàn tác.
+                    <i class='bx bx-warning me-1'></i> Lưu ý: Hành động này không thể hoàn tác!
                 </div>
             </div>
             <div class="modal-footer">
@@ -231,128 +250,184 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    // Xử lý chọn tất cả checkbox
-    $('#select-all').on('change', function() {
-        $('.checkbox-item').prop('checked', $(this).prop('checked'));
-        updateBulkActionButtons();
-    });
-    
-    // Cập nhật trạng thái các nút hành động hàng loạt
-    $('.checkbox-item').on('change', function() {
-        updateBulkActionButtons();
-    });
-    
-    function updateBulkActionButtons() {
-        var count = $('.checkbox-item:checked').length;
-        if (count > 0) {
-            $('#restore-selected, #permanent-delete-selected').removeAttr('disabled');
-        } else {
-            $('#restore-selected, #permanent-delete-selected').attr('disabled', 'disabled');
-        }
-    }
-    
-    // Xử lý nút xóa vĩnh viễn
-    $('.btn-permanent-delete').on('click', function() {
-        var id = $(this).data('id');
-        var name = $(this).data('name');
-        $('#permanent-delete-item-name').text(name);
-        $('#permanent-delete-form').attr('action', base_url + '/nganh/permanentDelete/' + id);
-        $('#permanentDeleteModal').modal('show');
-    });
-    
-    // Xử lý nút khôi phục nhiều
-    $('#restore-selected').on('click', function() {
-        var count = $('.checkbox-item:checked').length;
-        $('#restore-count').text(count);
-        $('#restoreMultipleModal').modal('show');
-    });
-    
-    // Xử lý xác nhận khôi phục nhiều
-    $('#confirm-restore-multiple').on('click', function() {
-        var selectedIds = [];
-        $('.checkbox-item:checked').each(function() {
-            selectedIds.push($(this).val());
-        });
-        
-        if (selectedIds.length > 0) {
-            // Thêm các ID đã chọn vào form
-            $('#form-restore-multiple').html('');
-            selectedIds.forEach(function(id) {
-                $('#form-restore-multiple').append('<input type="hidden" name="selected_ids[]" value="' + id + '">');
+    var base_url = '<?= site_url() ?>';
+</script>
+<?= $this->endSection() ?>
+
+<?= $this->section('script') ?>
+<?= nganh_js('table') ?>
+<?= nganh_section_js('table') ?>
+
+<script>
+    $(document).ready(function() {
+        // Kiểm tra xem bảng đã được khởi tạo thành DataTable chưa
+        if (!$.fn.DataTable.isDataTable('#dataTable')) {
+            // Khởi tạo tooltips
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            [...tooltips].map(t => new bootstrap.Tooltip(t));
+            
+            // Khởi tạo DataTable với cấu hình tiếng Việt
+            const dataTable = $('#dataTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json',
+                },
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                dom: '<"row mx-0"<"col-sm-12 px-0"tr>><"row mx-0 mt-2"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
+                ordering: true,
+                responsive: false,
+                scrollX: false,
+                columnDefs: [
+                    { orderable: false, targets: [0, 6] },
+                    { className: 'align-middle', targets: '_all' }
+                ]
             });
             
-            // Submit form
-            $('#form-restore-multiple').submit();
-        }
-    });
-    
-    // Xử lý nút xóa vĩnh viễn nhiều
-    $('#permanent-delete-selected').on('click', function() {
-        var count = $('.checkbox-item:checked').length;
-        $('#permanent-delete-count').text(count);
-        $('#permanentDeleteMultipleModal').modal('show');
-    });
-    
-    // Xử lý xác nhận xóa vĩnh viễn nhiều
-    $('#confirm-permanent-delete-multiple').on('click', function() {
-        var selectedIds = [];
-        $('.checkbox-item:checked').each(function() {
-            selectedIds.push($(this).val());
-        });
-        
-        if (selectedIds.length > 0) {
-            // Thêm các ID đã chọn vào form
-            $('#form-permanent-delete-multiple').html('');
-            selectedIds.forEach(function(id) {
-                $('#form-permanent-delete-multiple').append('<input type="hidden" name="selected_ids[]" value="' + id + '">');
+            // Tìm kiếm
+            $('#search-btn').on('click', function() {
+                dataTable.search($('#table-search').val()).draw();
             });
             
-            // Submit form
-            $('#form-permanent-delete-multiple').submit();
-        }
-    });
-    
-    // Tìm kiếm
-    $('#search-btn').on('click', function() {
-        performSearch();
-    });
-    
-    $('#table-search').on('keypress', function(e) {
-        if (e.which === 13) {
-            performSearch();
-        }
-    });
-    
-    function performSearch() {
-        var searchTerm = $('#table-search').val().trim().toLowerCase();
-        
-        if (searchTerm === '') {
-            // Hiển thị tất cả nếu không có từ khóa
-            $('table tbody tr').show();
-        } else {
-            // Ẩn các dòng không khớp
-            $('table tbody tr').each(function() {
-                var text = $(this).text().toLowerCase();
-                if (text.indexOf(searchTerm) === -1) {
-                    $(this).hide();
-                } else {
-                    $(this).show();
+            $('#table-search').on('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    dataTable.search($(this).val()).draw();
                 }
             });
+
+            // Cập nhật tổng số bản ghi
+            dataTable.on('draw', function() {
+                $('#total-records').text(dataTable.page.info().recordsTotal);
+            });
+        } else {
+            // Nếu bảng đã được khởi tạo, lấy instance hiện tại
+            const dataTable = $('#dataTable').DataTable();
+            
+            // Cập nhật lại dữ liệu
+            dataTable.draw();
         }
         
-        // Cập nhật số lượng bản ghi hiển thị
-        $('#total-records').text($('table tbody tr:visible').length);
-    }
-    
-    // Nút làm mới bảng
-    $('#refresh-table').on('click', function() {
-        location.reload();
+        // Làm mới bảng
+        $('#refresh-table').on('click', function() {
+            location.reload();
+        });
+        
+        // Chọn tất cả
+        $('#select-all').on('change', function() {
+            const isChecked = $(this).prop('checked');
+            $('.checkbox-item').prop('checked', isChecked);
+            updateActionButtons();
+        });
+        
+        // Cập nhật trạng thái nút hành động khi checkbox thay đổi
+        $(document).on('change', '.checkbox-item', function() {
+            updateActionButtons();
+            
+            // Nếu bỏ chọn một item, bỏ chọn select-all
+            if (!$(this).prop('checked')) {
+                $('#select-all').prop('checked', false);
+            }
+            
+            // Nếu chọn tất cả items, chọn select-all
+            if ($('.checkbox-item:checked').length === $('.checkbox-item').length) {
+                $('#select-all').prop('checked', true);
+            }
+        });
+        
+        // Function cập nhật trạng thái của các nút hành động
+        function updateActionButtons() {
+            const selectedCount = $('.checkbox-item:checked').length;
+            if (selectedCount > 0) {
+                $('#restore-selected, #permanent-delete-selected').prop('disabled', false);
+            } else {
+                $('#restore-selected, #permanent-delete-selected').prop('disabled', true);
+            }
+        }
+        
+        // Xử lý xóa vĩnh viễn
+        $('.btn-permanent-delete').on('click', function() {
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            $('#permanent-delete-item-name').text(name);
+            $('#permanent-delete-form').attr('action', base_url + '/nganh/permanentDelete/' + id);
+            $('#permanentDeleteModal').modal('show');
+        });
+        
+        // Xử lý nút khôi phục nhiều
+        $('#restore-selected').on('click', function() {
+            if ($('.checkbox-item:checked').length > 0) {
+                $('#restore-count').text($('.checkbox-item:checked').length);
+                $('#restoreMultipleModal').modal('show');
+            }
+        });
+        
+        // Xử lý xác nhận khôi phục nhiều
+        $('#confirm-restore-multiple').on('click', function() {
+            // Tạo form tạm thời chứa các checkbox đã chọn
+            const tempForm = $('#form-restore-multiple');
+            
+            // Xóa form cũ và tạo form mới
+            tempForm.empty();
+            
+            // Thêm các checkbox đã chọn vào form
+            $('.checkbox-item:checked').each(function() {
+                const input = $('<input>').attr({
+                    type: 'hidden',
+                    name: 'selected_ids[]',
+                    value: $(this).val()
+                });
+                tempForm.append(input);
+            });
+            
+            // Submit form
+            tempForm.submit();
+            
+            // Đóng modal
+            $('#restoreMultipleModal').modal('hide');
+        });
+        
+        // Xử lý nút xóa vĩnh viễn nhiều
+        $('#permanent-delete-selected').on('click', function() {
+            if ($('.checkbox-item:checked').length > 0) {
+                $('#permanent-delete-count').text($('.checkbox-item:checked').length);
+                $('#permanentDeleteMultipleModal').modal('show');
+            }
+        });
+        
+        // Xử lý xác nhận xóa vĩnh viễn nhiều
+        $('#confirm-permanent-delete-multiple').on('click', function() {
+            // Tạo form tạm thời chứa các checkbox đã chọn
+            const tempForm = $('#form-permanent-delete-multiple');
+            
+            // Xóa form cũ và tạo form mới
+            tempForm.empty();
+            
+            // Thêm các checkbox đã chọn vào form
+            $('.checkbox-item:checked').each(function() {
+                const input = $('<input>').attr({
+                    type: 'hidden',
+                    name: 'selected_ids[]',
+                    value: $(this).val()
+                });
+                tempForm.append(input);
+            });
+            
+            // Submit form
+            tempForm.submit();
+            
+            // Đóng modal
+            $('#permanentDeleteMultipleModal').modal('hide');
+        });
+        
+        // Xuất dữ liệu
+        $('#export-excel').on('click', function(e) {
+            e.preventDefault();
+            alert('Chức năng xuất Excel đang được phát triển');
+        });
+        
+        $('#export-pdf').on('click', function(e) {
+            e.preventDefault();
+            alert('Chức năng xuất PDF đang được phát triển');
+        });
     });
-    
-    // Tooltips
-    $('[data-bs-toggle="tooltip"]').tooltip();
-});
 </script>
 <?= $this->endSection() ?> 
