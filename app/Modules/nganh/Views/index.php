@@ -103,13 +103,29 @@
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
-                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" value="<?= $item->nganh_id ?>">
+                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->nganh_id ?>">
                                         </div>
                                     </td>
                                     <td><?= esc($item->ma_nganh) ?></td>
                                     <td><?= esc($item->ten_nganh) ?></td>
-                                    <td><?= $item->getPhongKhoaInfo() ?></td>
-                                    <td class="text-center"><?= $item->getStatusLabel() ?></td>
+                                    <td>
+                                        <?php 
+                                        if (method_exists($item, 'getPhongKhoaInfo')):
+                                            echo $item->getPhongKhoaInfo();
+                                        elseif (isset($item->phong_khoa) && !empty($item->phong_khoa)):
+                                            echo esc($item->phong_khoa->ten_phong_khoa);
+                                        else:
+                                            echo '<span class="text-muted">Không có</span>';
+                                        endif;
+                                        ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if (method_exists($item, 'getStatusLabel')): ?>
+                                            <?= $item->getStatusLabel() ?>
+                                        <?php else: ?>
+                                            <?= $item->status == 1 ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-danger">Không hoạt động</span>' ?>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <a href="<?= site_url("nganh/view/{$item->nganh_id}") ?>" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Xem chi tiết">

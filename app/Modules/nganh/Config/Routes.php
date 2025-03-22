@@ -29,4 +29,5 @@ $routes->group('nganh', ['namespace' => 'App\Modules\nganh\Controllers'], functi
     $routes->post('deletePermanentMultiple', 'Nganh::deletePermanentMultiple');
     $routes->post('statusMultiple', 'Nganh::statusMultiple');
     $routes->get('deleted', 'Nganh::deleted');
+    $routes->get('view/(:num)', 'Nganh::view/$1');
 }); 

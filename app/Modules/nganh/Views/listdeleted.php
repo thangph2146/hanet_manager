@@ -109,9 +109,31 @@
                                     </td>
                                     <td><?= esc($item->ma_nganh) ?></td>
                                     <td><?= esc($item->ten_nganh) ?></td>
-                                    <td><?= $item->getPhongKhoaInfo() ?></td>
-                                    <td><?= $item->getStatusLabel() ?></td>
-                                    <td><?= $item->getDeletedAtFormatted() ?></td>
+                                    <td>
+                                        <?php 
+                                        if (method_exists($item, 'getPhongKhoaInfo')):
+                                            echo $item->getPhongKhoaInfo();
+                                        elseif (isset($item->phong_khoa) && !empty($item->phong_khoa)):
+                                            echo esc($item->phong_khoa->ten_phong_khoa);
+                                        else:
+                                            echo '<span class="text-muted">Không có</span>';
+                                        endif;
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <?php if (method_exists($item, 'getStatusLabel')): ?>
+                                            <?= $item->getStatusLabel() ?>
+                                        <?php else: ?>
+                                            <?= $item->status == 1 ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-danger">Không hoạt động</span>' ?>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (method_exists($item, 'getDeletedAtFormatted')): ?>
+                                            <?= $item->getDeletedAtFormatted() ?>
+                                        <?php else: ?>
+                                            <?= !empty($item->deleted_at) ? date('d/m/Y H:i', strtotime($item->deleted_at)) : '' ?>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <form action="<?= site_url('nganh/restore/' . $item->nganh_id) ?>" method="post" style="display:inline;">

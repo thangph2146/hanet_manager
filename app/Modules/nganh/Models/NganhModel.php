@@ -11,7 +11,7 @@ class NganhModel extends BaseModel
 {
     protected $table = 'nganh';
     protected $primaryKey = 'nganh_id';
-    protected $useSoftDeletes = true;
+    protected $useSoftDeletes = false;
     protected $deletedField = 'deleted_at';
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
@@ -23,11 +23,12 @@ class NganhModel extends BaseModel
         'phong_khoa_id',
         'status',
         'bin',
+        'deleted_at',
         'created_at',
         'updated_at'
     ];
     
-    protected $returnType = Nganh::class;
+    protected $returnType = 'App\Modules\nganh\Entities\Nganh';
     
     // Định nghĩa các mối quan hệ
     protected $relations = [
@@ -36,6 +37,7 @@ class NganhModel extends BaseModel
             'table' => 'phong_khoa',
             'foreignKey' => 'phong_khoa_id',
             'localKey' => 'phong_khoa_id',
+            'foreignPrimaryKey' => 'phong_khoa_id',
             'entity' => 'App\Modules\phongkhoa\Entities\PhongKhoa',
             'conditions' => [
                 ['field' => 'phong_khoa.bin', 'value' => 0]
@@ -72,7 +74,7 @@ class NganhModel extends BaseModel
     ];
     
     // Các quy tắc xác thực
-    protected $validationRules = [
+    public $validationRules = [
         'ten_nganh' => 'required|min_length[3]|max_length[200]',
         'ma_nganh' => 'required|max_length[20]',
         'phong_khoa_id' => 'permit_empty|integer',
@@ -80,7 +82,7 @@ class NganhModel extends BaseModel
         'bin' => 'permit_empty|in_list[0,1]',
     ];
     
-    protected $validationMessages = [
+    public $validationMessages = [
         'ten_nganh' => [
             'required' => 'Tên ngành là bắt buộc',
             'min_length' => 'Tên ngành phải có ít nhất {param} ký tự',
@@ -131,40 +133,36 @@ class NganhModel extends BaseModel
     }
     
     /**
-     * Kiểm tra mã ngành đã tồn tại chưa
+     * Kiểm tra tên ngành đã tồn tại chưa
      *
-     * @param string $code Mã ngành cần kiểm tra
-     * @param int|null $excludeId ID ngành cần loại trừ (khi cập nhật)
+     * @param string $tenNganh
+     * @param int|null $exceptId ID ngành cần loại trừ khi kiểm tra
      * @return bool
      */
-    public function isCodeExists(string $code, ?int $excludeId = null): bool
+    public function isNameExists(string $tenNganh, int $exceptId = null)
     {
-        $builder = $this->builder();
-        $builder->where('ma_nganh', $code);
-        $builder->where('bin', 0);
+        $builder = $this->where('ten_nganh', $tenNganh);
         
-        if ($excludeId !== null) {
-            $builder->where('nganh_id !=', $excludeId);
+        if ($exceptId !== null) {
+            $builder->where('nganh_id !=', $exceptId);
         }
         
         return $builder->countAllResults() > 0;
     }
     
     /**
-     * Kiểm tra tên ngành đã tồn tại chưa
+     * Kiểm tra mã ngành đã tồn tại chưa
      *
-     * @param string $name Tên ngành cần kiểm tra
-     * @param int|null $excludeId ID ngành cần loại trừ (khi cập nhật)
+     * @param string $maNganh
+     * @param int|null $exceptId ID ngành cần loại trừ khi kiểm tra
      * @return bool
      */
-    public function isNameExists(string $name, ?int $excludeId = null): bool
+    public function isCodeExists(string $maNganh, int $exceptId = null)
     {
-        $builder = $this->builder();
-        $builder->where('ten_nganh', $name);
-        $builder->where('bin', 0);
+        $builder = $this->where('ma_nganh', $maNganh);
         
-        if ($excludeId !== null) {
-            $builder->where('nganh_id !=', $excludeId);
+        if ($exceptId !== null) {
+            $builder->where('nganh_id !=', $exceptId);
         }
         
         return $builder->countAllResults() > 0;
@@ -198,14 +196,12 @@ class NganhModel extends BaseModel
      */
     public function getAllPhongKhoa()
     {
-        return $this->db->table('phong_khoa')
-                ->select('phong_khoa_id, ma_phong_khoa, ten_phong_khoa')
-                ->where('status', 1)
-                ->where('bin', 0)
-                ->where('deleted_at IS NULL')
-                ->orderBy('ten_phong_khoa', 'ASC')
-                ->get()
-                ->getResult();
+        $db = \Config\Database::connect();
+        $builder = $db->table('phong_khoa');
+        $builder->where('bin', 0);
+        $builder->orderBy('ten_phong_khoa', 'ASC');
+        
+        return $builder->get()->getResult();
     }
     
     /**
@@ -261,6 +257,7 @@ class NganhModel extends BaseModel
      */
     public function findWithPhongKhoa(int $id)
     {
+        // Sử dụng withRelations với mảng chuỗi
         return $this->withRelations(['phong_khoa'])->findWithRelations($id);
     }
     
@@ -284,6 +281,14 @@ class NganhModel extends BaseModel
     public function restoreFromRecycleBin(int $id): bool
     {
         return $this->update($id, ['bin' => 0]);
+    }
+    
+    /**
+     * Lấy tất cả dữ liệu không ở thùng rác
+     */
+    public function getAll() 
+    {
+        return $this->where('bin', 0)->findAll();
     }
     
     /**

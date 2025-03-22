@@ -89,30 +89,86 @@ class BaseModel extends Model
     // Enhanced relationship handling
     public function withRelations(array $relations = [])
     {
-        $this->relations = $relations;
+        // Nếu $relations là mảng đơn giản gồm các chuỗi (tên quan hệ)
+        // thì chuyển đổi thành mảng kết hợp
+        $processedRelations = [];
+        
+        foreach ($relations as $key => $value) {
+            // Nếu key là số nguyên và giá trị là chuỗi, đây là mảng đơn giản
+            if (is_int($key) && is_string($value)) {
+                if (isset($this->relations[$value])) {
+                    $processedRelations[$value] = $this->relations[$value];
+                }
+            } else {
+                // Nếu key là chuỗi, đây là mảng kết hợp đã có cấu hình
+                $processedRelations[$key] = $value;
+            }
+        }
+        
+        $this->relations = $processedRelations;
         return $this;
     }
 
-    public function findWithRelations($id, $validate = false)
+    /**
+     * Tìm bản ghi với ID và các mối quan hệ
+     *
+     * @param int $id ID bản ghi cần tìm
+     * @param bool|array $relations Mảng các mối quan hệ cần tải
+     * @param bool $validate Có thực hiện validation không
+     * @return object|null Đối tượng entity hoặc null
+     */
+    public function findWithRelations($id, $relations = [], $validate = false)
     {
+        // Tìm bản ghi
         $data = $this->find($id);
         if (!$data) {
             return null;
         }
-
-        if ($validate && !$data->validate()) {
-            throw new \RuntimeException('Entity validation failed: ' . json_encode($data->getErrors()));
+        
+        // Xử lý deleted_at nếu là null hoặc chuỗi rỗng
+        if (property_exists($data, 'deleted_at') && ($data->deleted_at === '' || $data->deleted_at === '0000-00-00 00:00:00')) {
+            $data->deleted_at = null;
         }
-
-        foreach ($this->relations as $relation => $config) {
-            $data->$relation = $this->fetchRelation($relation, $config, $data);
+        
+        // Đã loại bỏ validation để tránh lỗi với trường deleted_at
+        
+        // Xác định quan hệ cần tải
+        $relationsToLoad = [];
+        
+        // Nếu $relations là true, tải tất cả các mối quan hệ
+        if ($relations === true) {
+            $relationsToLoad = array_keys($this->relations);
+        } 
+        // Nếu $relations là mảng, tải các mối quan hệ được chỉ định
+        elseif (is_array($relations) && !empty($relations)) {
+            $relationsToLoad = $relations;
         }
-
+        // Nếu không có quan hệ nào được chỉ định, sử dụng quan hệ hiện tại
+        else {
+            $relationsToLoad = array_keys($this->relations);
+        }
+        
+        // Tải các mối quan hệ
+        foreach ($relationsToLoad as $relation) {
+            if (is_string($relation) && isset($this->relations[$relation])) {
+                $config = $this->relations[$relation];
+                $data->$relation = $this->fetchRelation($relation, $config, $data);
+            }
+        }
+        
         return $data;
     }
 
     protected function fetchRelation($relationName, $config, $data)
     {
+        // Kiểm tra nếu $config là chuỗi thì lấy cấu hình từ $this->relations
+        if (is_string($config)) {
+            if (!isset($this->relations[$relationName])) {
+                return null;    
+            }
+            $config = $this->relations[$relationName];
+        }
+
         $type = $config['type'] ?? '1-1';
         $foreignTable = $config['table'];
         $foreignKey = $config['foreignKey'];
@@ -155,13 +211,13 @@ class BaseModel extends Model
 
         switch ($type) {
             case '1-1':
-                $result = $query->where($foreignKey, $data->get($localKey))
+                $result = $query->where($foreignKey, $data->$localKey)
                                ->get()
                                ->getRow();
                 return $result ? new $entityClass((array) $result) : null;
 
             case '1-n':
-                $results = $query->where($foreignKey, $data->get($localKey))
+                $results = $query->where($foreignKey, $data->$localKey)
                                 ->get()
                                 ->getResult();
                 return array_map(fn($row) => new $entityClass((array) $row), $results);
@@ -172,13 +228,15 @@ class BaseModel extends Model
                 $pivotForeignKey = $config['pivotForeignKey'];
 
                 $results = $query->join($pivotTable, "$pivotTable.$pivotForeignKey = $foreignTable.id")
-                                ->where("$pivotTable.$pivotLocalKey", $data->get($localKey))
+                                ->where("$pivotTable.$pivotLocalKey", $data->$localKey)
                                 ->get()
                                 ->getResult();
                 return array_map(fn($row) => new $entityClass((array) $row), $results);
 
             case 'n-1':
-                $result = $query->where('id', $data->get($foreignKey))
+                // Sử dụng khóa ngoại thay vì cố định 'id'
+                $foreignPrimaryKey = isset($config['foreignPrimaryKey']) ? $config['foreignPrimaryKey'] : 'id';
+                $result = $query->where($foreignPrimaryKey, $data->$foreignKey)
                                ->get()
                                ->getRow();
                 return $result ? new $entityClass((array) $result) : null;

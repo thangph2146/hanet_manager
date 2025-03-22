@@ -1,141 +1,225 @@
-<?= $this->extend('layouts/default') ?>
-<?= $this->section('linkHref') ?>
-<?php include __DIR__ . '/master_scripts.php'; ?>
-<?= nganh_select2_assets() ?>
-<?= nganh_form_style() ?>
-<?= $this->endSection() ?>
+<?php
+/**
+ * Form component for creating and updating nganh
+ * 
+ * @var string $action Form submission URL
+ * @var string $method Form method (POST or PUT)
+ * @var array $nganh Nganh entity data for editing (optional)
+ * @var array $phongkhoas Array of available phong_khoa options (optional)
+ */
 
-<?= $this->section('title') ?><?= $title ?? 'THÊM MỚI NGÀNH' ?><?= $this->endSection() ?>
+// Set default values if editing
+$ten_nganh = isset($nganh) ? $nganh->ten_nganh : '';
+$ma_nganh = isset($nganh) ? $nganh->ma_nganh : '';
+$phong_khoa_id = isset($nganh) ? $nganh->phong_khoa_id : '';
+$status = isset($nganh) ? (string)$nganh->status : '1';
+$id = isset($nganh) ? $nganh->nganh_id : '';
 
-<?= $this->section('bread_cum_link') ?>
-<?= view('components/_breakcrump', [
-    'title' => isset($nganh) ? 'Cập nhật ngành' : 'Thêm mới ngành',
-    'dashboard_url' => site_url('nganh/dashboard'),
-    'breadcrumbs' => [
-        ['title' => 'Quản lý Ngành', 'url' => site_url('nganh')],
-        ['title' => isset($nganh) ? 'Cập nhật' : 'Thêm mới', 'active' => true]
-    ],
-    'actions' => [
-		['url' => site_url('/nganh'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
-	]
-]) ?>
-<?= $this->endSection() ?>
+// Set default values for form action and method
+$action = isset($action) ? $action : site_url('nganh/create');
+$method = isset($method) ? $method : 'POST';
 
-<?= $this->section('content') ?>
-<div class="row justify-content-center">
-    <div class="col-12 col-lg-10">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bx bx-<?= isset($nganh) ? 'edit' : 'plus-circle' ?> me-2"></i>
-                    <?= isset($nganh) ? 'Cập nhật ngành' : 'Thêm mới ngành' ?>
-                </h5>
+// Xác định tiêu đề form dựa trên mode
+$formTitle = isset($is_new) && $is_new ? 'Thêm mới ngành' : 'Cập nhật ngành';
+?>
+
+<!-- Form chính -->
+<form action="<?= $action ?>" method="<?= $method ?>" id="nganhForm" class="needs-validation" novalidate>
+    <?php if (isset($nganh->nganh_id)): ?>
+        <input type="hidden" name="nganh_id" value="<?= $id ?>">
+    <?php endif; ?>
+
+    <!-- Hiển thị thông báo lỗi nếu có -->
+    <?php if (session('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class='bx bx-error-circle fs-3'></i>
+                </div>
+                <div>
+                    <strong>Lỗi!</strong> <?= session('error') ?>
+                </div>
             </div>
-            <div class="card-body p-4">
-                <?php if (service('session')->has('error')) : ?>
-                    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center fade-in" role="alert">
-                        <i class="bx bx-error-circle me-2 fs-5"></i>
-                        <div><?= service('session')->get('error') ?></div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
-                <?php if (service('session')->has('success')) : ?>
-                    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center fade-in" role="alert">
-                        <i class="bx bx-check-circle me-2 fs-5"></i>
-                        <div><?= service('session')->get('success') ?></div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                <?php endif; ?>
+    <!-- Hiển thị lỗi validation -->
+    <?php if (session('errors') && is_array(session('errors'))): ?>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class='bx bx-error-circle fs-3'></i>
+                </div>
+                <div>
+                    <strong>Lỗi nhập liệu:</strong>
+                    <ul class="mb-0 ps-3 mt-1">
+                        <?php foreach (session('errors') as $error): ?>
+                            <li><?= $error ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
-                <?= form_open(isset($nganh) ? "nganh/update/{$nganh->nganh_id}" : "nganh/create", ['id' => 'nganh-form', 'class' => 'needs-validation', 'novalidate' => true]) ?>
-                
-                <div class="row g-4">
-                    <div class="col-12 col-md-6">
-                        <label for="ma_nganh" class="form-label required-label">Mã ngành</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bx bx-hash"></i></span>
-                            <input type="text" class="form-control <?= nganh_invalid_class('ma_nganh') ?>" 
-                                   id="ma_nganh" name="ma_nganh" 
-                                   value="<?= nganh_old('ma_nganh', isset($nganh) ? $nganh->ma_nganh : '') ?>" 
-                                   placeholder="Nhập mã ngành"
-                                   required>
-                        </div>
-                        <?= nganh_error('ma_nganh') ?>
-                        <div class="invalid-feedback">Vui lòng nhập mã ngành</div>
-                        <div class="form-text">Mã ngành là mã định danh duy nhất, tối thiểu 2 ký tự.</div>
-                    </div>
-                    
-                    <div class="col-12 col-md-6">
-                        <label for="ten_nganh" class="form-label required-label">Tên ngành</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bx bx-book-alt"></i></span>
-                            <input type="text" class="form-control <?= nganh_invalid_class('ten_nganh') ?>" 
-                                   id="ten_nganh" name="ten_nganh" 
-                                   value="<?= nganh_old('ten_nganh', isset($nganh) ? $nganh->ten_nganh : '') ?>" 
-                                   placeholder="Nhập tên ngành"
-                                   required>
-                        </div>
-                        <?= nganh_error('ten_nganh') ?>
-                        <div class="invalid-feedback">Vui lòng nhập tên ngành</div>
-                        <div class="form-text">Tên ngành phải có từ 3 đến 200 ký tự.</div>
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                        <label for="phong_khoa_id" class="form-label">Phòng/Khoa</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bx bx-building"></i></span>
-                            <select class="form-select select2bs5 <?= nganh_invalid_class('phong_khoa_id') ?>" 
-                                    id="phong_khoa_id" name="phong_khoa_id"
-                                    data-placeholder="-- Chọn phòng/khoa --">
-                                <option value="">-- Chọn phòng/khoa --</option>
-                                <?php if (!empty($phongkhoas)): ?>
-                                    <?php foreach ($phongkhoas as $pk): ?>
-                                        <option value="<?= $pk->phong_khoa_id ?>" 
-                                            <?= (nganh_old('phong_khoa_id', isset($nganh) ? $nganh->phong_khoa_id : '') == $pk->phong_khoa_id) ? 'selected' : '' ?>>
-                                            <?= esc($pk->ten_phong_khoa) ?> (<?= esc($pk->ma_phong_khoa) ?>)
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
-                        </div>
-                        <?= nganh_error('phong_khoa_id') ?>
-                        <div class="form-text">Chọn phòng/khoa quản lý ngành này (không bắt buộc).</div>
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                        <label class="form-label d-block">Trạng thái</label>
-                        <div class="d-flex align-items-center mt-2">
-                            <div class="form-check form-switch form-check-inline">
-                                <input class="form-check-input" type="checkbox" role="switch" name="status" id="status_toggle" value="1"
-                                    <?= nganh_old('status', isset($nganh) ? $nganh->status : '1') == '1' ? 'checked' : '' ?>>
-                                <label class="form-check-label" for="status_toggle">
-                                    <span id="status_label" class="badge <?= nganh_old('status', isset($nganh) ? $nganh->status : '1') == '1' ? 'bg-success' : 'bg-secondary' ?>">
-                                        <?= nganh_old('status', isset($nganh) ? $nganh->status : '1') == '1' ? 'Hoạt động' : 'Không hoạt động' ?>
-                                    </span>
-                                </label>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="card-title mb-0">
+                <i class='bx bx-info-circle text-primary me-2'></i>
+                Thông tin cơ bản
+            </h5>
+        </div>
+        
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- ma_nganh -->
+                <div class="col-md-6">
+                    <label for="ma_nganh" class="form-label fw-semibold">
+                        Mã ngành <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-hash'></i></span>
+                        <input type="text" class="form-control <?= session('errors.ma_nganh') ? 'is-invalid' : '' ?>" 
+                                id="ma_nganh" name="ma_nganh" 
+                                value="<?= old('ma_nganh', $ma_nganh) ?>" 
+                                placeholder="Nhập mã ngành"
+                                required maxlength="20">
+                        <?php if (session('errors.ma_nganh')): ?>
+                            <div class="invalid-feedback">
+                                <?= session('errors.ma_nganh') ?>
                             </div>
-                        </div>
-                        <?= nganh_error('status') ?>
-                        <div class="form-text">Chỉ những ngành có trạng thái "Hoạt động" mới được hiển thị.</div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng nhập mã ngành</div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Mã ngành phải là duy nhất trong hệ thống, tối đa 20 ký tự
                     </div>
                 </div>
+
+                <!-- ten_nganh -->
+                <div class="col-md-6">
+                    <label for="ten_nganh" class="form-label fw-semibold">
+                        Tên ngành <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-book-alt'></i></span>
+                        <input type="text" class="form-control <?= session('errors.ten_nganh') ? 'is-invalid' : '' ?>" 
+                                id="ten_nganh" name="ten_nganh" 
+                                value="<?= old('ten_nganh', $ten_nganh) ?>" 
+                                placeholder="Nhập tên ngành"
+                                required minlength="3" maxlength="100">
+                        <?php if (session('errors.ten_nganh')): ?>
+                            <div class="invalid-feedback">
+                                <?= session('errors.ten_nganh') ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng nhập tên ngành (tối thiểu 3 ký tự)</div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Tên ngành phải có ít nhất 3 ký tự và không trùng với các ngành khác
+                    </div>
+                </div>
+
+                <!-- phong_khoa_id -->
+                <div class="col-md-6">
+                    <label for="phong_khoa_id" class="form-label fw-semibold">
+                        Phòng/Khoa quản lý
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-building'></i></span>
+                        <select class="form-select select <?= session('errors.phong_khoa_id') ? 'is-invalid' : '' ?>" 
+                                id="phong_khoa_id" name="phong_khoa_id"
+                                data-placeholder="-- Chọn phòng/khoa --">
+                            <option value="">-- Chọn phòng/khoa --</option>
+                            <?php if (!empty($phongkhoas)): ?>
+                                <?php foreach ($phongkhoas as $pk): ?>
+                                    <option value="<?= $pk->phong_khoa_id ?>" 
+                                        <?= old('phong_khoa_id', $phong_khoa_id) == $pk->phong_khoa_id ? 'selected' : '' ?>>
+                                        <?= esc($pk->ten_phong_khoa) ?> (<?= esc($pk->ma_phong_khoa) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                        <?php if (session('errors.phong_khoa_id')): ?>
+                            <div class="invalid-feedback">
+                                <?= session('errors.phong_khoa_id') ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Chọn phòng/khoa quản lý ngành này (không bắt buộc)
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="col-md-6">
+                    <label for="status" class="form-label fw-semibold">Trạng thái</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-toggle-left'></i></span>
+                        <select class="form-select" id="status" name="status">
+                            <option value="1" <?= old('status', $status) == '1' ? 'selected' : '' ?>>Hoạt động</option>
+                            <option value="0" <?= old('status', $status) == '0' ? 'selected' : '' ?>>Không hoạt động</option>
+                        </select>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Ngành không hoạt động sẽ không hiển thị trong các danh sách chọn
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-footer bg-light py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">
+                    <i class='bx bx-info-circle me-1'></i>
+                    Các trường có dấu <span class="text-danger">*</span> là bắt buộc
+                </span>
                 
-                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                    <a href="<?= site_url('nganh') ?>" class="btn btn-outline-secondary">
-                        <i class="bx bx-x me-1"></i> Hủy
+                <div class="d-flex gap-2">
+                    <a href="<?= site_url('nganh') ?>" class="btn btn-light">
+                        <i class='bx bx-arrow-back me-1'></i> Quay lại
                     </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bx bx-<?= isset($nganh) ? 'save' : 'plus' ?> me-1"></i>
-                        <?= isset($nganh) ? 'Cập nhật' : 'Thêm mới' ?>
+                    <button class="btn btn-primary px-4" type="submit">
+                        <i class='bx bx-save me-1'></i>
+                        <?= isset($nganh->nganh_id) && $nganh->nganh_id ? 'Cập nhật' : 'Thêm mới' ?>
                     </button>
                 </div>
-                
-                <?= form_close() ?>
             </div>
         </div>
     </div>
-</div>
+</form>
 
-<?= nganh_form_script() ?>
-<?= $this->endSection() ?> 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Khởi tạo Select2
+        if ($.fn.select2) {
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%'
+            });
+        }
+        
+        // Form validation
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+        
+        // Tự động focus vào trường đầu tiên
+        document.getElementById('ten_nganh').focus();
+    });
+</script> 

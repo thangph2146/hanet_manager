@@ -56,7 +56,7 @@ class Nganh extends BaseController
         ];
         
         // Sử dụng phương thức search từ BaseModel thông qua NganhModel
-        $data = $this->model->withRelations(['phong_khoa'])->search($criteria, $options);
+        $data = $this->model->getAll();
         
         // Lấy đối tượng phân trang
         $pager = $this->model->pager;
@@ -65,7 +65,7 @@ class Nganh extends BaseController
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Danh sách ' . $this->moduleName,
-            'nganhs' => $data,
+            'nganh' => $data,
             'pager' => $pager,
             'moduleUrl' => $this->moduleUrl
         ];
@@ -95,12 +95,11 @@ class Nganh extends BaseController
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Thêm ' . $this->moduleName,
             'phongkhoas' => $phongkhoas,
-            'validation' => $this->validator,
             'moduleUrl' => $this->moduleUrl,
-            'nganh' => $nganh // Thêm entity trống với giá trị mặc định
+            'nganh' => $nganh
         ];
         
-        return view('App\Modules\nganh\Views\form', $viewData);
+        return view('App\Modules\nganh\Views\new', $viewData);
     }
     
     /**
@@ -108,48 +107,38 @@ class Nganh extends BaseController
      */
     public function create()
     {
-        // Xác thực dữ liệu gửi lên
-        $data = $this->request->getPost();
-        
-        // Xử lý validation
-        if (!$this->validateData($data, $this->model->getValidationRules(), $this->model->getValidationMessages())) {
-            // Nếu validation thất bại, quay lại form với lỗi
-            return $this->new();
+        $request = $this->request;
+
+        // Validate dữ liệu đầu vào
+        if (!$this->validate($this->model->validationRules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
-        
-        // Kiểm tra xem mã ngành đã tồn tại chưa
-        if ($this->model->isCodeExists($data['ma_nganh'])) {
-            $this->alert->set('danger', 'Mã ngành đã tồn tại', true);
-            return redirect()->back()->withInput();
+
+        $tenNganh = $request->getPost('ten_nganh');
+        $maNganh = $request->getPost('ma_nganh');
+
+        // Kiểm tra tên ngành đã tồn tại chưa
+        if ($this->model->isNameExists($tenNganh)) {
+            return redirect()->back()->withInput()->with('error', 'Tên ngành đã tồn tại');
         }
-        
-        // Kiểm tra xem tên ngành đã tồn tại chưa
-        if ($this->model->isNameExists($data['ten_nganh'])) {
-            $this->alert->set('danger', 'Tên ngành đã tồn tại', true);
-            return redirect()->back()->withInput();
+
+        // Kiểm tra mã ngành đã tồn tại chưa
+        if ($this->model->isCodeExists($maNganh)) {
+            return redirect()->back()->withInput()->with('error', 'Mã ngành đã tồn tại');
         }
-        
-        // Điền các giá trị mặc định
-        $data['status'] = $data['status'] ?? 1;
-        $data['bin'] = 0;
-        
-        try {
-            // Lưu dữ liệu vào database sử dụng createWithRelations
-            // Chuẩn bị dữ liệu quan hệ nếu có
-            $relations = [];
-            
-            $result = $this->model->createWithRelations($data, $relations);
-            
-            if ($result) {
-                $this->alert->set('success', 'Thêm ngành thành công', true);
-                return redirect()->to($this->moduleUrl);
-            } else {
-                $this->alert->set('danger', 'Thêm ngành thất bại', true);
-                return redirect()->back()->withInput();
-            }
-        } catch (\Exception $e) {
-            $this->alert->set('danger', 'Lỗi dữ liệu: ' . $e->getMessage(), true);
-            return redirect()->back()->withInput();
+
+        $data = [
+            'ten_nganh' => $tenNganh,
+            'ma_nganh' => $maNganh,
+            'phong_khoa_id' => $request->getPost('phong_khoa_id'),
+            'status' => $request->getPost('status') ?? 1,
+            'bin' => 0
+        ];
+
+        if ($this->model->insert($data)) {
+            return redirect()->to('/nganh')->with('success', 'Thêm ngành thành công');
+        } else {
+            return redirect()->back()->withInput()->with('error', 'Có lỗi xảy ra, vui lòng thử lại');
         }
     }
     
@@ -159,16 +148,14 @@ class Nganh extends BaseController
     public function view($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID ngành không hợp lệ', true);
-            return redirect()->to($this->moduleUrl);
+            return redirect()->back()->with('error', 'ID không hợp lệ');
         }
         
-        // Sử dụng phương thức findWithRelations từ BaseModel
-        $nganh = $this->model->findWithRelations($id, ['phong_khoa']);
+        // Tìm ngành với ID tương ứng và load quan hệ phòng khoa
+        $nganh = $this->model->findWithRelations($id);
         
         if (empty($nganh)) {
-            $this->alert->set('danger', 'Không tìm thấy ngành', true);
-            return redirect()->to($this->moduleUrl);
+            return redirect()->to('/nganh')->with('error', 'Không tìm thấy ngành');
         }
         
         // Cập nhật breadcrumb
@@ -195,28 +182,34 @@ class Nganh extends BaseController
             return redirect()->to($this->moduleUrl);
         }
         
-        // Sử dụng phương thức findWithPhongKhoa từ NganhModel
-        $nganh = $this->model->findWithPhongKhoa($id);
+        // Sử dụng phương thức findWithRelations từ BaseModel, không validate
+        $nganh = $this->model->findWithRelations($id);
         
         if (empty($nganh)) {
             $this->alert->set('danger', 'Không tìm thấy ngành', true);
             return redirect()->to($this->moduleUrl);
         }
         
+        // Lấy danh sách phòng khoa cho dropdown
+        $phongKhoaList = [];
+        try {
+            $phongKhoaList = $this->model->getAllPhongKhoa();
+        } catch (\Exception $e) {
+            // Lỗi không cần hiển thị
+        }
+        
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Chỉnh sửa', current_url());
-        
-        // Lấy danh sách phòng/khoa từ NganhModel
-        $phongkhoas = $this->model->getAllPhongKhoa();
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chỉnh sửa ' . $this->moduleName,
-            'nganh' => $nganh,
-            'phongkhoas' => $phongkhoas,
             'validation' => $this->validator,
-            'moduleUrl' => $this->moduleUrl
+            'nganh' => $nganh,
+            'phong_khoa_list' => $phongKhoaList,
+            'moduleUrl' => $this->moduleUrl,
+            'errors' => session()->getFlashdata('errors') ?? $this->validator->getErrors(),
         ];
         
         return view('App\Modules\nganh\Views\form', $viewData);
@@ -232,8 +225,8 @@ class Nganh extends BaseController
             return redirect()->to($this->moduleUrl);
         }
         
-        // Lấy thông tin ngành với relationship
-        $existingNganh = $this->model->findWithRelations($id, ['phong_khoa']);
+        // Lấy thông tin ngành với relationship, không validate
+        $existingNganh = $this->model->findWithRelations($id);
         
         if (empty($existingNganh)) {
             $this->alert->set('danger', 'Không tìm thấy ngành', true);
@@ -287,22 +280,22 @@ class Nganh extends BaseController
     public function delete($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID ngành không hợp lệ', true);
-            return redirect()->to($this->moduleUrl);
+            return redirect()->back()->with('error', 'ID không hợp lệ');
         }
         
         try {
-            // Sử dụng soft delete
-            if ($this->model->delete($id)) {
-                $this->alert->set('success', 'Xóa ngành thành công', true);
+            // Sử dụng bin=1 và thêm deleted_at
+            if ($this->model->update($id, [
+                'bin' => 1, 
+                'deleted_at' => date('Y-m-d H:i:s')
+            ])) {
+                return redirect()->to('/nganh')->with('success', 'Đã xóa ngành thành công');
             } else {
-                $this->alert->set('danger', 'Xóa ngành thất bại', true);
+                return redirect()->back()->with('error', 'Có lỗi xảy ra khi xóa ngành');
             }
         } catch (\Exception $e) {
-            $this->alert->set('danger', 'Lỗi: ' . $e->getMessage(), true);
+            return redirect()->back()->with('error', 'Lỗi: ' . $e->getMessage());
         }
-        
-        return redirect()->to($this->moduleUrl);
     }
     
     /**
@@ -314,13 +307,13 @@ class Nganh extends BaseController
         $this->breadcrumb->add('Thùng rác', current_url());
         
         // Lấy dữ liệu đã xóa từ model với quan hệ phòng khoa
-        $deletedItems = $this->model->getAllDeleted(true);
+        $deletedItems = $this->model->getAllInRecycleBin();
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Thùng rác ' . $this->moduleName,
-            'deletedItems' => $deletedItems,
+            'nganh' => $deletedItems,
             'moduleUrl' => $this->moduleUrl
         ];
         
@@ -328,51 +321,93 @@ class Nganh extends BaseController
     }
     
     /**
-     * Khôi phục bản ghi đã xóa
+     * Khôi phục một bản ghi đã xóa
      */
     public function restore($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID ngành không hợp lệ', true);
-            return redirect()->to("{$this->moduleUrl}/listdeleted");
+            return redirect()->back()->with('error', 'ID không hợp lệ');
         }
         
-        try {
-            // Sử dụng phương thức restore từ BaseModel
-            if ($this->model->restore($id)) {
-                $this->alert->set('success', 'Khôi phục ngành thành công', true);
-            } else {
-                $this->alert->set('danger', 'Khôi phục ngành thất bại', true);
-            }
-        } catch (\Exception $e) {
-            $this->alert->set('danger', 'Lỗi: ' . $e->getMessage(), true);
+        // Khôi phục bản ghi bằng cách đặt bin = 0 và xóa deleted_at
+        if ($this->model->update($id, ['bin' => 0, 'deleted_at' => null])) {
+            return redirect()->to('/nganh/listdeleted')->with('success', 'Đã khôi phục ngành thành công');
+        } else {
+            return redirect()->back()->with('error', 'Có lỗi xảy ra khi khôi phục ngành');
         }
-        
-        return redirect()->to("{$this->moduleUrl}/listdeleted");
     }
     
     /**
-     * Xóa vĩnh viễn bản ghi
+     * Khôi phục nhiều bản ghi đã xóa
      */
-    public function purge($id = null)
+    public function restoreMultiple()
+    {
+        $request = $this->request;
+        $selectedIds = $request->getPost('selected_ids');
+        
+        if (empty($selectedIds)) {
+            return redirect()->back()->with('error', 'Không có mục nào được chọn để khôi phục');
+        }
+        
+        $countSuccess = 0;
+        
+        foreach ($selectedIds as $id) {
+            // Khôi phục bản ghi bằng cách đặt bin = 0 và xóa deleted_at
+            if ($this->model->update($id, ['bin' => 0, 'deleted_at' => null])) {
+                $countSuccess++;
+            }
+        }
+        
+        if ($countSuccess > 0) {
+            return redirect()->to('/nganh/listdeleted')->with('success', "Đã khôi phục {$countSuccess} ngành thành công");
+        } else {
+            return redirect()->back()->with('error', 'Có lỗi xảy ra khi khôi phục các mục đã chọn');
+        }
+    }
+    
+    /**
+     * Xóa vĩnh viễn nhiều bản ghi
+     */
+    public function permanentDeleteMultiple()
+    {
+        $request = $this->request;
+        $selectedIds = $request->getPost('selected_ids');
+        
+        if (empty($selectedIds)) {
+            return redirect()->back()->with('error', 'Không có mục nào được chọn để xóa vĩnh viễn');
+        }
+        
+        $countSuccess = 0;
+        
+        foreach ($selectedIds as $id) {
+            // Xóa vĩnh viễn bản ghi
+            if ($this->model->where('nganh_id', $id)->delete(null, true)) {
+                $countSuccess++;
+            }
+        }
+        
+        if ($countSuccess > 0) {
+            return redirect()->to('/nganh/listdeleted')->with('success', "Đã xóa vĩnh viễn {$countSuccess} ngành thành công");
+        } else {
+            return redirect()->back()->with('error', 'Có lỗi xảy ra khi xóa vĩnh viễn các mục đã chọn');
+        }
+    }
+    
+    /**
+     * Xóa vĩnh viễn một bản ghi
+     */
+    public function permanentDelete($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID ngành không hợp lệ', true);
-            return redirect()->to("{$this->moduleUrl}/listdeleted");
+            return redirect()->back()->with('error', 'ID không hợp lệ');
         }
         
-        try {
-            // Xóa vĩnh viễn
-            if ($this->model->delete($id, true)) {
-                $this->alert->set('success', 'Xóa vĩnh viễn ngành thành công', true);
-            } else {
-                $this->alert->set('danger', 'Xóa vĩnh viễn ngành thất bại', true);
-            }
-        } catch (\Exception $e) {
-            $this->alert->set('danger', 'Lỗi: ' . $e->getMessage(), true);
+        // Xóa vĩnh viễn bản ghi
+        if ($this->model->where('nganh_id', $id)->delete(null, true)) {
+            return redirect()->to('/nganh/listdeleted')->with('success', 'Đã xóa vĩnh viễn ngành thành công');
+        } else {
+            return redirect()->back()->with('error', 'Có lỗi xảy ra khi xóa vĩnh viễn ngành');
         }
-        
-        return redirect()->to("{$this->moduleUrl}/listdeleted");
     }
     
     /**
@@ -403,13 +438,13 @@ class Nganh extends BaseController
         ];
         
         // Sử dụng phương thức search từ BaseModel
-        $results = $this->model->withRelations(['phong_khoa'])->search($criteria, $options);
+        $results = $this->model->like('ten_nganh', $keyword)->orLike('ma_nganh', $keyword)->where('bin', 0)->findAll();
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Kết quả tìm kiếm cho "' . $keyword . '"',
-            'nganhs' => $results,
+            'nganh' => $results,
             'keyword' => $keyword,
             'moduleUrl' => $this->moduleUrl
         ];
@@ -445,5 +480,69 @@ class Nganh extends BaseController
         }
         
         return $this->response->setJSON($options);
+    }
+    
+    /**
+     * Xử lý xóa nhiều bản ghi cùng lúc
+     */
+    public function deleteMultiple()
+    {
+        $request = $this->request;
+        $selectedIds = $request->getPost('selected_ids');
+        
+        if (empty($selectedIds)) {
+            return redirect()->back()->with('error', 'Không có mục nào được chọn để xóa');
+        }
+        
+        $countSuccess = 0;
+        
+        foreach ($selectedIds as $id) {
+            // Chuyển bản ghi vào thùng rác thay vì xóa hoàn toàn
+            if ($this->model->update($id, ['bin' => 1, 'deleted_at' => date('Y-m-d H:i:s')])) {
+                $countSuccess++;
+            }
+        }
+        
+        if ($countSuccess > 0) {
+            return redirect()->to('/nganh')->with('success', "Đã xóa {$countSuccess} ngành thành công");
+        } else {
+            return redirect()->back()->with('error', 'Có lỗi xảy ra khi xóa các mục đã chọn');
+        }
+    }
+    
+    /**
+     * Xử lý thay đổi trạng thái nhiều bản ghi cùng lúc
+     */
+    public function statusMultiple()
+    {
+        $request = $this->request;
+        $selectedIds = $request->getPost('selected_ids');
+        
+        if (empty($selectedIds)) {
+            return redirect()->back()->with('error', 'Không có mục nào được chọn để thay đổi trạng thái');
+        }
+        
+        $countSuccess = 0;
+        
+        foreach ($selectedIds as $id) {
+            // Lấy bản ghi hiện tại
+            $nganh = $this->model->find($id);
+            
+            if ($nganh) {
+                // Đảo ngược trạng thái
+                $newStatus = $nganh->status == 1 ? 0 : 1;
+                
+                // Cập nhật trạng thái mới
+                if ($this->model->update($id, ['status' => $newStatus])) {
+                    $countSuccess++;
+                }
+            }
+        }
+        
+        if ($countSuccess > 0) {
+            return redirect()->to('/nganh')->with('success', "Đã thay đổi trạng thái {$countSuccess} ngành thành công");
+        } else {
+            return redirect()->back()->with('error', 'Có lỗi xảy ra khi thay đổi trạng thái các mục đã chọn');
+        }
     }
 } 

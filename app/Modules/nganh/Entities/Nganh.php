@@ -151,33 +151,27 @@ class Nganh extends BaseEntity
      */
     public function getPhongKhoaInfo()
     {
-        // Kiểm tra nếu relationship đã được load
-        if ($this->hasRelation('phong_khoa')) {
-            $phongKhoa = $this->getRelation('phong_khoa');
-            if ($phongKhoa) {
-                return '<span class="badge bg-info">' . esc($phongKhoa->ten_phong_khoa) . ' (' . esc($phongKhoa->ma_phong_khoa) . ')</span>';
-            }
+        // Kiểm tra nếu thuộc tính phong_khoa tồn tại
+        if (isset($this->phong_khoa) && !empty($this->phong_khoa)) {
+            return '<span class="badge bg-info">' . esc($this->phong_khoa->ten_phong_khoa) . ' (' . esc($this->phong_khoa->ma_phong_khoa) . ')</span>';
         }
         
-        // Nếu không có phòng khoa hoặc relationship chưa load
-        if (empty($this->attributes['phong_khoa_id'])) {
-            return '<span class="text-muted">Không có</span>';
-        }
-        
-        return '<span class="badge bg-secondary">ID: ' . $this->attributes['phong_khoa_id'] . '</span>';
+        // Nếu không có phòng khoa hoặc chưa load
+        return '<span class="text-muted">Không có</span>';
     }
     
     /**
-     * Lấy nhãn trạng thái ngành dưới dạng HTML
-     * 
-     * @return string
+     * Lấy nhãn trạng thái hiển thị
+     *
+     * @return string HTML với badge status
      */
     public function getStatusLabel()
     {
-        if ($this->attributes['status'] == 1) {
+        if ($this->status == 1) {
             return '<span class="badge bg-success">Hoạt động</span>';
+        } else {
+            return '<span class="badge bg-danger">Không hoạt động</span>';
         }
-        return '<span class="badge bg-warning">Không hoạt động</span>';
     }
     
     /**
@@ -212,17 +206,29 @@ class Nganh extends BaseEntity
     
     /**
      * Lấy ngày xóa đã định dạng
-     * 
+     *
      * @return string
      */
     public function getDeletedAtFormatted()
     {
-        if (empty($this->attributes['deleted_at'])) {
-            return '<span class="text-muted fst-italic">Không có</span>';
+        // Kiểm tra nếu deleted_at là null, chuỗi rỗng hoặc định dạng ngày mặc định
+        if (!isset($this->attributes['deleted_at']) || 
+            empty($this->attributes['deleted_at']) || 
+            $this->attributes['deleted_at'] == '0000-00-00 00:00:00') {
+            return '';
         }
         
-        $time = $this->attributes['deleted_at'] instanceof Time ? $this->attributes['deleted_at'] : new Time($this->attributes['deleted_at']);
-        return $time->format('d/m/Y H:i:s');
+        try {
+            // Chuyển đổi sang đối tượng Time
+            $time = $this->attributes['deleted_at'] instanceof Time ? 
+                $this->attributes['deleted_at'] : 
+                new Time($this->attributes['deleted_at']);
+                
+            return $time->format('d/m/Y H:i:s');
+        } catch (\Exception $e) {
+            // Trả về chuỗi rỗng nếu có lỗi
+            return '';
+        }
     }
     
     /**
