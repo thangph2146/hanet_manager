@@ -47,6 +47,38 @@ class NamHocModel extends BaseModel
     // Định nghĩa các mối quan hệ - không sử dụng
     protected $relations = [];
     
+    /**
+     * Validation rules
+     * 
+     * @var array
+     */
+    protected $validationRules = [
+        'ten_nam_hoc' => 'required|min_length[3]|max_length[100]',
+        'ngay_bat_dau' => 'required|valid_date',
+        'ngay_ket_thuc' => 'required|valid_date'
+    ];
+
+    /**
+     * Validation messages
+     * 
+     * @var array
+     */
+    protected $validationMessages = [
+        'ten_nam_hoc' => [
+            'required' => 'Tên năm học không được để trống',
+            'min_length' => 'Tên năm học phải có ít nhất 3 ký tự',
+            'max_length' => 'Tên năm học không được vượt quá 100 ký tự'
+        ],
+        'ngay_bat_dau' => [
+            'required' => 'Ngày bắt đầu không được để trống',
+            'valid_date' => 'Ngày bắt đầu không hợp lệ'
+        ],
+        'ngay_ket_thuc' => [
+            'required' => 'Ngày kết thúc không được để trống',
+            'valid_date' => 'Ngày kết thúc không hợp lệ'
+        ]
+    ];
+    
     // Thêm log để theo dõi lúc khởi tạo model
     public function __construct()
     {
@@ -279,5 +311,37 @@ class NamHocModel extends BaseModel
         return $this->db->table($this->table)
             ->where($this->primaryKey, $id)
             ->update([$this->deletedField => null]);
+    }
+    
+    /**
+     * Override validate method to add custom validation
+     * 
+     * @param array $data
+     * @param string $action
+     * @return bool
+     */
+    public function validate($data = null, string $action = null): bool
+    {
+        // Chạy validation cơ bản trước
+        $valid = parent::validate($data, $action);
+        
+        // Nếu validation cơ bản thất bại hoặc không có dữ liệu thì trả về kết quả
+        if (!$valid || empty($data)) {
+            return $valid;
+        }
+        
+        // Validation kiểm tra ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc
+        if (isset($data['ngay_bat_dau']) && isset($data['ngay_ket_thuc'])) {
+            $startDate = strtotime($data['ngay_bat_dau']);
+            $endDate = strtotime($data['ngay_ket_thuc']);
+            
+            if ($startDate > $endDate) {
+                $this->validation->setError('ngay_bat_dau', 'Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc');
+                $this->validation->setError('ngay_ket_thuc', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu');
+                return false;
+            }
+        }
+        
+        return true;
     }
 } 
