@@ -17,15 +17,10 @@
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Chỉnh sửa Hệ Đào Tạo</h5>
-        <?= view('App\Modules\hedaotao\Views\form', [
+<?= view('App\Modules\hedaotao\Views\form', [
             'action' => site_url('hedaotao/update/' . $he_dao_tao->getId()),
             'he_dao_tao' => $he_dao_tao
         ]) ?>
-    </div>
-</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>

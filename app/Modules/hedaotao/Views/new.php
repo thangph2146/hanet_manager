@@ -17,12 +17,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Thêm mới Hệ Đào Tạo</h5>
-        <?= view('App\Modules\hedaotao\Views\form', ['action' => site_url('hedaotao/create')]) ?>
-    </div>
-</div>
+<?= view('App\Modules\hedaotao\Views\form', ['action' => site_url('hedaotao/create')]) ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
