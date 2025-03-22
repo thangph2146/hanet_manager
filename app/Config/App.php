@@ -3,7 +3,6 @@
 namespace Config;
 
 use CodeIgniter\Config\BaseConfig;
-use CodeIgniter\Session\Handlers\FileHandler;
 
 class App extends BaseConfig
 {
@@ -12,30 +11,34 @@ class App extends BaseConfig
      * Base Site URL
      * --------------------------------------------------------------------------
      *
-     * URL to your CodeIgniter root. Typically this will be your base URL,
+     * URL to your CodeIgniter root. Typically, this will be your base URL,
      * WITH a trailing slash:
      *
-     *    http://example.com/
-     *
-     * If this is not set then CodeIgniter will try guess the protocol, domain
-     * and path to your installation. However, you should always configure this
-     * explicitly and never rely on auto-guessing, especially in production
-     * environments.
-     *
-     * @var string
+     * E.g., http://example.com/
      */
-    public $baseURL = '';
+    public $baseURL = 'https://muster.vn/';
+
+    /**
+     * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
+     * If you want to accept multiple Hostnames, set this.
+     *
+     * E.g.,
+     * When your site URL ($baseURL) is 'http://example.com/', and your site
+     * also accepts 'http://media.example.com/' and 'http://accounts.example.com/':
+     *     ['media.example.com', 'accounts.example.com']
+     *
+     * @var list<string>
+     */
+    public $allowedHostnames = [];
 
     /**
      * --------------------------------------------------------------------------
      * Index File
      * --------------------------------------------------------------------------
      *
-     * Typically this will be your index.php file, unless you've renamed it to
-     * something else. If you are using mod_rewrite to remove the page set this
-     * variable so that it is blank.
-     *
-     * @var string
+     * Typically, this will be your `index.php` file, unless you've renamed it to
+     * something else. If you have configured your web server to remove this file
+     * from your site URIs, set this variable to an empty string.
      */
     public $indexPage = '';
 
@@ -45,16 +48,14 @@ class App extends BaseConfig
      * --------------------------------------------------------------------------
      *
      * This item determines which server global should be used to retrieve the
-     * URI string.  The default setting of 'REQUEST_URI' works for most servers.
+     * URI string. The default setting of 'REQUEST_URI' works for most servers.
      * If your links do not seem to work, try one of the other delicious flavors:
      *
-     * 'REQUEST_URI'    Uses $_SERVER['REQUEST_URI']
-     * 'QUERY_STRING'   Uses $_SERVER['QUERY_STRING']
-     * 'PATH_INFO'      Uses $_SERVER['PATH_INFO']
+     *  'REQUEST_URI': Uses $_SERVER['REQUEST_URI']
+     * 'QUERY_STRING': Uses $_SERVER['QUERY_STRING']
+     *    'PATH_INFO': Uses $_SERVER['PATH_INFO']
      *
      * WARNING: If you set this to 'PATH_INFO', URIs will always be URL-decoded!
-     *
-     * @var string
      */
     public $uriProtocol = 'REQUEST_URI';
 
@@ -67,8 +68,6 @@ class App extends BaseConfig
      * is viewing the site from. It affects the language strings and other
      * strings (like currency markers, numbers, etc), that your program
      * should run under for this request.
-     *
-     * @var string
      */
     public $defaultLocale = 'en';
 
@@ -81,8 +80,6 @@ class App extends BaseConfig
      * language to use based on the value of the Accept-Language header.
      *
      * If false, no automatic detection will be performed.
-     *
-     * @var bool
      */
     public $negotiateLocale = false;
 
@@ -95,7 +92,9 @@ class App extends BaseConfig
      * by the application in descending order of priority. If no match is
      * found, the first locale will be used.
      *
-     * @var string[]
+     * IncomingRequest::setLocale() also uses this list.
+     *
+     * @var list<string>
      */
     public $supportedLocales = ['en'];
 
@@ -107,7 +106,8 @@ class App extends BaseConfig
      * The default timezone that will be used in your application to display
      * dates with the date helper, and can be retrieved through app_timezone()
      *
-     * @var string
+     * @see https://www.php.net/manual/en/timezones.php for list of timezones
+     *      supported by PHP.
      */
     public $appTimezone = 'Asia/Ho_Chi_Minh';
 
@@ -120,24 +120,40 @@ class App extends BaseConfig
      * that require a character set to be provided.
      *
      * @see http://php.net/htmlspecialchars for a list of supported charsets.
-     *
-     * @var string
      */
     public $charset = 'UTF-8';
 
     /**
      * --------------------------------------------------------------------------
-     * URI PROTOCOL
+     * Force Global Secure Requests
      * --------------------------------------------------------------------------
      *
-     * If true, this will force every request made to this application to be
-     * made via a secure connection (HTTPS). If the incoming request is not
-     * secure, the user will be redirected to a secure version of the page
-     * and the HTTP Strict Transport Security header will be set.
-     *
-     * @var bool
+     * If true, any site access will be redirected to HTTPS.
      */
-    public $forceGlobalSecureRequests = false;
+    public $forceGlobalSecureRequests = true;
+
+    /**
+     * --------------------------------------------------------------------------
+     * Reverse Proxy
+     * --------------------------------------------------------------------------
+     *
+     * If your server is behind a reverse proxy, you must whitelist the proxy
+     * IP addresses from which CodeIgniter should trust headers such as
+     * X-Forwarded-For or Client-IP in order to properly identify
+     * the visitor's IP address.
+     *
+     * You need to set a proxy IP address or IP address with subnets and
+     * the HTTP header for the client IP address.
+     *
+     * Here are some examples:
+     *     [
+     *         '10.0.1.200'     => 'X-Forwarded-For',
+     *         '192.168.5.0/24' => 'X-Real-IP',
+     *     ]
+     *
+     * @var array<string, string>
+     */
+    public $proxyIPs = [];
 
     /**
      * --------------------------------------------------------------------------
@@ -152,7 +168,7 @@ class App extends BaseConfig
      *
      * @var string
      */
-    public $sessionDriver = FileHandler::class;
+    public $sessionDriver = 'CodeIgniter\Session\Handlers\FileHandler';
 
     /**
      * --------------------------------------------------------------------------
@@ -241,9 +257,9 @@ class App extends BaseConfig
      *
      * Set a cookie name prefix if you need to avoid collisions.
      *
-     * @var string
-     *
      * @deprecated use Config\Cookie::$prefix property instead.
+     *
+     * @var string
      */
     public $cookiePrefix = '';
 
@@ -254,9 +270,9 @@ class App extends BaseConfig
      *
      * Set to `.your-domain.com` for site-wide cookies.
      *
-     * @var string
-     *
      * @deprecated use Config\Cookie::$domain property instead.
+     *
+     * @var string
      */
     public $cookieDomain = '';
 
@@ -267,35 +283,35 @@ class App extends BaseConfig
      *
      * Typically will be a forward slash.
      *
-     * @var string
-     *
      * @deprecated use Config\Cookie::$path property instead.
+     *
+     * @var string
      */
     public $cookiePath = '/';
 
     /**
      * --------------------------------------------------------------------------
-     * Cookie Secure
+     * Cookie Secure Flag
      * --------------------------------------------------------------------------
      *
-     * Cookie will only be set if a secure HTTPS connection exists.
-     *
-     * @var bool
+     * Whether to push the cookie over HTTPS.
      *
      * @deprecated use Config\Cookie::$secure property instead.
+     *
+     * @var bool
      */
     public $cookieSecure = false;
 
     /**
      * --------------------------------------------------------------------------
-     * Cookie HttpOnly
+     * Cookie HttpOnly Flag
      * --------------------------------------------------------------------------
      *
-     * Cookie will only be accessible via HTTP(S) (no JavaScript).
-     *
-     * @var bool
+     * Whether to make the cookie accessible via HTTP (true) or JavaScript also (false).
      *
      * @deprecated use Config\Cookie::$httponly property instead.
+     *
+     * @var bool
      */
     public $cookieHTTPOnly = true;
 
@@ -319,9 +335,9 @@ class App extends BaseConfig
      * (empty string) means default SameSite attribute set by browsers (`Lax`)
      * will be set on cookies. If set to `None`, `$cookieSecure` must also be set.
      *
-     * @var string|null
-     *
      * @deprecated use Config\Cookie::$samesite property instead.
+     *
+     * @var string
      */
     public $cookieSameSite = 'Lax';
 
@@ -332,18 +348,18 @@ class App extends BaseConfig
      *
      * If your server is behind a reverse proxy, you must whitelist the proxy
      * IP addresses from which CodeIgniter should trust headers such as
-     * HTTP_X_FORWARDED_FOR and HTTP_CLIENT_IP in order to properly identify
+     * X-Forwarded-For or Client-IP in order to properly identify
      * the visitor's IP address.
      *
      * You can use both an array or a comma-separated list of proxy addresses,
-     * as well as specifying whole subnets. Here are a few examples:
+     * as well as specifying whole subnets. Here are examples:
      *
-     * Comma-separated:	'10.0.1.200,192.168.5.0/24'
-     * Array: ['10.0.1.200', '192.168.5.0/24']
+     * Comma-separated:  '10.0.1.200,192.168.5.0/24'
+     * Array:            ['10.0.1.200', '192.168.5.0/24']
      *
-     * @var string|string[]
+     * @deprecated Use Config\App::$proxyIPs instead.
      */
-    public $proxyIPs = '';
+    public $trustedProxies = [];
 
     /**
      * --------------------------------------------------------------------------
@@ -437,8 +453,7 @@ class App extends BaseConfig
      * Defaults to `Lax` as recommended in this link:
      *
      * @see https://portswigger.net/web-security/csrf/samesite-cookies
-     *
-     * @deprecated `Config\Cookie` $samesite property is used.
+     * @deprecated Use `Config\Security` $samesite property instead of using this property.
      *
      * @var string
      */
@@ -463,6 +478,4 @@ class App extends BaseConfig
      * @var bool
      */
     public $CSPEnabled = false;
-
-   
 }

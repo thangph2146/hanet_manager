@@ -50,61 +50,61 @@ $routes->set404Override();
 
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
-$routes->get('/', 'Home::index');
+$routes->GET('/', 'Home::index');
 
-$routes->get('Roles', 'Roles::index');
+$routes->GET('Roles', 'Roles::index');
 
 // Permissions
-$routes->get('permissions', 'Permissions::index');
-$routes->match(['get', 'post'], 'permissions/new', 'Permissions::new');
-$routes->match(['get', 'post'], 'permissions/create', 'Permissions::create');
-$routes->get('permissions/edit/(:num)', 'Permissions::edit/$1');
-$routes->match(['get', 'post'], 'permissions/update/(:num)', 'Permissions::update/$1');
-$routes->get('permissions/delete/(:num)', 'Permissions::delete/$1');
-$routes->get('permissions/listdeleted', 'Permissions::listDeleted');
-$routes->get('permissions/restorepermission/(:num)', 'Permissions::restorePermission/$1');
+$routes->GET('permissions', 'Permissions::index');
+$routes->match(['GET', 'POST'], 'permissions/new', 'Permissions::new');
+$routes->match(['GET', 'POST'], 'permissions/create', 'Permissions::create');
+$routes->GET('permissions/edit/(:num)', 'Permissions::edit/$1');
+$routes->match(['GET', 'POST'], 'permissions/update/(:num)', 'Permissions::update/$1');
+$routes->GET('permissions/delete/(:num)', 'Permissions::delete/$1');
+$routes->GET('permissions/listdeleted', 'Permissions::listDeleted');
+$routes->GET('permissions/restorepermission/(:num)', 'Permissions::restorePermission/$1');
 
 // Role
-$routes->get('roles', 'Roles::index');
-$routes->match(['get', 'post'], 'roles/new', 'Roles::new');
-$routes->match(['get', 'post'], 'roles/create', 'Roles::create');
-$routes->get('roles/edit/(:num)', 'Roles::edit/$1');
-$routes->match(['get', 'post'], 'roles/update/(:num)', 'Roles::update/$1');
-$routes->get('roles/delete/(:num)', 'Roles::delete/$1');
-$routes->get('roles/listdeleted', 'Roles::listDeleted');
-$routes->get('roles/restorerole/(:num)', 'Roles::restoreRole/$1');
-$routes->get('roles/assignpermissions/(:num)', 'Roles::assignPermissions/$1');
-$routes->match(['get', 'post'], 'roles/updateassignpermissions/(:num)', 'Roles::UpdateAssignPermissions/$1');
+$routes->GET('roles', 'Roles::index');
+$routes->match(['GET', 'POST'], 'roles/new', 'Roles::new');
+$routes->match(['GET', 'POST'], 'roles/create', 'Roles::create');
+$routes->GET('roles/edit/(:num)', 'Roles::edit/$1');
+$routes->match(['GET', 'POST'], 'roles/update/(:num)', 'Roles::update/$1');
+$routes->GET('roles/delete/(:num)', 'Roles::delete/$1');
+$routes->GET('roles/listdeleted', 'Roles::listDeleted');
+$routes->GET('roles/restorerole/(:num)', 'Roles::restoreRole/$1');
+$routes->GET('roles/assignpermissions/(:num)', 'Roles::assignPermissions/$1');
+$routes->match(['GET', 'POST'], 'roles/updateassignpermissions/(:num)', 'Roles::UpdateAssignPermissions/$1');
 
 // User
-$routes->get('users', 'Users::index');
-$routes->match(['get', 'post'], 'users/new', 'Users::new');
-$routes->match(['get', 'post'], 'users/create', 'Users::create');
-$routes->get('users/edit/(:num)', 'Users::edit/$1');
-$routes->match(['get', 'post'], 'users/update/(:num)', 'Users::update/$1');
-$routes->get('users/delete/(:num)', 'Users::delete/$1');
-$routes->get('users/listdeleted', 'Users::listDeleted');
-$routes->get('users/restoreuser/(:num)', 'Users::restoreUser/$1');
-$routes->get('users/assignroles/(:num)', 'Users::assignRoles/$1');
-$routes->match(['get', 'post'], 'users/updateassignroles/(:num)', 'Users::UpdateAssignRoles/$1');
-$routes->get('users/dashboard', 'Users::dashboard');
-$routes->post('users/resetpassword', 'Users::resetPassWord');
+$routes->GET('users', 'Users::index');
+$routes->match(['GET', 'POST'], 'users/new', 'Users::new');
+$routes->match(['GET', 'POST'], 'users/create', 'Users::create');
+$routes->GET('users/edit/(:num)', 'Users::edit/$1');
+$routes->match(['GET', 'POST'], 'users/update/(:num)', 'Users::update/$1');
+$routes->GET('users/delete/(:num)', 'Users::delete/$1');
+$routes->GET('users/listdeleted', 'Users::listDeleted');
+$routes->GET('users/restoreuser/(:num)', 'Users::restoreUser/$1');
+$routes->GET('users/assignroles/(:num)', 'Users::assignRoles/$1');
+$routes->match(['GET', 'POST'], 'users/updateassignroles/(:num)', 'Users::UpdateAssignRoles/$1');
+$routes->GET('users/dashboard', 'Users::dashboard');
+$routes->POST('users/resetpassword', 'Users::resetPassWord');
 
 // Settings
-$routes->get('settings', 'Settings::index');
-$routes->match(['get', 'post'], 'settings/new', 'Settings::new');
-$routes->match(['get', 'post'], 'settings/create', 'Settings::create');
-$routes->get('settings/edit/(:num)', 'Settings::edit/$1');
-$routes->match(['get', 'post'], 'settings/update/(:num)', 'Settings::update/$1');
-$routes->get('settings/delete/(:num)', 'Settings::delete/$1');
+$routes->GET('settings', 'Settings::index');
+$routes->match(['GET', 'POST'], 'settings/new', 'Settings::new');
+$routes->match(['GET', 'POST'], 'settings/create', 'Settings::create');
+$routes->GET('settings/edit/(:num)', 'Settings::edit/$1');
+$routes->match(['GET', 'POST'], 'settings/update/(:num)', 'Settings::update/$1');
+$routes->GET('settings/delete/(:num)', 'Settings::delete/$1');
 
 // Student dashboard và other student routes
-$routes->post('students/create_student', 'Students::create_student');
-$routes->get('students/logout', 'Students::logout');
+$routes->POST('students/create_student', 'Students::create_student');
+$routes->GET('students/logout', 'Students::logout');
 
 // Sidebar routes
-$routes->post('sidebar/update-state', 'SidebarController::updateState');
-$routes->get('sidebar/get-state', 'SidebarController::getState');
+$routes->POST('sidebar/update-state', 'SidebarController::updateState');
+$routes->GET('sidebar/get-state', 'SidebarController::getState');
 
 /*
  * --------------------------------------------------------------------

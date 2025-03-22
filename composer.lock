@@ -4,44 +4,47 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2dde42c2648e71827bd759633f0fbd67",
+    "content-hash": "62a79c3c3fcc3665214ff0767a1941a5",
     "packages": [
         {
             "name": "codeigniter4/framework",
-            "version": "v4.2.6",
+            "version": "v4.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/codeigniter4/framework.git",
-                "reference": "872c8fb9d70dc1dbd8e4a85a5cf49d4fe2735525"
+                "reference": "96a1e603b9a0f022b0febb2e249eab6971a7e0d5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/codeigniter4/framework/zipball/872c8fb9d70dc1dbd8e4a85a5cf49d4fe2735525",
-                "reference": "872c8fb9d70dc1dbd8e4a85a5cf49d4fe2735525",
+                "url": "https://api.github.com/repos/codeigniter4/framework/zipball/96a1e603b9a0f022b0febb2e249eab6971a7e0d5",
+                "reference": "96a1e603b9a0f022b0febb2e249eab6971a7e0d5",
                 "shasum": ""
             },
             "require": {
-                "ext-curl": "*",
                 "ext-intl": "*",
-                "ext-json": "*",
                 "ext-mbstring": "*",
-                "kint-php/kint": "^4.2",
-                "laminas/laminas-escaper": "^2.9",
-                "php": "^7.4 || ^8.0",
-                "psr/log": "^1.1"
+                "laminas/laminas-escaper": "^2.14",
+                "php": "^8.1",
+                "psr/log": "^3.0"
             },
             "require-dev": {
-                "codeigniter/coding-standard": "^1.1",
-                "fakerphp/faker": "^1.9",
-                "friendsofphp/php-cs-fixer": "~3.11.0",
-                "mikey179/vfsstream": "^1.6",
-                "nexusphp/cs-config": "^3.3",
-                "phpunit/phpunit": "^9.1",
-                "predis/predis": "^1.1 || ^2.0"
+                "codeigniter/coding-standard": "^1.7",
+                "fakerphp/faker": "^1.24",
+                "friendsofphp/php-cs-fixer": "^3.47.1",
+                "kint-php/kint": "^6.0",
+                "mikey179/vfsstream": "^1.6.12",
+                "nexusphp/cs-config": "^3.6",
+                "phpunit/phpunit": "^10.5.16 || ^11.2",
+                "predis/predis": "^1.1 || ^2.3"
             },
             "suggest": {
+                "ext-curl": "If you use CURLRequest class",
+                "ext-dom": "If you use TestResponse",
+                "ext-exif": "If you run Image class tests",
                 "ext-fileinfo": "Improves mime type detection for files",
+                "ext-gd": "If you use Image class GDHandler",
                 "ext-imagick": "If you use Image class ImageMagickHandler",
+                "ext-libxml": "If you use TestResponse",
                 "ext-memcache": "If you use Cache class MemcachedHandler with Memcache",
                 "ext-memcached": "If you use Cache class MemcachedHandler with Memcached",
                 "ext-mysqli": "If you use MySQL",
@@ -50,8 +53,10 @@
                 "ext-readline": "Improves CLI::input() usability",
                 "ext-redis": "If you use Cache class RedisHandler",
                 "ext-simplexml": "If you format XML",
+                "ext-sodium": "If you use Encryption SodiumHandler",
                 "ext-sqlite3": "If you use SQLite3",
-                "ext-sqlsrv": "If you use SQL Server"
+                "ext-sqlsrv": "If you use SQL Server",
+                "ext-xdebug": "If you use CIUnitTestCase::assertHeaderEmitted()"
             },
             "type": "project",
             "autoload": {
@@ -69,40 +74,33 @@
             "description": "The CodeIgniter framework v4",
             "homepage": "https://codeigniter.com",
             "support": {
-                "forum": "http://forum.codeigniter.com/",
+                "forum": "https://forum.codeigniter.com/",
                 "slack": "https://codeigniterchat.slack.com",
                 "source": "https://github.com/codeigniter4/CodeIgniter4"
             },
-            "time": "2022-09-05T00:16:30+00:00"
+            "time": "2025-01-19T18:31:34+00:00"
         },
         {
             "name": "codeigniter4/settings",
-            "version": "v2.1.0",
+            "version": "v2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/codeigniter4/settings.git",
-                "reference": "0c3fbd5a474eeb592bef5550be2a6d2f73a8a09d"
+                "reference": "2748f2b4572d44a940f98c31847d65272cac5666"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/codeigniter4/settings/zipball/0c3fbd5a474eeb592bef5550be2a6d2f73a8a09d",
-                "reference": "0c3fbd5a474eeb592bef5550be2a6d2f73a8a09d",
+                "url": "https://api.github.com/repos/codeigniter4/settings/zipball/2748f2b4572d44a940f98c31847d65272cac5666",
+                "reference": "2748f2b4572d44a940f98c31847d65272cac5666",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.3 || ^8.0"
+                "php": "^7.4 || ^8.0"
             },
             "require-dev": {
-                "codeigniter/coding-standard": "^1.1",
-                "codeigniter4/codeigniter4": "dev-develop",
-                "fakerphp/faker": "^1.9",
-                "mockery/mockery": "^1.0",
-                "nexusphp/cs-config": "^3.1",
-                "nexusphp/tachycardia": "^1.0",
-                "php-coveralls/php-coveralls": "^2.4",
-                "phpstan/phpstan": "^1.0",
-                "phpunit/phpunit": "^9.0",
-                "squizlabs/php_codesniffer": "^3.3"
+                "codeigniter4/devkit": "^1.1.2",
+                "codeigniter4/framework": "^4.2.3",
+                "rector/rector": "0.18.13"
             },
             "type": "library",
             "autoload": {
@@ -133,34 +131,33 @@
             ],
             "support": {
                 "issues": "https://github.com/codeigniter4/settings/issues",
-                "source": "https://github.com/codeigniter4/settings/tree/v2.1.0"
+                "source": "https://github.com/codeigniter4/settings/tree/v2.2.0"
             },
-            "time": "2021-11-22T17:30:18+00:00"
+            "time": "2024-01-06T07:10:58+00:00"
         },
         {
             "name": "kint-php/kint",
-            "version": "4.2.0",
+            "version": "6.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kint-php/kint.git",
-                "reference": "0518ee9e1b5b3c7bbf3c9ad837a6591e39dbfab0"
+                "reference": "2bd133be30a0d4f5523e3d7d8e94b788d95978e6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kint-php/kint/zipball/0518ee9e1b5b3c7bbf3c9ad837a6591e39dbfab0",
-                "reference": "0518ee9e1b5b3c7bbf3c9ad837a6591e39dbfab0",
+                "url": "https://api.github.com/repos/kint-php/kint/zipball/2bd133be30a0d4f5523e3d7d8e94b788d95978e6",
+                "reference": "2bd133be30a0d4f5523e3d7d8e94b788d95978e6",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.6"
+                "php": ">=7.4"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.0",
-                "phpspec/prophecy-phpunit": "^2",
-                "phpunit/phpunit": "^9.0",
-                "seld/phar-utils": "^1.0",
-                "symfony/finder": "^3.0 || ^4.0 || ^5.0",
-                "vimeo/psalm": "^4.0"
+                "friendsofphp/php-cs-fixer": "^3",
+                "phpunit/phpunit": "^9",
+                "seld/phar-utils": "^1",
+                "symfony/finder": ">=7",
+                "vimeo/psalm": "^5"
             },
             "suggest": {
                 "kint-php/kint-helpers": "Provides extra helper functions",
@@ -189,48 +186,46 @@
                     "homepage": "https://github.com/kint-php/kint/graphs/contributors"
                 }
             ],
-            "description": "Kint - debugging tool for PHP developers",
+            "description": "Kint - Advanced PHP dumper",
             "homepage": "https://kint-php.github.io/kint/",
             "keywords": [
                 "debug",
-                "kint",
-                "php"
+                "dump"
             ],
             "support": {
                 "issues": "https://github.com/kint-php/kint/issues",
-                "source": "https://github.com/kint-php/kint/tree/4.2.0"
+                "source": "https://github.com/kint-php/kint/tree/6.0.1"
             },
-            "time": "2022-08-27T12:15:40+00:00"
+            "time": "2025-01-01T23:10:26+00:00"
         },
         {
             "name": "laminas/laminas-escaper",
-            "version": "2.10.0",
+            "version": "2.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laminas/laminas-escaper.git",
-                "reference": "58af67282db37d24e584a837a94ee55b9c7552be"
+                "reference": "9cf1f5317ca65b4fd5c6a3c2855e24a187b288c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laminas/laminas-escaper/zipball/58af67282db37d24e584a837a94ee55b9c7552be",
-                "reference": "58af67282db37d24e584a837a94ee55b9c7552be",
+                "url": "https://api.github.com/repos/laminas/laminas-escaper/zipball/9cf1f5317ca65b4fd5c6a3c2855e24a187b288c8",
+                "reference": "9cf1f5317ca65b4fd5c6a3c2855e24a187b288c8",
                 "shasum": ""
             },
             "require": {
                 "ext-ctype": "*",
                 "ext-mbstring": "*",
-                "php": "^7.4 || ~8.0.0 || ~8.1.0"
+                "php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0"
             },
             "conflict": {
                 "zendframework/zend-escaper": "*"
             },
             "require-dev": {
-                "infection/infection": "^0.26.6",
-                "laminas/laminas-coding-standard": "~2.3.0",
-                "maglnet/composer-require-checker": "^3.8.0",
-                "phpunit/phpunit": "^9.5.18",
-                "psalm/plugin-phpunit": "^0.16.1",
-                "vimeo/psalm": "^4.22.0"
+                "infection/infection": "^0.29.8",
+                "laminas/laminas-coding-standard": "~3.0.1",
+                "phpunit/phpunit": "^10.5.45",
+                "psalm/plugin-phpunit": "^0.19.2",
+                "vimeo/psalm": "^6.6.2"
             },
             "type": "library",
             "autoload": {
@@ -262,34 +257,34 @@
                     "type": "community_bridge"
                 }
             ],
-            "time": "2022-03-08T20:15:36+00:00"
+            "time": "2025-02-17T12:40:19+00:00"
         },
         {
             "name": "psr/log",
-            "version": "1.1.4",
+            "version": "3.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "d49695b909c3b7628b6289db5479a1c204601f11"
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/d49695b909c3b7628b6289db5479a1c204601f11",
-                "reference": "d49695b909c3b7628b6289db5479a1c204601f11",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": ">=8.0.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.1.x-dev"
+                    "dev-master": "3.x-dev"
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "Psr\\Log\\": "Psr/Log/"
+                    "Psr\\Log\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -310,9 +305,9 @@
                 "psr-3"
             ],
             "support": {
-                "source": "https://github.com/php-fig/log/tree/1.1.4"
+                "source": "https://github.com/php-fig/log/tree/3.0.2"
             },
-            "time": "2021-05-03T11:20:27+00:00"
+            "time": "2024-09-11T13:17:53+00:00"
         }
     ],
     "packages-dev": [
@@ -2283,12 +2278,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": "^7.4 || ^8.0"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.1.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
 }
