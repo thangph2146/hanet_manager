@@ -8,6 +8,15 @@
 function bachoc_css($type = 'all') {
     ob_start();
     
+    // Form CSS
+    if (in_array($type, ['all', 'form'])):
+    ?>
+    <!-- Form CSS -->
+    <link rel="stylesheet" href="<?= base_url('assets/plugins/select2/css/select2.min.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') ?>">
+    <?php
+    endif;
+
     // Common CSS for DataTables
     if (in_array($type, ['all', 'table'])):
     ?>
@@ -34,22 +43,26 @@ function bachoc_js($type = 'all') {
     // Form validation script
     if (in_array($type, ['all', 'form'])):
     ?>
+    <!-- Form JS -->
+    <script src="<?= base_url('assets/plugins/select2/js/select2.full.min.js') ?>"></script>
     <script>
-    // Form validation
-    (function () {
-        'use strict'
-        var forms = document.querySelectorAll('.needs-validation')
-        Array.prototype.slice.call(forms)
-            .forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-    })()
+        $(document).ready(function() {
+            // Form validation
+            (function() {
+                'use strict'
+                var forms = document.querySelectorAll('.needs-validation')
+                Array.prototype.slice.call(forms)
+                    .forEach(function(form) {
+                        form.addEventListener('submit', function(event) {
+                            if (!form.checkValidity()) {
+                                event.preventDefault()
+                                event.stopPropagation()
+                            }
+                            form.classList.add('was-validated')
+                        }, false)
+                    })
+            })()
+        });
     </script>
     <?php
     endif;
@@ -60,24 +73,48 @@ function bachoc_js($type = 'all') {
     <!-- DataTables JS -->
     <script src="<?= base_url('assets/plugins/datatable/js/jquery.dataTables.min.js') ?>"></script>
     <script src="<?= base_url('assets/plugins/datatable/js/dataTables.bootstrap5.min.js') ?>"></script>
+    <script src="<?= base_url('assets/plugins/datatable/js/dataTables.responsive.min.js') ?>"></script>
     
     <script>
         $(document).ready(function() {
-            // DataTable
-            $('#dataTable').DataTable({
-                language: {
-                    url: '<?= base_url('assets/plugins/datatable/locale/vi.json') ?>'
+            // Setup CSRF token for AJAX
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
             
-            // Xử lý checkbox select all
+            // Initialize DataTable
+            var dataTable = $("#dataTable").DataTable({
+                responsive: true,
+                language: {
+                    url: '<?= base_url("assets/plugins/datatable/language/vi.json") ?>'
+                }
+            });
+
+            // Handle select all checkbox
             $('#select-all').on('click', function() {
                 $('.checkbox-item').prop('checked', $(this).prop('checked'));
+                toggleBulkActionButtons();
             });
+
+            $('.checkbox-item').on('click', function() {
+                toggleBulkActionButtons();
+            });
+
+            function toggleBulkActionButtons() {
+                var checkedCount = $('.checkbox-item:checked').length;
+                if (checkedCount > 0) {
+                    $('#delete-selected, #status-selected, #restore-selected, #permanent-delete-selected').removeClass('d-none');
+                } else {
+                    $('#delete-selected, #status-selected, #restore-selected, #permanent-delete-selected').addClass('d-none');
+                }
+            }
         });
     </script>
     <?php
     endif;
     
     return ob_get_clean();
-} 
+}
+?>

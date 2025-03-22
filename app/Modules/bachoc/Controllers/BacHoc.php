@@ -19,16 +19,14 @@ class BacHoc extends BaseController
 
     public function index()
     {
-        // Lấy dữ liệu từ model sử dụng phương thức getAllActive()
         $bacHocs = $this->bacHocModel->getAllActive();
         
-        // Chuẩn bị dữ liệu cho view và helper tableRender
         $processedData = [];
         foreach ($bacHocs as $bac) {
             $processedData[] = [
                 'id' => $bac->bac_hoc_id,
                 'ten_bac_hoc' => esc($bac->ten_bac_hoc),
-                'ma_bac_hoc' => esc($bac->ma_bac_hoc) ?: '<span class="text-muted">Chưa có</span>',
+                'ma_bac_hoc' => esc($bac->ma_bac_hoc),
                 'status' => $bac->status ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-warning">Không hoạt động</span>',
                 'created_at' => $bac->created_at
             ];
@@ -44,16 +42,14 @@ class BacHoc extends BaseController
 
     public function listdeleted()
     {
-        // Lấy dữ liệu đã xóa từ model sử dụng phương thức getAllDeleted()
         $deletedBacHocs = $this->bacHocModel->getAllDeleted();
         
-        // Chuẩn bị dữ liệu cho view và helper tableRender
         $processedData = [];
         foreach ($deletedBacHocs as $bac) {
             $processedData[] = [
                 'id' => $bac->bac_hoc_id,
                 'ten_bac_hoc' => esc($bac->ten_bac_hoc),
-                'ma_bac_hoc' => esc($bac->ma_bac_hoc) ?: '<span class="text-muted">Chưa có</span>',
+                'ma_bac_hoc' => esc($bac->ma_bac_hoc),
                 'status' => $bac->status ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-warning">Không hoạt động</span>',
                 'deleted_at' => $bac->deleted_at
             ];
@@ -69,11 +65,7 @@ class BacHoc extends BaseController
 
     public function new()
     {
-        $data = [
-            'title' => 'Thêm mới bậc học'
-        ];
-        
-        return view('App\Modules\bachoc\Views\new', $data);
+        return view('App\Modules\bachoc\Views\new');
     }
 
     public function create()
@@ -84,7 +76,6 @@ class BacHoc extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        // Kiểm tra tên đã tồn tại chưa
         if ($this->bacHocModel->isNameExists($request->getPost('ten_bac_hoc'))) {
             return redirect()->back()->withInput()->with('error', 'Tên bậc học đã tồn tại');
         }
@@ -129,12 +120,10 @@ class BacHoc extends BaseController
         }
 
         $bacHoc = $this->bacHocModel->find($id);
-
         if (!$bacHoc) {
             return redirect()->to('/bachoc')->with('error', 'Không tìm thấy bậc học');
         }
 
-        // Kiểm tra tên đã tồn tại chưa
         if ($this->bacHocModel->isNameExists($request->getPost('ten_bac_hoc'), $id)) {
             return redirect()->back()->withInput()->with('error', 'Tên bậc học đã tồn tại');
         }
@@ -154,7 +143,6 @@ class BacHoc extends BaseController
 
     public function delete($id = null)
     {
-        // Kiểm tra nếu là request AJAX
         if ($this->request->isAJAX()) {
             $response = [
                 'success' => false,
@@ -162,14 +150,12 @@ class BacHoc extends BaseController
                 'csrf_hash' => csrf_hash()
             ];
 
-            // Kiểm tra ID hợp lệ
             if (!$id || !$this->bacHocModel->find($id)) {
                 $response['message'] = 'Bậc học không tồn tại.';
                 return $this->response->setJSON($response);
             }
 
             try {
-                // Xóa bậc học (soft delete)
                 if ($this->bacHocModel->softDelete($id)) {
                     $response['success'] = true;
                     $response['message'] = 'Bậc học đã được xóa thành công.';
@@ -183,7 +169,6 @@ class BacHoc extends BaseController
             return $this->response->setJSON($response);
         }
 
-        // Xử lý cho request thông thường (không phải AJAX)
         if (!$id) {
             return redirect()->to('bachoc')->with('error', 'ID bậc học không được cung cấp.');
         }
@@ -199,12 +184,6 @@ class BacHoc extends BaseController
         }
     }
 
-    /**
-     * Khôi phục một bậc học đã xóa
-     *
-     * @param int $id ID của bậc học
-     * @return \CodeIgniter\HTTP\RedirectResponse
-     */
     public function restore($id = null)
     {
         if (!$id) {
@@ -222,12 +201,8 @@ class BacHoc extends BaseController
         }
     }
     
-    /**
-     * Xóa vĩnh viễn bậc học
-     */
     public function permanentDelete($id = null)
     {
-        // Kiểm tra nếu là request AJAX
         if ($this->request->isAJAX()) {
             $response = [
                 'success' => false,
@@ -235,14 +210,12 @@ class BacHoc extends BaseController
                 'csrf_hash' => csrf_hash()
             ];
 
-            // Kiểm tra ID hợp lệ
             if (!$id || !$this->bacHocModel->find($id)) {
                 $response['message'] = 'Bậc học không tồn tại.';
                 return $this->response->setJSON($response);
             }
 
             try {
-                // Xóa bậc học vĩnh viễn
                 if ($this->bacHocModel->permanentDelete($id)) {
                     $response['success'] = true;
                     $response['message'] = 'Bậc học đã được xóa vĩnh viễn.';
@@ -256,7 +229,6 @@ class BacHoc extends BaseController
             return $this->response->setJSON($response);
         }
 
-        // Xử lý cho request thông thường (không phải AJAX)
         if (!$id) {
             return redirect()->to('bachoc/listdeleted')->with('error', 'ID bậc học không được cung cấp.');
         }
@@ -272,9 +244,6 @@ class BacHoc extends BaseController
         }
     }
     
-    /**
-     * Xóa nhiều bậc học
-     */
     public function deleteMultiple()
     {
         $request = $this->request;
@@ -284,11 +253,8 @@ class BacHoc extends BaseController
             return redirect()->to('bachoc')->with('error', 'Không có mục nào được chọn để xóa.');
         }
         
-        // selected_ids đã là một mảng, không cần explode
-        $idArray = $ids;
-        
         try {
-            if ($this->bacHocModel->softDeleteMultiple($idArray)) {
+            if ($this->bacHocModel->softDeleteMultiple($ids)) {
                 return redirect()->to('bachoc')->with('success', 'Đã xóa thành công các bậc học đã chọn.');
             } else {
                 return redirect()->to('bachoc')->with('error', 'Có lỗi xảy ra khi xóa các bậc học.');
@@ -298,9 +264,6 @@ class BacHoc extends BaseController
         }
     }
     
-    /**
-     * Khôi phục nhiều bậc học
-     */
     public function restoreMultiple()
     {
         $request = $this->request;
@@ -310,11 +273,8 @@ class BacHoc extends BaseController
             return redirect()->to('bachoc/listdeleted')->with('error', 'Không có mục nào được chọn để khôi phục.');
         }
         
-        // selected_ids đã là một mảng, không cần explode
-        $idArray = $ids;
-        
         try {
-            if ($this->bacHocModel->restoreMultiple($idArray)) {
+            if ($this->bacHocModel->restoreMultiple($ids)) {
                 return redirect()->to('bachoc/listdeleted')->with('success', 'Đã khôi phục thành công các bậc học đã chọn.');
             } else {
                 return redirect()->to('bachoc/listdeleted')->with('error', 'Có lỗi xảy ra khi khôi phục các bậc học.');
@@ -324,34 +284,22 @@ class BacHoc extends BaseController
         }
     }
     
-    /**
-     * Cập nhật trạng thái hoạt động
-     */
-    public function toggleStatus($id = null)
+    public function status($id = null)
     {
-        // Kiểm tra nếu là request AJAX
         if ($this->request->isAJAX()) {
             $response = [
                 'success' => false,
                 'message' => '',
-                'new_status' => 0,
                 'csrf_hash' => csrf_hash()
             ];
 
-            // Kiểm tra ID hợp lệ
-            if (!$id) {
-                $response['message'] = 'ID bậc học không được cung cấp.';
-                return $this->response->setJSON($response);
-            }
-
             $bacHoc = $this->bacHocModel->find($id);
-            if (!$bacHoc) {
+            if (!$id || !$bacHoc) {
                 $response['message'] = 'Bậc học không tồn tại.';
                 return $this->response->setJSON($response);
             }
 
             try {
-                // Đảo ngược trạng thái
                 $newStatus = $bacHoc->status == 1 ? 0 : 1;
                 
                 if ($this->bacHocModel->update($id, ['status' => $newStatus])) {
@@ -368,7 +316,6 @@ class BacHoc extends BaseController
             return $this->response->setJSON($response);
         }
 
-        // Xử lý cho request thông thường (không phải AJAX)
         if (!$id) {
             return redirect()->to('bachoc')->with('error', 'ID bậc học không được cung cấp.');
         }
@@ -379,7 +326,6 @@ class BacHoc extends BaseController
         }
 
         try {
-            // Đảo ngược trạng thái
             $newStatus = $bacHoc->status == 1 ? 0 : 1;
             
             if ($this->bacHocModel->update($id, ['status' => $newStatus])) {
@@ -391,10 +337,7 @@ class BacHoc extends BaseController
             return redirect()->to('bachoc')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
         }
     }
-    
-    /**
-     * Xóa vĩnh viễn nhiều bậc học
-     */
+
     public function permanentDeleteMultiple()
     {
         $request = $this->request;
@@ -404,11 +347,8 @@ class BacHoc extends BaseController
             return redirect()->to('bachoc/listdeleted')->with('error', 'Không có mục nào được chọn để xóa vĩnh viễn.');
         }
         
-        // selected_ids đã là một mảng, không cần explode
-        $idArray = $ids;
-        
         try {
-            if ($this->bacHocModel->permanentDeleteMultiple($idArray)) {
+            if ($this->bacHocModel->permanentDeleteMultiple($ids)) {
                 return redirect()->to('bachoc/listdeleted')->with('success', 'Đã xóa vĩnh viễn thành công các bậc học đã chọn.');
             } else {
                 return redirect()->to('bachoc/listdeleted')->with('error', 'Có lỗi xảy ra khi xóa vĩnh viễn các bậc học.');
@@ -417,4 +357,46 @@ class BacHoc extends BaseController
             return redirect()->to('bachoc/listdeleted')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
         }
     }
-} 
+
+    public function statusMultiple()
+    {
+        $request = $this->request;
+        $ids = $request->getPost('selected_ids');
+        
+        if (empty($ids)) {
+            return redirect()->to('bachoc')->with('error', 'Không có mục nào được chọn để đổi trạng thái.');
+        }
+        
+        try {
+            $success = 0;
+            $failed = 0;
+            
+            foreach ($ids as $id) {
+                $bacHoc = $this->bacHocModel->find($id);
+                if ($bacHoc) {
+                    $newStatus = $bacHoc->status == 1 ? 0 : 1;
+                    
+                    if ($this->bacHocModel->update($id, ['status' => $newStatus])) {
+                        $success++;
+                    } else {
+                        $failed++;
+                    }
+                } else {
+                    $failed++;
+                }
+            }
+            
+            if ($success > 0) {
+                $message = 'Đã cập nhật trạng thái ' . $success . ' bậc học thành công.';
+                if ($failed > 0) {
+                    $message .= ' Có ' . $failed . ' bậc học không thể cập nhật.';
+                }
+                return redirect()->to('bachoc')->with('success', $message);
+            } else {
+                return redirect()->to('bachoc')->with('error', 'Không thể cập nhật trạng thái bậc học. Vui lòng thử lại.');
+            }
+        } catch (\Exception $e) {
+            return redirect()->to('bachoc')->with('error', 'Đã xảy ra lỗi: ' . $e->getMessage());
+        }
+    }
+}

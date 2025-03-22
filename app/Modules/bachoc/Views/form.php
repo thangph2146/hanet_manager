@@ -3,7 +3,7 @@
  * Form component for creating and updating bac_hoc
  * 
  * @var string $action Form submission URL
- * @var string $method Form method (POST or PUT)
+ * @var string $method Form method (POST)
  * @var array $bac_hoc BacHoc entity data for editing (optional)
  */
 
@@ -38,9 +38,9 @@ $method = isset($method) ? $method : 'POST';
             <div class="invalid-feedback">Vui lòng nhập tên bậc học (tối thiểu 3 ký tự)</div>
         <?php endif; ?>
     </div>
-    
+
     <!-- ma_bac_hoc -->
-    <div class="col-md-6">
+    <div class="col-md-12">
         <label for="ma_bac_hoc" class="form-label">Mã bậc học</label>
         <input type="text" class="form-control <?= session('errors.ma_bac_hoc') ? 'is-invalid' : '' ?>" 
                 id="ma_bac_hoc" name="ma_bac_hoc" 
@@ -50,10 +50,7 @@ $method = isset($method) ? $method : 'POST';
             <div class="invalid-feedback">
                 <?= session('errors.ma_bac_hoc') ?>
             </div>
-        <?php else: ?>
-            <div class="invalid-feedback">Mã bậc học không được vượt quá 20 ký tự</div>
         <?php endif; ?>
-        <div class="form-text">Mã bậc học không bắt buộc</div>
     </div>
 
     <!-- Status -->
@@ -65,10 +62,10 @@ $method = isset($method) ? $method : 'POST';
         </select>
     </div>
 
-    <div class="col-12 mt-4">
+    <div class="col-12">
         <button class="btn btn-primary" type="submit">
             <?= isset($bac_hoc) ? 'Cập nhật' : 'Thêm mới' ?>
         </button>
         <a href="<?= site_url('bachoc') ?>" class="btn btn-secondary">Hủy</a>
     </div>
-<?= form_close() ?> 
+<?= form_close() ?>

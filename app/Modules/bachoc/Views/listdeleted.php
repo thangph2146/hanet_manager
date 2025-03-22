@@ -1,21 +1,23 @@
 <?= $this->extend('layouts/default') ?>
+
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
 <?= bachoc_css('table') ?>
 <?= $this->endSection() ?>
+
 <?= $this->section('title') ?>DANH SÁCH BẬC HỌC ĐÃ XÓA<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Danh sách Bậc Học đã xóa',
-	'dashboard_url' => site_url('dashboard'),
-	'breadcrumbs' => [
-		['url' => site_url('bachoc'), 'title' => 'Quản lý Bậc Học'],
-		['title' => 'Danh sách đã xóa', 'active' => true]
-	],
-	'actions' => [
-		['url' => site_url('/bachoc'), 'title' => 'Quay lại danh sách Bậc Học']
-	]
+    'title' => 'Danh sách Bậc học đã xóa',
+    'dashboard_url' => site_url('bachoc/dashboard'),
+    'breadcrumbs' => [
+        ['title' => 'Quản lý Bậc học', 'url' => site_url('bachoc')],
+        ['title' => 'Danh sách đã xóa', 'active' => true]
+    ],
+    'actions' => [
+        ['url' => site_url('/bachoc'), 'title' => 'Quay lại danh sách']
+    ]
 ]) ?>
 <?= $this->endSection() ?>
 
@@ -37,10 +39,11 @@
                 <thead>
                     <tr>
                         <th width="5%"><input type="checkbox" id="select-all" /></th>
-                        <th width="40%">Tên bậc học</th>
+                        <th width="20%">Tên bậc học</th>
                         <th width="20%">Mã bậc học</th>
                         <th width="15%">Trạng thái</th>
-                        <th width="20%">Hành động</th>
+                        <th width="15%">Ngày xóa</th>
+                        <th width="15%">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -53,63 +56,29 @@
                                 <td><?= $bac['ten_bac_hoc'] ?></td>
                                 <td><?= $bac['ma_bac_hoc'] ?></td>
                                 <td><?= $bac['status'] ?></td>
+                                <td><?= (new DateTime($bac['deleted_at']))->format('d/m/Y') ?></td>
                                 <td>
                                     <div class="d-flex">
-                                        <button type="button" class="btn btn-success btn-sm restore-item me-1" data-id="<?= $bac['id'] ?>" title="Khôi phục">
-                                            <i class="bx bx-reset"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm permanent-delete-item" data-id="<?= $bac['id'] ?>" title="Xóa vĩnh viễn">
-                                            <i class="bx bx-trash"></i>
-                                        </button>
+                                        <form action="<?= site_url('bachoc/restore/' . $bac['id']) ?>" method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn-success btn-sm me-1" title="Khôi phục">
+                                                <i class="bx bx-recycle"></i>
+                                            </button>
+                                        </form>
+                                        <a href="javascript:void(0)" class="btn btn-danger btn-sm btn-permanent-delete" 
+                                           data-id="<?= $bac['id'] ?>" data-name="<?= $bac['ten_bac_hoc'] ?>" title="Xóa vĩnh viễn">
+                                            <i class="bx bx-trash-alt"></i>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="text-center">Không có dữ liệu</td>
+                            <td colspan="6" class="text-center">Không có dữ liệu</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Xác nhận khôi phục -->
-<div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xác nhận khôi phục</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Bạn có chắc chắn muốn khôi phục bậc học này không?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-success" id="confirm-restore">Khôi phục</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Xác nhận khôi phục nhiều mục -->
-<div class="modal fade" id="restoreMultipleModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xác nhận khôi phục</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Bạn có chắc chắn muốn khôi phục các bậc học đã chọn không?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-success" id="confirm-restore-multiple">Khôi phục</button>
-            </div>
         </div>
     </div>
 </div>
@@ -123,32 +92,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="text-danger fw-bold">CẢNH BÁO: Hành động này không thể hoàn tác!</p>
-                <p>Bạn có chắc chắn muốn xóa vĩnh viễn bậc học này không?</p>
+                Bạn có chắc chắn muốn xóa vĩnh viễn bậc học "<span id="permanent-delete-item-name"></span>"?<br>
+                <strong class="text-danger">Lưu ý: Hành động này không thể khôi phục!</strong>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" id="confirm-permanent-delete">Xóa vĩnh viễn</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Xác nhận xóa vĩnh viễn nhiều mục -->
-<div class="modal fade" id="permanentDeleteMultipleModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa vĩnh viễn</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-danger fw-bold">CẢNH BÁO: Hành động này không thể hoàn tác!</p>
-                <p>Bạn có chắc chắn muốn xóa vĩnh viễn các bậc học đã chọn không?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" id="confirm-permanent-delete-multiple">Xóa vĩnh viễn</button>
+                <form id="permanent-delete-form" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Xóa vĩnh viễn</button>
+                </form>
             </div>
         </div>
     </div>
@@ -157,69 +108,63 @@
 
 <?= $this->section('script') ?>
 <?= bachoc_js('table') ?>
+
 <script>
     $(document).ready(function() {
-        // Xử lý khôi phục bậc học
-        let restoreId = null;
-        
-        $('.restore-item').on('click', function() {
-            restoreId = $(this).data('id');
-            $('#restoreModal').modal('show');
-        });
-        
-        $('#confirm-restore').on('click', function() {
-            if (restoreId) {
-                window.location.href = '<?= site_url('bachoc/restore/') ?>' + restoreId;
-            }
-            $('#restoreModal').modal('hide');
-        });
-        
-        // Xử lý khôi phục nhiều bậc học
+        // Handle restore multiple button
         $('#restore-selected').on('click', function() {
-            const selectedItems = $('.checkbox-item:checked');
-            if (selectedItems.length === 0) {
-                alert('Vui lòng chọn ít nhất một mục để khôi phục');
-                return;
+            if ($('.checkbox-item:checked').length > 0) {
+                if (confirm('Bạn có chắc chắn muốn khôi phục các bậc học đã chọn?')) {
+                    var tempForm = $('#form-restore-multiple');
+                    tempForm.empty();
+                    
+                    $('.checkbox-item:checked').each(function() {
+                        var input = $('<input>').attr({
+                            type: 'hidden',
+                            name: 'selected_ids[]',
+                            value: $(this).val()
+                        });
+                        tempForm.append(input);
+                    });
+                    
+                    tempForm.submit();
+                }
+            } else {
+                alert('Vui lòng chọn ít nhất một bậc học để khôi phục');
             }
-            
-            $('#restoreMultipleModal').modal('show');
         });
         
-        $('#confirm-restore-multiple').on('click', function() {
-            $('#form-restore-multiple').submit();
-            $('#restoreMultipleModal').modal('hide');
-        });
-        
-        // Xử lý xóa vĩnh viễn bậc học
-        let permanentDeleteId = null;
-        
-        $('.permanent-delete-item').on('click', function() {
-            permanentDeleteId = $(this).data('id');
-            $('#permanentDeleteModal').modal('show');
-        });
-        
-        $('#confirm-permanent-delete').on('click', function() {
-            if (permanentDeleteId) {
-                window.location.href = '<?= site_url('bachoc/permanentDelete/') ?>' + permanentDeleteId;
-            }
-            $('#permanentDeleteModal').modal('hide');
-        });
-        
-        // Xử lý xóa vĩnh viễn nhiều bậc học
+        // Handle permanent delete multiple button
         $('#permanent-delete-selected').on('click', function() {
-            const selectedItems = $('.checkbox-item:checked');
-            if (selectedItems.length === 0) {
-                alert('Vui lòng chọn ít nhất một mục để xóa vĩnh viễn');
-                return;
+            if ($('.checkbox-item:checked').length > 0) {
+                if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn các bậc học đã chọn?\nLưu ý: Hành động này không thể khôi phục!')) {
+                    var tempForm = $('#form-permanent-delete-multiple');
+                    tempForm.empty();
+                    
+                    $('.checkbox-item:checked').each(function() {
+                        var input = $('<input>').attr({
+                            type: 'hidden',
+                            name: 'selected_ids[]',
+                            value: $(this).val()
+                        });
+                        tempForm.append(input);
+                    });
+                    
+                    tempForm.submit();
+                }
+            } else {
+                alert('Vui lòng chọn ít nhất một bậc học để xóa vĩnh viễn');
             }
-            
-            $('#permanentDeleteMultipleModal').modal('show');
         });
         
-        $('#confirm-permanent-delete-multiple').on('click', function() {
-            $('#form-permanent-delete-multiple').submit();
-            $('#permanentDeleteMultipleModal').modal('hide');
+        // Handle permanent delete modal
+        $('.btn-permanent-delete').on('click', function() {
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+            $('#permanent-delete-item-name').text(name);
+            $('#permanent-delete-form').attr('action', '<?= site_url('bachoc/permanentDelete/') ?>' + id);
+            $('#permanentDeleteModal').modal('show');
         });
     });
 </script>
-<?= $this->endSection() ?> 
+<?= $this->endSection() ?>

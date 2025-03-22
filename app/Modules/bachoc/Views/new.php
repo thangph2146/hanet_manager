@@ -4,10 +4,10 @@
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Thêm mới Bậc Học',
-    'dashboard_url' => site_url('dashboard'),
+    'title' => 'Thêm mới Bậc học',
+    'dashboard_url' => site_url('bachoc/dashboard'),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Bậc Học', 'url' => site_url('bachoc')],
+        ['title' => 'Quản lý Bậc học', 'url' => site_url('bachoc')],
         ['title' => 'Thêm mới', 'active' => true]
     ]
 ]) ?>
@@ -27,4 +27,4 @@
 <?= $this->section('script') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
 <?= bachoc_js('form') ?>
-<?= $this->endSection() ?> 
+<?= $this->endSection() ?>

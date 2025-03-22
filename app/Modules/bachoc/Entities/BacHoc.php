@@ -28,24 +28,16 @@ class BacHoc extends BaseEntity
         'deleted_at',
     ];
     
-    // Các quy tắc xác thực cụ thể cho BacHoc
-    protected $validationRules = [];
-    
-    public function __construct(array $data = [])
-    {
-        parent::__construct($data);
-        
-        // Define validation rules here to allow dynamic values
-        $this->validationRules = [
-            'ten_bac_hoc' => 'required|min_length[3]|max_length[100]|is_unique[bac_hoc.ten_bac_hoc,bac_hoc_id,{bac_hoc_id}]',
-            'ma_bac_hoc' => 'permit_empty|max_length[20]',
-            'status' => 'permit_empty|in_list[0,1]',
-            'bin' => 'permit_empty|in_list[0,1]',
-        ];
-    }
+    // Validation rules
+    protected $validationRules = [
+        'ten_bac_hoc' => 'required|min_length[3]|max_length[100]|is_unique[bac_hoc.ten_bac_hoc,bac_hoc_id,{bac_hoc_id}]',
+        'ma_bac_hoc' => 'permit_empty|max_length[20]',
+        'status' => 'permit_empty|in_list[0,1]',
+        'bin' => 'permit_empty|in_list[0,1]',
+    ];
     
     protected $validationMessages = [
-        'ten_bac_hoc' => [     
+        'ten_bac_hoc' => [
             'required' => 'Tên bậc học là bắt buộc',
             'min_length' => 'Tên bậc học phải có ít nhất {param} ký tự',
             'max_length' => 'Tên bậc học không được vượt quá {param} ký tự',
@@ -57,7 +49,7 @@ class BacHoc extends BaseEntity
     ];
     
     /**
-     * Lấy ID của bậc học
+     * Get ID
      *
      * @return int
      */
@@ -67,7 +59,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Lấy tên bậc học
+     * Get name
      *
      * @return string
      */
@@ -77,7 +69,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Cập nhật tên bậc học
+     * Set name
      *
      * @param string $tenBacHoc
      * @return $this
@@ -89,7 +81,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Lấy mã bậc học
+     * Get code
      *
      * @return string|null
      */
@@ -99,7 +91,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Cập nhật mã bậc học
+     * Set code
      *
      * @param string|null $maBacHoc
      * @return $this
@@ -111,7 +103,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Kiểm tra bậc học có đang hoạt động không
+     * Check if active
      *
      * @return bool
      */
@@ -121,7 +113,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Đặt trạng thái hoạt động cho bậc học
+     * Set status
      *
      * @param bool $status
      * @return $this
@@ -133,7 +125,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Kiểm tra bậc học có đang trong thùng rác không
+     * Check if in bin
      *
      * @return bool
      */
@@ -143,7 +135,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Đặt trạng thái thùng rác
+     * Set bin status
      *
      * @param bool $binStatus
      * @return $this
@@ -155,7 +147,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Lấy ngày tạo dưới dạng chuỗi với định dạng cụ thể
+     * Get formatted created date
      *
      * @param string $format
      * @return string
@@ -168,7 +160,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Lấy ngày cập nhật dưới dạng chuỗi với định dạng cụ thể
+     * Get formatted updated date
      *
      * @param string $format
      * @return string
@@ -179,4 +171,4 @@ class BacHoc extends BaseEntity
             ? $this->updated_at->format($format) 
             : '';
     }
-} 
+}

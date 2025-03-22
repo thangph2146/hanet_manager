@@ -1,21 +1,23 @@
-    <?= $this->extend('layouts/default') ?>
+<?= $this->extend('layouts/default') ?>
+
+<?= $this->section('title') ?>QUẢN LÝ BẬC HỌC<?= $this->endSection() ?>
+
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
 <?= bachoc_css('table') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>QUẢN LÝ BẬC HỌC<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Quản lý Bậc Học',
-	'dashboard_url' => site_url('dashboard'),
-	'breadcrumbs' => [
-		['title' => 'Quản lý Bậc Học', 'active' => true]
-	],
-	'actions' => [
-		['url' => site_url('/bachoc/new'), 'title' => 'Tạo Bậc Học Mới'],
-		['url' => site_url('/bachoc/listdeleted'), 'title' => 'Danh sách Bậc Học đã xóa']
-	]
+    'title' => 'Quản lý Bậc học',
+    'dashboard_url' => site_url('bachoc/dashboard'),
+    'breadcrumbs' => [
+        ['title' => 'Quản lý Bậc học', 'active' => true]
+    ],
+    'actions' => [
+        ['url' => site_url('/bachoc/new'), 'title' => 'Tạo Bậc học mới'],
+        ['url' => site_url('/bachoc/listdeleted'), 'title' => 'Danh sách Bậc học đã xóa']
+    ]
 ]) ?>
 <?= $this->endSection() ?>
 
@@ -27,16 +29,21 @@
                 <?= form_open("bachoc/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
                 <button type="button" id="delete-selected" class="btn btn-danger me-2">Xóa mục đã chọn</button>
                 <?= form_close() ?>
+                
+                <?= form_open("bachoc/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
+                <button type="button" id="status-selected" class="btn btn-warning">Đổi trạng thái mục đã chọn</button>
+                <?= form_close() ?>
             </div>
             
             <table id="dataTable" class="table table-striped table-bordered table-hover">
                 <thead>
                     <tr>
                         <th width="5%"><input type="checkbox" id="select-all" /></th>
-                        <th width="40%">Tên bậc học</th>
+                        <th width="20%">Tên bậc học</th>
                         <th width="20%">Mã bậc học</th>
                         <th width="15%">Trạng thái</th>
-                        <th width="20%">Hành động</th>
+                        <th width="15%">Ngày tạo</th>
+                        <th width="15%">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -49,25 +56,28 @@
                                 <td><?= $bac['ten_bac_hoc'] ?></td>
                                 <td><?= $bac['ma_bac_hoc'] ?></td>
                                 <td><?= $bac['status'] ?></td>
+                                <td><?= (new DateTime($bac['created_at']))->format('d/m/Y') ?></td>
                                 <td>
                                     <div class="d-flex">
                                         <a href="<?= site_url('bachoc/edit/' . $bac['id']) ?>" class="btn btn-primary btn-sm me-1" title="Sửa">
                                             <i class="bx bx-edit"></i>
                                         </a>
-                                        <button type="button" class="btn btn-danger btn-sm delete-item me-1" data-id="<?= $bac['id'] ?>" title="Xóa">
+                                        <form action="<?= site_url('bachoc/status/' . $bac['id']) ?>" method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn-warning btn-sm me-1" title="Đổi trạng thái">
+                                                <i class="bx bx-refresh"></i>
+                                            </button>
+                                        </form>
+                                        <a href="javascript:void(0)" class="btn btn-danger btn-sm btn-delete" 
+                                           data-id="<?= $bac['id'] ?>" data-name="<?= $bac['ten_bac_hoc'] ?>" title="Xóa">
                                             <i class="bx bx-trash"></i>
-                                        </button>
-                                        <button type="button" class="btn <?= strpos($bac['status'], 'Hoạt động') !== false ? 'btn-warning' : 'btn-success' ?> btn-sm status-item" 
-                                                data-id="<?= $bac['id'] ?>" title="<?= strpos($bac['status'], 'Hoạt động') !== false ? 'Vô hiệu hóa' : 'Kích hoạt' ?>">
-                                            <i class="bx <?= strpos($bac['status'], 'Hoạt động') !== false ? 'bx-shield-x' : 'bx-check-shield' ?>"></i>
-                                        </button>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="text-center">Không có dữ liệu</td>
+                            <td colspan="6" class="text-center">Không có dữ liệu</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -85,49 +95,13 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn xóa bậc học này không?
+                Bạn có chắc chắn muốn xóa bậc học "<span id="delete-item-name"></span>"?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" id="confirm-delete">Xóa</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Xác nhận xóa nhiều mục -->
-<div class="modal fade" id="deleteMultipleModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Bạn có chắc chắn muốn xóa các bậc học đã chọn không?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" id="confirm-delete-multiple">Xóa</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Xác nhận đổi trạng thái -->
-<div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xác nhận thay đổi trạng thái</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Bạn có chắc chắn muốn thay đổi trạng thái của bậc học này không?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" id="confirm-status">Xác nhận</button>
+                <form id="delete-form" method="post" style="display: inline;">
+                    <button type="submit" id="btn-confirm-delete" class="btn btn-danger">Xóa</button>
+                </form>
             </div>
         </div>
     </div>
@@ -136,53 +110,64 @@
 
 <?= $this->section('script') ?>
 <?= bachoc_js('table') ?>
+
 <script>
     $(document).ready(function() {
-        // Xử lý xóa bậc học
-        let deleteId = null;
-        
-        $('.delete-item').on('click', function() {
-            deleteId = $(this).data('id');
-            $('#deleteModal').modal('show');
-        });
-        
-        $('#confirm-delete').on('click', function() {
-            if (deleteId) {
-                window.location.href = '<?= site_url('bachoc/delete/') ?>' + deleteId;
-            }
-            $('#deleteModal').modal('hide');
-        });
-        
-        // Xử lý xóa nhiều bậc học
+        // Handle delete multiple button
         $('#delete-selected').on('click', function() {
-            const selectedItems = $('.checkbox-item:checked');
-            if (selectedItems.length === 0) {
-                alert('Vui lòng chọn ít nhất một mục để xóa');
-                return;
+            if ($('.checkbox-item:checked').length > 0) {
+                if (confirm('Bạn có chắc chắn muốn xóa các bậc học đã chọn?')) {
+                    var tempForm = $('#form-delete-multiple');
+                    tempForm.empty();
+                    
+                    $('.checkbox-item:checked').each(function() {
+                        var input = $('<input>').attr({
+                            type: 'hidden',
+                            name: 'selected_ids[]',
+                            value: $(this).val()
+                        });
+                        tempForm.append(input);
+                    });
+                    
+                    tempForm.attr('action', '<?= site_url('bachoc/deleteMultiple') ?>');
+                    tempForm.submit();
+                }
+            } else {
+                alert('Vui lòng chọn ít nhất một bậc học để xóa');
             }
-            
-            $('#deleteMultipleModal').modal('show');
         });
         
-        $('#confirm-delete-multiple').on('click', function() {
-            $('#form-delete-multiple').submit();
-            $('#deleteMultipleModal').modal('hide');
-        });
-        
-        // Xử lý thay đổi trạng thái
-        let statusId = null;
-        
-        $('.status-item').on('click', function() {
-            statusId = $(this).data('id');
-            $('#statusModal').modal('show');
-        });
-        
-        $('#confirm-status').on('click', function() {
-            if (statusId) {
-                window.location.href = '<?= site_url('bachoc/toggleStatus/') ?>' + statusId;
+        // Handle status multiple button
+        $('#status-selected').on('click', function() {
+            if ($('.checkbox-item:checked').length > 0) {
+                if (confirm('Bạn có chắc chắn muốn đổi trạng thái các bậc học đã chọn?')) {
+                    var tempForm = $('#form-status-multiple');
+                    tempForm.empty();
+                    
+                    $('.checkbox-item:checked').each(function() {
+                        var input = $('<input>').attr({
+                            type: 'hidden',
+                            name: 'selected_ids[]',
+                            value: $(this).val()
+                        });
+                        tempForm.append(input);
+                    });
+                    
+                    tempForm.submit();
+                }
+            } else {
+                alert('Vui lòng chọn ít nhất một bậc học để đổi trạng thái');
             }
-            $('#statusModal').modal('hide');
+        });
+        
+        // Handle delete modal
+        $('.btn-delete').on('click', function() {
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+            $('#delete-item-name').text(name);
+            $('#delete-form').attr('action', '<?= site_url('bachoc/delete/') ?>' + id);
+            $('#deleteModal').modal('show');
         });
     });
 </script>
-<?= $this->endSection() ?> 
+<?= $this->endSection() ?>

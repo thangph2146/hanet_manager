@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Guide for creating and standardizing CodeIgniter 4 modules based on the loainguoidung pattern
 globs: 
 alwaysApply: false
@@ -14,7 +19,6 @@ App/Modules/example/
   │   └── Routes.php             # Định nghĩa routes cho module
   ├── Controllers/
   │   └── Example.php            # Controller chính (theo tên module)
-  │   └── Dashboard.php          # Controller thống kê (nếu cần)
   ├── Models/
   │   └── ExampleModel.php       # Model chính
   ├── Entities/
@@ -683,21 +687,138 @@ $routes->group('module', ['namespace' => 'App\Modules\module\Controllers'], func
 });
 ```
 
-## 3. Checklist cho việc tạo module mới
-- [ ] Tạo Migration và thiết kế bảng dữ liệu
-- [ ] Tạo Seed dữ liệu mẫu (nếu cần)
-- [ ] Tạo Entity với getter/setter chuẩn
-- [ ] Tạo Model với đầy đủ phương thức CRUD
-- [ ] Tạo file Master Scripts quản lý JS/CSS
-- [ ] Tạo View với đầy đủ giao diện
-- [ ] Tạo Controller với đầy đủ phương thức
-- [ ] Tạo Routes
-- [ ] Kiểm tra hoạt động của toàn bộ module
+# Prompt for Creating New Modules Based on LoaiNguoiDung Pattern
 
-## 4. Tối ưu module
-- Sử dụng AJAX cho các thao tác không cần refresh trang
-- Tối ưu hiệu suất bằng cách giảm thiểu truy vấn DB
-- Sử dụng Cache cho các dữ liệu thường xuyên truy cập
-- Xử lý và hiển thị lỗi phù hợp
-- Thêm các tính năng tìm kiếm và lọc nâng cao
-- Kiểm tra bảo mật
+To create a new module following the LoaiNguoiDung pattern, use this prompt structure:
+
+```
+Create a new CodeIgniter 4 module with the following specifications:
+
+1. Module Name: [MODULE_NAME]
+   - Primary table name: [TABLE_NAME]
+   - Primary key: [TABLE_NAME]_id
+   - Entity class name: [MODULE_NAME_CAPITALIZED]
+   
+2. Database Structure:
+   Required fields:
+   - id ([TABLE_NAME]_id) - INT, auto_increment, primary key
+   - name ([NAME_FIELD]) - VARCHAR(100), required
+   - description - TEXT, nullable
+   - status - TINYINT(1), default 1 (1: Active, 0: Inactive)
+   - bin - TINYINT(1), default 0 (0: Not in bin, 1: In bin)
+   - created_at - TIMESTAMP
+   - updated_at - TIMESTAMP
+   - deleted_at - TIMESTAMP, nullable
+   [Add any additional custom fields specific to your module]
+
+3. Entity Requirements:
+   - Extend BaseEntity
+   - Include standard getter/setter methods for all fields
+   - Define validation rules for all fields
+   - Include date formatting helpers
+   Example format:
+   ```php
+   protected $attributes = [
+       'id' => null,
+       'name' => null,
+       'description' => null,
+       'status' => 1,
+       'bin' => 0
+   ];
+
+   protected $validationRules = [
+       'name' => 'required|min_length[3]|max_length[100]',
+       'description' => 'permit_empty|max_length[1000]',
+       'status' => 'permit_empty|in_list[0,1]',
+       'bin' => 'permit_empty|in_list[0,1]'
+   ];
+   ```
+
+4. Model Requirements:
+   - Extend BaseModel
+   - Include standard CRUD methods
+   - Implement soft delete functionality
+   - Include methods for:
+     * getAllActive()
+     * getAllDeleted()
+     * getActive()
+     * isNameExists()
+     * moveToBin()
+     * restoreFromBin()
+     * softDelete()
+     * softDeleteMultiple()
+     * restoreDeleted()
+     * restoreMultiple()
+     * permanentDelete()
+     * permanentDeleteMultiple()
+
+5. Views Required:
+   - index.php (main listing)
+   - listdeleted.php (deleted items)
+   - form.php (shared create/edit form)
+   - new.php (create view)
+   - edit.php (edit view)
+   - master_scripts.php (JS/CSS management)
+
+6. Controller Methods:
+   Base methods:
+   - index() - Main listing
+   - listdeleted() - Show deleted items
+   - new() - Create form
+   - create() - Handle creation
+   - edit($id) - Edit form
+   - update($id) - Handle update
+   - delete($id) - Soft delete
+   - restore($id) - Restore deleted item
+   - permanentDelete($id) - Hard delete
+   
+   Bulk operation methods:
+   - deleteMultiple() - Bulk soft delete
+   - restoreMultiple() - Bulk restore
+   - statusMultiple() - Bulk status update
+   - permanentDeleteMultiple() - Bulk hard delete
+
+7. Routes Configuration:
+   ```php
+   $routes->group('[module-name]', ['namespace' => 'App\Modules\[module-name]\Controllers'], function ($routes) {
+       $routes->get('/', '[Controller]::index');
+       $routes->get('listdeleted', '[Controller]::listdeleted');
+       $routes->get('new', '[Controller]::new');
+       $routes->post('create', '[Controller]::create');
+       $routes->get('edit/(:num)', '[Controller]::edit/$1');
+       $routes->post('update/(:num)', '[Controller]::update/$1');
+       $routes->get('delete/(:num)', '[Controller]::delete/$1');
+       $routes->post('delete/(:num)', '[Controller]::delete/$1');
+       $routes->get('restore/(:num)', '[Controller]::restore/$1');
+       $routes->post('restore/(:num)', '[Controller]::restore/$1');
+       $routes->post('status/(:num)', '[Controller]::status/$1');
+       $routes->post('deleteMultiple', '[Controller]::deleteMultiple');
+       $routes->post('restoreMultiple', '[Controller]::restoreMultiple');
+       $routes->get('permanentDelete/(:num)', '[Controller]::permanentDelete/$1');
+       $routes->post('permanentDelete/(:num)', '[Controller]::permanentDelete/$1');
+       $routes->post('permanentDeleteMultiple', '[Controller]::permanentDeleteMultiple');
+       $routes->post('statusMultiple', '[Controller]::statusMultiple');
+   });
+   ```
+
+8. Implementation Features:
+   - Full CRUD operations with soft delete
+   - Restore functionality from trash
+   - Bulk operations (delete, restore, status change)
+   - Active/Inactive status toggle
+   - Bin (trash) system
+   - Form validation with error handling
+   - AJAX support for status changes and deletions
+   - DataTables integration for listings
+   - Search and filter functionality
+   - Breadcrumb navigation
+   - Modal confirmations for deletions
+
+Please specify the following when requesting a new module:
+1. Module name (in lowercase)
+2. Table name (if different from module name)
+3. Display name (for UI)
+4. Additional fields (beyond standard fields)
+5. Any custom validation rules
+6. Any additional features specific to the module
+```

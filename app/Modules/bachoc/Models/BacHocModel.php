@@ -3,12 +3,13 @@
 namespace App\Modules\bachoc\Models;
 
 use App\Models\BaseModel;
+use App\Modules\bachoc\Entities\BacHoc;
 
 class BacHocModel extends BaseModel
 {
     protected $table = 'bac_hoc';
     protected $primaryKey = 'bac_hoc_id';
-    protected $returnType = 'App\Modules\bachoc\Entities\BacHoc';
+    protected $returnType = BacHoc::class;
     protected $useSoftDeletes = true;
     protected $useTimestamps = true;
     
@@ -22,31 +23,26 @@ class BacHocModel extends BaseModel
         'deleted_at'
     ];
     
-    // Các trường có thể tìm kiếm
+    // Searchable fields
     protected $searchableFields = [
         'ten_bac_hoc',
         'ma_bac_hoc'
     ];
     
-    // Các trường có thể lọc
+    // Filterable fields
     protected $filterableFields = [
         'status',
         'bin'
     ];
     
-    // Các trường cần loại bỏ khoảng trắng thừa
+    // Fields that need whitespace trimming
     protected $beforeSpaceRemoval = [
         'ten_bac_hoc',
         'ma_bac_hoc'
     ];
     
-    // Định nghĩa các mối quan hệ - không sử dụng
-    protected $relations = [];
-    
-    // Các phương thức tùy chỉnh cho BacHocModel
-    
     /**
-     * Lấy danh sách tất cả bậc học đang hoạt động và không bị xóa
+     * Get all active records
      *
      * @return array
      */
@@ -58,7 +54,7 @@ class BacHocModel extends BaseModel
     }
     
     /**
-     * Lấy danh sách tất cả bậc học đã bị xóa tạm thời
+     * Get all deleted records
      *
      * @return array
      */
@@ -70,7 +66,7 @@ class BacHocModel extends BaseModel
     }
     
     /**
-     * Lấy danh sách bậc học đang hoạt động
+     * Get active records
      *
      * @return array
      */
@@ -83,13 +79,13 @@ class BacHocModel extends BaseModel
     }
     
     /**
-     * Kiểm tra tên bậc học đã tồn tại chưa
+     * Check if name exists
      *
      * @param string $tenBacHoc
-     * @param int|null $exceptId ID bậc học cần loại trừ khi kiểm tra
+     * @param int|null $exceptId ID to exclude when checking
      * @return bool
      */
-    public function isNameExists(string $tenBacHoc, int $exceptId = null)
+    public function isNameExists(string $tenBacHoc, ?int $exceptId = null): bool
     {
         $builder = $this->where('ten_bac_hoc', $tenBacHoc);
         
@@ -101,29 +97,29 @@ class BacHocModel extends BaseModel
     }
     
     /**
-     * Chuyển bậc học vào thùng rác
+     * Move to recycle bin
      *
      * @param int $id
      * @return bool
      */
-    public function moveToBin(int $id)
+    public function moveToBin(int $id): bool
     {
         return $this->update($id, ['bin' => 1]);
     }
     
     /**
-     * Khôi phục bậc học từ thùng rác
+     * Restore from recycle bin
      *
      * @param int $id
      * @return bool
      */
-    public function restoreFromBin(int $id)
+    public function restoreFromBin(int $id): bool
     {
         return $this->update($id, ['bin' => 0]);
     }
     
     /**
-     * Lấy danh sách bậc học trong thùng rác
+     * Get items in recycle bin
      *
      * @return array
      */
@@ -135,45 +131,47 @@ class BacHocModel extends BaseModel
     }
     
     /**
-     * Xóa tạm thời bậc học (soft delete)
+     * Soft delete record
      *
      * @param int $id
      * @return bool
      */
-    public function softDelete(int $id)
+    public function softDelete(int $id): bool
     {
         return $this->delete($id);
     }
     
     /**
-     * Xóa tạm thời nhiều bậc học
+     * Soft delete multiple records
      *
-     * @param array $ids Mảng các ID cần xóa
+     * @param array $ids IDs to delete
      * @return bool
      */
-    public function softDeleteMultiple(array $ids)
+    public function softDeleteMultiple(array $ids): bool
     {
         return $this->delete($ids);
     }
     
     /**
-     * Khôi phục bậc học đã xóa tạm thời
+     * Restore deleted record
      *
      * @param int $id
      * @return bool
      */
-    public function restoreDeleted(int $id)
+    public function restore($id): bool
     {
-        return $this->restore($id);
+        return $this->db->table($this->table)
+            ->where($this->primaryKey, $id)
+            ->update([$this->deletedField => null]);
     }
     
     /**
-     * Khôi phục nhiều bậc học đã xóa tạm thời
+     * Restore multiple deleted records
      *
-     * @param array $ids Mảng các ID cần khôi phục
+     * @param array $ids IDs to restore
      * @return bool
      */
-    public function restoreMultiple(array $ids)
+    public function restoreMultiple(array $ids): bool
     {
         $success = true;
         foreach ($ids as $id) {
@@ -185,7 +183,7 @@ class BacHocModel extends BaseModel
     }
     
     /**
-     * Lấy danh sách bậc học đã xóa tạm thời
+     * Get soft deleted records
      *
      * @return array
      */
@@ -195,23 +193,23 @@ class BacHocModel extends BaseModel
     }
     
     /**
-     * Xóa vĩnh viễn bậc học
+     * Permanently delete record
      *
      * @param int $id
      * @return bool
      */
-    public function permanentDelete(int $id)
+    public function permanentDelete(int $id): bool
     {
         return $this->delete($id, true);
     }
     
     /**
-     * Xóa vĩnh viễn nhiều bậc học
+     * Permanently delete multiple records
      *
-     * @param array $ids Mảng các ID cần xóa vĩnh viễn
+     * @param array $ids IDs to permanently delete
      * @return bool
      */
-    public function permanentDeleteMultiple(array $ids)
+    public function permanentDeleteMultiple(array $ids): bool
     {
         $success = true;
         foreach ($ids as $id) {
@@ -221,17 +219,4 @@ class BacHocModel extends BaseModel
         }
         return $success;
     }
-    
-    /**
-     * Khôi phục một bậc học đã xóa
-     * 
-     * @param int $id ID bậc học cần khôi phục
-     * @return bool Kết quả khôi phục
-     */
-    public function restore($id)
-    {
-        return $this->db->table($this->table)
-            ->where($this->primaryKey, $id)
-            ->update([$this->deletedField => null]);
-    }
-} 
+}

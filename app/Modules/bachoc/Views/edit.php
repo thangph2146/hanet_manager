@@ -1,19 +1,18 @@
 <?= $this->extend('layouts/default') ?>
-
-<?= $this->section('title') ?>CHỈNH SỬA BẬC HỌC<?= $this->endSection() ?>
+<?= $this->section('title') ?>CẬP NHẬT BẬC HỌC<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Chỉnh sửa Bậc Học',
-    'dashboard_url' => site_url('dashboard'),
+    'title' => 'Cập nhật Bậc học',
+    'dashboard_url' => site_url('bachoc/dashboard'),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Bậc Học', 'url' => site_url('bachoc')],
-        ['title' => 'Chỉnh sửa', 'active' => true]
+        ['title' => 'Quản lý Bậc học', 'url' => site_url('bachoc')],
+        ['title' => 'Cập nhật', 'active' => true]
     ]
 ]) ?>
 <?= $this->endSection() ?>
 
-<?= $this->section('content') ?>
+<?= $this->section("content") ?>
 <div class="card">
     <div class="card-body">
         <?= view('App\Modules\bachoc\Views\form', [
@@ -28,4 +27,4 @@
 <?= $this->section('script') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
 <?= bachoc_js('form') ?>
-<?= $this->endSection() ?> 
+<?= $this->endSection() ?>
