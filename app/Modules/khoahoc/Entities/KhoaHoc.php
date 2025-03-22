@@ -32,24 +32,31 @@ class KhoaHoc extends BaseEntity
     ];
     
     // Các quy tắc xác thực cụ thể cho KhoaHoc
-    protected $validationRules = [
-        'ten_khoa_hoc' => 'required|min_length[3]|max_length[100]',
-        'nam_bat_dau' => 'permit_empty|numeric|less_than_equal_to[' . date('Y') + 10 . ']',
-        'nam_ket_thuc' => 'permit_empty|numeric|greater_than_equal_to[nam_bat_dau]',
-        'phong_khoa_id' => 'permit_empty|numeric|is_natural',
-        'status' => 'permit_empty|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
+    protected $validationRules = [];
+    
+    public function __construct(array $data = [])
+    {
+        parent::__construct($data);
+        
+        // Define validation rules here to allow dynamic values
+        $this->validationRules = [
+            'ten_khoa_hoc' => 'required|min_length[3]|max_length[100]',
+            'nam_bat_dau' => 'permit_empty|numeric|less_than_equal_to['.date('Y').']',
+            'nam_ket_thuc' => 'permit_empty|numeric|greater_than_equal_to[nam_bat_dau]',
+            'status' => 'permit_empty|in_list[0,1]',
+            'bin' => 'permit_empty|in_list[0,1]',
         ];
+    }
     
     protected $validationMessages = [
-        'ten_khoa_hoc' => [
+        'ten_khoa_hoc' => [     
             'required' => 'Tên khóa học là bắt buộc',
             'min_length' => 'Tên khóa học phải có ít nhất {param} ký tự',
             'max_length' => 'Tên khóa học không được vượt quá {param} ký tự',
         ],
         'nam_bat_dau' => [
             'numeric' => 'Năm bắt đầu phải là số',
-            'less_than_equal_to' => 'Năm bắt đầu không được lớn hơn năm hiện tại + 10'
+            'less_than_equal_to' => 'Năm bắt đầu không được lớn hơn năm hiện tại'
         ],
         'nam_ket_thuc' => [
             'numeric' => 'Năm kết thúc phải là số',
