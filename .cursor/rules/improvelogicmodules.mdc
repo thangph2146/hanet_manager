@@ -1,11 +1,207 @@
 ---
-description: 
+description: Guide for creating and improving CodeIgniter 4 modules
 globs: 
 alwaysApply: false
 ---
 
-# flow kiểm tra và imporove code
-1. Kiểm tra và đọc dữ liệu từ các file sau: [BaseEntity.php](mdc:app/Entities/BaseEntity.php) và [BaseModel.php](mdc:app/Models/BaseModel.php) và [FormRenderer.php](mdc:app/Libraries/FormRenderer.php) 
-2. Tạo Module người dùng theo path sau: App/Modules/nguoidung
-3. Dựa theo dữ liệu các file đã kiểm tra hay tạo nguoidung Entities và người dùng Model và nguoidung Controller theo cấu trúc CRUD 
-4. Thêm route nguoidung Modules để có thể chạy được nguoidung Modules.
+# Flow kiểm tra và cách tạo module cho CodeIgniter 4
+
+## 1. Nghiên cứu cấu trúc cơ bản
+Trước khi bắt đầu tạo module mới, hãy tìm hiểu các file nền tảng:
+- [BaseEntity.php](mdc:app/Entities/BaseEntity.php) - Lớp cơ sở cho các entity
+- [BaseModel.php](mdc:app/Models/BaseModel.php) - Lớp cơ sở cho các model
+- [FormRenderer.php](mdc:app/Libraries/FormRenderer.php) - Thư viện hỗ trợ render form
+
+## 2. Cấu trúc thư mục của module
+Tạo module mới với cấu trúc thư mục như sau (VD: App/Modules/newmodule):
+```
+App/Modules/newmodule/
+  ├── Config/
+  │   └── Routes.php             # Định nghĩa routes cho module
+  ├── Controllers/
+  │   └── NewModule.php          # Controller chính (theo tên module)
+  ├── Models/
+  │   └── NewModuleModel.php     # Model chính
+  ├── Entities/
+  │   └── NewModule.php          # Entity chính
+  ├── Views/
+  │   ├── index.php              # Danh sách 
+  │   ├── new.php                # Form tạo mới
+  │   ├── edit.php               # Form chỉnh sửa
+  │   ├── form.php               # Form chung (dùng cho cả new và edit)
+  │   ├── listdeleted.php        # Danh sách đã xóa
+  │   └── master_scripts.php     # JavaScript và CSS
+  └── Database/
+      ├── Migrations/            # Migration tạo bảng
+      └── Seeds/                 # Seed dữ liệu mẫu
+```
+
+## 3. Quy trình tạo module mới
+
+### 3.1. Tạo Entity
+- Tạo class kế thừa từ `App\Entities\BaseEntity`
+- Định nghĩa các thuộc tính: `$tableName`, `$dates`, `$casts`, `$datamap`, `$jsonFields`, `$hiddenFields` 
+- Định nghĩa validation rules trong constructor
+- Thêm các getter/setter methods cho từng trường
+- Thêm các helper methods để xử lý logic đặc biệt
+
+```php
+namespace App\Modules\newmodule\Entities;
+
+use App\Entities\BaseEntity;
+use CodeIgniter\I18n\Time;
+
+class NewModule extends BaseEntity
+{
+    protected $tableName = 'new_module';
+    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+    
+    protected $casts = [
+        'id' => 'int',
+        'status' => 'int',
+        'bin' => 'int'
+    ];
+    
+    protected $validationRules = [];
+    
+    public function __construct(array $data = [])
+    {
+        parent::__construct($data);
+        
+        $this->validationRules = [
+            'name' => 'required|min_length[3]|max_length[100]',
+            'status' => 'permit_empty|in_list[0,1]',
+        ];
+    }
+    
+    // Getter/Setter methods
+    public function getId(): int { return (int)$this->attributes['id'] ?? 0; }
+    public function getName(): string { return $this->attributes['name'] ?? ''; }
+    public function setName(string $name) { $this->attributes['name'] = $name; return $this; }
+    
+    // Helper methods
+    public function isActive(): bool { return (bool)($this->attributes['status'] ?? false); }
+}
+```
+
+### 3.2. Tạo Model
+- Kế thừa từ `App\Models\BaseModel`
+- Định nghĩa thuộc tính: `$table`, `$primaryKey`, `$returnType`, `$useSoftDeletes`, `$useTimestamps`, `$allowedFields`
+- Thêm các phương thức để thao tác với dữ liệu như `getAllActive()`, `getAllDeleted()`, `softDelete()`, `restore()`, v.v.
+
+```php
+namespace App\Modules\newmodule\Models;
+
+use App\Models\BaseModel;
+
+class NewModuleModel extends BaseModel
+{
+    protected $table = 'new_module';
+    protected $primaryKey = 'id';
+    protected $returnType = 'App\Modules\newmodule\Entities\NewModule';
+    protected $useSoftDeletes = true;
+    protected $useTimestamps = true;
+    
+    protected $allowedFields = [
+        'name',
+        'status',
+        'bin',
+        'created_at',
+        'updated_at',
+        'deleted_at'
+    ];
+    
+    // Các phương thức
+    public function getAllActive() { /* ... */ }
+    public function getAllDeleted() { /* ... */ }
+    public function softDelete(int $id) { /* ... */ }
+    public function restore($id) { /* ... */ }
+    public function restoreMultiple(array $ids) { /* ... */ }
+    public function permanentDelete(int $id) { /* ... */ }
+}
+```
+
+### 3.3. Tạo Controller
+- Kế thừa từ `App\Controllers\BaseController`
+- Khai báo model và validation service trong constructor
+- Thêm các phương thức: `index()`, `new()`, `create()`, `edit()`, `update()`, `delete()`, `listdeleted()`, `restore()`, etc.
+
+```php
+namespace App\Modules\newmodule\Controllers;
+
+use App\Controllers\BaseController;
+use App\Modules\newmodule\Models\NewModuleModel;
+
+class NewModule extends BaseController
+{
+    protected $newModuleModel;
+    protected $validation;
+
+    public function __construct()
+    {
+        $this->newModuleModel = new NewModuleModel();
+        $this->validation = \Config\Services::validation();
+    }
+
+    public function index() { /* ... */ }
+    public function new() { /* ... */ }
+    public function create() { /* ... */ }
+    public function edit($id = null) { /* ... */ }
+    public function update($id = null) { /* ... */ }
+    public function delete($id = null) { /* ... */ }
+    public function listdeleted() { /* ... */ }
+    public function restore($id = null) { /* ... */ }
+    public function permanentDelete($id = null) { /* ... */ }
+    public function deleteMultiple() { /* ... */ }
+    public function restoreMultiple() { /* ... */ }
+    public function statusMultiple() { /* ... */ }
+}
+```
+
+### 3.4. Tạo Views
+- Tạo các file view cơ bản: index.php, new.php, edit.php, form.php, listdeleted.php
+- Sử dụng components chung như breadcrumb, form validation
+- Sử dụng Bootstrap hoặc framework CSS khác cho UI
+- Tạo file master_scripts.php để tách riêng JavaScript và CSS
+
+### 3.5. Tạo Routes
+- Định nghĩa các route trong `Config/Routes.php` cho từng chức năng
+
+```php
+<?php
+namespace Config;
+
+$routes = Services::routes();
+
+$routes->group('newmodule', ['namespace' => 'App\Modules\newmodule\Controllers'], function ($routes) {
+    $routes->get('/', 'NewModule::index');
+    $routes->get('new', 'NewModule::new');
+    $routes->post('create', 'NewModule::create');
+    $routes->get('edit/(:num)', 'NewModule::edit/$1');
+    $routes->post('update/(:num)', 'NewModule::update/$1');
+    $routes->get('delete/(:num)', 'NewModule::delete/$1');
+    $routes->get('listdeleted', 'NewModule::listdeleted');
+    $routes->get('restore/(:num)', 'NewModule::restore/$1');
+    $routes->post('deleteMultiple', 'NewModule::deleteMultiple');
+    $routes->post('restoreMultiple', 'NewModule::restoreMultiple');
+    $routes->post('statusMultiple', 'NewModule::statusMultiple');
+});
+```
+
+### 3.6. Tạo Migration và Seed
+- Tạo migration để định nghĩa cấu trúc bảng trong database
+- Tạo seed để thêm dữ liệu mẫu
+
+## 4. Các tính năng cần triển khai
+- CRUD (Create, Read, Update, Delete) cơ bản
+- Soft delete và khôi phục (restore)
+- Xóa vĩnh viễn (permanent delete)
+- Quản lý trạng thái (status)
+- Xử lý nhiều mục cùng lúc (multiple actions)
+- Form validation
+- Sử dụng AJAX cho các thao tác không cần refresh trang
+- Hiển thị thông báo thành công/lỗi
+- Tối ưu hóa hiệu suất
+
+## 5. Tham khảo và mở rộng
+Tham khảo module `khoahoc` làm ví dụ mẫu cho cách tổ chức, cấu trúc thư mục và cách triển khai các tính năng.
