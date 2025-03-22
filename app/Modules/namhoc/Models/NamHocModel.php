@@ -55,7 +55,7 @@ class NamHocModel extends BaseModel
     protected $validationRules = [
         'ten_nam_hoc' => 'required|min_length[3]|max_length[100]',
         'ngay_bat_dau' => 'required|valid_date',
-        'ngay_ket_thuc' => 'required|valid_date'
+        'ngay_ket_thuc' => 'required|valid_date|validateDates[ngay_bat_dau]'
     ];
 
     /**
@@ -75,7 +75,8 @@ class NamHocModel extends BaseModel
         ],
         'ngay_ket_thuc' => [
             'required' => 'Ngày kết thúc không được để trống',
-            'valid_date' => 'Ngày kết thúc không hợp lệ'
+            'valid_date' => 'Ngày kết thúc không hợp lệ',
+            'validateDates' => 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu'
         ]
     ];
     

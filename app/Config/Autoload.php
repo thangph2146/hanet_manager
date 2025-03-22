@@ -50,6 +50,7 @@ class Autoload extends AutoloadConfig
         'App\Modules\loainguoidung' => APPPATH . 'Modules/loainguoidung',
         'App\Modules\phongkhoa' => APPPATH . 'Modules/phongkhoa',
         'App\Modules\khoahoc' => APPPATH . 'Modules/khoahoc',
+        'App\Modules\bachoc' => APPPATH . 'Modules/bachoc',
     ];
 
     /**
