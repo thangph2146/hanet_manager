@@ -65,73 +65,70 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table id="dataTable" class="table table-striped table-bordered table-hover m-0">
-                <thead class="table-light">
-                    <tr>
-                        <th width="5%" class="text-center align-middle">
-                            <div class="form-check">
-                                <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
-                            </div>
-                        </th>
-                        <th width="30%" class="align-middle">Tên hệ đào tạo</th>
-                        <th width="20%" class="align-middle">Mã hệ đào tạo</th>
-                        <th width="15%" class="align-middle">Trạng thái</th>
-                        <th width="15%" class="align-middle">Ngày tạo</th>
-                        <th width="15%" class="text-center align-middle">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($he_dao_tao)): ?>
-                        <?php foreach ($he_dao_tao as $hdt): ?>
-                            <tr>
-                                <td class="text-center py-2">
-                                    <div class="form-check">
-                                        <input type="checkbox" name="selected_ids[]" value="<?= $hdt['id'] ?>" class="form-check-input checkbox-item cursor-pointer">
-                                    </div>
-                                </td>
-                                <td class="py-2"><?= $hdt['ten_he_dao_tao'] ?></td>
-                                <td class="py-2"><?= $hdt['ma_he_dao_tao'] ?: '<span class="text-muted fst-italic">Chưa có</span>' ?></td>
-                                <td class="py-2"><?= $hdt['status'] ?></td>
-                                <td class="py-2"><?= (new DateTime($hdt['created_at']))->format('d/m/Y H:i') ?></td>
-                                <td class="text-center py-2">
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <a href="<?= site_url('hedaotao/edit/' . $hdt['id']) ?>" class="btn btn-primary btn-sm" title="Sửa" data-bs-toggle="tooltip">
-                                            <i class="bx bx-edit"></i>
-                                        </a>
-                                        <form action="<?= site_url('hedaotao/status/' . $hdt['id']) ?>" method="post" style="display:inline;">
-                                            <button type="submit" class="btn btn-warning btn-sm" title="Đổi trạng thái" data-bs-toggle="tooltip">
-                                                <i class="bx bx-refresh"></i>
+            <div class="table-container">
+                <table id="dataTable" class="table table-striped table-bordered table-hover m-0 w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%" class="text-center align-middle">
+                                <div class="form-check">
+                                    <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
+                                </div>
+                            </th>
+                            <th width="30%" class="align-middle">Tên hệ đào tạo</th>
+                            <th width="20%" class="align-middle">Mã hệ đào tạo</th>
+                            <th width="15%" class="align-middle">Trạng thái</th>
+                            <th width="15%" class="align-middle">Ngày tạo</th>
+                            <th width="15%" class="text-center align-middle">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($he_dao_tao)): ?>
+                            <?php foreach ($he_dao_tao as $hdt): ?>
+                                <tr>
+                                    <td class="text-center py-2">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="selected_ids[]" value="<?= $hdt['id'] ?>" class="form-check-input checkbox-item cursor-pointer">
+                                        </div>
+                                    </td>
+                                    <td class="py-2"><?= $hdt['ten_he_dao_tao'] ?></td>
+                                    <td class="py-2"><?= $hdt['ma_he_dao_tao'] ?: '<span class="text-muted fst-italic">Chưa có</span>' ?></td>
+                                    <td class="py-2"><?= $hdt['status'] ?></td>
+                                    <td class="py-2"><?= (new DateTime($hdt['created_at']))->format('d/m/Y H:i') ?></td>
+                                    <td class="text-center py-2">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="<?= site_url('hedaotao/edit/' . $hdt['id']) ?>" class="btn btn-primary btn-sm" title="Sửa" data-bs-toggle="tooltip">
+                                                <i class="bx bx-edit"></i>
+                                            </a>
+                                            <form action="<?= site_url('hedaotao/status/' . $hdt['id']) ?>" method="post" style="display:inline;">
+                                                <button type="submit" class="btn btn-warning btn-sm" title="Đổi trạng thái" data-bs-toggle="tooltip">
+                                                    <i class="bx bx-refresh"></i>
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-sm btn-delete" 
+                                            data-id="<?= $hdt['id'] ?>" data-name="<?= $hdt['ten_he_dao_tao'] ?>" title="Xóa" data-bs-toggle="tooltip">
+                                                <i class="bx bx-trash"></i>
                                             </button>
-                                        </form>
-                                        <button type="button" class="btn btn-danger btn-sm btn-delete" 
-                                           data-id="<?= $hdt['id'] ?>" data-name="<?= $hdt['ten_he_dao_tao'] ?>" title="Xóa" data-bs-toggle="tooltip">
-                                            <i class="bx bx-trash"></i>
-                                        </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="text-center py-3">
+                                    <div class="d-flex flex-column align-items-center py-3">
+                                        <i class='bx bx-info-circle text-secondary mb-2' style="font-size: 2rem;"></i>
+                                        <p class="mb-0">Không có dữ liệu</p>
                                     </div>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="6" class="text-center py-3">
-                                <div class="d-flex flex-column align-items-center py-3">
-                                    <i class='bx bx-info-circle text-secondary mb-2' style="font-size: 2rem;"></i>
-                                    <p class="mb-0">Không có dữ liệu</p>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <?php if (!empty($he_dao_tao)): ?>
             <div class="card-footer d-flex justify-content-between align-items-center py-2">
-                <div class="text-muted small">Hiển thị <span id="record-count"><?= count($he_dao_tao) ?></span> bản ghi</div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination pagination-sm mb-0">
-                        <!-- Phân trang sẽ được xử lý bởi DataTables -->
-                    </ul>
-                </nav>
+                <div class="text-muted small">Hiển thị <span id="total-records"><?= count($he_dao_tao) ?></span> bản ghi</div>
             </div>
         <?php endif; ?>
     </div>
@@ -225,9 +222,10 @@
                 },
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
-                dom: '<"row"<"col-sm-12"tr>><"row"<"col-sm-4"l><"col-sm-4 text-center"i><"col-sm-4"p>>',
+                dom: '<"row mx-0"<"col-sm-12 px-0"tr>><"row mx-0 mt-2"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
                 ordering: true,
-                responsive: true,
+                responsive: false,
+                scrollX: false,
                 columnDefs: [
                     { orderable: false, targets: [0, 5] },
                     { className: 'align-middle', targets: '_all' }
@@ -243,6 +241,11 @@
                 if (e.key === 'Enter') {
                     dataTable.search($(this).val()).draw();
                 }
+            });
+
+            // Cập nhật tổng số bản ghi
+            dataTable.on('draw', function() {
+                $('#total-records').text(dataTable.page.info().recordsTotal);
             });
         } else {
             // Nếu bảng đã được khởi tạo, lấy instance hiện tại

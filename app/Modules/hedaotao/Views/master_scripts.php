@@ -24,7 +24,7 @@ function hedaotao_css($type = 'all') {
             content: '';
         }
         .form-check .form-check-input {
-            margin-left: -0.25rem;
+            margin-left: 0.05rem;
         }
         .table > :not(caption) > * > * {
             padding: 0.75rem !important;
