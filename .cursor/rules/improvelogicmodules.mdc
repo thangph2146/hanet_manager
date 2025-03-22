@@ -14,7 +14,6 @@ app/Modules/TenModule/
 │   └── Routes.php
 ├── Controllers/
 │   ├── TenModule.php
-│   └── Dashboard.php (tùy chọn)
 ├── Models/
 │   └── TenModuleModel.php
 ├── Entities/
@@ -49,8 +48,6 @@ $routes = Services::routes();
 
 $routes->group('tenmodule', ['namespace' => 'App\Modules\tenmodule\Controllers'], function ($routes) {
     $routes->get('/', 'TenModule::index');
-    $routes->get('dashboard', 'Dashboard::index');
-    $routes->get('statistics', 'Dashboard::statistics');
     $routes->get('listdeleted', 'TenModule::listdeleted');
     $routes->get('new', 'TenModule::new');
     $routes->post('create', 'TenModule::create');
