@@ -4,7 +4,7 @@ namespace App\Modules\bachoc\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class CreateBacHoc extends Migration
+class Bachoc extends Migration
 {
     public function up()
     {
@@ -59,4 +59,4 @@ class CreateBacHoc extends Migration
     {
         $this->forge->dropTable('bac_hoc');
     }
-} 
+}

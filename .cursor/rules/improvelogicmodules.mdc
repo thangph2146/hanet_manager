@@ -1,4 +1,9 @@
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Guide for creating and improving CodeIgniter 4 modules
 globs: 
 alwaysApply: false
