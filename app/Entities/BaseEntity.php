@@ -222,4 +222,29 @@ abstract class BaseEntity extends Entity
     {
         return array_diff_key($this->toArray(), array_flip($keys));
     }
+
+    /**
+     * Custom validation rule để kiểm tra ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu
+     * 
+     * @param string $value Giá trị của trường đang validation (ngày kết thúc)
+     * @param string $startDateField Tên trường ngày bắt đầu
+     * @param array $data Tất cả dữ liệu đang được validation
+     * @param string $error Biến tham chiếu để trả về lỗi
+     */
+    public function validateDates(string $value, string $startDateField, array $data, &$error)
+    {
+        if (empty($value) || empty($data[$startDateField])) {
+            return true;
+        }
+        
+        $startDate = strtotime($data[$startDateField]);
+        $endDate = strtotime($value);
+        
+        if ($startDate > $endDate) {
+            $error = 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu';
+            return false;
+        }
+        
+        return true;
+    }
 }

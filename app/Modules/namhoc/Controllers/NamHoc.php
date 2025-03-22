@@ -186,6 +186,19 @@ class NamHoc extends BaseController
             return redirect()->back()->withInput()->with('error', 'Tên năm học đã tồn tại');
         }
         
+        // Kiểm tra ngày bắt đầu và kết thúc ngay tại controller
+        if (isset($data['ngay_bat_dau']) && isset($data['ngay_ket_thuc']) && !empty($data['ngay_bat_dau']) && !empty($data['ngay_ket_thuc'])) {
+            $startDate = strtotime($data['ngay_bat_dau']);
+            $endDate = strtotime($data['ngay_ket_thuc']);
+            
+            if ($startDate > $endDate) {
+                return redirect()->back()->withInput()->with('errors', [
+                    'ngay_bat_dau' => 'Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc',
+                    'ngay_ket_thuc' => 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu'
+                ]);
+            }
+        }
+        
         // Tạo đối tượng và lưu vào database
         if ($this->namHocModel->save($data)) {
             return redirect()->to('/namhoc')->with('success', 'Thêm năm học thành công');
@@ -230,6 +243,19 @@ class NamHoc extends BaseController
         // Kiểm tra tên năm học đã tồn tại chưa (ngoại trừ ID hiện tại)
         if ($this->namHocModel->isNameExists($data['ten_nam_hoc'], $id)) {
             return redirect()->back()->withInput()->with('error', 'Tên năm học đã tồn tại');
+        }
+        
+        // Kiểm tra ngày bắt đầu và kết thúc ngay tại controller
+        if (isset($data['ngay_bat_dau']) && isset($data['ngay_ket_thuc']) && !empty($data['ngay_bat_dau']) && !empty($data['ngay_ket_thuc'])) {
+            $startDate = strtotime($data['ngay_bat_dau']);
+            $endDate = strtotime($data['ngay_ket_thuc']);
+            
+            if ($startDate > $endDate) {
+                return redirect()->back()->withInput()->with('errors', [
+                    'ngay_bat_dau' => 'Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc',
+                    'ngay_ket_thuc' => 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu'
+                ]);
+            }
         }
         
         // Cập nhật dữ liệu

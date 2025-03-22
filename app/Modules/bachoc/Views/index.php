@@ -135,7 +135,6 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?php include __DIR__ . '/master_scripts.php'; ?>
 <?= bachoc_js('table') ?>
 <script>
     $(document).ready(function() {

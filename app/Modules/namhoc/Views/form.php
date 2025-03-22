@@ -136,6 +136,9 @@ $method = isset($method) ? $method : 'POST';
                     const month = String(date.getMonth() + 1).padStart(2, '0');
                     const day = String(date.getDate()).padStart(2, '0');
                     hiddenInput.value = `${year}-${month}-${day}`;
+                    
+                    // Kiểm tra và hiển thị lỗi nếu ngày không hợp lệ
+                    validateDates();
                 } else {
                     hiddenInput.value = '';
                 }
@@ -147,5 +150,60 @@ $method = isset($method) ? $method : 'POST';
         
         // Áp dụng flatpickr cho trường ngày kết thúc
         flatpickr("#ngay_ket_thuc_display", configDatePicker);
+        
+        // Hàm kiểm tra ngày hợp lệ
+        function validateDates() {
+            const startDateInput = document.getElementById('ngay_bat_dau');
+            const endDateInput = document.getElementById('ngay_ket_thuc');
+            const startDateDisplay = document.getElementById('ngay_bat_dau_display');
+            const endDateDisplay = document.getElementById('ngay_ket_thuc_display');
+            
+            // Bỏ thông báo lỗi cũ nếu có
+            startDateDisplay.classList.remove('is-invalid');
+            endDateDisplay.classList.remove('is-invalid');
+            
+            // Xóa feedback cũ
+            const startFeedbacks = startDateDisplay.parentElement.querySelectorAll('.invalid-feedback');
+            const endFeedbacks = endDateDisplay.parentElement.querySelectorAll('.invalid-feedback');
+            startFeedbacks.forEach(fb => fb.remove());
+            endFeedbacks.forEach(fb => fb.remove());
+            
+            // Kiểm tra nếu cả hai ngày đều có giá trị
+            if (startDateInput.value && endDateInput.value) {
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(endDateInput.value);
+                
+                if (startDate > endDate) {
+                    // Hiển thị lỗi
+                    startDateDisplay.classList.add('is-invalid');
+                    endDateDisplay.classList.add('is-invalid');
+                    
+                    // Tạo thông báo lỗi
+                    const startFeedback = document.createElement('div');
+                    startFeedback.className = 'invalid-feedback';
+                    startFeedback.textContent = 'Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc';
+                    
+                    const endFeedback = document.createElement('div');
+                    endFeedback.className = 'invalid-feedback';
+                    endFeedback.textContent = 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu';
+                    
+                    // Thêm thông báo lỗi vào DOM
+                    startDateDisplay.parentElement.appendChild(startFeedback);
+                    endDateDisplay.parentElement.appendChild(endFeedback);
+                    
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // Kiểm tra ngày khi form được submit
+        document.querySelector('form').addEventListener('submit', function(event) {
+            if (!validateDates()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        });
     });
 </script> 
