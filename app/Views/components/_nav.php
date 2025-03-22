@@ -154,7 +154,23 @@
 			<li> <a href="<?= site_url('bachoc/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Bậc Học mới</a>
 			</li>
 		</ul>
-	</li>	
+	</li>
+	<li>
+		<a href="javascript:;" class="has-arrow">
+			<div class="parent-icon"><i class='bx bx-user-pin'></i>
+			</div>
+			<div class="menu-title">Quản lý Hệ Đào Tạo</div>
+		</a>
+		<ul>
+			<li> <a href="<?= site_url('hedaotao') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Hệ Đào Tạo</a>
+			</li>
+			<li> <a href="<?= site_url('hedaotao/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Hệ Đào Tạo bị xóa</a>
+			</li>
+			<li> <a href="<?= site_url('hedaotao/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Hệ Đào Tạo mới</a>
+			</li>
+
+		</ul>
+	</li>
 	<li>
 		<a href="https://phongqlcntt.hub.edu.vn/" target="_blank">
 			<div class="parent-icon"><i class="bx bx-support"></i>
