@@ -7,8 +7,8 @@ use App\Modules\nguoidung\Entities\NguoiDungEntity;
 
 class NguoiDungModel extends Model
 {
-    protected $table = 'students';
-    protected $primaryKey = 'nguoi_dung_id';
+    protected $table = 'nguoi_dung';
+    protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = NguoiDungEntity::class;
     protected $useSoftDeletes = true;
@@ -43,9 +43,9 @@ class NguoiDungModel extends Model
 
     // Validation
     protected $validationRules = [
-        'AccountId' => 'required|min_length[3]|is_unique[students.AccountId,nguoi_dung_id,{nguoi_dung_id}]',
+        'AccountId' => 'required|min_length[3]|is_unique[nguoi_dung.AccountId,id,{id}]',
         'FullName'  => 'required|min_length[3]',
-        'Email'     => 'permit_empty|valid_email|is_unique[students.Email,nguoi_dung_id,{nguoi_dung_id}]'
+        'Email'     => 'permit_empty|valid_email|is_unique[nguoi_dung.Email,id,{id}]'
     ];
 
     protected $validationMessages = [

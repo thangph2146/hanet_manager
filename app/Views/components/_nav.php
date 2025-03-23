@@ -185,6 +185,21 @@
 			<li> <a href="<?= site_url('nganh/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Ngành mới</a>
 			</li>
 		</ul>
+	</li>
+	<li>
+		<a href="javascript:;" class="has-arrow">
+			<div class="parent-icon"><i class='bx bx-user-pin'></i>
+			</div>
+			<div class="menu-title">Face người dùng</div>
+		</a>
+		<ul>
+			<li> <a href="<?= site_url('facenguoidung') ?>"><i class="bx bx-right-arrow-alt"></i>Face người dùng</a>
+			</li>
+			<li> <a href="<?= site_url('facenguoidung/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Face người dùng bị xóa</a>
+			</li>
+			<li> <a href="<?= site_url('facenguoidung/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Face người dùng mới</a>
+			</li>
+		</ul>
 	</li>	
 	<li>
 		<a href="javascript:;" class="has-arrow">
