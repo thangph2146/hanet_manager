@@ -4,6 +4,11 @@ globs:
 alwaysApply: false
 ---
 ---
+description: 
+globs: 
+alwaysApply: false
+---
+---
 description: Hướng dẫn tạo module mới trong CodeIgniter 4.6
 globs: 
 alwaysApply: true
@@ -689,3 +694,7 @@ Truy cập đường dẫn `http://your-site/tên_module` để kiểm tra modul
 - Thay thế `TênController`, `TênModel`, `TênEntity` bằng tên thích hợp (viết hoa chữ cái đầu).
 - Thay thế `id_field` bằng tên trường khóa chính thích hợp.
 - Thay thế `field_name` và thêm các trường khác theo nhu cầu của bạn.
+- Nếu gặp field duong_dan_anh là upload image thì file trước khi lên server, phải nén ảnh lại rồi lưu theo đường dẫn data/images/{year}/{month}/{day} tạo theo cấu trúc đó để lưu.
+- Trong form upload ảnh, thì có 1 khung nhỏ kế bên input upload ảnh, để hiển thị ảnh để có thể xem trước khi upload ảnh lên.
+- Nếu gặp field duong_dan_doc là upload image thì file trước khi lên server, phải nén document lại rồi lưu theo đường dẫn data/documents/{year}/{month}/{day} tạo theo cấu trúc đó để lưu.
+- ở chức năng xóa vĩnh viễn, sẽ xóa luôn file tồn tại trong folder.

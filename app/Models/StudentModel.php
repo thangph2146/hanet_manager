@@ -11,8 +11,8 @@ use CodeIgniter\Model;
 
 class StudentModel extends Model {
 
-	protected $table = 'students';
-	protected $primaryKey = 'id';
+	protected $table = 'nguoi_dung';
+	protected $primaryKey = 'nguoi_dung_id';
 
 	protected $returnType = Student::class;
 
