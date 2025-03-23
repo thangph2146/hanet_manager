@@ -1,360 +1,442 @@
 <?= $this->extend('layouts/default') ?>
+<?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-
-<?= $this->section('head') ?>
 <?= facenguoidung_css('table') ?>
 <?= facenguoidung_section_css('modal') ?>
 <?= $this->endSection() ?>
+<?= $this->section('title') ?>THÙNG RÁC - KHUÔN MẶT NGƯỜI DÙNG<?= $this->endSection() ?>
 
-<?= $this->section('content') ?>
-<div class="panel">
-    <div class="panel-container">
-        <div class="panel-content py-3">
-            <h1 class="mb-0 fs-3 fw-500">
-                <i class="subheader-icon fal fa-trash-alt mr-1"></i>
-                THÙNG RÁC - KHUÔN MẶT NGƯỜI DÙNG
-            </h1>
+<?= $this->section('bread_cum_link') ?>
+<?= view('components/_breakcrump', [
+	'title' => 'Thùng rác - Khuôn mặt người dùng',
+	'dashboard_url' => site_url('facenguoidung'),
+	'breadcrumbs' => [
+		['title' => 'Quản lý khuôn mặt người dùng', 'url' => site_url('facenguoidung')],
+		['title' => 'Thùng rác', 'active' => true]
+	],
+	'actions' => [
+		['url' => site_url('/facenguoidung'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+	]
+]) ?>
+<?= $this->endSection() ?>
+
+<?= $this->section("content") ?>
+<div class="card shadow-sm">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Danh sách khuôn mặt người dùng đã xóa</h5>
+        <div>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="refresh-table">
+                <i class='bx bx-refresh'></i> Làm mới
+            </button>
         </div>
     </div>
-</div>
-
-<div class="panel mb-g">
-    <ol class="breadcrumb page-breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= site_url() ?>">Trang chủ</a></li>
-        <li class="breadcrumb-item"><a href="<?= site_url('facenguoidung') ?>">Khuôn mặt người dùng</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Thùng rác</li>
-    </ol>
-</div>
-
-<div class="row">
-    <div class="col-xl-12">
-        <div id="panel-export" class="panel">
-            <div class="panel-hdr">
-                <h2>DANH SÁCH CÁC KHUÔN MẶT ĐÃ XÓA</h2>
-                <div class="panel-toolbar">
-                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip"
-                            data-offset="0,10" data-original-title="Thu gọn">
+    <div class="card-body p-0">
+        <div class="p-3 bg-light border-bottom">
+            <div class="row">
+                <div class="col-12 col-md-6 mb-2 mb-md-0">
+                    <?= form_open("facenguoidung/restoreMultiple", ['id' => 'form-restore-multiple', 'class' => 'd-inline']) ?>
+                    <button type="button" id="restore-selected" class="btn btn-success btn-sm me-2" disabled>
+                        <i class='bx bx-revision'></i> Khôi phục mục đã chọn
                     </button>
+                    <?= form_close() ?>
+                    
+                    <?= form_open("facenguoidung/permanentDeleteMultiple", ['id' => 'form-permanent-delete-multiple', 'class' => 'd-inline']) ?>
+                    <button type="button" id="permanent-delete-selected" class="btn btn-danger btn-sm" disabled>
+                        <i class='bx bx-trash-alt'></i> Xóa vĩnh viễn
+                    </button>
+                    <?= form_close() ?>
                 </div>
-            </div>
-            <div class="panel-container show">
-                <div class="panel-content">
-                    <div class="row">
-                        <div class="col-lg-6 col-md-6 col-sm-12">
-                            <!-- Các nút hành động cho các mục được chọn -->
-                            <div class="btn-group mb-2" role="group" aria-label="Bulk Actions">
-                                <button type="button" id="restore-selected" class="btn btn-outline-success waves-effect waves-themed" disabled>
-                                    <i class="fal fa-undo-alt mr-1"></i> Khôi phục mục đã chọn
-                                </button>
-                                <button type="button" id="permanent-delete-selected" class="btn btn-outline-danger waves-effect waves-themed" disabled>
-                                    <i class="fal fa-times-circle mr-1"></i> Xóa vĩnh viễn mục đã chọn
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-lg-6 col-md-6 col-sm-12">
-                            <!-- Ô tìm kiếm -->
-                            <div class="input-group mb-2 float-right">
-                                <input type="text" id="search-box" class="form-control" placeholder="Tìm kiếm...">
-                                <div class="input-group-append">
-                                    <button class="btn btn-outline-default waves-effect waves-themed" type="button" id="search-button">
-                                        <i class="fal fa-search"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                <div class="col-12 col-md-6">
+                    <div class="input-group search-box">
+                        <input type="text" class="form-control form-control-sm" id="table-search" placeholder="Tìm kiếm...">
+                        <button class="btn btn-outline-secondary btn-sm" type="button" id="search-btn">
+                            <i class='bx bx-search'></i>
+                        </button>
                     </div>
-
-                    <table id="dt-basic" class="table table-bordered table-hover table-striped w-100">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th width="2%">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="select-all">
-                                        <label class="custom-control-label" for="select-all"></label>
-                                    </div>
-                                </th>
-                                <th width="5%">ID</th>
-                                <th width="18%">Người dùng</th>
-                                <th width="20%">Thông tin</th>
-                                <th width="20%">Hình ảnh</th>
-                                <th width="15%">Thời gian xóa</th>
-                                <th width="20%">Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($items as $item): ?>
-                            <tr>
-                                <td>
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input checkbox-item" id="select-<?= $item->id ?>" value="<?= $item->id ?>">
-                                        <label class="custom-control-label" for="select-<?= $item->id ?>"></label>
-                                    </div>
-                                </td>
-                                <td><?= $item->id ?></td>
-                                <td><?= $item->ten_nguoi_dung ?? 'Không xác định' ?></td>
-                                <td>
-                                    <div>ID người dùng: <?= $item->id_nguoi_dung ?? 'N/A' ?></div>
-                                    <div>ID khuôn mặt: <?= $item->id_khuon_mat ?? 'N/A' ?></div>
-                                </td>
-                                <td>
-                                    <?php if (!empty($item->duong_dan_anh) && file_exists(FCPATH . $item->duong_dan_anh)): ?>
-                                        <img src="<?= base_url($item->duong_dan_anh) ?>" alt="Khuôn mặt" class="img-fluid" style="max-height: 100px;">
-                                    <?php else: ?>
-                                        <span class="text-muted">Không có hình ảnh</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td><?= $item->deleted_at ? date('d/m/Y H:i', strtotime($item->deleted_at)) : 'N/A' ?></td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-success waves-effect waves-themed restore-btn" data-id="<?= $item->id ?>" data-toggle="modal" data-target="#modal-restore">
-                                            <i class="fal fa-undo-alt mr-1"></i> Khôi phục
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-danger waves-effect waves-themed permanent-delete-btn" data-id="<?= $item->id ?>" data-toggle="modal" data-target="#modal-permanent-delete">
-                                            <i class="fal fa-times-circle mr-1"></i> Xóa vĩnh viễn
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
                 </div>
-                <!-- end panel-content -->
             </div>
-            <!-- end panel-container -->
         </div>
-        <!-- end panel -->
+        
+        <?php if (session()->has('error')) : ?>
+            <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                <?= session('error') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (session()->has('success')) : ?>
+            <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+                <?= session('success') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (session()->has('message')) : ?>
+            <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+                <?= session('message') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        
+        <div class="table-responsive">
+            <div class="table-container">
+                <table id="dataTable" class="table table-striped table-hover m-0 w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%" class="text-center align-middle">
+                                <div class="form-check">
+                                    <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
+                                </div>
+                            </th>
+                            <th width="10%" class="align-middle">ID</th>
+                            <th width="25%" class="align-middle">Người dùng</th>
+                            <th width="20%" class="align-middle">Ảnh</th>
+                            <th width="15%" class="align-middle">Trạng thái</th>
+                            <th width="15%" class="text-center align-middle">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($items)): ?>
+                            <?php foreach ($items as $item): ?>
+                                <tr>
+                                    <td class="text-center">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="selected_ids[]" value="<?= $item->face_nguoi_dung_id ?? $item->id ?>" class="form-check-input checkbox-item cursor-pointer">
+                                        </div>
+                                    </td>
+                                    <td><?= $item->face_nguoi_dung_id ?? $item->id ?></td>
+                                    <td>
+                                        <?php if (isset($item->nguoi_dung) && !empty($item->nguoi_dung)): ?>
+                                            <div class="fw-bold"><?= esc($item->nguoi_dung->ho_ten) ?></div>
+                                            <?php if (!empty($item->nguoi_dung->email)): ?>
+                                                <div class="small text-muted"><?= esc($item->nguoi_dung->email) ?></div>
+                                            <?php endif; ?>
+                                        <?php elseif (!empty($item->ten_nguoi_dung)): ?>
+                                            <div class="fw-bold"><?= esc($item->ten_nguoi_dung) ?></div>
+                                        <?php else: ?>
+                                            <span class="text-muted">Không có thông tin</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if (!empty($item->duong_dan_anh) && file_exists(FCPATH . $item->duong_dan_anh)): ?>
+                                            <img src="<?= base_url($item->duong_dan_anh) ?>" alt="Khuôn mặt" class="img-thumbnail" width="80">
+                                        <?php else: ?>
+                                            <span class="text-muted"><i class="bx bx-camera-off"></i> Không có ảnh</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (method_exists($item, 'getStatusLabel')): ?>
+                                            <?= $item->getStatusLabel() ?>
+                                        <?php elseif (isset($item->status)): ?>
+                                            <?= $item->status == 1 ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-danger">Không hoạt động</span>' ?>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">Không xác định</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1 action-btn-group">
+                                            <form action="<?= site_url('facenguoidung/restore/' . ($item->face_nguoi_dung_id ?? $item->id)) ?>" method="post" style="display:inline;">
+                                                <button type="submit" class="btn btn-success btn-sm" title="Khôi phục" data-bs-toggle="tooltip">
+                                                    <i class="bx bx-revision mr-0"></i>
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-danger btn-sm btn-permanent-delete" 
+                                            data-id="<?= $item->face_nguoi_dung_id ?? $item->id ?>" data-name="<?= isset($item->nguoi_dung) ? esc($item->nguoi_dung->ho_ten) : (isset($item->ten_nguoi_dung) ? esc($item->ten_nguoi_dung) : 'Khuôn mặt #' . ($item->face_nguoi_dung_id ?? $item->id)) ?>" title="Xóa vĩnh viễn" data-bs-toggle="tooltip">
+                                                <i class="bx bx-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7" class="text-center py-3">
+                                    <div class="empty-state">
+                                        <i class='bx bx-trash text-secondary mb-2' style="font-size: 2rem;"></i>
+                                        <p class="mb-0">Thùng rác trống</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php if (!empty($items)): ?>
+            <div class="card-footer d-flex justify-content-between align-items-center py-2">
+                <div class="text-muted small">Hiển thị <span id="total-records"><?= count($items) ?></span> bản ghi</div>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
-<!-- Modal xác nhận xóa vĩnh viễn một mục -->
-<div class="modal fade" id="modal-permanent-delete" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa vĩnh viễn</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa vĩnh viễn mục này? Hành động này không thể hoàn tác.</p>
-            </div>
-            <div class="modal-footer">
-                <form method="POST" id="permanent-delete-form" action="<?= site_url('facenguoidung/permanentDelete') ?>">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="deleteItemId" id="deleteItemId" value="">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-danger">Xóa vĩnh viễn</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal xác nhận khôi phục một mục -->
-<div class="modal fade" id="modal-restore" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<!-- Modal Xác nhận khôi phục -->
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Xác nhận khôi phục</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Bạn có chắc chắn muốn khôi phục mục này?</p>
+                <div class="text-center icon-wrapper mb-3">
+                    <i class='bx bx-help-circle text-success' style="font-size: 4rem;"></i>
+                </div>
+                <p class="text-center">Bạn có chắc chắn muốn khôi phục khuôn mặt người dùng:</p>
+                <p class="text-center fw-bold" id="restore-item-name"></p>
             </div>
             <div class="modal-footer">
-                <form method="POST" id="restore-form" action="<?= site_url('facenguoidung/restore') ?>">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="restoreItemId" id="restoreItemId" value="">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-success">Khôi phục</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form id="restore-form" method="post" style="display: inline;">
+                    <button type="submit" id="btn-confirm-restore" class="btn btn-success">Khôi phục</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal xác nhận xóa vĩnh viễn nhiều mục đã chọn -->
-<div class="modal fade" id="modal-permanent-delete-selected" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<!-- Modal Xác nhận xóa vĩnh viễn -->
+<div class="modal fade" id="permanentDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa vĩnh viễn nhiều mục</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
-                </button>
+                <h5 class="modal-title">Xác nhận xóa vĩnh viễn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa vĩnh viễn các mục đã chọn? Hành động này không thể hoàn tác.</p>
+                <div class="text-center icon-wrapper mb-3">
+                    <i class='bx bx-error-circle text-danger' style="font-size: 4rem;"></i>
+                </div>
+                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn khuôn mặt người dùng:</p>
+                <p class="text-center fw-bold" id="permanent-delete-item-name"></p>
+                <div class="alert alert-warning mt-3">
+                    <i class='bx bx-warning me-1'></i> Lưu ý: Hành động này không thể hoàn tác!
+                </div>
             </div>
             <div class="modal-footer">
-                <form method="POST" id="permanent-delete-selected-form" action="<?= site_url('facenguoidung/permanentDeleteMultiple') ?>">
-                    <?= csrf_field() ?>
-                    <div id="selected-ids-container"></div>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-danger">Xóa vĩnh viễn</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form id="permanent-delete-form" method="post" style="display: inline;">
+                    <button type="submit" id="btn-confirm-permanent-delete" class="btn btn-danger">Xóa vĩnh viễn</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal xác nhận khôi phục nhiều mục đã chọn -->
-<div class="modal fade" id="modal-restore-selected" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<!-- Modal Xác nhận khôi phục nhiều -->
+<div class="modal fade" id="restoreMultipleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Xác nhận khôi phục nhiều mục</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Bạn có chắc chắn muốn khôi phục các mục đã chọn?</p>
+                <div class="text-center icon-wrapper mb-3">
+                    <i class='bx bx-help-circle text-success' style="font-size: 4rem;"></i>
+                </div>
+                <p class="text-center">Bạn có chắc chắn muốn khôi phục <span id="restore-count" class="fw-bold"></span> khuôn mặt người dùng đã chọn?</p>
             </div>
             <div class="modal-footer">
-                <form method="POST" id="restore-selected-form" action="<?= site_url('facenguoidung/restoreMultiple') ?>">
-                    <?= csrf_field() ?>
-                    <div id="restore-selected-ids-container"></div>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-success">Khôi phục</button>
-                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="confirm-restore-multiple" class="btn btn-success">Khôi phục</button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal Xác nhận xóa vĩnh viễn nhiều -->
+<div class="modal fade" id="permanentDeleteMultipleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận xóa vĩnh viễn nhiều mục</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center icon-wrapper mb-3">
+                    <i class='bx bx-error-circle text-danger' style="font-size: 4rem;"></i>
+                </div>
+                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn <span id="permanent-delete-count" class="fw-bold"></span> khuôn mặt người dùng đã chọn?</p>
+                <div class="alert alert-warning mt-3">
+                    <i class='bx bx-warning me-1'></i> Lưu ý: Hành động này không thể hoàn tác!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="confirm-permanent-delete-multiple" class="btn btn-danger">Xóa vĩnh viễn</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var base_url = '<?= site_url() ?>';
+</script>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= facenguoidung_section_js('modal') ?>
 <?= facenguoidung_js('table') ?>
+<?= facenguoidung_section_js('table') ?>
+
 <script>
     $(document).ready(function() {
-        // Khởi tạo DataTable
-        var table = $('#dt-basic').DataTable({
-            responsive: true,
-            lengthChange: false,
-            dom:
-                "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
-                "<'row'<'col-sm-12'tr>>" +
-                "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Excel',
-                    titleAttr: 'Generate Excel',
-                    className: 'btn-outline-success btn-sm mr-1'
-                },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'PDF',
-                    titleAttr: 'Generate PDF',
-                    className: 'btn-outline-danger btn-sm mr-1'
-                },
-                {
-                    extend: 'print',
-                    text: 'In',
-                    titleAttr: 'Print Table',
-                    className: 'btn-outline-primary btn-sm'
-                }
-            ]
-        });
-
-        // Xử lý "Chọn tất cả"
-        $('#select-all').change(function() {
-            $('.checkbox-item').prop('checked', this.checked);
-            updateBulkActionButtons();
-        });
-
-        // Cập nhật trạng thái nút hành động hàng loạt khi checkbox thay đổi
-        $(document).on('change', '.checkbox-item', function() {
-            updateBulkActionButtons();
+        // Kiểm tra xem bảng đã được khởi tạo thành DataTable chưa
+        if (!$.fn.DataTable.isDataTable('#dataTable')) {
+            // Khởi tạo tooltips
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            [...tooltips].map(t => new bootstrap.Tooltip(t));
             
-            // Nếu một checkbox bị bỏ chọn, bỏ chọn "Chọn tất cả"
-            if (!this.checked) {
-                $('#select-all').prop('checked', false);
-            } else {
-                // Kiểm tra nếu tất cả đã được chọn
-                if ($('.checkbox-item:checked').length === $('.checkbox-item').length) {
-                    $('#select-all').prop('checked', true);
+            // Khởi tạo DataTable với cấu hình tiếng Việt
+            const dataTable = $('#dataTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json',
+                },
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                dom: '<"row mx-0"<"col-sm-12 px-0"tr>><"row mx-0 mt-2"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
+                ordering: true,
+                responsive: false,
+                scrollX: false,
+                columnDefs: [
+                    { orderable: false, targets: [0, 6] },
+                    { className: 'align-middle', targets: '_all' }
+                ]
+            });
+            
+            // Tìm kiếm
+            $('#search-btn').on('click', function() {
+                dataTable.search($('#table-search').val()).draw();
+            });
+            
+            $('#table-search').on('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    dataTable.search($(this).val()).draw();
                 }
-            }
-        });
+            });
 
-        // Cập nhật trạng thái nút hành động hàng loạt
-        function updateBulkActionButtons() {
-            var hasChecked = $('.checkbox-item:checked').length > 0;
-            $('#restore-selected, #permanent-delete-selected').prop('disabled', !hasChecked);
+            // Cập nhật tổng số bản ghi
+            dataTable.on('draw', function() {
+                $('#total-records').text(dataTable.page.info().recordsTotal);
+            });
+        } else {
+            // Nếu bảng đã được khởi tạo, lấy instance hiện tại
+            const dataTable = $('#dataTable').DataTable();
+            
+            // Cập nhật lại dữ liệu
+            dataTable.draw();
         }
-
-        // Xử lý nút "Xóa vĩnh viễn" cho từng mục
-        $('.permanent-delete-btn').click(function() {
-            var id = $(this).data('id');
-            $('#deleteItemId').val(id);
+        
+        // Làm mới bảng
+        $('#refresh-table').on('click', function() {
+            location.reload();
         });
-
-        // Xử lý nút "Khôi phục" cho từng mục
-        $('.restore-btn').click(function() {
-            var id = $(this).data('id');
-            $('#restoreItemId').val(id);
+        
+        // Xử lý nút xóa vĩnh viễn
+        $('.btn-permanent-delete').on('click', function() {
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            $('#permanent-delete-item-name').text(name);
+            $('#permanent-delete-form').attr('action', base_url + '/facenguoidung/permanentDelete/' + id);
+            $('#permanentDeleteModal').modal('show');
         });
-
-        // Xử lý nút "Xóa vĩnh viễn mục đã chọn"
-        $('#permanent-delete-selected').click(function() {
-            var selectedIds = [];
+        
+        // Chọn tất cả
+        $('#select-all').on('change', function() {
+            const isChecked = $(this).prop('checked');
+            $('.checkbox-item').prop('checked', isChecked);
+            updateActionButtons();
+        });
+        
+        // Cập nhật trạng thái nút hành động khi checkbox thay đổi
+        $(document).on('change', '.checkbox-item', function() {
+            updateActionButtons();
+            
+            // Nếu bỏ chọn một item, bỏ chọn select-all
+            if (!$(this).prop('checked')) {
+                $('#select-all').prop('checked', false);
+            }
+            
+            // Nếu chọn tất cả items, chọn select-all
+            if ($('.checkbox-item:checked').length === $('.checkbox-item').length) {
+                $('#select-all').prop('checked', true);
+            }
+        });
+        
+        // Function cập nhật trạng thái của các nút hành động
+        function updateActionButtons() {
+            const selectedCount = $('.checkbox-item:checked').length;
+            if (selectedCount > 0) {
+                $('#restore-selected, #permanent-delete-selected').prop('disabled', false);
+            } else {
+                $('#restore-selected, #permanent-delete-selected').prop('disabled', true);
+            }
+        }
+        
+        // Xử lý nút khôi phục nhiều
+        $('#restore-selected').on('click', function() {
+            if ($('.checkbox-item:checked').length > 0) {
+                $('#restore-count').text($('.checkbox-item:checked').length);
+                $('#restoreMultipleModal').modal('show');
+            }
+        });
+        
+        // Xử lý xác nhận khôi phục nhiều
+        $('#confirm-restore-multiple').on('click', function() {
+            // Tạo form tạm thời chứa các checkbox đã chọn
+            const tempForm = $('#form-restore-multiple');
+            
+            // Xóa form cũ và tạo form mới
+            tempForm.empty();
+            
+            // Thêm các checkbox đã chọn vào form
             $('.checkbox-item:checked').each(function() {
-                selectedIds.push($(this).val());
+                const input = $('<input>').attr({
+                    type: 'hidden',
+                    name: 'selected_ids[]',
+                    value: $(this).val()
+                });
+                tempForm.append(input);
             });
             
-            if (selectedIds.length > 0) {
-                // Xóa các input hidden cũ
-                $('#selected-ids-container').empty();
-                
-                // Thêm input hidden mới cho mỗi ID
-                selectedIds.forEach(function(id) {
-                    $('#selected-ids-container').append('<input type="hidden" name="selected_ids[]" value="' + id + '">');
-                });
-                
-                // Hiển thị modal xác nhận
-                $('#modal-permanent-delete-selected').modal('show');
+            // Submit form
+            tempForm.submit();
+            
+            // Đóng modal
+            $('#restoreMultipleModal').modal('hide');
+        });
+        
+        // Xử lý nút xóa vĩnh viễn nhiều
+        $('#permanent-delete-selected').on('click', function() {
+            if ($('.checkbox-item:checked').length > 0) {
+                $('#permanent-delete-count').text($('.checkbox-item:checked').length);
+                $('#permanentDeleteMultipleModal').modal('show');
             }
         });
-
-        // Xử lý nút "Khôi phục mục đã chọn"
-        $('#restore-selected').click(function() {
-            var selectedIds = [];
+        
+        // Xử lý xác nhận xóa vĩnh viễn nhiều
+        $('#confirm-permanent-delete-multiple').on('click', function() {
+            // Tạo form tạm thời chứa các checkbox đã chọn
+            const tempForm = $('#form-permanent-delete-multiple');
+            
+            // Xóa form cũ và tạo form mới
+            tempForm.empty();
+            
+            // Thêm các checkbox đã chọn vào form
             $('.checkbox-item:checked').each(function() {
-                selectedIds.push($(this).val());
+                const input = $('<input>').attr({
+                    type: 'hidden',
+                    name: 'selected_ids[]',
+                    value: $(this).val()
+                });
+                tempForm.append(input);
             });
             
-            if (selectedIds.length > 0) {
-                // Xóa các input hidden cũ
-                $('#restore-selected-ids-container').empty();
-                
-                // Thêm input hidden mới cho mỗi ID
-                selectedIds.forEach(function(id) {
-                    $('#restore-selected-ids-container').append('<input type="hidden" name="selected_ids[]" value="' + id + '">');
-                });
-                
-                // Hiển thị modal xác nhận
-                $('#modal-restore-selected').modal('show');
-            }
-        });
-
-        // Xử lý tìm kiếm
-        $('#search-button, #search-box').on('click keyup', function(e) {
-            if (e.type === 'click' || e.keyCode === 13) {
-                var searchTerm = $('#search-box').val();
-                table.search(searchTerm).draw();
-            }
-        });
-
-        // Refresh page khi đóng modal
-        $('.modal').on('hidden.bs.modal', function() {
-            // Không refresh trang để tránh mất dữ liệu người dùng đã chọn
+            // Submit form
+            tempForm.submit();
+            
+            // Đóng modal
+            $('#permanentDeleteMultipleModal').modal('hide');
         });
     });
 </script>

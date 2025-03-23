@@ -2,8 +2,8 @@
 <?php include __DIR__ . '/master_scripts.php'; ?>
 
 <?php $this->section('styles') ?>
-<?= nganh_css('form') ?>
-<?= nganh_section_css('modal') ?>
+<?= facenguoidung_css('form') ?>
+<?= facenguoidung_section_css('modal') ?>
 <?php $this->endSection() ?>
 
 <?php $this->section('title') ?>CẬP NHẬT KHUÔN MẶT NGƯỜI DÙNG<?php $this->endSection() ?>
@@ -33,10 +33,10 @@
 <?php $this->endSection() ?>  
 
 <?php $this->section('scripts') ?>
-<?= nganh_js('form') ?>
+<?= facenguoidung_js('form') ?>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('form-nganh');
+        const form = document.getElementById('form-facenguoidung');
         
         // Validate form khi submit
         form.addEventListener('submit', function (event) {

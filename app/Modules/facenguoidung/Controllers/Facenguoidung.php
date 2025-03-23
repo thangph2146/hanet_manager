@@ -363,17 +363,17 @@ class Facenguoidung extends BaseController
      */
     public function deleteMultiple()
     {
-        $ids = $this->request->getPost('ids');
+        $selectedIds = $this->request->getPost('selected_ids');
         
-        if (empty($ids)) {
+        if (empty($selectedIds)) {
             return redirect()->to('facenguoidung')->with('error', 'Không có bản ghi nào được chọn');
         }
         
-        foreach ($ids as $id) {
+        foreach ($selectedIds as $id) {
             $this->model->update($id, ['bin' => 1]);
         }
         
-        return redirect()->to('facenguoidung')->with('message', 'Xóa thành công ' . count($ids) . ' bản ghi');
+        return redirect()->to('facenguoidung')->with('message', 'Xóa thành công ' . count($selectedIds) . ' bản ghi');
     }
     
     /**
@@ -381,17 +381,17 @@ class Facenguoidung extends BaseController
      */
     public function restoreMultiple()
     {
-        $ids = $this->request->getPost('ids');
+        $selectedIds = $this->request->getPost('selected_ids');
         
-        if (empty($ids)) {
+        if (empty($selectedIds)) {
             return redirect()->to('facenguoidung/listdeleted')->with('error', 'Không có bản ghi nào được chọn');
         }
         
-        foreach ($ids as $id) {
+        foreach ($selectedIds as $id) {
             $this->model->update($id, ['bin' => 0]);
         }
         
-        return redirect()->to('facenguoidung/listdeleted')->with('message', 'Khôi phục thành công ' . count($ids) . ' bản ghi');
+        return redirect()->to('facenguoidung/listdeleted')->with('message', 'Khôi phục thành công ' . count($selectedIds) . ' bản ghi');
     }
     
     /**
@@ -439,18 +439,23 @@ class Facenguoidung extends BaseController
      */
     public function statusMultiple()
     {
-        $ids = $this->request->getPost('ids');
+        $selectedIds = $this->request->getPost('selected_ids');
         $status = $this->request->getPost('status');
         
-        if (empty($ids)) {
+        if (empty($selectedIds)) {
             return redirect()->to('facenguoidung')->with('error', 'Không có bản ghi nào được chọn');
         }
         
-        foreach ($ids as $id) {
+        if (!isset($status) || $status === '') {
+            return redirect()->to('facenguoidung')->with('error', 'Trạng thái không hợp lệ');
+        }
+        
+        foreach ($selectedIds as $id) {
             $this->model->update($id, ['status' => $status]);
         }
         
-        return redirect()->to('facenguoidung')->with('message', 'Cập nhật trạng thái thành công ' . count($ids) . ' bản ghi');
+        $statusText = $status == 1 ? 'hoạt động' : 'không hoạt động';
+        return redirect()->to('facenguoidung')->with('message', 'Đã cập nhật ' . count($selectedIds) . ' bản ghi thành ' . $statusText);
     }
     
     /**

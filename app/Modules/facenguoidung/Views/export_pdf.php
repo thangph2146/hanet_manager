@@ -1,43 +1,38 @@
-<?php
-// Kiểm tra xem có dữ liệu khuôn mặt không
-if (empty($data)) {
-    exit('Không có dữ liệu khuôn mặt người dùng.');
-}
-
-// Cài đặt font
-$pdf->SetFont('dejavusans', '', 10);
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh sách khuôn mặt người dùng</title>
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 12px;
-            color: #333;
             line-height: 1.4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            padding: 20px;
         }
         .header {
             text-align: center;
             margin-bottom: 20px;
         }
         .header h1 {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            text-transform: uppercase;
+            font-size: 18px;
+            margin: 0;
+            padding: 0;
         }
-        .header p {
-            font-size: 13px;
-            margin: 5px 0;
+        .date {
+            text-align: right;
+            margin-bottom: 20px;
+            font-style: italic;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         table, th, td {
             border: 1px solid #ddd;
@@ -50,121 +45,112 @@ $pdf->SetFont('dejavusans', '', 10);
         }
         td {
             padding: 8px;
-            vertical-align: top;
-        }
-        .footer {
-            margin-top: 30px;
-            font-size: 11px;
-            text-align: right;
+            vertical-align: middle;
         }
         .text-center {
             text-align: center;
         }
-        .text-right {
-            text-align: right;
-        }
-        .badge {
-            display: inline-block;
-            padding: 3px 6px;
-            border-radius: 3px;
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
             font-size: 10px;
+        }
+        .status-active {
+            color: green;
             font-weight: bold;
         }
-        .badge-success {
-            background-color: #dff0d8;
-            color: #3c763d;
-            border: 1px solid #d6e9c6;
+        .status-inactive {
+            color: red;
+            font-weight: bold;
         }
-        .badge-danger {
-            background-color: #f2dede;
-            color: #a94442;
-            border: 1px solid #ebccd1;
-        }
-        .img-placeholder {
-            width: 60px;
-            height: 60px;
-            background-color: #efefef;
+        .img-thumbnail {
+            max-width: 60px;
             border: 1px solid #ddd;
-            text-align: center;
-            font-size: 10px;
-            line-height: 60px;
-            color: #999;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Danh sách khuôn mặt người dùng</h1>
-        <p>Xuất ngày: <?= date('d/m/Y H:i:s') ?></p>
-    </div>
-    
-    <table>
-        <thead>
-            <tr>
-                <th width="5%">ID</th>
-                <th width="25%">Người dùng</th>
-                <th width="25%">Đường dẫn ảnh</th>
-                <th width="15%">Ngày cập nhật</th>
-                <th width="10%">Trạng thái</th>
-                <th width="15%">Ngày tạo</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($items)) : ?>
+    <div class="container">
+        <div class="header">
+            <h1>DANH SÁCH KHUÔN MẶT NGƯỜI DÙNG</h1>
+        </div>
+        
+        <div class="date">
+            Ngày xuất: <?= isset($date) ? $date : date('d/m/Y H:i:s') ?>
+        </div>
+        
+        <table>
+            <thead>
                 <tr>
-                    <td colspan="6" class="text-center">Không có dữ liệu</td>
+                    <th width="5%">STT</th>
+                    <th width="10%">ID</th>
+                    <th width="25%">Người dùng</th>
+                    <th width="15%">Hình ảnh</th>
+                    <th width="15%">Ngày cập nhật</th>
+                    <th width="10%">Trạng thái</th>
+                    <?php if (isset($is_deleted) && $is_deleted): ?>
+                    <th width="15%">Ngày xóa</th>
+                    <?php endif; ?>
                 </tr>
-            <?php else : ?>
-                <?php foreach ($items as $item) : ?>
-                    <tr>
-                        <td class="text-center"><?= $item->face_nguoi_dung_id ?></td>
-                        <td>
-                            <?php if (isset($item->nguoi_dung) && !empty($item->nguoi_dung)) : ?>
-                                <?= esc($item->nguoi_dung->ho_ten) ?>
-                                <?php if (!empty($item->nguoi_dung->email)) : ?>
-                                    <br><span style="font-size: 10px; color: #666;"><?= esc($item->nguoi_dung->email) ?></span>
+            </thead>
+            <tbody>
+                <?php if (!empty($items)): ?>
+                    <?php $i = 1; foreach ($items as $item): ?>
+                        <tr>
+                            <td class="text-center"><?= $i++ ?></td>
+                            <td class="text-center"><?= $item->face_nguoi_dung_id ?></td>
+                            <td>
+                                <?php if (isset($item->nguoi_dung) && !empty($item->nguoi_dung)): ?>
+                                    <strong><?= esc($item->nguoi_dung->ho_ten) ?></strong>
+                                    <?php if (!empty($item->nguoi_dung->email)): ?>
+                                        <br><span style="font-size: 10px;"><?= esc($item->nguoi_dung->email) ?></span>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <span>Không có thông tin</span>
                                 <?php endif; ?>
-                            <?php else : ?>
-                                Không có thông tin
+                            </td>
+                            <td class="text-center">
+                                <?php if (!empty($item->duong_dan_anh)): ?>
+                                    <span>[Đã có ảnh]</span>
+                                <?php else: ?>
+                                    <span>Không có ảnh</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <?php if (!empty($item->ngay_cap_nhat)): ?>
+                                    <?= date('d/m/Y H:i', strtotime($item->ngay_cap_nhat)) ?>
+                                <?php else: ?>
+                                    <span>Chưa cập nhật</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <?php if ($item->status == 1): ?>
+                                    <span class="status-active">Hoạt động</span>
+                                <?php else: ?>
+                                    <span class="status-inactive">Không hoạt động</span>
+                                <?php endif; ?>
+                            </td>
+                            <?php if (isset($is_deleted) && $is_deleted): ?>
+                            <td class="text-center">
+                                <?php if (!empty($item->deleted_at)): ?>
+                                    <?= date('d/m/Y H:i', strtotime($item->deleted_at)) ?>
+                                <?php endif; ?>
+                            </td>
                             <?php endif; ?>
-                        </td>
-                        <td>
-                            <?php if (!empty($item->duong_dan_anh)) : ?>
-                                <?= esc($item->duong_dan_anh) ?>
-                            <?php else : ?>
-                                Không có
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <?php if (!empty($item->ngay_cap_nhat)) : ?>
-                                <?= date('d/m/Y H:i:s', strtotime($item->ngay_cap_nhat)) ?>
-                            <?php else : ?>
-                                Chưa cập nhật
-                            <?php endif; ?>
-                        </td>
-                        <td class="text-center">
-                            <?php if ($item->status == 1) : ?>
-                                <span class="badge badge-success">Hoạt động</span>
-                            <?php else : ?>
-                                <span class="badge badge-danger">Không hoạt động</span>
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <?php if (!empty($item->created_at)) : ?>
-                                <?= date('d/m/Y H:i:s', strtotime($item->created_at)) ?>
-                            <?php else : ?>
-                                Không có
-                            <?php endif; ?>
-                        </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="<?= isset($is_deleted) && $is_deleted ? 7 : 6 ?>" class="text-center">Không có dữ liệu</td>
                     </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
-
-    <div class="footer">
-        <p>Tổng số bản ghi: <?= count($items) ?></p>
-        <p>Người xuất: <?= session()->get('user_name') ?? 'Hệ thống' ?></p>
+                <?php endif; ?>
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            Tài liệu này được xuất tự động từ hệ thống quản lý khuôn mặt người dùng - <?= date('Y') ?>
+        </div>
     </div>
 </body>
 </html> 
