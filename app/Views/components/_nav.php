@@ -1,226 +1,334 @@
-<ul class="metismenu" id="menu">
-	<li>
-		<a href="<?= site_url('users/dashboard') ?>">
-			<div class="parent-icon"><i class='bx bx-home-circle'></i>
-			</div>
-			<div class="menu-title">Dashboard</div>
-		</a>
-	</li>
-	<li class="menu-label">Phần Quản trị</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
-			</div>
-			<div class="menu-title">Quản lý Users</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('users') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Users</a>
-			</li>
-			<li> <a href="<?= site_url('users/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Users bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('users/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm User mới</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bxs-group'></i>
-			</div>
-			<div class="menu-title">Quản lý Roles</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('roles') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Roles</a>
-			</li>
-			<li> <a href="<?= site_url('roles/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Roles bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('roles/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Role mới</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='fadeIn animated bx bx-accessibility'></i>
-			</div>
-			<div class="menu-title">Quản lý Permissions</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('permissions') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Permissions</a>
-			</li>
-			<li> <a href="<?= site_url('permissions/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Permissions bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('permissions/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Permission mới</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-cog'></i>
-			</div>
-			<div class="menu-title">Quản lý Settings</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('settings') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Settings</a>
-			</li>
-			<li> <a href="<?= site_url('settings/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Setting mới</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
-			</div>
-			<div class="menu-title">Quản lý Người Dùng</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('nguoidung') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Người Dùng</a>
-			</li>
-			<li> <a href="<?= site_url('nguoidung/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Người Dùng bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('nguoidung/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Người Dùng mới</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
-			</div>
-			<div class="menu-title">Quản lý Loại Người Dùng</div>	
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('loainguoidung') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Loại Người Dùng</a>
-			</li>
-			<li> <a href="<?= site_url('loainguoidung/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Loại Người Dùng bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('loainguoidung/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Loại Người Dùng mới</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-'></i>
-			</div>
-			<div class="menu-title">Quản lý Phòng Khoa</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('phongkhoa') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Phòng Khoa</a>
-			</li>
-			<li> <a href="<?= site_url('phongkhoa/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Phòng Khoa bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('phongkhoa/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Phòng Khoa mới</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
-			</div>
-			<div class="menu-title">Quản lý Năm Học</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('namhoc') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Năm học</a>
-			</li>
-			<li> <a href="<?= site_url('namhoc/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Năm học bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('namhoc/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Năm học mới</a>
-			</li>
-		</ul>
-	</li>	
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
-			</div>
-			<div class="menu-title">Quản lý Khóa Học</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('khoahoc') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Khóa Học</a>
-			</li>
-			<li> <a href="<?= site_url('khoahoc/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Khóa Học bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('khoahoc/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Khóa Học mới</a>
-			</li>
-		</ul>
-	</li>	
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
-			</div>
-			<div class="menu-title">Quản lý Bậc Học</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('bachoc') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Bậc Học</a>
-			</li>
-			<li> <a href="<?= site_url('bachoc/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Bậc Học bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('bachoc/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Bậc Học mới</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
-			</div>
-			<div class="menu-title">Quản lý Hệ Đào Tạo</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('hedaotao') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Hệ Đào Tạo</a>
-			</li>
-			<li> <a href="<?= site_url('hedaotao/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Hệ Đào Tạo bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('hedaotao/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Hệ Đào Tạo mới</a>
-			</li>
+<?php
+/**
+ * Mảng định nghĩa menu
+ */
+$menuItems = [
+	[
+		'title' => 'Dashboard',
+		'url' => site_url('users/dashboard'),
+		'icon' => 'bx bx-home-circle'
+	],
+	[
+		'type' => 'label',
+		'title' => 'Phần Quản trị'
+	],
+	[
+		'title' => 'Quản lý Users',
+		'icon' => 'bx bx-user-pin',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Users',
+				'url' => site_url('users')
+			],
+			[
+				'title' => 'Danh sách Users bị xóa',
+				'url' => site_url('users/listdeleted')
+			],
+			[
+				'title' => 'Thêm User mới',
+				'url' => site_url('users/new')
+			]
+		]
+	],
+	[
+		'title' => 'Quản lý Roles',
+		'icon' => 'bx bxs-group',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Roles',
+				'url' => site_url('roles')
+			],
+			[
+				'title' => 'Danh sách Roles bị xóa',
+				'url' => site_url('roles/listdeleted')
+			],
+			[
+				'title' => 'Thêm Role mới',
+				'url' => site_url('roles/new')
+			]
+		]
+	],
+	[
+		'title' => 'Quản lý Permissions',
+		'icon' => 'fadeIn animated bx bx-accessibility',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Permissions',
+				'url' => site_url('permissions')
+			],
+			[
+				'title' => 'Danh sách Permissions bị xóa',
+				'url' => site_url('permissions/listdeleted')
+			],
+			[
+				'title' => 'Thêm Permission mới',
+				'url' => site_url('permissions/new')
+			]
+		]
+	],
+	[
+		'title' => 'Quản lý Settings',
+		'icon' => 'bx bx-cog',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Settings',
+				'url' => site_url('settings')
+			],
+			[
+				'title' => 'Thêm Setting mới',
+				'url' => site_url('settings/new')
+			]
+		]
+	],
+	[
+		'type' => 'label',
+		'title' => 'Quản lý Người Dùng'
+	],
+	[
+		'title' => 'Quản lý Người Dùng',
+		'icon' => 'bx bx-user',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Người Dùng',
+				'url' => site_url('nguoidung')
+			],
+			[
+				'title' => 'Danh sách Người Dùng bị xóa',
+				'url' => site_url('nguoidung/listdeleted')
+			],
+			[
+				'title' => 'Thêm Người Dùng mới',
+				'url' => site_url('nguoidung/new')
+			]
+		]
+	],
+	[
+		'title' => 'Quản lý Loại Người Dùng',
+		'icon' => 'bx bx-category',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Loại Người Dùng',
+				'url' => site_url('loainguoidung')
+			],
+			[
+				'title' => 'Danh sách Loại Người Dùng bị xóa',
+				'url' => site_url('loainguoidung/listdeleted')
+			],
+			[
+				'title' => 'Thêm Loại Người Dùng mới',
+				'url' => site_url('loainguoidung/new')
+			]
+		]
+	],
+	[
+		'title' => 'Face người dùng',
+		'icon' => 'bx bx-face',
+		'submenu' => [
+			[
+				'title' => 'Face người dùng',
+				'url' => site_url('facenguoidung')
+			],
+			[
+				'title' => 'Face người dùng bị xóa',
+				'url' => site_url('facenguoidung/listdeleted')
+			],
+			[
+				'title' => 'Thêm Face người dùng mới',
+				'url' => site_url('facenguoidung/new')
+			]
+		]
+	],
+	[
+		'type' => 'label',
+		'title' => 'Quản lý Đào Tạo'
+	],
+	[
+		'title' => 'Quản lý Phòng Khoa',
+		'icon' => 'bx bx-building-house',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Phòng Khoa',
+				'url' => site_url('phongkhoa')
+			],
+			[
+				'title' => 'Danh sách Phòng Khoa bị xóa',
+				'url' => site_url('phongkhoa/listdeleted')
+			],
+			[
+				'title' => 'Thêm Phòng Khoa mới',
+				'url' => site_url('phongkhoa/new')
+			]
+		]
+	],
+	[
+		'title' => 'Quản lý Năm Học',
+		'icon' => 'bx bx-calendar',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Năm học',
+				'url' => site_url('namhoc')
+			],
+			[
+				'title' => 'Danh sách Năm học bị xóa',
+				'url' => site_url('namhoc/listdeleted')
+			],
+			[
+				'title' => 'Thêm Năm học mới',
+				'url' => site_url('namhoc/new')
+			]
+		]
+	],
+	[
+		'title' => 'Quản lý Khóa Học',
+		'icon' => 'bx bx-book-content',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Khóa Học',
+				'url' => site_url('khoahoc')
+			],
+			[
+				'title' => 'Danh sách Khóa Học bị xóa',
+				'url' => site_url('khoahoc/listdeleted')
+			],
+			[
+				'title' => 'Thêm Khóa Học mới',
+				'url' => site_url('khoahoc/new')
+			]
+		]
+	],
+	[
+		'title' => 'Quản lý Bậc Học',
+		'icon' => 'bx bx-award',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Bậc Học',
+				'url' => site_url('bachoc')
+			],
+			[
+				'title' => 'Danh sách Bậc Học bị xóa',
+				'url' => site_url('bachoc/listdeleted')
+			],
+			[
+				'title' => 'Thêm Bậc Học mới',
+				'url' => site_url('bachoc/new')
+			]
+		]
+	],
+	[
+		'title' => 'Quản lý Hệ Đào Tạo',
+		'icon' => 'bx bx-certification',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Hệ Đào Tạo',
+				'url' => site_url('hedaotao')
+			],
+			[
+				'title' => 'Danh sách Hệ Đào Tạo bị xóa',
+				'url' => site_url('hedaotao/listdeleted')
+			],
+			[
+				'title' => 'Thêm Hệ Đào Tạo mới',
+				'url' => site_url('hedaotao/new')
+			]
+		]
+	],
+	[
+		'title' => 'Quản lý Ngành',
+		'icon' => 'bx bx-folder',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Ngành',
+				'url' => site_url('nganh')
+			],
+			[
+				'title' => 'Danh sách Ngành bị xóa',
+				'url' => site_url('nganh/listdeleted')
+			],
+			[
+				'title' => 'Thêm Ngành mới',
+				'url' => site_url('nganh/new')
+			]
+		]
+	],
+	[
+		'type' => 'label',
+		'title' => 'Quản lý Sự Kiện'
+	],
+	[
+		'title' => 'Quản lý Loại Sự Kiện',
+		'icon' => 'bx bx-calendar-event',
+		'submenu' => [
+			[
+				'title' => 'Danh Sách Loại Sự Kiện',
+				'url' => site_url('loaisukien')
+			],
+			[
+				'title' => 'Danh sách Loại Sự Kiện bị xóa',
+				'url' => site_url('loaisukien/listdeleted')
+			],
+			[
+				'title' => 'Thêm Loại Sự Kiện mới',
+				'url' => site_url('loaisukien/new')
+			]
+		]
+	],
+	[
+		'type' => 'label',
+		'title' => 'Trợ giúp'
+	],
+	[
+		'title' => 'Support',
+		'url' => 'https://phongqlcntt.hub.edu.vn/',
+		'icon' => 'bx bx-support',
+		'target' => '_blank'
+	]
+];
 
-		</ul>
-	</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
-			</div>
-			<div class="menu-title">Quản lý Ngành</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('nganh') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Ngành</a>
-			</li>
-			<li> <a href="<?= site_url('nganh/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Ngành bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('nganh/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Ngành mới</a>
-			</li>
-		</ul>
-	</li>
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
-			</div>
-			<div class="menu-title">Face người dùng</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('facenguoidung') ?>"><i class="bx bx-right-arrow-alt"></i>Face người dùng</a>
-			</li>
-			<li> <a href="<?= site_url('facenguoidung/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Face người dùng bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('facenguoidung/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Face người dùng mới</a>
-			</li>
-		</ul>
-	</li>	
-	<li>
-		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
-			</div>
-			<div class="menu-title">Quản lý Loại Sự Kiện</div>
-		</a>
-		<ul>
-			<li> <a href="<?= site_url('loaisukien') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Loại Sự Kiện</a>
-			</li>
-			<li> <a href="<?= site_url('loaisukien/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Loại Sự Kiện bị xóa</a>
-			</li>
-			<li> <a href="<?= site_url('loaisukien/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Loại Sự Kiện mới</a>
-			</li>
-		</ul>
-	</li>		
-	<li>
-		<a href="https://phongqlcntt.hub.edu.vn/" target="_blank">
-			<div class="parent-icon"><i class="bx bx-support"></i>
-			</div>
-			<div class="menu-title">Support</div>
-		</a>
-	</li>
-</ul>
+/**
+ * Render menu from array
+ */
+function renderMenu($items) {
+	$html = '<ul class="metismenu" id="menu">';
+	
+	foreach ($items as $item) {
+		if (isset($item['type']) && $item['type'] === 'label') {
+			$html .= '<li class="menu-label">' . $item['title'] . '</li>';
+		} else {
+			$hasSubmenu = isset($item['submenu']) && is_array($item['submenu']) && count($item['submenu']) > 0;
+			$target = isset($item['target']) ? ' target="' . $item['target'] . '"' : '';
+			
+			$html .= '<li>';
+			
+			if ($hasSubmenu) {
+				$html .= '<a href="javascript:;" class="has-arrow">';
+			} else {
+				$html .= '<a href="' . $item['url'] . '"' . $target . '>';
+			}
+			
+			$html .= '<div class="parent-icon"><i class="' . $item['icon'] . '"></i></div>';
+			$html .= '<div class="menu-title">' . $item['title'] . '</div>';
+			$html .= '</a>';
+			
+			if ($hasSubmenu) {
+				$html .= '<ul>';
+				foreach ($item['submenu'] as $subitem) {
+					$html .= '<li>';
+					$html .= '<a href="' . $subitem['url'] . '">';
+					$html .= '<i class="bx bx-right-arrow-alt"></i>' . $subitem['title'];
+					$html .= '</a>';
+					$html .= '</li>';
+				}
+				$html .= '</ul>';
+			}
+			
+			$html .= '</li>';
+		}
+	}
+	
+	$html .= '</ul>';
+	return $html;
+}
+
+// Render menu
+echo renderMenu($menuItems);
+?>
