@@ -1,4 +1,5 @@
 <?= $this->extend('layouts/default') ?>
+<?php include __DIR__ . '/master_scripts.php'; ?>
 
 <?= $this->section('head') ?>
 <?= facenguoidung_css('table') ?>

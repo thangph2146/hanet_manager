@@ -2,8 +2,8 @@
 <?php include __DIR__ . '/master_scripts.php'; ?>
 
 <?php $this->section('styles') ?>
-<?= nganh_css('table') ?>
-<?= nganh_section_css('modal') ?>
+<?= facenguoidung_css('table') ?>
+<?= facenguoidung_section_css('modal') ?>
 <?php $this->endSection() ?>
 <?php $this->section('title') ?>QUẢN LÝ KHUÔN MẶT NGƯỜI DÙNG<?php $this->endSection() ?>
 
@@ -240,8 +240,8 @@
 <?php $this->endSection() ?>
 
 <?php $this->section('script') ?>
-<?= nganh_js('table') ?>
-<?= nganh_section_js('table') ?>
+<?= facenguoidung_js('table') ?>
+<?= facenguoidung_section_js('table') ?>
 
 <script>
     $(document).ready(function() {

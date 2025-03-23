@@ -2,7 +2,7 @@
 <?php include __DIR__ . '/master_scripts.php'; ?>
 
 <?php $this->section('styles') ?>
-<?= nganh_css('form') ?>
+<?= facenguoidung_css('form') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>THÊM MỚI KHUÔN MẶT NGƯỜI DÙNG<?= $this->endSection() ?>
 
@@ -30,7 +30,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= nganh_js('form') ?>
+<?= facenguoidung_js('form') ?>
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
 		const form = document.getElementById('faceForm');
