@@ -53,11 +53,8 @@ class Autoload extends AutoloadConfig
         'App\Modules\bachoc' => APPPATH . 'Modules/bachoc',
         'App\Modules\hedaotao' => APPPATH . 'Modules/hedaotao',
         'App\Modules\nganh' => APPPATH . 'Modules/nganh',
-<<<<<<< HEAD
         'App\Modules\loaisukien' => APPPATH . 'Modules/loaisukien',
-=======
         'App\Modules\facenguoidung' => APPPATH . 'Modules/facenguoidung',
->>>>>>> 4ad986e7d36a245597f8c3672a967315c9f1f84d
     ];
 
     /**
