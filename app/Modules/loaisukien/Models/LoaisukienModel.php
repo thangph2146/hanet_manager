@@ -165,8 +165,11 @@ class LoaisukienModel extends BaseModel
         
         // Phân trang nếu cần
         if ($options['paginate']) {
+            $page = $options['page'] ?? 1;
+            $perPage = $options['per_page'] ?? 20;
+            
             return [
-                'data' => $this->pager($query, $options['page'], $options['per_page']),
+                'data' => $this->pager($query, $page, $perPage),
                 'pager' => $this->pager
             ];
         }
@@ -201,13 +204,9 @@ class LoaisukienModel extends BaseModel
      */
     public function getAll()
     {
-        $query = $this->getBaseQuery()->where("{$this->table}.bin", 0);
-        
-        if ($this->useSoftDeletes) {
-            $query->where("{$this->table}.{$this->deletedField} IS NULL");
-        }
-        
-        return $query->get()->getResult($this->returnType);
+        return $this->where('bin', 0)
+                ->orderBy('updated_at', 'DESC')
+                ->findAll();
     }
     
     /**
@@ -215,15 +214,10 @@ class LoaisukienModel extends BaseModel
      */
     public function getAllActive()
     {
-        $query = $this->getBaseQuery()
-                    ->where("{$this->table}.bin", 0)
-                    ->where("{$this->table}.status", 1);
-        
-        if ($this->useSoftDeletes) {
-            $query->where("{$this->table}.{$this->deletedField} IS NULL");
-        }
-        
-        return $query->get()->getResult($this->returnType);
+        return $this->where('status', 1)
+                    ->where('bin', 0)
+                    ->orderBy('ten_loai_su_kien', 'ASC')
+                    ->findAll();
     }
     
     /**
@@ -231,13 +225,21 @@ class LoaisukienModel extends BaseModel
      */
     public function getAllInRecycleBin()
     {
-        $query = $this->getBaseQuery()->where("{$this->table}.bin", 1);
+        return $this->where('bin', 1)
+                ->orderBy('deleted_at', 'DESC')
+                ->findAll();
+    }
+    
+    /**
+     * Hỗ trợ phân trang cho các truy vấn
+     */
+    protected function pager($query, $page = 1, $perPage = 20)
+    {
+        $total = $query->countAllResults(false);
+        $this->pager = service('pager');
+        $this->pager->makeLinks($page, $perPage, $total);
         
-        if ($this->useSoftDeletes) {
-            $query->where("{$this->table}.{$this->deletedField} IS NULL");
-        }
-        
-        return $query->get()->getResult($this->returnType);
+        return $query->paginate($perPage, 'default', $page);
     }
     
     /**

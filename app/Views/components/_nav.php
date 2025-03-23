@@ -97,7 +97,7 @@
 	</li>
 	<li>
 		<a href="javascript:;" class="has-arrow">
-			<div class="parent-icon"><i class='bx bx-user-pin'></i>
+			<div class="parent-icon"><i class='bx bx-'></i>
 			</div>
 			<div class="menu-title">Quản lý Phòng Khoa</div>
 		</a>

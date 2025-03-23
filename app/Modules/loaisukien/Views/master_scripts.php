@@ -5,7 +5,7 @@
  */
 
 // CSS section
-function nganh_css($type = 'all') {
+function loaisukien_css($type = 'all') {
     ob_start();
     
     // Common CSS for DataTables
@@ -76,7 +76,7 @@ function nganh_css($type = 'all') {
 }
 
 // JS section
-function nganh_js($type = 'all') {
+function loaisukien_js($type = 'all') {
     ob_start();
     
     // DataTable scripts
@@ -197,7 +197,7 @@ function nganh_js($type = 'all') {
 }
 
 // Section CSS function
-function nganh_section_css($section) {
+function loaisukien_section_css($section) {
     ob_start();
 
     // Modal CSS
@@ -225,7 +225,7 @@ function nganh_section_css($section) {
 }
 
 // Section JS function
-function nganh_section_js($section) {
+function loaisukien_section_js($section) {
     ob_start();
 
     // Table specific additional JS
@@ -259,4 +259,4 @@ function nganh_section_js($section) {
 <link rel="stylesheet" href="<?= base_url('assets/vendor/libs/sweetalert2/sweetalert2.css') ?>" />
 
 <!-- Module CSS -->
-<link rel="stylesheet" href="<?= base_url('css/modules/nganh/style.css') ?>" />
+<link rel="stylesheet" href="<?= base_url('css/modules/loaisukien/style.css') ?>" />

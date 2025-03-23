@@ -80,8 +80,8 @@
             <thead>
                 <tr>
                     <th width="5%">STT</th>
-                    <th width="15%">Mã ngành</th>
-                    <th width="35%">Tên ngành</th>
+                    <th width="15%">Mã loại sự kiện</th>
+                    <th width="35%">Tên loại sự kiện</th>
                     <th width="25%">Phòng/Khoa</th>
                     <th width="10%">Trạng thái</th>
                     <?php if (isset($is_deleted) && $is_deleted): ?>
@@ -90,12 +90,12 @@
                 </tr>
             </thead>
             <tbody>
-                <?php if (!empty($nganh)): ?>
-                    <?php $i = 1; foreach ($nganh as $item): ?>
+                <?php if (!empty($loaisukien)): ?>
+                    <?php $i = 1; foreach ($loaisukien as $item): ?>
                         <tr>
                             <td class="text-center"><?= $i++ ?></td>
-                            <td><?= esc($item->ma_nganh) ?></td>
-                            <td><?= esc($item->ten_nganh) ?></td>
+                            <td><?= esc($item->ma_loai_su_kien) ?></td>
+                            <td><?= esc($item->ten_loai_su_kien) ?></td>
                             <td>
                                 <?php 
                                 if (isset($item->phong_khoa) && !empty($item->phong_khoa)):
@@ -130,7 +130,7 @@
         </table>
         
         <div class="footer">
-            Tài liệu này được xuất tự động từ hệ thống quản lý ngành - <?= date('Y') ?>
+            Tài liệu này được xuất tự động từ hệ thống quản lý loại sự kiện - <?= date('Y') ?>
         </div>
     </div>
 </body>

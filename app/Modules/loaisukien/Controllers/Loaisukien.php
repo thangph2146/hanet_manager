@@ -49,24 +49,30 @@ class Loaisukien extends BaseController
         // Thiết lập tùy chọn
         $options = [
             'sort' => 'updated_at',
-            'sort_direction' => 'desc',
-            'paginate' => true,
-            'page' => (int)($this->request->getGet('page') ?? 1),
-            'per_page' => (int)($this->request->getGet('per_page') ?? 20),
+            'sort_direction' => 'DESC',
+            'page' => 1,
+            'limit' => 10,
+            'withRelations' => true
         ];
         
-        // Thực hiện tìm kiếm
-        $result = $this->model->search($criteria, $options);
+        // Sử dụng phương thức getAll từ model
+        $data = $this->model->getAll();
         
-        return view('App\Modules\loaisukien\Views\index', [
+        // Lấy đối tượng phân trang
+        $pager = $this->model->pager;
+        
+        // Chuẩn bị dữ liệu cho view
+        $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
-            'title' => $this->moduleName,
-            'items' => $result['data'],
-            'pager' => $result['pager'],
+            'title' => 'Danh sách ' . $this->moduleName,
+            'loaisukien' => $data,
+            'pager' => $pager,
             'moduleUrl' => $this->moduleUrl,
             'moduleName' => $this->moduleName,
-            'alert' => $this->alert->get(),
-        ]);
+            'alert' => $this->alert->get()
+        ];
+        
+        return view('App\Modules\loaisukien\Views\index', $viewData);
     }
     
     /**
@@ -78,7 +84,7 @@ class Loaisukien extends BaseController
         $this->breadcrumb->add('Danh sách', $this->moduleUrl)
                          ->add('Thêm mới', current_url());
         
-        return view('App\Modules\loaisukien\Views\form', [
+        return view('App\Modules\loaisukien\Views\new', [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Thêm mới ' . $this->moduleName,
             'method' => 'POST',
@@ -124,7 +130,7 @@ class Loaisukien extends BaseController
     }
     
     /**
-     * Hiển thị thông tin chi tiết
+     * Hiển thị chi tiết
      */
     public function view($id = null)
     {
@@ -136,18 +142,17 @@ class Loaisukien extends BaseController
         $data = $this->model->find($id);
         
         if ($data === null) {
-            $this->alert->set('error', 'Không tìm thấy dữ liệu.');
+            $this->alert->set('error', 'Không tìm thấy ' . $this->moduleName . '.');
             return redirect()->to($this->moduleUrl);
         }
         
-        // Cập nhật breadcrumb
         $this->breadcrumb->add('Danh sách', $this->moduleUrl)
                          ->add('Chi tiết', current_url());
         
         return view('App\Modules\loaisukien\Views\view', [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chi tiết ' . $this->moduleName,
-            'data' => $data,
+            'loaisukien' => $data,
             'moduleUrl' => $this->moduleUrl,
             'moduleName' => $this->moduleName,
         ]);
@@ -174,7 +179,7 @@ class Loaisukien extends BaseController
         $this->breadcrumb->add('Danh sách', $this->moduleUrl)
                          ->add('Chỉnh sửa', current_url());
         
-        return view('App\Modules\loaisukien\Views\form', [
+        return view('App\Modules\loaisukien\Views\edit', [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chỉnh sửa ' . $this->moduleName,
             'method' => 'PUT',
@@ -261,10 +266,10 @@ class Loaisukien extends BaseController
         
         $data = $this->model->getAllInRecycleBin();
         
-        return view('App\Modules\loaisukien\Views\deleted', [
+        return view('App\Modules\loaisukien\Views\listdeleted', [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Thùng rác',
-            'items' => $data,
+            'loaisukien' => $data,
             'moduleUrl' => $this->moduleUrl,
             'moduleName' => $this->moduleName,
         ]);
@@ -294,15 +299,15 @@ class Loaisukien extends BaseController
      */
     public function restoreMultiple()
     {
-        $ids = $this->request->getPost('ids');
+        $selectedIds = $this->request->getPost('selected_ids');
         
-        if (empty($ids)) {
+        if (empty($selectedIds)) {
             $this->alert->set('error', 'Không có mục nào được chọn.');
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
         $success = 0;
-        foreach ($ids as $id) {
+        foreach ($selectedIds as $id) {
             if ($this->model->restoreFromRecycleBin($id)) {
                 $success++;
             }
@@ -322,15 +327,15 @@ class Loaisukien extends BaseController
      */
     public function permanentDeleteMultiple()
     {
-        $ids = $this->request->getPost('ids');
+        $selectedIds = $this->request->getPost('selected_ids');
         
-        if (empty($ids)) {
+        if (empty($selectedIds)) {
             $this->alert->set('error', 'Không có mục nào được chọn.');
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
         $success = 0;
-        foreach ($ids as $id) {
+        foreach ($selectedIds as $id) {
             if ($this->model->delete($id, true)) {
                 $success++;
             }
@@ -416,15 +421,15 @@ class Loaisukien extends BaseController
      */
     public function deleteMultiple()
     {
-        $ids = $this->request->getPost('ids');
+        $selectedIds = $this->request->getPost('selected_ids');
         
-        if (empty($ids)) {
+        if (empty($selectedIds)) {
             $this->alert->set('error', 'Không có mục nào được chọn.');
             return redirect()->to($this->moduleUrl);
         }
         
         $success = 0;
-        foreach ($ids as $id) {
+        foreach ($selectedIds as $id) {
             if ($this->model->moveToRecycleBin($id)) {
                 $success++;
             }
@@ -444,10 +449,10 @@ class Loaisukien extends BaseController
      */
     public function statusMultiple()
     {
-        $ids = $this->request->getPost('ids');
+        $selectedIds = $this->request->getPost('selected_ids');
         $newStatus = (int)$this->request->getPost('status');
         
-        if (empty($ids)) {
+        if (empty($selectedIds)) {
             $this->alert->set('error', 'Không có mục nào được chọn.');
             return redirect()->to($this->moduleUrl);
         }
@@ -458,7 +463,7 @@ class Loaisukien extends BaseController
         }
         
         $success = 0;
-        foreach ($ids as $id) {
+        foreach ($selectedIds as $id) {
             // Lấy dữ liệu hiện tại
             $item = $this->model->find($id);
             if ($item) {

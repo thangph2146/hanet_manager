@@ -1,21 +1,21 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= nganh_css('table') ?>
-<?= nganh_section_css('modal') ?>
+<?= loaisukien_css('table') ?>
+<?= loaisukien_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>DANH SÁCH NGÀNH<?= $this->endSection() ?>
+<?= $this->section('title') ?>DANH SÁCH LOẠI SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Danh sách ngành',
-	'dashboard_url' => site_url('nganh/dashboard'),
+	'title' => 'Danh sách loại sự kiện',
+	'dashboard_url' => site_url('loaisukien/dashboard'),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Ngành', 'url' => site_url('nganh')],
+		['title' => 'Quản lý Loại Sự Kiện', 'url' => site_url('loaisukien')],
 		['title' => 'Danh sách', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/nganh/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
+		['url' => site_url('/loaisukien/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
 	]
 ]) ?>
 <?= $this->endSection() ?>  
@@ -23,7 +23,7 @@
 <?= $this->section('content') ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách ngành</h5>
+        <h5 class="card-title mb-0">Danh sách loại sự kiện</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -43,13 +43,13 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <?= form_open("nganh/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("loaisukien/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="delete-selected" class="btn btn-danger btn-sm me-2" disabled>
                         <i class='bx bx-trash'></i> Xóa mục đã chọn
                     </button>
                     <?= form_close() ?>
                     
-                    <?= form_open("nganh/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("loaisukien/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="status-selected" class="btn btn-warning btn-sm" disabled>
                         <i class='bx bx-refresh'></i> Đổi trạng thái
                     </button>
@@ -90,35 +90,23 @@
                                     <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
                                 </div>
                             </th>
-                            <th width="10%" class="align-middle">Mã</th>
-                            <th width="35%" class="align-middle">Tên ngành</th>
-                            <th width="25%" class="align-middle">Phòng/Khoa</th>
-                            <th width="10%" class="text-center align-middle">Trạng thái</th>
-                            <th width="15%" class="text-center align-middle">Thao tác</th>
+                            <th width="15%" class="align-middle">Mã</th>
+                            <th width="45%" class="align-middle">Tên loại sự kiện</th>
+                            <th width="15%" class="text-center align-middle">Trạng thái</th>
+                            <th width="20%" class="text-center align-middle">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($nganh)) : ?>
-                            <?php foreach ($nganh as $item) : ?>
+                        <?php if (!empty($loaisukien)) : ?>
+                            <?php foreach ($loaisukien as $item) : ?>
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
-                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->nganh_id ?>">
+                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->loai_su_kien_id ?>">
                                         </div>
                                     </td>
-                                    <td><?= esc($item->ma_nganh) ?></td>
-                                    <td><?= esc($item->ten_nganh) ?></td>
-                                    <td>
-                                        <?php 
-                                        if (method_exists($item, 'getPhongKhoaInfo')):
-                                            echo $item->getPhongKhoaInfo();
-                                        elseif (isset($item->phong_khoa) && !empty($item->phong_khoa)):
-                                            echo esc($item->phong_khoa->ten_phong_khoa);
-                                        else:
-                                            echo '<span class="text-muted">Không có</span>';
-                                        endif;
-                                        ?>
-                                    </td>
+                                    <td><?= esc($item->ma_loai_su_kien) ?? '<span class="text-muted">Không có</span>' ?></td>
+                                    <td><?= esc($item->ten_loai_su_kien) ?></td>
                                     <td class="text-center">
                                         <?php if (method_exists($item, 'getStatusLabel')): ?>
                                             <?= $item->getStatusLabel() ?>
@@ -128,15 +116,15 @@
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <a href="<?= site_url("nganh/view/{$item->nganh_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                            <a href="<?= site_url("loaisukien/view/{$item->loai_su_kien_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
                                                 <i class="bx bx-info-circle text-white"></i>
                                             </a>
-                                            <a href="<?= site_url("nganh/edit/{$item->nganh_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
+                                            <a href="<?= site_url("loaisukien/edit/{$item->loai_su_kien_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
                                                 <i class="bx bx-edit"></i>
                                             </a>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
-                                                    data-id="<?= $item->nganh_id ?>" 
-                                                    data-name="<?= esc($item->ten_nganh) ?>"
+                                                    data-id="<?= $item->loai_su_kien_id ?>" 
+                                                    data-name="<?= esc($item->ten_loai_su_kien) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa">
                                                 <i class="bx bx-trash"></i>
                                             </button>
@@ -146,7 +134,7 @@
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="6" class="text-center py-3">
+                                <td colspan="5" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class="bx bx-folder-open"></i>
                                         <p>Không có dữ liệu</p>
@@ -158,10 +146,10 @@
                 </table>
             </div>
         </div>
-        <?php if (!empty($nganh)): ?>
+        <?php if (!empty($loaisukien)): ?>
             <div class="card-footer d-flex justify-content-between align-items-center py-2">
-                <div class="text-muted small">Hiển thị <span id="total-records"><?= count($nganh) ?></span> bản ghi</div>
-                <a href="<?= site_url('nganh/listdeleted') ?>" class="btn btn-sm btn-secondary">
+                <div class="text-muted small">Hiển thị <span id="total-records"><?= count($loaisukien) ?></span> bản ghi</div>
+                <a href="<?= site_url('loaisukien/listdeleted') ?>" class="btn btn-sm btn-secondary">
                     <i class="bx bx-trash-alt me-1"></i> Thùng rác
                 </a>
             </div>
@@ -181,7 +169,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa ngành:</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa loại sự kiện:</p>
                 <p class="text-center fw-bold" id="delete-item-name"></p>
                 <div class="alert alert-warning mt-3">
                     <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
@@ -209,7 +197,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> ngành đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> loại sự kiện đã chọn?</p>
                 <div class="alert alert-warning mt-3">
                     <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
                 </div>
@@ -234,7 +222,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-toggle-right text-warning" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> ngành đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> loại sự kiện đã chọn?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -250,8 +238,8 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= nganh_js('table') ?>
-<?= nganh_section_js('table') ?>
+<?= loaisukien_js('table') ?>
+<?= loaisukien_section_js('table') ?>
 
 <script>
     $(document).ready(function() {
@@ -272,7 +260,7 @@
                 ordering: true,
                 responsive: true,
                 columnDefs: [
-                    { orderable: false, targets: [0, 5] },
+                    { orderable: false, targets: [0, 4] },
                     { className: 'align-middle', targets: '_all' }
                 ]
             });
@@ -299,7 +287,7 @@
             const id = $(this).data('id');
             const name = $(this).data('name');
             $('#delete-item-name').text(name);
-            $('#delete-form').attr('action', '<?= site_url('nganh/delete/') ?>' + id);
+            $('#delete-form').attr('action', '<?= site_url('loaisukien/delete/') ?>' + id);
             $('#deleteModal').modal('show');
         });
         
@@ -404,13 +392,13 @@
         // Xuất Excel
         $('#export-excel').on('click', function(e) {
             e.preventDefault();
-            window.location.href = '<?= site_url("nganh/exportExcel") ?>';
+            window.location.href = '<?= site_url("loaisukien/exportExcel") ?>';
         });
         
         // Xuất PDF
         $('#export-pdf').on('click', function(e) {
             e.preventDefault();
-            window.location.href = '<?= site_url("nganh/exportPdf") ?>';
+            window.location.href = '<?= site_url("loaisukien/exportPdf") ?>';
         });
     });
 </script>

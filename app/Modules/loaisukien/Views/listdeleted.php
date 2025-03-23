@@ -1,21 +1,21 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= nganh_css('table') ?>
-<?= nganh_section_css('modal') ?>
+<?= loaisukien_css('table') ?>
+<?= loaisukien_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>THÙNG RÁC - NGÀNH<?= $this->endSection() ?>
+<?= $this->section('title') ?>THÙNG RÁC - LOẠI SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thùng rác - Ngành',
-	'dashboard_url' => site_url('nganh/dashboard'),
+	'title' => 'Thùng rác - Loại Sự Kiện',
+	'dashboard_url' => site_url('loaisukien/dashboard'),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Ngành', 'url' => site_url('nganh')],
+		['title' => 'Quản lý Loại Sự Kiện', 'url' => site_url('loaisukien')],
 		['title' => 'Thùng rác', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/nganh'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+		['url' => site_url('/loaisukien'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>
@@ -23,7 +23,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách ngành đã xóa</h5>
+        <h5 class="card-title mb-0">Danh sách loại sự kiện đã xóa</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -43,13 +43,13 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <?= form_open("nganh/restoreMultiple", ['id' => 'form-restore-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("loaisukien/restoreMultiple", ['id' => 'form-restore-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="restore-selected" class="btn btn-success btn-sm me-2" disabled>
                         <i class='bx bx-revision'></i> Khôi phục mục đã chọn
                     </button>
                     <?= form_close() ?>
                     
-                    <?= form_open("nganh/permanentDeleteMultiple", ['id' => 'form-permanent-delete-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("loaisukien/permanentDeleteMultiple", ['id' => 'form-permanent-delete-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="permanent-delete-selected" class="btn btn-danger btn-sm" disabled>
                         <i class='bx bx-trash-alt'></i> Xóa vĩnh viễn
                     </button>
@@ -90,36 +90,24 @@
                                     <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
                                 </div>
                             </th>
-                            <th width="15%" class="align-middle">Mã ngành</th>
-                            <th width="30%" class="align-middle">Tên ngành</th>
-                            <th width="15%" class="align-middle">Phòng/Khoa</th>
-                            <th width="10%" class="align-middle">Trạng thái</th>
+                            <th width="15%" class="align-middle">Mã loại</th>
+                            <th width="40%" class="align-middle">Tên loại sự kiện</th>
+                            <th width="15%" class="align-middle">Trạng thái</th>
                             <th width="10%" class="align-middle">Ngày xóa</th>
                             <th width="15%" class="text-center align-middle">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($nganh)): ?>
-                            <?php foreach ($nganh as $item): ?>
+                        <?php if (!empty($loaisukien)): ?>
+                            <?php foreach ($loaisukien as $item): ?>
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
-                                            <input type="checkbox" name="selected_ids[]" value="<?= $item->nganh_id ?>" class="form-check-input checkbox-item cursor-pointer">
+                                            <input type="checkbox" name="selected_ids[]" value="<?= $item->loai_su_kien_id ?>" class="form-check-input checkbox-item cursor-pointer">
                                         </div>
                                     </td>
-                                    <td><?= esc($item->ma_nganh) ?></td>
-                                    <td><?= esc($item->ten_nganh) ?></td>
-                                    <td>
-                                        <?php 
-                                        if (method_exists($item, 'getPhongKhoaInfo')):
-                                            echo $item->getPhongKhoaInfo();
-                                        elseif (isset($item->phong_khoa) && !empty($item->phong_khoa)):
-                                            echo esc($item->phong_khoa->ten_phong_khoa);
-                                        else:
-                                            echo '<span class="text-muted">Không có</span>';
-                                        endif;
-                                        ?>
-                                    </td>
+                                    <td><?= esc($item->ma_loai_su_kien) ?></td>
+                                    <td><?= esc($item->ten_loai_su_kien) ?></td>
                                     <td>
                                         <?php if (method_exists($item, 'getStatusLabel')): ?>
                                             <?= $item->getStatusLabel() ?>
@@ -136,13 +124,13 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <form action="<?= site_url('nganh/restore/' . $item->nganh_id) ?>" method="post" style="display:inline;">
+                                            <form action="<?= site_url('loaisukien/restore/' . $item->loai_su_kien_id) ?>" method="post" style="display:inline;">
                                                 <button type="submit" class="btn btn-success btn-sm" title="Khôi phục" data-bs-toggle="tooltip">
                                                     <i class="bx bx-revision mr-0"></i>
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-danger btn-sm btn-permanent-delete" 
-                                            data-id="<?= $item->nganh_id ?>" data-name="<?= $item->ten_nganh ?>" title="Xóa vĩnh viễn" data-bs-toggle="tooltip">
+                                            data-id="<?= $item->loai_su_kien_id ?>" data-name="<?= $item->ten_loai_su_kien ?>" title="Xóa vĩnh viễn" data-bs-toggle="tooltip">
                                                 <i class="bx bx-trash-alt"></i>
                                             </button>
                                         </div>
@@ -151,7 +139,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" class="text-center py-3">
+                                <td colspan="6" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class='bx bx-trash text-secondary mb-2' style="font-size: 2rem;"></i>
                                         <p class="mb-0">Thùng rác trống</p>
@@ -163,9 +151,9 @@
                 </table>
             </div>
         </div>
-        <?php if (!empty($nganh)): ?>
+        <?php if (!empty($loaisukien)): ?>
             <div class="card-footer d-flex justify-content-between align-items-center py-2">
-                <div class="text-muted small">Hiển thị <span id="total-records"><?= count($nganh) ?></span> bản ghi</div>
+                <div class="text-muted small">Hiển thị <span id="total-records"><?= count($loaisukien) ?></span> bản ghi</div>
             </div>
         <?php endif; ?>
     </div>
@@ -183,7 +171,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-help-circle text-success' style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn khôi phục ngành:</p>
+                <p class="text-center">Bạn có chắc chắn muốn khôi phục loại sự kiện:</p>
                 <p class="text-center fw-bold" id="restore-item-name"></p>
             </div>
             <div class="modal-footer">
@@ -208,7 +196,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-error-circle text-danger' style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn ngành:</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn loại sự kiện:</p>
                 <p class="text-center fw-bold" id="permanent-delete-item-name"></p>
                 <div class="alert alert-warning mt-3">
                     <i class='bx bx-warning me-1'></i> Lưu ý: Hành động này không thể hoàn tác!
@@ -236,7 +224,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-help-circle text-success' style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn khôi phục <span id="restore-count" class="fw-bold"></span> ngành đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn khôi phục <span id="restore-count" class="fw-bold"></span> loại sự kiện đã chọn?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -258,7 +246,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-error-circle text-danger' style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn <span id="permanent-delete-count" class="fw-bold"></span> ngành đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn <span id="permanent-delete-count" class="fw-bold"></span> loại sự kiện đã chọn?</p>
                 <div class="alert alert-warning mt-3">
                     <i class='bx bx-warning me-1'></i> Lưu ý: Hành động này không thể hoàn tác!
                 </div>
@@ -277,8 +265,8 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= nganh_js('table') ?>
-<?= nganh_section_js('table') ?>
+<?= loaisukien_js('table') ?>
+<?= loaisukien_section_js('table') ?>
 
 <script>
     $(document).ready(function() {
@@ -300,7 +288,7 @@
                 responsive: false,
                 scrollX: false,
                 columnDefs: [
-                    { orderable: false, targets: [0, 6] },
+                    { orderable: false, targets: [0, 5] },
                     { className: 'align-middle', targets: '_all' }
                 ]
             });
@@ -370,7 +358,7 @@
             const id = $(this).data('id');
             const name = $(this).data('name');
             $('#permanent-delete-item-name').text(name);
-            $('#permanent-delete-form').attr('action', base_url + '/nganh/permanentDelete/' + id);
+            $('#permanent-delete-form').attr('action', base_url + '/loaisukien/permanentDelete/' + id);
             $('#permanentDeleteModal').modal('show');
         });
         
@@ -443,12 +431,12 @@
         // Xuất dữ liệu
         $('#export-excel').on('click', function(e) {
             e.preventDefault();
-            window.location.href = '<?= site_url("nganh/exportDeletedExcel") ?>';
+            window.location.href = '<?= site_url("loaisukien/exportDeletedExcel") ?>';
         });
         
         $('#export-pdf').on('click', function(e) {
             e.preventDefault();
-            window.location.href = '<?= site_url("nganh/exportDeletedPdf") ?>';
+            window.location.href = '<?= site_url("loaisukien/exportDeletedPdf") ?>';
         });
     });
 </script>
