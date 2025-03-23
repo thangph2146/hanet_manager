@@ -187,6 +187,21 @@
 		</ul>
 	</li>	
 	<li>
+		<a href="javascript:;" class="has-arrow">
+			<div class="parent-icon"><i class='bx bx-user-pin'></i>
+			</div>
+			<div class="menu-title">Quản lý Loại Sự Kiện</div>
+		</a>
+		<ul>
+			<li> <a href="<?= site_url('loaisukien') ?>"><i class="bx bx-right-arrow-alt"></i>Danh Sách Loại Sự Kiện</a>
+			</li>
+			<li> <a href="<?= site_url('loaisukien/listdeleted') ?>"><i class="bx bx-right-arrow-alt"></i>Danh sách Loại Sự Kiện bị xóa</a>
+			</li>
+			<li> <a href="<?= site_url('loaisukien/new') ?>"><i class="bx bx-right-arrow-alt"></i>Thêm Loại Sự Kiện mới</a>
+			</li>
+		</ul>
+	</li>		
+	<li>
 		<a href="https://phongqlcntt.hub.edu.vn/" target="_blank">
 			<div class="parent-icon"><i class="bx bx-support"></i>
 			</div>
