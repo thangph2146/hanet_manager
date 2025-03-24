@@ -205,9 +205,6 @@
                                 <?= $pager->render() ?>
                             <?php endif; ?>
                         </div>
-                        <a href="<?= site_url('camera/listdeleted') ?>" class="btn btn-sm btn-secondary ms-2">
-                            <i class="bx bx-trash-alt me-1"></i> Thùng rác
-                        </a>
                     </div>
                 </div>
             </div>

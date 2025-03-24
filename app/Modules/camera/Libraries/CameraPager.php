@@ -475,4 +475,51 @@ class CameraPager
     {
         return $this->getPageURL($this->getNextPage());
     }
+    
+    /**
+     * Phương thức debug để ghi log các tham số phân trang
+     * 
+     * @return array
+     */
+    public function debug()
+    {
+        return [
+            'total' => $this->total,
+            'perPage' => $this->perPage,
+            'currentPage' => $this->currentPage,
+            'pageCount' => $this->pageCount,
+            'path' => $this->path,
+            'segment' => $this->segment,
+            'only' => $this->only,
+            'query' => $_GET
+        ];
+    }
+    
+    /**
+     * Tạo URL cho một trang cụ thể và log thông tin
+     * 
+     * @param int $page Số trang
+     * @param bool $debug Bật chế độ debug
+     * @return string URL cho trang
+     */
+    public function debugPageURL(int $page, bool $debug = true)
+    {
+        $url = $this->getPageURL($page);
+        
+        if ($debug) {
+            $debugInfo = [
+                'page' => $page,
+                'url' => $url,
+                'query' => $_GET,
+                'path' => $this->path,
+                'only' => $this->only
+            ];
+            
+            // Ghi log ra file
+            $logPath = WRITEPATH . 'logs/pager-debug.log';
+            file_put_contents($logPath, date('Y-m-d H:i:s') . ' - ' . json_encode($debugInfo) . "\n", FILE_APPEND);
+        }
+        
+        return $url;
+    }
 } 
