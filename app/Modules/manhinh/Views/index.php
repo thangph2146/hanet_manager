@@ -35,7 +35,7 @@
                 </button>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="<?= site_url('manhinh/exportExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
-                    <li><a class="dropdown-item" href="#" id="export-pdf">PDF</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url('manhinh/exportPdf' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-pdf">PDF</a></li>
                 </ul>
             </div>
         </div>

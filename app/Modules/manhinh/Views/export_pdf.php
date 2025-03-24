@@ -83,7 +83,7 @@
         
         <?php if (isset($filters) && !empty($filters)): ?>
         <div class="filters">
-            <strong>Bộ lọc:</strong> <?= $filters ?>
+            <strong>Bộ lọc:</strong> <?= implode(', ', $filters) ?>
         </div>
         <?php endif; ?>
         
@@ -91,35 +91,22 @@
             <thead>
                 <tr>
                     <th width="5%">STT</th>
-                    <th width="10%">Mã camera</th>
-                    <th width="25%">Tên camera</th>
-                    <th width="15%">Địa chỉ IP</th>
-                    <th width="10%">Port</th>
-                    <th width="15%">Tài khoản</th>
-                    <th width="10%">Trạng thái</th>
-                    <?php if (isset($cameras) && isset($cameras[0]->deleted_at) && $cameras[0]->deleted_at): ?>
-                    <th width="10%">Ngày xóa</th>
-                    <?php endif; ?>
+                    <th width="15%">Mã màn hình</th>
+                    <th width="25%">Tên màn hình</th>
+                    <th width="20%">Camera</th>
+                    <th width="20%">Template</th>
+                    <th width="15%">Trạng thái</th>
                 </tr>
             </thead>
             <tbody>
-                <?php 
-                $dataArray = isset($cameras) ? $cameras : (isset($camera) ? $camera : []);
-                $hasDeletedField = false;
-                if (!empty($dataArray) && isset($dataArray[0]->deleted_at) && $dataArray[0]->deleted_at) {
-                    $hasDeletedField = true;
-                }
-                ?>
-                
-                <?php if (!empty($dataArray)): ?>
-                    <?php $i = 1; foreach ($dataArray as $item): ?>
+                <?php if (!empty($manhinhs)): ?>
+                    <?php $i = 1; foreach ($manhinhs as $item): ?>
                         <tr>
                             <td class="text-center"><?= $i++ ?></td>
-                            <td><?= esc($item->ma_camera) ?></td>
-                            <td><?= esc($item->ten_camera) ?></td>
-                            <td><?= esc($item->ip_camera) ?></td>
-                            <td class="text-center"><?= esc($item->port) ?></td>
-                            <td><?= esc($item->username) ?></td>
+                            <td><?= esc($item->ma_man_hinh) ?></td>
+                            <td><?= esc($item->ten_man_hinh) ?></td>
+                            <td><?= esc($item->ten_camera ?? 'Chưa gắn camera') ?></td>
+                            <td><?= esc($item->ten_template ?? 'Chưa gắn template') ?></td>
                             <td class="text-center">
                                 <?php if ($item->status == 1): ?>
                                     <span class="status-active">Hoạt động</span>
@@ -127,25 +114,18 @@
                                     <span class="status-inactive">Không hoạt động</span>
                                 <?php endif; ?>
                             </td>
-                            <?php if ($hasDeletedField): ?>
-                            <td class="text-center">
-                                <?php if (!empty($item->deleted_at)): ?>
-                                    <?= date('d/m/Y H:i', strtotime($item->deleted_at)) ?>
-                                <?php endif; ?>
-                            </td>
-                            <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="<?= $hasDeletedField ? 8 : 7 ?>" class="text-center">Không có dữ liệu</td>
+                        <td colspan="6" class="text-center">Không có dữ liệu</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
         
         <div class="footer">
-            Tài liệu này được xuất tự động từ hệ thống quản lý camera - <?= date('Y') ?>
+            Tài liệu này được xuất tự động từ hệ thống quản lý màn hình - <?= date('Y') ?>
         </div>
     </div>
 </body>

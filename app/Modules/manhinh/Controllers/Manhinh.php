@@ -1103,78 +1103,95 @@ class Manhinh extends BaseController
      */
     public function exportPdf()
     {
-        // Lấy tham số lọc từ URL
-        $keyword = $this->request->getGet('keyword') ?? '';
+        // Lấy các tham số tìm kiếm từ URL
+        $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
         $sort = $this->request->getGet('sort') ?? 'ten_man_hinh';
         $order = $this->request->getGet('order') ?? 'ASC';
         
-        // Xây dựng tham số tìm kiếm
-        $searchParams = [];
-        if (!empty($keyword)) {
-            $searchParams['keyword'] = $keyword;
-        }
+        // Chuẩn bị tham số tìm kiếm
+        $searchParams = [
+            'bin' => 0 // Không lấy dữ liệu trong thùng rác
+        ];
         
-        // Đặc biệt, chỉ thêm status vào nếu nó đã được chỉ định (bao gồm status=0)
-        if ($status !== null && $status !== '') {
-            $searchParams['status'] = (int)$status;
-        }
+        // Khởi tạo builder query
+        $builder = $this->model->builder();
         
-        // Lấy dữ liệu màn hình theo bộ lọc mà không giới hạn phân trang
-        $manhinhs = $this->model->search($searchParams, [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Không giới hạn số lượng kết quả
+        // Select các trường cần thiết
+        $builder->select([
+            'man_hinh.*',
+            'camera.ten_camera',
+            'template.ten_template'
         ]);
+        
+        // Join với bảng camera và template
+        $builder->join('camera', 'camera.camera_id = man_hinh.camera_id', 'left');
+        $builder->join('template', 'template.template_id = man_hinh.template_id', 'left');
+        
+        // Thêm điều kiện tìm kiếm nếu có
+        if (!empty($keyword)) {
+            $builder->groupStart()
+                    ->like('man_hinh.ten_man_hinh', $keyword)
+                    ->orLike('man_hinh.ma_man_hinh', $keyword)
+                    ->groupEnd();
+        }
+        
+        if ($status !== null && $status !== '') {
+            $builder->where('man_hinh.status', $status);
+        }
+        
+        // Thêm điều kiện bin = 0
+        $builder->where('man_hinh.bin', 0);
+        
+        // Sắp xếp kết quả
+        $builder->orderBy($sort, $order);
+        
+        // Lấy dữ liệu
+        $manhinhs = $builder->get()->getResult();
+        
+        // Chuẩn bị mảng filters để hiển thị trong PDF
+        $filters = [];
+        if (!empty($keyword)) {
+            $filters[] = 'Từ khóa: ' . $keyword;
+        }
+        if ($status !== null && $status !== '') {
+            $filters[] = 'Trạng thái: ' . ($status == 1 ? 'Hoạt động' : 'Không hoạt động');
+        }
         
         // Chuẩn bị dữ liệu cho view
         $data = [
             'title' => 'DANH SÁCH MÀN HÌNH',
-            'manhinhs' => $manhinhs,
-            'date' => date('d/m/Y H:i:s')
+            'date' => date('d/m/Y H:i'),
+            'filters' => $filters,
+            'manhinhs' => $manhinhs
         ];
         
-        // Thêm thông tin bộ lọc vào tiêu đề nếu có
-        $filterInfo = [];
-        if (!empty($keyword)) {
-            $filterInfo[] = "Từ khóa: " . $keyword;
-        }
-        if ($status !== null && $status !== '') {
-            $filterInfo[] = "Trạng thái: " . ($status == 1 ? 'Hoạt động' : 'Không hoạt động');
-        }
-        
-        if (!empty($filterInfo)) {
-            $data['filters'] = implode(', ', $filterInfo);
-        }
-        
-        // Render view thành HTML
+        // Tạo HTML từ view
         $html = view('App\Modules\manhinh\Views\export_pdf', $data);
         
-        // Tạo đối tượng DOMPDF
+        // Khởi tạo Dompdf với các tùy chọn
         $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
+        $options->set('defaultFont', 'Times New Roman');
         $options->set('isRemoteEnabled', true);
         
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'landscape'); // Định dạng ngang cho trang PDF
+        
+        // Thiết lập kích thước giấy và hướng giấy
+        $dompdf->setPaper('A4', 'landscape');
         
         // Render PDF
         $dompdf->render();
         
-        // Thiết lập tên file dựa trên bộ lọc
-        $filterSuffix = '';
-        if (!empty($keyword)) {
-            $filterSuffix .= '_keyword_' . preg_replace('/[^a-z0-9]/i', '_', $keyword);
+        // Tạo tên file
+        $filename = 'Danh_sach_man_hinh';
+        if (!empty($filters)) {
+            $filename .= '_filtered';
         }
-        if ($status !== null && $status !== '') {
-            $filterSuffix .= '_status_' . $status;
-        }
+        $filename .= '_' . date('YmdHis') . '.pdf';
         
-        $filename = 'danh_sach_man_hinh' . $filterSuffix . '_' . date('dmY_His') . '.pdf';
-        
-        // Stream file PDF để tải xuống
-        $dompdf->stream($filename, ['Attachment' => true]);
+        // Stream file PDF
+        $dompdf->stream($filename, ['Attachment' => 1]);
         exit();
     }
     
