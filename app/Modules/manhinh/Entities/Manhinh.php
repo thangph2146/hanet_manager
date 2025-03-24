@@ -40,7 +40,6 @@ class ManHinh extends BaseEntity
         'ten_man_hinh' => 'required|min_length[3]|max_length[255]|is_unique[man_hinh.ten_man_hinh,man_hinh_id,{man_hinh_id}]',
         'ma_man_hinh' => 'permit_empty|max_length[20]',
         'camera_id' => 'permit_empty|integer',
-        'template_id' => 'permit_empty|integer',
         'status' => 'permit_empty|in_list[0,1]',
         'bin' => 'permit_empty|in_list[0,1]',
     ];

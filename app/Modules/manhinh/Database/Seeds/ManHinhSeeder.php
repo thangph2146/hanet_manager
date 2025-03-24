@@ -1,70 +1,68 @@
 <?php
 
-namespace App\Modules\camera\Database\Seeds;
+namespace App\Modules\manhinh\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
 use CodeIgniter\I18n\Time;
 
-class CameraSeeder extends Seeder
+class ManHinhSeeder extends Seeder
 {
     public function run()
     {
-        // Số lượng camera cần tạo
-        $totalCameras = 5000;
+        // Số lượng màn hình cần tạo
+        $totalManHinh = 1000;
         
         // Kích thước lô để tránh quá tải bộ nhớ
-        $batchSize = 500;
+        $batchSize = 100;
+        
+        // Lấy số lượng template và camera thực tế
+        $templateCount = $this->db->table('template')->countAllResults();
+        $cameraCount = $this->db->table('camera')->countAllResults();
+        
+        echo "Số lượng template hiện có: $templateCount\n";
+        echo "Số lượng camera hiện có: $cameraCount\n";
         
         // Chuẩn bị danh sách mẫu đa dạng hơn
         $locations = [
-            'Cổng chính', 'Cổng phụ', 'Cổng sau', 'Cổng bảo vệ', 
-            'Sảnh A', 'Sảnh B', 'Sảnh C', 'Sảnh chính', 'Sảnh VIP',
-            'Hành lang tầng 1', 'Hành lang tầng 2', 'Hành lang tầng 3', 'Hành lang tầng 4', 'Hành lang tầng 5',
-            'Phòng họp lớn', 'Phòng họp nhỏ', 'Phòng họp A', 'Phòng họp B', 'Phòng họp C', 'Phòng họp ban giám đốc',
-            'Phòng làm việc A', 'Phòng làm việc B', 'Phòng làm việc C', 'Phòng làm việc D', 'Phòng làm việc E',
-            'Khu vực đậu xe A', 'Khu vực đậu xe B', 'Khu vực đậu xe C', 'Bãi xe máy', 'Bãi xe ô tô',
-            'Căn tin', 'Khu ăn uống', 'Nhà ăn', 'Phòng ăn nhân viên', 
-            'Kho A', 'Kho B', 'Kho C', 'Kho dụng cụ', 'Kho vật tư', 'Kho lưu trữ',
-            'Thư viện', 'Phòng đọc', 'Khu vực sách', 'Phòng tài liệu',
-            'Phòng máy chủ', 'Phòng máy tính', 'Phòng kỹ thuật', 'Phòng thiết bị',
-            'Khu vực sản xuất', 'Xưởng', 'Dây chuyền', 'Khu lắp ráp',
-            'Sân trước', 'Sân sau', 'Vườn', 'Khu vực xanh'
+            'Phòng điều khiển', 'Phòng giám sát', 'Phòng an ninh', 'Phòng bảo vệ',
+            'Sảnh chính', 'Sảnh phụ', 'Sảnh VIP', 'Sảnh đa năng',
+            'Phòng họp lớn', 'Phòng họp nhỏ', 'Phòng họp ban giám đốc',
+            'Phòng làm việc', 'Phòng kỹ thuật', 'Phòng máy chủ',
+            'Khu vực đậu xe', 'Bãi xe', 'Khu vực giao nhận',
+            'Căn tin', 'Khu ăn uống', 'Nhà ăn',
+            'Kho', 'Kho dụng cụ', 'Kho vật tư',
+            'Thư viện', 'Phòng đọc', 'Phòng tài liệu',
+            'Khu vực sản xuất', 'Xưởng', 'Dây chuyền',
+            'Sân', 'Vườn', 'Khu vực xanh'
         ];
         
-        // Các nhà sản xuất camera phổ biến
-        $manufacturers = ['Hikvision', 'Dahua', 'Axis', 'Bosch', 'Sony', 'Samsung', 'Panasonic', 'Vivotek', 'Hanwha', 'CP Plus'];
-        
-        // Mẫu IP khác nhau
-        $ipPatterns = [
-            '192.168.%d.%d',
-            '192.169.%d.%d',
-            '10.0.%d.%d',
-            '10.10.%d.%d',
-            '172.16.%d.%d',
-            '172.17.%d.%d',
-            '172.18.%d.%d'
+        // Các loại màn hình phổ biến
+        $screenTypes = [
+            'LCD', 'LED', 'OLED', 'QLED', 'Smart TV',
+            'Màn hình chuyên dụng', 'Màn hình giám sát',
+            'Màn hình điều khiển', 'Màn hình hiển thị'
         ];
         
-        echo "Bắt đầu tạo $totalCameras bản ghi camera...\n";
+        // Các nhà sản xuất màn hình
+        $manufacturers = [
+            'Samsung', 'LG', 'Sony', 'Panasonic', 'TCL',
+            'Philips', 'Sharp', 'AOC', 'Dell', 'HP'
+        ];
         
-        // Tạo camera theo từng lô
-        for ($batch = 0; $batch < ceil($totalCameras / $batchSize); $batch++) {
+        echo "Bắt đầu tạo $totalManHinh bản ghi màn hình...\n";
+        
+        // Tạo màn hình theo từng lô
+        for ($batch = 0; $batch < ceil($totalManHinh / $batchSize); $batch++) {
             $data = [];
             $startIdx = $batch * $batchSize + 1;
-            $endIdx = min(($batch + 1) * $batchSize, $totalCameras);
+            $endIdx = min(($batch + 1) * $batchSize, $totalManHinh);
             
             for ($i = $startIdx; $i <= $endIdx; $i++) {
                 // Tạo các giá trị mẫu
                 $index = str_pad($i, 4, '0', STR_PAD_LEFT);
                 $location = $locations[array_rand($locations)];
+                $screenType = $screenTypes[array_rand($screenTypes)];
                 $manufacturer = $manufacturers[array_rand($manufacturers)];
-                
-                // Tạo địa chỉ IP ngẫu nhiên
-                $ipPattern = $ipPatterns[array_rand($ipPatterns)];
-                $ip = sprintf($ipPattern, rand(0, 255), rand(2, 254));
-                
-                // Tạo port ngẫu nhiên trong khoảng hợp lý
-                $port = rand(8000, 9999);
                 
                 // Tạo ngày tạo ngẫu nhiên trong 6 tháng gần đây
                 $randomDays = rand(0, 180);
@@ -73,14 +71,24 @@ class CameraSeeder extends Seeder
                 // Tạo số model ngẫu nhiên
                 $model = $manufacturer . '-' . chr(rand(65, 90)) . rand(10, 99);
                 
+                // Tạo camera_id ngẫu nhiên (có thể null)
+                $cameraId = null;
+                if ($cameraCount > 0 && rand(0, 100) < 80) { // 80% khả năng có camera
+                    $cameraId = rand(1, $cameraCount);
+                }
+                
+                // Tạo template_id ngẫu nhiên (có thể null)
+                $templateId = null;
+                if ($templateCount > 0 && rand(0, 100) < 70) { // 70% khả năng có template
+                    $templateId = rand(1, $templateCount);
+                }
+                
                 // Tạo bản ghi
                 $data[] = [
-                    'ma_camera' => 'CAM' . $index,
-                    'ten_camera' => $location . ' ' . $model . ' #' . $i,
-                    'ip_camera' => $ip,
-                    'port' => $port,
-                    'username' => 'admin',
-                    'password' => 'camera@' . $index,
+                    'ma_man_hinh' => 'MH' . $index,
+                    'ten_man_hinh' => $location . ' ' . $screenType . ' ' . $model . ' #' . $i,
+                    'camera_id' => $cameraId,
+                    'template_id' => $templateId,
                     'status' => rand(0, 1),
                     'bin' => 0,
                     'created_at' => $createdAt->toDateTimeString(),
@@ -89,12 +97,12 @@ class CameraSeeder extends Seeder
                 ];
             }
 
-            // Thêm dữ liệu vào bảng camera theo lô
-            $this->db->table('camera')->insertBatch($data);
+            // Thêm dữ liệu vào bảng man_hinh theo lô
+            $this->db->table('man_hinh')->insertBatch($data);
             
             echo "Đã tạo " . count($data) . " bản ghi (từ $startIdx đến $endIdx)...\n";
         }
         
-        echo "Seeder CameraSeeder đã được chạy thành công! Đã tạo $totalCameras camera mẫu.\n";
+        echo "Seeder ManHinhSeeder đã được chạy thành công! Đã tạo $totalManHinh màn hình mẫu.\n";
     }
 } 

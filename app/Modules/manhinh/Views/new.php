@@ -42,7 +42,6 @@
 				event.stopPropagation();
 			}
 			
-			form.classList.add('was-validated');
 		});
 	});
 </script>

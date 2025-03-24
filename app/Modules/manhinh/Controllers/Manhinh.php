@@ -391,12 +391,31 @@ class Manhinh extends BaseController
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
         
-        // Chuẩn bị quy tắc validation cho cập nhật - cần truyền mảng có chứa man_hinh_id
+        // Kiểm tra và chuyển đổi camera_id và template_id thành số nguyên
+        $camera_id = $this->request->getPost('camera_id');
+        $template_id = $this->request->getPost('template_id');
+        
+        // Kiểm tra và chuyển đổi camera_id
+        if ($camera_id !== null && $camera_id !== '') {
+            if (!is_numeric($camera_id)) {
+                return redirect()->back()->withInput()->with('errors', ['camera_id' => 'Camera ID phải là số nguyên']);
+            }
+            $camera_id = (int)$camera_id;
+        }
+        
+        // Kiểm tra và chuyển đổi template_id
+        if ($template_id !== null && $template_id !== '') {
+            if (!is_numeric($template_id)) {
+                return redirect()->back()->withInput()->with('errors', ['template_id' => 'Template ID phải là số nguyên']);
+            }
+            $template_id = (int)$template_id;
+        }
+        
+        // Chuẩn bị quy tắc validation cho cập nhật
         $this->model->prepareValidationRules('update', ['man_hinh_id' => $id]);
         
         // Xử lý validation với quy tắc đã được điều chỉnh
         if (!$this->validate($this->model->getValidationRules())) {
-            // Nếu validation thất bại, quay lại form với lỗi
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
@@ -410,10 +429,10 @@ class Manhinh extends BaseController
         $updateData = [
             'ten_man_hinh' => $data['ten_man_hinh'],
             'ma_man_hinh' => $data['ma_man_hinh'] ?? null,
-            'camera_id' => !empty($data['camera_id']) ? (int)$data['camera_id'] : null,
-            'template_id' => !empty($data['template_id']) ? (int)$data['template_id'] : null,
-            'status' => $data['status'] ?? 0,
-            'bin' => $data['bin'] ?? 0
+            'camera_id' => $camera_id,
+            'template_id' => $template_id,
+            'status' => isset($data['status']) ? (int)$data['status'] : 0,
+            'bin' => isset($data['bin']) ? (int)$data['bin'] : 0
         ];
         
         // Giữ lại các trường thời gian từ dữ liệu hiện có
@@ -422,12 +441,17 @@ class Manhinh extends BaseController
             $updateData['deleted_at'] = $existingManhinh->deleted_at;
         }
         
+        // Log dữ liệu cập nhật để debug
+        log_message('debug', 'Update data: ' . json_encode($updateData));
+        
         // Cập nhật dữ liệu vào database
         if ($this->model->update($id, $updateData)) {
             $this->alert->set('success', 'Cập nhật màn hình thành công', true);
             return redirect()->to($this->moduleUrl);
         } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật màn hình: ' . implode(', ', $this->model->errors()), true);
+            $errors = $this->model->errors();
+            $errorMessage = !empty($errors) ? implode(', ', $errors) : 'Lỗi không xác định';
+            $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật màn hình: ' . $errorMessage, true);
             return redirect()->back()->withInput();
         }
     }

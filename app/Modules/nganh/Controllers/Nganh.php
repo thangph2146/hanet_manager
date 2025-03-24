@@ -102,7 +102,7 @@ class Nganh extends BaseController
             'is_new' => true
         ];
         
-        return view('App\Modules\nganh\Views\form', $viewData);
+        return view('App\Modules\nganh\Views\new', $viewData);
     }
     
     /**

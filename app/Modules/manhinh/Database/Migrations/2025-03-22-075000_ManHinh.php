@@ -4,44 +4,34 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class Camera extends Migration
+class ManHinh extends Migration
 {
     public function up()
     {
         $this->forge->addField([
-            'camera_id' => [
+            'man_hinh_id' => [
                 'type' => 'INT',
                 'auto_increment' => true
             ],
-            'ma_camera' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true
-            ],
-            'ten_camera' => [
+            'ten_man_hinh' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,
                 'null' => false
             ],
-            'ip_camera' => [
+            'ma_man_hinh' => [
                 'type' => 'VARCHAR',
-                'constraint' => 100,
+                'constraint' => 20,
                 'null' => true
             ],
-            'port' => [
+            'camera_id' => [
                 'type' => 'INT',
-                'constraint' => 5,
-                'null' => true
+                'null' => true,
+                'unsigned' => true
             ],
-            'username' => [
-                'type' => 'VARCHAR',
-                'constraint' => 50,
-                'null' => true
-            ],
-            'password' => [
-                'type' => 'VARCHAR',
-                'constraint' => 50,
-                'null' => true
+            'template_id' => [
+                'type' => 'INT',
+                'null' => true,
+                'unsigned' => true
             ],
             'status' => [
                 'type' => 'TINYINT',
@@ -69,33 +59,29 @@ class Camera extends Migration
         ]);
 
         // Add primary key
-        $this->forge->addKey('camera_id', true);
+        $this->forge->addKey('man_hinh_id', true);
         
-        // Add index for ma_camera
-        $this->forge->addKey('ma_camera', false, false, 'idx_ma_camera');
+        // Add foreign keys
+        $this->forge->addForeignKey('camera_id', 'camera', 'camera_id', 'CASCADE', 'SET NULL');
+        $this->forge->addForeignKey('template_id', 'template', 'template_id', 'CASCADE', 'SET NULL');
         
-        // Add index for ten_camera
-        $this->forge->addKey('ten_camera', false, false, 'idx_ten_camera');
-        
-        // Add index for ip_camera
-        $this->forge->addKey('ip_camera', false, false, 'idx_ip_camera');
-        
-        // Add index for status
+        // Add indexes
+        $this->forge->addKey('ten_man_hinh', false, false, 'idx_ten_man_hinh');
+        $this->forge->addKey('ma_man_hinh', false, false, 'idx_ma_man_hinh');
         $this->forge->addKey('status', false, false, 'idx_status');
-        
-        // Add index for bin
         $this->forge->addKey('bin', false, false, 'idx_bin');
         
-        // Add unique constraint for ten_camera
-        $this->forge->addKey('ten_camera', false, true, 'uk_ten_camera');
+        // Add unique constraints
+        $this->forge->addUniqueKey('ten_man_hinh', 'uk_ten_man_hinh');
+        $this->forge->addUniqueKey('ma_man_hinh', 'uk_ma_man_hinh');
 
         // Create the table
-        $this->forge->createTable('camera');
+        $this->forge->createTable('man_hinh');
     }
 
     public function down()
     {
         // Drop the table
-        $this->forge->dropTable('camera');
+        $this->forge->dropTable('man_hinh');
     }
 } 
