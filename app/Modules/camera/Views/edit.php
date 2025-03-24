@@ -22,9 +22,6 @@
 
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
-    <div class="card-header py-3">
-        <h5 class="card-title mb-0">Cập nhật camera</h5>
-    </div>
     <div class="card-body">
         <?= form_open(site_url('camera/update/' . $camera->camera_id), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-camera']) ?>
             <?php

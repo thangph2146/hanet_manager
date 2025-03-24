@@ -26,7 +26,10 @@ class CameraModel extends BaseModel
         'username',
         'password',
         'status',
-        'bin'
+        'bin',
+        'created_at',
+        'updated_at',
+        'deleted_at'
     ];
     
     protected $returnType = Camera::class;
@@ -492,6 +495,11 @@ class CameraModel extends BaseModel
         $entity = new Camera();
         $this->validationRules = $entity->getValidationRules();
         $this->validationMessages = $entity->getValidationMessages();
+        
+        // Loại bỏ các quy tắc validate cho trường thời gian (vì chúng được tự động xử lý bởi model)
+        unset($this->validationRules['created_at']);
+        unset($this->validationRules['updated_at']);
+        unset($this->validationRules['deleted_at']);
         
         // Điều chỉnh quy tắc dựa trên tình huống
         if ($scenario === 'update' && isset($data['camera_id'])) {

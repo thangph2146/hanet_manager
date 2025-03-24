@@ -376,7 +376,7 @@ class Camera extends BaseController
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
         
-        // Chuẩn bị quy tắc validation cho cập nhật
+        // Chuẩn bị quy tắc validation cho cập nhật - cần truyền mảng có chứa camera_id
         $this->model->prepareValidationRules('update', ['camera_id' => $id]);
         
         // Xử lý validation với quy tắc đã được điều chỉnh
@@ -398,16 +398,27 @@ class Camera extends BaseController
             'ip_camera' => $data['ip_camera'] ?? null,
             'port' => $data['port'] ?? null,
             'username' => $data['username'] ?? null,
-            'password' => $data['password'] ?? null,
-            'status' => $data['status'] ?? 0
+            'status' => $data['status'] ?? 0,
+            'bin' => $data['bin'] ?? 0
         ];
+        
+        // Chỉ cập nhật mật khẩu nếu có nhập mật khẩu mới
+        if (!empty($data['password'])) {
+            $updateData['password'] = $data['password'];
+        }
+        
+        // Giữ lại các trường thời gian từ dữ liệu hiện có
+        $updateData['created_at'] = $existingCamera->created_at;
+        if ($existingCamera->deleted_at) {
+            $updateData['deleted_at'] = $existingCamera->deleted_at;
+        }
         
         // Cập nhật dữ liệu vào database
         if ($this->model->update($id, $updateData)) {
             $this->alert->set('success', 'Cập nhật camera thành công', true);
             return redirect()->to($this->moduleUrl);
         } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật camera', true);
+            $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật camera: ' . implode(', ', $this->model->errors()), true);
             return redirect()->back()->withInput();
         }
     }
