@@ -3,12 +3,12 @@
 namespace App\Modules\camera\Libraries;
 
 /**
- * Lớp CameraPager - cung cấp chức năng phân trang cho module Camera
+ * Lớp Pager - cung cấp chức năng phân trang cho module Camera
  * 
  * Lớp này thay thế cho \CodeIgniter\Pager\Pager mặc định để tùy chỉnh
  * cách hiển thị và xử lý phân trang riêng cho module Camera.
  */
-class CameraPager
+class Pager
 {
     /**
      * Số lượng trang hiển thị xung quanh trang hiện tại
@@ -453,7 +453,7 @@ class CameraPager
         }
         
         // Tìm kiếm template phân trang
-        $viewPath = 'App\Modules\camera\Views\pagers\camera_pager';
+        $viewPath = 'App\Modules\camera\Views\pagers\pager';
         
         // Truyền dữ liệu cho view
         $data = [

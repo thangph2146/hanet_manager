@@ -230,7 +230,7 @@
                             <span class="ms-1">bản ghi/trang</span>
                         </div>
                         <div>
-                            <?php if (isset($pager) && $pager instanceof \App\Modules\camera\Libraries\CameraPager): ?>
+                            <?php if (isset($pager) && $pager instanceof \App\Modules\camera\Libraries\Pager): ?>
                                 <?= $pager->render() ?>
                             <?php endif; ?>
                         </div>

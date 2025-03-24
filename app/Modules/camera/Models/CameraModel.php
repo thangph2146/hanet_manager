@@ -4,7 +4,7 @@ namespace App\Modules\camera\Models;
 
 use App\Models\BaseModel;
 use App\Modules\camera\Entities\Camera;
-use App\Modules\camera\Libraries\CameraPager;
+use App\Modules\camera\Libraries\Pager;
 
 class CameraModel extends BaseModel
 {
@@ -62,7 +62,7 @@ class CameraModel extends BaseModel
     protected $skipValidation = false;
     
     // Camera pager
-    protected $cameraPager = null;
+    protected $Pager = null;
     
     /**
      * Lấy tất cả camera
@@ -91,11 +91,11 @@ class CameraModel extends BaseModel
         // Tính toán trang hiện tại từ offset và limit
         $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
         
-        // Khởi tạo CameraPager nếu chưa có
-        if ($this->cameraPager === null) {
-            $this->cameraPager = new CameraPager($total, $limit, $currentPage);
+        // Khởi tạo Pager nếu chưa có
+        if ($this->Pager === null) {
+            $this->Pager = new Pager($total, $limit, $currentPage);
         } else {
-            $this->cameraPager->setTotal($total)
+            $this->Pager->setTotal($total)
                              ->setPerPage($limit)
                              ->setCurrentPage($currentPage);
         }
@@ -155,11 +155,11 @@ class CameraModel extends BaseModel
         // Tính toán trang hiện tại từ offset và limit
         $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
         
-        // Khởi tạo CameraPager nếu chưa có
-        if ($this->cameraPager === null) {
-            $this->cameraPager = new CameraPager($total, $limit, $currentPage);
+        // Khởi tạo Pager nếu chưa có
+        if ($this->Pager === null) {
+            $this->Pager = new Pager($total, $limit, $currentPage);
         } else {
-            $this->cameraPager->setTotal($total)
+            $this->Pager->setTotal($total)
                              ->setPerPage($limit)
                              ->setCurrentPage($currentPage);
         }
@@ -220,11 +220,11 @@ class CameraModel extends BaseModel
         // Tính toán trang hiện tại từ offset và limit
         $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
         
-        // Khởi tạo CameraPager nếu chưa có
-        if ($this->cameraPager === null) {
-            $this->cameraPager = new CameraPager($total, $limit, $currentPage);
+        // Khởi tạo Pager nếu chưa có
+        if ($this->Pager === null) {
+            $this->Pager = new Pager($total, $limit, $currentPage);
         } else {
-            $this->cameraPager->setTotal($total)
+            $this->Pager->setTotal($total)
                              ->setPerPage($limit)
                              ->setCurrentPage($currentPage);
         }
@@ -355,11 +355,11 @@ class CameraModel extends BaseModel
         $currentPage = $options['limit'] > 0 ? floor($options['offset'] / $options['limit']) + 1 : 1;
         log_message('debug', 'Tính toán trang: offset=' . $options['offset'] . ', limit=' . $options['limit'] . ', trang=' . $currentPage);
         
-        // Khởi tạo CameraPager nếu chưa có
-        if ($this->cameraPager === null) {
-            $this->cameraPager = new CameraPager($total, $options['limit'], $currentPage);
+        // Khởi tạo Pager nếu chưa có
+        if ($this->Pager === null) {
+            $this->Pager = new Pager($total, $options['limit'], $currentPage);
         } else {
-            $this->cameraPager->setTotal($total)
+            $this->Pager->setTotal($total)
                              ->setPerPage($options['limit'])
                              ->setCurrentPage($currentPage);
         }
@@ -378,7 +378,7 @@ class CameraModel extends BaseModel
                 $currentPage = 1;
                 
                 // Cập nhật lại pager
-                $this->cameraPager->setCurrentPage($currentPage);
+                $this->Pager->setCurrentPage($currentPage);
             }
             
             // Thêm limit và lấy kết quả
@@ -614,9 +614,9 @@ class CameraModel extends BaseModel
      */
     public function setSurroundCount(int $count)
     {
-        // Nếu đã có CameraPager thì cập nhật, nếu chưa thì chỉ lưu giá trị để dùng sau
-        if ($this->cameraPager !== null) {
-            $this->cameraPager->setSurroundCount($count);
+        // Nếu đã có Pager thì cập nhật, nếu chưa thì chỉ lưu giá trị để dùng sau
+        if ($this->Pager !== null) {
+            $this->Pager->setSurroundCount($count);
         }
         
         return $this;
@@ -625,10 +625,10 @@ class CameraModel extends BaseModel
     /**
      * Lấy đối tượng phân trang 
      * 
-     * @return CameraPager|null
+     * @return Pager|null
      */
     public function getPager()
     {
-        return $this->cameraPager;
+        return $this->Pager;
     }
 } 
