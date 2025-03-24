@@ -29,6 +29,11 @@
             margin-bottom: 20px;
             font-style: italic;
         }
+        .filters {
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #555;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -76,6 +81,12 @@
             Ngày xuất: <?= $date ?>
         </div>
         
+        <?php if (isset($filters) && !empty($filters)): ?>
+        <div class="filters">
+            <strong>Bộ lọc:</strong> <?= $filters ?>
+        </div>
+        <?php endif; ?>
+        
         <table>
             <thead>
                 <tr>
@@ -86,14 +97,22 @@
                     <th width="10%">Port</th>
                     <th width="15%">Tài khoản</th>
                     <th width="10%">Trạng thái</th>
-                    <?php if (isset($is_deleted) && $is_deleted): ?>
+                    <?php if (isset($cameras) && isset($cameras[0]->deleted_at) && $cameras[0]->deleted_at): ?>
                     <th width="10%">Ngày xóa</th>
                     <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
-                <?php if (!empty($camera)): ?>
-                    <?php $i = 1; foreach ($camera as $item): ?>
+                <?php 
+                $dataArray = isset($cameras) ? $cameras : (isset($camera) ? $camera : []);
+                $hasDeletedField = false;
+                if (!empty($dataArray) && isset($dataArray[0]->deleted_at) && $dataArray[0]->deleted_at) {
+                    $hasDeletedField = true;
+                }
+                ?>
+                
+                <?php if (!empty($dataArray)): ?>
+                    <?php $i = 1; foreach ($dataArray as $item): ?>
                         <tr>
                             <td class="text-center"><?= $i++ ?></td>
                             <td><?= esc($item->ma_camera) ?></td>
@@ -108,7 +127,7 @@
                                     <span class="status-inactive">Không hoạt động</span>
                                 <?php endif; ?>
                             </td>
-                            <?php if (isset($is_deleted) && $is_deleted): ?>
+                            <?php if ($hasDeletedField): ?>
                             <td class="text-center">
                                 <?php if (!empty($item->deleted_at)): ?>
                                     <?= date('d/m/Y H:i', strtotime($item->deleted_at)) ?>
@@ -119,7 +138,7 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="<?= isset($is_deleted) && $is_deleted ? 8 : 7 ?>" class="text-center">Không có dữ liệu</td>
+                        <td colspan="<?= $hasDeletedField ? 8 : 7 ?>" class="text-center">Không có dữ liệu</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

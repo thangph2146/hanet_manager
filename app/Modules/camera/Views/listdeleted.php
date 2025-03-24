@@ -622,7 +622,38 @@
         
         $('#export-pdf').on('click', function(e) {
             e.preventDefault();
-            window.location.href = '<?= site_url("camera/exportDeletedPdf") ?>';
+            
+            // Lấy URL hiện tại và các tham số query string
+            const currentUrl = new URL(window.location.href);
+            const queryParams = currentUrl.searchParams;
+            
+            // Tạo URL xuất PDF với các tham số cần thiết
+            let exportUrl = '<?= site_url("camera/exportDeletedPdf") ?>';
+            const params = [];
+            
+            // Thêm các tham số cần thiết
+            if (queryParams.has('keyword')) {
+                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
+            }
+            if (queryParams.has('status')) {
+                params.push('status=' + encodeURIComponent(queryParams.get('status')));
+            }
+            if (queryParams.has('sort')) {
+                params.push('sort=' + encodeURIComponent(queryParams.get('sort')));
+            }
+            if (queryParams.has('order')) {
+                params.push('order=' + encodeURIComponent(queryParams.get('order')));
+            }
+            
+            // Thêm các tham số vào URL
+            if (params.length > 0) {
+                exportUrl += '?' + params.join('&');
+            }
+            
+            console.log('Exporting deleted cameras to PDF with URL:', exportUrl);
+            
+            // Chuyển hướng đến URL xuất PDF
+            window.location.href = exportUrl;
         });
 
         // Xử lý khi thay đổi số lượng bản ghi trên mỗi trang

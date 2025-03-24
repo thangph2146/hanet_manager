@@ -1092,15 +1092,49 @@ class Camera extends BaseController
      */
     public function exportPdf()
     {
-        // Lấy dữ liệu
-        $cameras = $this->model->getAll();
+        // Lấy tham số lọc từ URL
+        $keyword = $this->request->getGet('keyword') ?? '';
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'ten_camera';
+        $order = $this->request->getGet('order') ?? 'ASC';
+        
+        // Xây dựng tham số tìm kiếm
+        $searchParams = [];
+        if (!empty($keyword)) {
+            $searchParams['keyword'] = $keyword;
+        }
+        
+        // Đặc biệt, chỉ thêm status vào nếu nó đã được chỉ định (bao gồm status=0)
+        if ($status !== null && $status !== '') {
+            $searchParams['status'] = (int)$status;
+        }
+        
+        // Lấy dữ liệu camera theo bộ lọc mà không giới hạn phân trang
+        $cameras = $this->model->search($searchParams, [
+            'sort' => $sort,
+            'order' => $order,
+            'limit' => 0 // Không giới hạn số lượng kết quả
+        ]);
         
         // Chuẩn bị dữ liệu cho view
         $data = [
             'title' => 'DANH SÁCH CAMERA',
-            'camera' => $cameras,
+            'cameras' => $cameras,
             'date' => date('d/m/Y H:i:s')
         ];
+        
+        // Thêm thông tin bộ lọc vào tiêu đề nếu có
+        $filterInfo = [];
+        if (!empty($keyword)) {
+            $filterInfo[] = "Từ khóa: " . $keyword;
+        }
+        if ($status !== null && $status !== '') {
+            $filterInfo[] = "Trạng thái: " . ($status == 1 ? 'Hoạt động' : 'Không hoạt động');
+        }
+        
+        if (!empty($filterInfo)) {
+            $data['filters'] = implode(', ', $filterInfo);
+        }
         
         // Render view thành HTML
         $html = view('App\Modules\camera\Views\export_pdf', $data);
@@ -1112,13 +1146,24 @@ class Camera extends BaseController
         
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->setPaper('A4', 'landscape'); // Định dạng ngang cho trang PDF
         
         // Render PDF
         $dompdf->render();
         
+        // Thiết lập tên file dựa trên bộ lọc
+        $filterSuffix = '';
+        if (!empty($keyword)) {
+            $filterSuffix .= '_keyword_' . preg_replace('/[^a-z0-9]/i', '_', $keyword);
+        }
+        if ($status !== null && $status !== '') {
+            $filterSuffix .= '_status_' . $status;
+        }
+        
+        $filename = 'danh_sach_camera' . $filterSuffix . '_' . date('dmY_His') . '.pdf';
+        
         // Stream file PDF để tải xuống
-        $dompdf->stream('danh_sach_camera_' . date('dmY_His') . '.pdf', ['Attachment' => true]);
+        $dompdf->stream($filename, ['Attachment' => true]);
         exit();
     }
     
@@ -1127,42 +1172,81 @@ class Camera extends BaseController
      */
     public function exportDeletedPdf()
     {
-        $cameras = $this->model->getAllInRecycleBin(0); // Lấy tất cả dữ liệu không phân trang
+        // Lấy tham số lọc từ URL
+        $keyword = $this->request->getGet('keyword') ?? '';
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'updated_at';
+        $order = $this->request->getGet('order') ?? 'DESC';
+        
+        // Xây dựng tham số tìm kiếm
+        $searchParams = [
+            'bin' => 1 // Luôn lấy các camera trong thùng rác
+        ];
+        
+        if (!empty($keyword)) {
+            $searchParams['keyword'] = $keyword;
+        }
+        
+        // Đặc biệt, chỉ thêm status vào nếu nó đã được chỉ định (bao gồm status=0)
+        if ($status !== null && $status !== '') {
+            $searchParams['status'] = (int)$status;
+        }
+        
+        // Lấy dữ liệu camera theo bộ lọc mà không giới hạn phân trang
+        $cameras = $this->model->search($searchParams, [
+            'sort' => $sort,
+            'order' => $order,
+            'limit' => 0 // Không giới hạn số lượng kết quả
+        ]);
         
         // Tạo dữ liệu cho PDF
         $pdfData = [
-            'title' => 'Danh sách Camera đã xóa',
+            'title' => 'DANH SÁCH CAMERA ĐÃ XÓA',
             'cameras' => $cameras,
             'date' => date('d/m/Y H:i:s')
         ];
         
-        // Tạo PDF từ view
-        $html = view('Modules\camera\Views\pdf\deleted_list', $pdfData);
+        // Thêm thông tin bộ lọc vào tiêu đề nếu có
+        $filterInfo = [];
+        if (!empty($keyword)) {
+            $filterInfo[] = "Từ khóa: " . $keyword;
+        }
+        if ($status !== null && $status !== '') {
+            $filterInfo[] = "Trạng thái: " . ($status == 1 ? 'Hoạt động' : 'Không hoạt động');
+        }
         
-        // Khởi tạo đối tượng TCPDF
-        $pdf = new \TCPDF('L', 'mm', 'A4', true, 'UTF-8');
+        if (!empty($filterInfo)) {
+            $pdfData['filters'] = implode(', ', $filterInfo);
+        }
         
-        // Thiết lập thông tin cơ bản
-        $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor('Camera Manager');
-        $pdf->SetTitle('Danh sách Camera đã xóa');
-        $pdf->SetSubject('Camera System');
+        // Render view thành HTML
+        $html = view('App\Modules\camera\Views\export_pdf', $pdfData);
         
-        // Xóa header và footer
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(false);
+        // Tạo đối tượng DOMPDF
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
         
-        // Thiết lập font
-        $pdf->SetFont('dejavusans', '', 10);
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape'); // Định dạng ngang cho trang PDF
         
-        // Thêm trang
-        $pdf->AddPage();
+        // Render PDF
+        $dompdf->render();
         
-        // Ghi nội dung HTML vào PDF
-        $pdf->writeHTML($html, true, false, true, false, '');
+        // Thiết lập tên file dựa trên bộ lọc
+        $filterSuffix = '';
+        if (!empty($keyword)) {
+            $filterSuffix .= '_keyword_' . preg_replace('/[^a-z0-9]/i', '_', $keyword);
+        }
+        if ($status !== null && $status !== '') {
+            $filterSuffix .= '_status_' . $status;
+        }
         
-        // Xuất file
-        $pdf->Output('cameras_deleted_list.pdf', 'D');
+        $filename = 'danh_sach_camera_da_xoa' . $filterSuffix . '_' . date('dmY_His') . '.pdf';
+        
+        // Stream file PDF để tải xuống
+        $dompdf->stream($filename, ['Attachment' => true]);
         exit();
     }
     
