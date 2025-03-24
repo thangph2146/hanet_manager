@@ -137,60 +137,58 @@ $isUpdate = isset($manhinh) && isset($manhinh->man_hinh_id);
                 <!-- camera_id -->
                 <div class="col-md-6">
                     <label for="camera_id" class="form-label fw-semibold">
-                        Camera
+                        Camera <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-camera'></i></span>
-                        <select class="form-select <?= isset($validation) && $validation->hasError('camera_id') ? 'is-invalid' : '' ?>" 
-                                id="camera_id" name="camera_id">
+                        <input type="text" class="form-control camera-search" id="camera_search" 
+                               placeholder="Tìm kiếm camera..." autocomplete="off" list="camera_options">
+                        <select class="form-select d-none" id="camera_id" name="camera_id">
                             <option value="">-- Chọn camera --</option>
-                            <?php if (isset($cameras) && is_array($cameras)): ?>
-                                <?php foreach ($cameras as $camera): ?>
-                                    <option value="<?= $camera->camera_id ?>" <?= old('camera_id', $camera_id) == $camera->camera_id ? 'selected' : '' ?>>
-                                        <?= $camera->ten_camera ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                            <?php foreach ($cameras as $camera): ?>
+                                <option value="<?= $camera->camera_id ?>" 
+                                        data-name="<?= esc($camera->ten_camera) ?>"
+                                        data-code="<?= esc($camera->ma_camera) ?>"
+                                        <?= (old('camera_id', $manhinh->camera_id) == $camera->camera_id) ? 'selected' : '' ?>>
+                                    <?= esc($camera->ten_camera) ?> (<?= esc($camera->ma_camera) ?>)
+                                </option>
+                            <?php endforeach; ?>
                         </select>
-                        <?php if (isset($validation) && $validation->hasError('camera_id')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('camera_id') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Chọn camera được liên kết với màn hình này
+                        <datalist id="camera_options">
+                            <?php foreach ($cameras as $camera): ?>
+                                <option value="<?= esc($camera->ten_camera) ?> (<?= esc($camera->ma_camera) ?>)" 
+                                        data-id="<?= $camera->camera_id ?>">
+                            <?php endforeach; ?>
+                        </datalist>
                     </div>
                 </div>
 
                 <!-- template_id -->
                 <div class="col-md-6">
                     <label for="template_id" class="form-label fw-semibold">
-                        Template
+                        Template <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-layout'></i></span>
-                        <select class="form-select <?= isset($validation) && $validation->hasError('template_id') ? 'is-invalid' : '' ?>" 
-                                id="template_id" name="template_id">
+                        <input type="text" class="form-control template-search" id="template_search" 
+                               placeholder="Tìm kiếm template..." autocomplete="off" list="template_options">
+                        <select class="form-select d-none" id="template_id" name="template_id">
                             <option value="">-- Chọn template --</option>
-                            <?php if (isset($templates) && is_array($templates)): ?>
-                                <?php foreach ($templates as $template): ?>
-                                    <option value="<?= $template->template_id ?>" <?= old('template_id', $template_id) == $template->template_id ? 'selected' : '' ?>>
-                                        <?= $template->ten_template ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                            <?php foreach ($templates as $template): ?>
+                                <option value="<?= $template->template_id ?>" 
+                                        data-name="<?= esc($template->ten_template) ?>"
+                                        data-code="<?= esc($template->ma_template) ?>"
+                                        <?= (old('template_id', $manhinh->template_id) == $template->template_id) ? 'selected' : '' ?>>
+                                    <?= esc($template->ten_template) ?> (<?= esc($template->ma_template) ?>)
+                                </option>
+                            <?php endforeach; ?>
                         </select>
-                        <?php if (isset($validation) && $validation->hasError('template_id')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('template_id') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Chọn template được liên kết với màn hình này
+                        <datalist id="template_options">
+                            <?php foreach ($templates as $template): ?>
+                                <option value="<?= esc($template->ten_template) ?> (<?= esc($template->ma_template) ?>)" 
+                                        data-id="<?= $template->template_id ?>">
+                            <?php endforeach; ?>
+                        </datalist>
                     </div>
                 </div>
 
@@ -256,4 +254,207 @@ $isUpdate = isset($manhinh) && isset($manhinh->man_hinh_id);
         // Tự động focus vào trường đầu tiên
         document.getElementById('ten_man_hinh').focus();
     });
-</script> 
+</script>
+
+<?php $this->section('scripts') ?>
+<!-- Không còn cần Select2 -->
+<script>
+    $(document).ready(function() {
+        // Xử lý tìm kiếm camera
+        $('#camera_search').on('input', function() {
+            var searchText = $(this).val().toLowerCase();
+            var cameraFound = false;
+            
+            // Nếu tìm thấy giá trị chính xác từ datalist
+            $('#camera_options option').each(function() {
+                var optionValue = $(this).val().toLowerCase();
+                var cameraId = $(this).data('id');
+                
+                if (optionValue === searchText.toLowerCase()) {
+                    // Đặt giá trị cho select
+                    $('#camera_id').val(cameraId);
+                    cameraFound = true;
+                    return false; // Dừng vòng lặp
+                }
+            });
+            
+            // Nếu không tìm thấy và có từ khóa tìm kiếm, gửi AJAX
+            if (!cameraFound && searchText.length > 0) {
+                $.ajax({
+                    url: '<?= site_url('manhinh/search-cameras') ?>',
+                    method: 'GET',
+                    data: { keyword: searchText },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success && response.data.length > 0) {
+                            // Cập nhật datalist
+                            $('#camera_options').empty();
+                            
+                            // Cập nhật select
+                            var selectedId = $('#camera_id').val();
+                            var selectHtml = '<option value="">-- Chọn camera --</option>';
+                            
+                            $.each(response.data, function(index, camera) {
+                                // Thêm vào datalist
+                                var optionText = camera.ten_camera + ' (' + camera.ma_camera + ')';
+                                $('#camera_options').append('<option value="' + optionText + '" data-id="' + camera.camera_id + '">');
+                                
+                                // Thêm vào select
+                                var selected = (selectedId == camera.camera_id) ? 'selected' : '';
+                                selectHtml += '<option value="' + camera.camera_id + '" ' + selected + '>' + optionText + '</option>';
+                            });
+                            
+                            $('#camera_id').html(selectHtml);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Xử lý tìm kiếm template
+        $('#template_search').on('input', function() {
+            var searchText = $(this).val().toLowerCase();
+            var templateFound = false;
+            
+            // Nếu tìm thấy giá trị chính xác từ datalist
+            $('#template_options option').each(function() {
+                var optionValue = $(this).val().toLowerCase();
+                var templateId = $(this).data('id');
+                
+                if (optionValue === searchText.toLowerCase()) {
+                    // Đặt giá trị cho select
+                    $('#template_id').val(templateId);
+                    templateFound = true;
+                    return false; // Dừng vòng lặp
+                }
+            });
+            
+            // Nếu không tìm thấy và có từ khóa tìm kiếm, gửi AJAX
+            if (!templateFound && searchText.length > 0) {
+                $.ajax({
+                    url: '<?= site_url('manhinh/search-templates') ?>',
+                    method: 'GET',
+                    data: { keyword: searchText },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success && response.data.length > 0) {
+                            // Cập nhật datalist
+                            $('#template_options').empty();
+                            
+                            // Cập nhật select
+                            var selectedId = $('#template_id').val();
+                            var selectHtml = '<option value="">-- Chọn template --</option>';
+                            
+                            $.each(response.data, function(index, template) {
+                                // Thêm vào datalist
+                                var optionText = template.ten_template + ' (' + template.ma_template + ')';
+                                $('#template_options').append('<option value="' + optionText + '" data-id="' + template.template_id + '">');
+                                
+                                // Thêm vào select
+                                var selected = (selectedId == template.template_id) ? 'selected' : '';
+                                selectHtml += '<option value="' + template.template_id + '" ' + selected + '>' + optionText + '</option>';
+                            });
+                            
+                            $('#template_id').html(selectHtml);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Hiển thị giá trị đã chọn trong ô tìm kiếm khi tải trang
+        function setSelectedValues() {
+            // Xử lý camera
+            var selectedCameraId = $('#camera_id').val();
+            if (selectedCameraId) {
+                var selectedCamera = $('#camera_id option[value="' + selectedCameraId + '"]');
+                var cameraName = selectedCamera.data('name');
+                var cameraCode = selectedCamera.data('code');
+                if (cameraName && cameraCode) {
+                    $('#camera_search').val(cameraName + ' (' + cameraCode + ')');
+                }
+            }
+            
+            // Xử lý template
+            var selectedTemplateId = $('#template_id').val();
+            if (selectedTemplateId) {
+                var selectedTemplate = $('#template_id option[value="' + selectedTemplateId + '"]');
+                var templateName = selectedTemplate.data('name');
+                var templateCode = selectedTemplate.data('code');
+                if (templateName && templateCode) {
+                    $('#template_search').val(templateName + ' (' + templateCode + ')');
+                }
+            }
+        }
+        
+        // Thiết lập giá trị mặc định khi trang được tải
+        setSelectedValues();
+        
+        // Khi form được submit, đảm bảo select có giá trị
+        $('#manhinhForm').on('submit', function() {
+            if ($('#camera_id').val() == '' && $('#camera_search').val() != '') {
+                // Tìm ID từ văn bản tìm kiếm
+                var searchText = $('#camera_search').val();
+                $('#camera_options option').each(function() {
+                    if ($(this).val() == searchText) {
+                        $('#camera_id').val($(this).data('id'));
+                        return false;
+                    }
+                });
+            }
+            
+            if ($('#template_id').val() == '' && $('#template_search').val() != '') {
+                // Tìm ID từ văn bản tìm kiếm
+                var searchText = $('#template_search').val();
+                $('#template_options option').each(function() {
+                    if ($(this).val() == searchText) {
+                        $('#template_id').val($(this).data('id'));
+                        return false;
+                    }
+                });
+            }
+        });
+    });
+</script>
+<?php $this->endSection() ?>
+
+<?php $this->section('styles') ?>
+<style>
+    /* Ẩn select thực sự */
+    .d-none {
+        display: none !important;
+    }
+    
+    /* Tùy chỉnh ô tìm kiếm */
+    .camera-search, .template-search {
+        border-radius: 0.25rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Style cho datalist và options */
+    datalist {
+        position: absolute;
+        max-height: 20em;
+        border: 0 none;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+    
+    datalist option {
+        font-size: 0.8em;
+        padding: 0.3em 1em;
+        background-color: #fff;
+        cursor: pointer;
+    }
+    
+    datalist option:hover, datalist option:focus {
+        color: #fff;
+        background-color: #036;
+        outline: 0 none;
+    }
+    
+    input::-webkit-calendar-picker-indicator {
+        display: none;
+    }
+</style>
+<?php $this->endSection() ?> 

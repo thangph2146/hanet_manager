@@ -201,6 +201,13 @@ class Manhinh extends BaseController
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Thêm mới', current_url());
         
+        // Tải danh sách camera và template đang hoạt động
+        $manhinhModel = new \App\Modules\manhinh\Models\ManhinhModel();
+        
+        // Sử dụng phương thức mới với giới hạn 20 bản ghi
+        $cameras = $manhinhModel->getRelatedCameras('', 20);
+        $templates = $manhinhModel->getRelatedTemplates('', 20);
+        
         // Chuẩn bị dữ liệu mặc định cho entity mới
         $manhinh = new \App\Modules\manhinh\Entities\ManHinh([
             'status' => 1,
@@ -214,6 +221,8 @@ class Manhinh extends BaseController
             'validation' => $this->validator,
             'moduleUrl' => $this->moduleUrl,
             'manhinh' => $manhinh,
+            'cameras' => $cameras,
+            'templates' => $templates,
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
             'is_new' => true
         ];
@@ -324,21 +333,27 @@ class Manhinh extends BaseController
      */
     public function edit($id = null)
     {
-        if (empty($id)) {
-            $this->alert->set('danger', 'ID màn hình không hợp lệ', true);
+        // Nếu không có ID được cung cấp, chuyển hướng về trang danh sách
+        if ($id === null) {
             return redirect()->to($this->moduleUrl);
         }
-        
-        // Sử dụng phương thức findWithRelations từ model
-        $manhinh = $this->model->findWithRelations($id);
-        
-        if (empty($manhinh)) {
-            $this->alert->set('danger', 'Không tìm thấy màn hình', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
+
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Chỉnh sửa', current_url());
+
+        // Lấy thông tin màn hình theo ID
+        $manhinhModel = new \App\Modules\manhinh\Models\ManhinhModel();
+        $manhinh = $manhinhModel->findWithRelations($id);
+
+        // Nếu không tìm thấy, chuyển hướng về trang danh sách với thông báo lỗi
+        if ($manhinh === null) {
+            return redirect()->to($this->moduleUrl)->with('error', 'Màn hình không tồn tại hoặc đã bị xóa.');
+        }
+
+        // Lấy danh sách camera và template đang hoạt động
+        // Sử dụng phương thức mới với giới hạn 20 bản ghi
+        $cameras = $manhinhModel->getRelatedCameras('', 20);
+        $templates = $manhinhModel->getRelatedTemplates('', 20);
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
@@ -346,6 +361,8 @@ class Manhinh extends BaseController
             'title' => 'Chỉnh sửa ' . $this->moduleName,
             'validation' => $this->validator,
             'manhinh' => $manhinh,
+            'cameras' => $cameras,
+            'templates' => $templates,
             'moduleUrl' => $this->moduleUrl,
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
         ];
@@ -1362,5 +1379,55 @@ class Manhinh extends BaseController
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save('php://output');
         exit();
+    }
+    
+    /**
+     * Tìm kiếm camera qua AJAX
+     */
+    public function searchCameras()
+    {
+        // Kiểm tra yêu cầu Ajax
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Truy cập trực tiếp không được phép']);
+        }
+        
+        // Lấy từ khóa tìm kiếm
+        $keyword = $this->request->getGet('keyword') ?? '';
+        
+        // Tìm kiếm camera
+        $cameras = $this->model->searchCameras($keyword);
+        
+        // Trả về kết quả dưới dạng JSON
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $cameras,
+            'csrf_token_name' => csrf_token(),
+            'csrf_hash' => csrf_hash()
+        ]);
+    }
+    
+    /**
+     * Tìm kiếm template qua AJAX
+     */
+    public function searchTemplates()
+    {
+        // Kiểm tra yêu cầu Ajax
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Truy cập trực tiếp không được phép']);
+        }
+        
+        // Lấy từ khóa tìm kiếm
+        $keyword = $this->request->getGet('keyword') ?? '';
+        
+        // Tìm kiếm template
+        $templates = $this->model->searchTemplates($keyword);
+        
+        // Trả về kết quả dưới dạng JSON
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $templates,
+            'csrf_token_name' => csrf_token(),
+            'csrf_hash' => csrf_hash()
+        ]);
     }
 } 

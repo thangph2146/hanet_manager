@@ -539,4 +539,146 @@ class ManhinhModel extends BaseModel
     {
         return $this->validationRules;
     }
+    
+    /**
+     * Lấy danh sách camera có liên quan với màn hình
+     * Giới hạn tối đa 20 camera và hỗ trợ tìm kiếm
+     * 
+     * @param string $keyword Từ khóa tìm kiếm (tùy chọn)
+     * @param int $limit Giới hạn số lượng bản ghi (mặc định 20)
+     * @return array Danh sách camera
+     */
+    public function getRelatedCameras($keyword = '', $limit = 20)
+    {
+        // Tải model Camera
+        $cameraModel = model('App\Modules\camera\Models\CameraModel');
+        
+        // Chuẩn bị các điều kiện tìm kiếm
+        $criteria = ['status' => 1, 'bin' => 0];
+        
+        // Thêm điều kiện tìm kiếm từ khóa nếu có
+        if (!empty($keyword)) {
+            $criteria['keyword'] = $keyword;
+        }
+        
+        // Thiết lập tùy chọn tìm kiếm
+        $options = [
+            'limit' => $limit,
+            'offset' => 0,
+            'sort' => 'ten_camera',
+            'order' => 'ASC'
+        ];
+        
+        // Tìm kiếm camera
+        $result = $cameraModel->search($criteria, $options);
+        
+        // Đảm bảo kết quả trả về là mảng
+        return is_array($result) ? $result : [];
+    }
+    
+    /**
+     * Lấy danh sách template có liên quan với màn hình
+     * Giới hạn tối đa 20 template và hỗ trợ tìm kiếm
+     * 
+     * @param string $keyword Từ khóa tìm kiếm (tùy chọn)
+     * @param int $limit Giới hạn số lượng bản ghi (mặc định 20)
+     * @return array Danh sách template
+     */
+    public function getRelatedTemplates($keyword = '', $limit = 20)
+    {
+        // Tải model Template
+        $templateModel = model('App\Modules\template\Models\TemplateModel');
+        
+        // Chuẩn bị tham số tìm kiếm
+        $searchCriteria = [];
+        if (!empty($keyword)) {
+            $searchCriteria['search'] = $keyword;
+        }
+        
+        // Thêm điều kiện lọc cho trạng thái hoạt động
+        $searchCriteria['filters'] = ['status' => 1, 'bin' => 0];
+        
+        // Thiết lập tùy chọn tìm kiếm
+        $searchOptions = [
+            'sort' => 'ten_template',
+            'sort_direction' => 'ASC',
+            'limit' => $limit,
+            'page' => 1
+        ];
+        
+        // Tìm kiếm template
+        $result = $templateModel->search($searchCriteria, $searchOptions);
+        
+        // Đảm bảo kết quả trả về là mảng
+        return is_array($result) ? $result : [];
+    }
+    
+    /**
+     * Tìm kiếm camera với từ khóa và giới hạn 20 kết quả
+     * 
+     * @param string $keyword Từ khóa tìm kiếm
+     * @return array Danh sách camera
+     */
+    public function searchCameras($keyword = '')
+    {
+        // Tải model Camera
+        $cameraModel = model('App\Modules\camera\Models\CameraModel');
+        
+        // Chuẩn bị các điều kiện tìm kiếm
+        $criteria = ['status' => 1, 'bin' => 0];
+        
+        // Thêm điều kiện tìm kiếm từ khóa nếu có
+        if (!empty($keyword)) {
+            $criteria['keyword'] = $keyword;
+        }
+        
+        // Thiết lập tùy chọn tìm kiếm
+        $options = [
+            'limit' => 20,
+            'offset' => 0,
+            'sort' => 'ten_camera',
+            'order' => 'ASC'
+        ];
+        
+        // Tìm kiếm camera
+        $result = $cameraModel->search($criteria, $options);
+        
+        // Đảm bảo kết quả trả về là mảng
+        return is_array($result) ? $result : [];
+    }
+    
+    /**
+     * Tìm kiếm template với từ khóa và giới hạn 20 kết quả
+     * 
+     * @param string $keyword Từ khóa tìm kiếm
+     * @return array Danh sách template
+     */
+    public function searchTemplates($keyword = '')
+    {
+        // Tải model Template
+        $templateModel = model('App\Modules\template\Models\TemplateModel');
+        
+        // Chuẩn bị tham số tìm kiếm
+        $searchCriteria = [];
+        if (!empty($keyword)) {
+            $searchCriteria['search'] = $keyword;
+        }
+        
+        // Thêm điều kiện lọc cho trạng thái hoạt động
+        $searchCriteria['filters'] = ['status' => 1, 'bin' => 0];
+        
+        // Thiết lập tùy chọn tìm kiếm
+        $searchOptions = [
+            'sort' => 'ten_template',
+            'sort_direction' => 'ASC',
+            'limit' => 20,
+            'page' => 1
+        ];
+        
+        // Tìm kiếm template
+        $result = $templateModel->search($searchCriteria, $searchOptions);
+        
+        // Đảm bảo kết quả trả về là mảng
+        return is_array($result) ? $result : [];
+    }
 } 
