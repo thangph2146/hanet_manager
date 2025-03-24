@@ -24,6 +24,7 @@ class Pager extends BaseConfig
         'default_full'   => 'CodeIgniter\Pager\Views\default_full',
         'default_simple' => 'CodeIgniter\Pager\Views\default_simple',
         'default_head'   => 'CodeIgniter\Pager\Views\default_head',
+        'camera_full'    => 'App\Views\pagers\camera_full',
     ];
 
     /**
@@ -35,5 +36,39 @@ class Pager extends BaseConfig
      *
      * @var int
      */
-    public $perPage = 20;
+    public $perPage = 10;
+    
+    /**
+     * --------------------------------------------------------------------------
+     * Surround Count
+     * --------------------------------------------------------------------------
+     *
+     * The number of links displayed on each side of the current page.
+     * By default it shows 2 links on each side.
+     *
+     * @var int
+     */
+    public $surroundCount = 2;
+    
+    /**
+     * --------------------------------------------------------------------------
+     * Default Group
+     * --------------------------------------------------------------------------
+     *
+     * The default pagination group that should be used if none is specified.
+     *
+     * @var string
+     */
+    public $defaultGroup = 'default';
+    
+    /**
+     * --------------------------------------------------------------------------
+     * Use Query Strings
+     * --------------------------------------------------------------------------
+     *
+     * Whether to use HTTP query strings to pass the parameters instead of URI segments.
+     *
+     * @var bool
+     */
+    public $useQueryString = true;
 }
