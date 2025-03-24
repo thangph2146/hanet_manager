@@ -154,8 +154,8 @@
                             </th>
                             <th width="10%" class="align-middle">Mã màn hình</th>
                             <th width="20%" class="align-middle">Tên màn hình</th>
-                            <th width="20%" class="align-middle">Địa chỉ IP</th>
-                            <th width="10%" class="align-middle">Port</th>
+                            <th width="20%" class="align-middle">Camera</th>
+                            <th width="20%" class="align-middle">Template</th>
                             <th width="10%" class="align-middle">Trạng thái</th>
                             <th width="10%" class="align-middle">Ngày xóa</th>
                             <th width="15%" class="text-center align-middle">Hành động</th>
@@ -172,8 +172,8 @@
                                     </td>
                                     <td><?= esc($item->ma_man_hinh) ?></td>
                                     <td><?= esc($item->ten_man_hinh) ?></td>
-                                    <td><?= esc($item->ip_man_hinh) ?></td>
-                                    <td><?= esc($item->port) ?></td>
+                                    <td><?= $item->getCameraInfo() ?></td>
+                                    <td><?= $item->getTemplateInfo() ?></td>
                                     <td>
                                         <?php if (method_exists($item, 'getStatusLabel')): ?>
                                             <?= $item->getStatusLabel() ?>

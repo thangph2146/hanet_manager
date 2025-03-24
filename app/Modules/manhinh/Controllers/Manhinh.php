@@ -956,43 +956,71 @@ class Manhinh extends BaseController
      */
     public function exportExcel()
     {
-        // Lấy tham số lọc từ URL
-        $keyword = $this->request->getGet('keyword') ?? '';
+        // Lấy tham số tìm kiếm từ URL
+        $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
-        $sort = $this->request->getGet('sort') ?? 'ten_camera';
+        $sort = $this->request->getGet('sort') ?? 'ten_man_hinh';
         $order = $this->request->getGet('order') ?? 'ASC';
-        
-        // Xây dựng tham số tìm kiếm
-        $searchParams = [];
-        if (!empty($keyword)) {
-            $searchParams['keyword'] = $keyword;
-        }
-        
-        // Đặc biệt, chỉ thêm status vào nếu nó đã được chỉ định (bao gồm status=0)
-        if ($status !== null && $status !== '') {
-            $searchParams['status'] = (int)$status;
-        }
-        
-        // Log tham số tìm kiếm cuối cùng
-        log_message('debug', '[ExportExcel] Tham số tìm kiếm: ' . json_encode($searchParams));
-        
-        // Lấy dữ liệu camera theo bộ lọc mà không giới hạn phân trang
-        $cameras = $this->model->search($searchParams, [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Không giới hạn số lượng kết quả
+
+        // Chuẩn bị tham số tìm kiếm
+        $searchParams = [
+            'keyword' => $keyword,
+            'status' => $status,
+            'bin' => 0
+        ];
+
+        // Log tham số tìm kiếm
+        log_message('debug', 'Export Excel - Tham số tìm kiếm: ' . json_encode($searchParams));
+
+        // Lấy dữ liệu màn hình không giới hạn số lượng
+        $this->builder = $this->model->builder();
+        $this->builder->select([
+            'man_hinh.*',
+            'camera.ten_camera',
+            'template.ten_template'
         ]);
         
-        log_message('debug', '[ExportExcel] Số lượng camera xuất: ' . count($cameras));
+        // Join với bảng camera và template
+        $this->builder->join('camera', 'camera.camera_id = man_hinh.camera_id', 'left');
+        $this->builder->join('template', 'template.template_id = man_hinh.template_id', 'left');
         
-        // Sử dụng thư viện PhpSpreadsheet
+        // Xử lý từ khóa tìm kiếm
+        if (!empty($keyword)) {
+            $this->builder->groupStart()
+                ->like('man_hinh.ten_man_hinh', $keyword)
+                ->orLike('man_hinh.ma_man_hinh', $keyword)
+                ->groupEnd();
+        }
+        
+        // Xử lý trạng thái
+        if ($status !== null && $status !== '') {
+            $this->builder->where('man_hinh.status', $status);
+        }
+        
+        // Lọc các bản ghi không nằm trong thùng rác
+        $this->builder->where('man_hinh.bin', 0);
+        
+        // Sắp xếp kết quả
+        $this->builder->orderBy($sort, $order);
+        
+        // Lấy kết quả
+        $manhinhs = $this->builder->get()->getResult();
+
+        // Tạo spreadsheet mới
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        
+
+        // Thiết lập font chữ
+        $sheet->getStyle('A1:E999')->getFont()->setName('Times New Roman');
+
         // Thiết lập tiêu đề
-        $sheet->setCellValue('A1', 'DANH SÁCH CAMERA');
-        
-        // Thêm thông tin bộ lọc vào tiêu đề nếu có
+        $sheet->mergeCells('A1:E1');
+        $sheet->setCellValue('A1', 'DANH SÁCH MÀN HÌNH');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Thêm thông tin lọc nếu có
+        $row = 2;
         $filterInfo = [];
         if (!empty($keyword)) {
             $filterInfo[] = "Từ khóa: " . $keyword;
@@ -1000,112 +1028,71 @@ class Manhinh extends BaseController
         if ($status !== null && $status !== '') {
             $filterInfo[] = "Trạng thái: " . ($status == 1 ? 'Hoạt động' : 'Không hoạt động');
         }
-        
         if (!empty($filterInfo)) {
-            $sheet->setCellValue('A2', 'Bộ lọc: ' . implode(', ', $filterInfo));
-            $sheet->mergeCells('A2:G2');
-            $sheet->getStyle('A2')->getFont()->setItalic(true);
+            $sheet->mergeCells("A{$row}:E{$row}");
+            $sheet->setCellValue("A{$row}", implode(', ', $filterInfo));
+            $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $row++;
         }
-        
-        $sheet->mergeCells('A1:G1');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        
-        // Thiết lập header
-        $headerRow = !empty($filterInfo) ? 4 : 3;
-        $sheet->setCellValue('A' . $headerRow, 'STT');
-        $sheet->setCellValue('B' . $headerRow, 'MÃ CAMERA');
-        $sheet->setCellValue('C' . $headerRow, 'TÊN CAMERA');
-        $sheet->setCellValue('D' . $headerRow, 'ĐỊA CHỈ IP');
-        $sheet->setCellValue('E' . $headerRow, 'PORT');
-        $sheet->setCellValue('F' . $headerRow, 'TÀI KHOẢN');
-        $sheet->setCellValue('G' . $headerRow, 'TRẠNG THÁI');
+
+        // Thêm ngày xuất
+        $row++;
+        $sheet->mergeCells("A{$row}:E{$row}");
+        $sheet->setCellValue("A{$row}", 'Ngày xuất: ' . date('d/m/Y H:i:s'));
+        $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Header của bảng
+        $row++;
+        $headers = ['STT', 'MÃ MÀN HÌNH', 'TÊN MÀN HÌNH', 'CAMERA', 'TEMPLATE'];
+        $sheet->fromArray($headers, NULL, "A{$row}");
         
         // Định dạng header
-        $headerStyle = [
-            'font' => [
-                'bold' => true,
-            ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-            ],
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => Border::BORDER_THIN,
-                ],
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => [
-                    'argb' => 'FFE0E0E0',
-                ],
-            ],
-        ];
-        $sheet->getStyle('A' . $headerRow . ':G' . $headerRow)->applyFromArray($headerStyle);
-        
-        // Đổ dữ liệu vào sheet
-        $row = $headerRow + 1;
-        $i = 1;
-        foreach ($cameras as $camera) {
-            $sheet->setCellValue('A' . $row, $i);
-            $sheet->setCellValue('B' . $row, $camera->ma_camera);
-            $sheet->setCellValue('C' . $row, $camera->ten_camera);
-            $sheet->setCellValue('D' . $row, $camera->ip_camera);
-            $sheet->setCellValue('E' . $row, $camera->port);
-            $sheet->setCellValue('F' . $row, $camera->username);
+        $headerStyle = $sheet->getStyle("A{$row}:E{$row}");
+        $headerStyle->getFont()->setBold(true);
+        $headerStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $headerStyle->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('CCCCCC');
+
+        // Đổ dữ liệu
+        $startRow = $row + 1;
+        $index = 1;
+        foreach ($manhinhs as $manhinh) {
+            $sheet->setCellValue("A{$startRow}", $index);
+            $sheet->setCellValue("B{$startRow}", $manhinh->ma_man_hinh);
+            $sheet->setCellValue("C{$startRow}", $manhinh->ten_man_hinh);
+            $sheet->setCellValue("D{$startRow}", $manhinh->ten_camera ?? 'Chưa gắn camera');
+            $sheet->setCellValue("E{$startRow}", $manhinh->ten_template ?? 'Chưa gắn template');
             
-            // Xử lý trạng thái
-            $status = $camera->status == 1 ? 'Hoạt động' : 'Không hoạt động';
-            $sheet->setCellValue('G' . $row, $status);
+            // Căn giữa cột STT
+            $sheet->getStyle("A{$startRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             
-            $row++;
-            $i++;
+            $startRow++;
+            $index++;
         }
-        
-        // Định dạng dữ liệu
-        $dataStyle = [
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => Border::BORDER_THIN,
-                ],
-            ],
-        ];
-        $sheet->getStyle('A' . ($headerRow + 1) . ':G' . ($row - 1))->applyFromArray($dataStyle);
-        
-        // Điều chỉnh kích thước cột
-        $sheet->getColumnDimension('A')->setWidth(10);
-        $sheet->getColumnDimension('B')->setWidth(15);
-        $sheet->getColumnDimension('C')->setWidth(40);
-        $sheet->getColumnDimension('D')->setWidth(20);
-        $sheet->getColumnDimension('E')->setWidth(10);
-        $sheet->getColumnDimension('F')->setWidth(20);
-        $sheet->getColumnDimension('G')->setWidth(15);
-        
-        // Thêm ngày xuất báo cáo
-        $row += 1;
-        $sheet->setCellValue('A' . $row, 'Ngày xuất báo cáo: ' . date('d/m/Y H:i:s'));
-        $sheet->mergeCells('A' . $row . ':G' . $row);
-        
-        // Định dạng ngày xuất báo cáo
-        $sheet->getStyle('A' . $row)->getFont()->setItalic(true);
-        $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-        
-        // Thiết lập header để tải xuống
-        $filterSuffix = '';
+
+        // Tự động điều chỉnh độ rộng cột
+        foreach (range('A', 'E') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        // Tạo border cho bảng
+        $lastRow = $startRow - 1;
+        $sheet->getStyle("A{$row}:E{$lastRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        // Thiết lập header cho response
+        $filename = 'Danh_sach_man_hinh';
         if (!empty($keyword)) {
-            $filterSuffix .= '_keyword_' . preg_replace('/[^a-z0-9]/i', '_', $keyword);
+            $filename .= '_keyword_' . preg_replace('/[^a-z0-9]/i', '_', $keyword);
         }
         if ($status !== null && $status !== '') {
-            $filterSuffix .= '_status_' . $status;
+            $filename .= '_status_' . $status;
         }
-        
-        $filename = 'Danh_sach_camera' . $filterSuffix . '_' . date('Y-m-d_H-i-s') . '.xlsx';
-        
-        // Redirect output to client browser
+        $filename .= '_' . date('dmY_His') . '.xlsx';
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
-        
+
+        // Xuất file
         $writer = new Xlsx($spreadsheet);
         $writer->save('php://output');
         exit();
@@ -1119,7 +1106,7 @@ class Manhinh extends BaseController
         // Lấy tham số lọc từ URL
         $keyword = $this->request->getGet('keyword') ?? '';
         $status = $this->request->getGet('status');
-        $sort = $this->request->getGet('sort') ?? 'ten_camera';
+        $sort = $this->request->getGet('sort') ?? 'ten_man_hinh';
         $order = $this->request->getGet('order') ?? 'ASC';
         
         // Xây dựng tham số tìm kiếm
@@ -1133,8 +1120,8 @@ class Manhinh extends BaseController
             $searchParams['status'] = (int)$status;
         }
         
-        // Lấy dữ liệu camera theo bộ lọc mà không giới hạn phân trang
-        $cameras = $this->model->search($searchParams, [
+        // Lấy dữ liệu màn hình theo bộ lọc mà không giới hạn phân trang
+        $manhinhs = $this->model->search($searchParams, [
             'sort' => $sort,
             'order' => $order,
             'limit' => 0 // Không giới hạn số lượng kết quả
@@ -1142,8 +1129,8 @@ class Manhinh extends BaseController
         
         // Chuẩn bị dữ liệu cho view
         $data = [
-            'title' => 'DANH SÁCH CAMERA',
-            'cameras' => $cameras,
+            'title' => 'DANH SÁCH MÀN HÌNH',
+            'manhinhs' => $manhinhs,
             'date' => date('d/m/Y H:i:s')
         ];
         
@@ -1184,7 +1171,7 @@ class Manhinh extends BaseController
             $filterSuffix .= '_status_' . $status;
         }
         
-        $filename = 'danh_sach_camera' . $filterSuffix . '_' . date('dmY_His') . '.pdf';
+        $filename = 'danh_sach_man_hinh' . $filterSuffix . '_' . date('dmY_His') . '.pdf';
         
         // Stream file PDF để tải xuống
         $dompdf->stream($filename, ['Attachment' => true]);
@@ -1204,7 +1191,7 @@ class Manhinh extends BaseController
         
         // Xây dựng tham số tìm kiếm
         $searchParams = [
-            'bin' => 1 // Luôn lấy các camera trong thùng rác
+            'bin' => 1 // Luôn lấy các màn hình trong thùng rác
         ];
         
         if (!empty($keyword)) {
@@ -1216,8 +1203,8 @@ class Manhinh extends BaseController
             $searchParams['status'] = (int)$status;
         }
         
-        // Lấy dữ liệu camera theo bộ lọc mà không giới hạn phân trang
-        $cameras = $this->model->search($searchParams, [
+        // Lấy dữ liệu màn hình theo bộ lọc mà không giới hạn phân trang
+        $manhinhs = $this->model->search($searchParams, [
             'sort' => $sort,
             'order' => $order,
             'limit' => 0 // Không giới hạn số lượng kết quả
@@ -1225,8 +1212,8 @@ class Manhinh extends BaseController
         
         // Tạo dữ liệu cho PDF
         $pdfData = [
-            'title' => 'DANH SÁCH CAMERA ĐÃ XÓA',
-            'cameras' => $cameras,
+            'title' => 'DANH SÁCH MÀN HÌNH ĐÃ XÓA',
+            'manhinhs' => $manhinhs,
             'date' => date('d/m/Y H:i:s')
         ];
         
@@ -1267,7 +1254,7 @@ class Manhinh extends BaseController
             $filterSuffix .= '_status_' . $status;
         }
         
-        $filename = 'danh_sach_camera_da_xoa' . $filterSuffix . '_' . date('dmY_His') . '.pdf';
+        $filename = 'danh_sach_man_hinh_da_xoa' . $filterSuffix . '_' . date('dmY_His') . '.pdf';
         
         // Stream file PDF để tải xuống
         $dompdf->stream($filename, ['Attachment' => true]);

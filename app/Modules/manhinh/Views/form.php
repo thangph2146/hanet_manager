@@ -263,8 +263,10 @@ $isUpdate = isset($manhinh) && isset($manhinh->man_hinh_id);
 <style>
     /* Select Bootstrap 5 theme integration */
     .select-container--bootstrap-5 .select-selection {
-        min-height: 38px;        padding: 0.375re 0.75rem;
-        font-size: 1rem        font-weight: 400;
+        min-height: 38px;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
         line-height: 1.5;
         border: 1px solid #dee2e6;
     }

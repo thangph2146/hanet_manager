@@ -40,6 +40,7 @@ class ManHinh extends BaseEntity
         'ten_man_hinh' => 'required|min_length[3]|max_length[255]|is_unique[man_hinh.ten_man_hinh,man_hinh_id,{man_hinh_id}]',
         'ma_man_hinh' => 'permit_empty|max_length[20]',
         'camera_id' => 'permit_empty|integer',
+        'template_id' => 'permit_empty|integer',
         'status' => 'permit_empty|in_list[0,1]',
         'bin' => 'permit_empty|in_list[0,1]',
     ];
@@ -59,6 +60,12 @@ class ManHinh extends BaseEntity
         ],
         'template_id' => [
             'integer' => 'Template ID phải là số nguyên',
+        ],
+        'status' => [
+            'in_list' => 'Trạng thái không hợp lệ',
+        ],
+        'bin' => [
+            'in_list' => 'Trạng thái thùng rác không hợp lệ',
         ],
     ];
     
@@ -165,11 +172,11 @@ class ManHinh extends BaseEntity
      */
     public function getCameraInfo()
     {
-        if (empty($this->camera)) {
+        if (empty($this->attributes['ten_camera'])) {
             return '<span class="text-muted">Chưa gán camera</span>';
         }
         
-        return '<span class="badge bg-info">' . esc($this->camera->ten_camera) . '</span>';
+        return '<span class="badge bg-info">' . esc($this->attributes['ten_camera']) . '</span>';
     }
     
     /**
@@ -179,11 +186,11 @@ class ManHinh extends BaseEntity
      */
     public function getTemplateInfo()
     {
-        if (empty($this->template)) {
+        if (empty($this->attributes['ten_template'])) {
             return '<span class="text-muted">Chưa gán template</span>';
         }
         
-        return '<span class="badge bg-secondary">' . esc($this->template->ten_template) . '</span>';
+        return '<span class="badge bg-secondary">' . esc($this->attributes['ten_template']) . '</span>';
     }
     
     /**

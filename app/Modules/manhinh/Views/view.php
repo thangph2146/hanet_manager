@@ -59,36 +59,26 @@
                         <td><?= esc($manhinh->ten_man_hinh) ?></td>
                     </tr>
                     <tr>
-                        <th>Địa chỉ IP</th>
-                        <td><?= esc($manhinh->ip_man_hinh) ?></td>
+                        <th>Camera</th>
+                        <td><?= $manhinh->getCameraInfo() ?></td>
                     </tr>
                     <tr>
-                        <th>Port</th>
-                        <td><?= esc($manhinh->port) ?></td>
-                    </tr>
-                    <tr>
-                        <th>Tên đăng nhập</th>
-                        <td><?= esc($manhinh->username) ?></td>
+                        <th>Template</th>
+                        <td><?= $manhinh->getTemplateInfo() ?></td>
                     </tr>
                     <tr>
                         <th>Trạng thái</th>
-                        <td>
-                            <?php if ($manhinh->status == 1) : ?>
-                                <span class="badge bg-success">Hoạt động</span>
-                            <?php else : ?>
-                                <span class="badge bg-danger">Không hoạt động</span>
-                            <?php endif; ?>
-                        </td>
+                        <td><?= $manhinh->getStatusLabel() ?></td>
                     </tr>
                     <tr>
                         <th>Ngày tạo</th>
-                        <td><?= date('d/m/Y H:i:s', strtotime($manhinh->created_at)) ?></td>
+                        <td><?= $manhinh->getCreatedAtFormatted() ?></td>
                     </tr>
                     <tr>
                         <th>Cập nhật lần cuối</th>
                         <td>
                             <?php if (!empty($manhinh->updated_at)) : ?>
-                                <?= date('d/m/Y H:i:s', strtotime($manhinh->updated_at)) ?>
+                                <?= $manhinh->getUpdatedAtFormatted() ?>
                             <?php else : ?>
                                 <span class="text-muted">Chưa cập nhật</span>
                             <?php endif; ?>
