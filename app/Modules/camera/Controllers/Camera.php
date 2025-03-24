@@ -72,47 +72,100 @@ class Camera extends BaseController
         $sort = $this->request->getGet('sort') ?? 'ten_camera';
         $order = $this->request->getGet('order') ?? 'ASC';
         $keyword = $this->request->getGet('keyword') ?? '';
-        $status = $this->request->getGet('status') ?? '';
+        $status = $this->request->getGet('status');
+        
+        // Kiểm tra các tham số không hợp lệ
+        if ($page < 1) $page = 1;
+        if ($perPage < 1) $perPage = 10;
+        
+        // Log chi tiết URL và tham số
+        log_message('debug', '[Controller] URL đầy đủ: ' . current_url() . '?' . http_build_query($_GET));
+        log_message('debug', '[Controller] Tham số request: ' . json_encode($_GET));
+        log_message('debug', '[Controller] Đã xử lý: page=' . $page . ', perPage=' . $perPage . ', sort=' . $sort . 
+            ', order=' . $order . ', keyword=' . $keyword . ', status=' . $status);
+        
+        // Đảm bảo status được xử lý đúng cách, kể cả khi status=0
+        // Lưu ý rằng status=0 là một giá trị hợp lệ (không hoạt động)
+        $statusFilter = null;
+        if ($status !== null && $status !== '') {
+            $statusFilter = (int)$status;
+            log_message('debug', '[Controller] Status từ request: ' . $status . ' sau khi ép kiểu: ' . $statusFilter);
+        }
+        
+        // Tính toán offset chính xác cho phân trang
+        $offset = ($page - 1) * $perPage;
+        log_message('debug', '[Controller] Đã tính toán: offset=' . $offset . ' (từ page=' . $page . ', perPage=' . $perPage . ')');
         
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
         
-        // Lấy danh sách camera dựa trên tìm kiếm hoặc tất cả
-        if (!empty($keyword) || $status !== '') {
-            $searchParams = [
-                'keyword' => $keyword,
-                'status' => $status,
-                'sort' => $sort,
-                'order' => $order
-            ];
+        // Xây dựng tham số tìm kiếm
+        $searchParams = [];
+        if (!empty($keyword)) {
+            $searchParams['keyword'] = $keyword;
+        }
+        
+        // Đặc biệt, chỉ thêm status vào nếu nó đã được chỉ định (bao gồm status=0)
+        if ($status !== null && $status !== '') {
+            $searchParams['status'] = $statusFilter;
+        }
+        
+        // Log tham số tìm kiếm cuối cùng
+        log_message('debug', '[Controller] Tham số tìm kiếm cuối cùng: ' . json_encode($searchParams));
+        
+        // Lấy dữ liệu camera và thông tin phân trang
+        $cameras = $this->model->search($searchParams, [
+            'limit' => $perPage,
+            'offset' => $offset,
+            'sort' => $sort,
+            'order' => $order
+        ]);
+        
+        // Lấy tổng số kết quả
+        $total = $this->model->getPager()->getTotal();
+        log_message('debug', '[Controller] Tổng số kết quả từ pager: ' . $total);
+        
+        // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
+        $pageCount = ceil($total / $perPage);
+        if ($total > 0 && $page > $pageCount) {
+            log_message('debug', '[Controller] Trang yêu cầu (' . $page . ') vượt quá tổng số trang (' . $pageCount . '), chuyển hướng về trang cuối.');
             
-            // Lấy dữ liệu camera và thông tin phân trang
-            $cameras = $this->model->search($searchParams, [
-                'limit' => $perPage,
-                'offset' => ($page - 1) * $perPage,
-                'sort' => $sort,
-                'order' => $order
-            ]);
+            // Tạo URL mới với trang cuối cùng
+            $redirectParams = $_GET;
+            $redirectParams['page'] = $pageCount;
+            $redirectUrl = site_url('camera') . '?' . http_build_query($redirectParams);
             
-            $total = $this->model->countSearchResults($searchParams);
-        } else {
-            // Lấy tất cả camera và thông tin phân trang
-            $cameras = $this->model->getAll($perPage, ($page - 1) * $perPage, $sort, $order);
-            $total = $this->model->countAll();
+            // Chuyển hướng đến trang cuối cùng
+            return redirect()->to($redirectUrl);
         }
         
         // Lấy pager từ model và thiết lập các tham số
         $pager = $this->model->getPager();
         if ($pager !== null) {
             $pager->setPath('camera');
-            // Không cần thiết lập segment vì chúng ta sử dụng query string
+            // Thêm tất cả các tham số cần giữ lại khi chuyển trang
             $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order']);
             
-            // Đảm bảo perPage được thiết lập đúng trong pager
+            // Đảm bảo perPage và currentPage được thiết lập đúng
             $pager->setPerPage($perPage);
-            
-            // Thiết lập trang hiện tại
             $pager->setCurrentPage($page);
+            
+            // Log thông tin pager cuối cùng
+            log_message('debug', '[Controller] Thông tin pager: ' . json_encode([
+                'total' => $pager->getTotal(),
+                'perPage' => $pager->getPerPage(),
+                'currentPage' => $pager->getCurrentPage(),
+                'pageCount' => $pager->getPageCount()
+            ]));
+        }
+        
+        // Kiểm tra số lượng camera trả về
+        log_message('debug', '[Controller] Số lượng camera trả về: ' . count($cameras));
+        if (!empty($cameras)) {
+            $firstCamera = $cameras[0];
+            log_message('debug', '[Controller] Camera đầu tiên: ID=' . $firstCamera->camera_id . 
+                ', Tên=' . $firstCamera->ten_camera . 
+                ', Status=' . $firstCamera->status);
         }
         
         // Chuẩn bị dữ liệu cho view
@@ -120,11 +173,21 @@ class Camera extends BaseController
         $this->data['pager'] = $pager;
         $this->data['currentPage'] = $page;
         $this->data['perPage'] = $perPage;
-        $this->data['total'] = $pager ? $pager->getTotal() : 0;
+        $this->data['total'] = $total;
         $this->data['sort'] = $sort;
         $this->data['order'] = $order;
         $this->data['keyword'] = $keyword;
-        $this->data['status'] = $status;
+        $this->data['status'] = $status; // Giữ nguyên status gốc từ request
+        
+        // Debug thông tin cuối cùng
+        log_message('debug', '[Controller] Dữ liệu gửi đến view: ' . json_encode([
+            'currentPage' => $page,
+            'perPage' => $perPage,
+            'total' => $total,
+            'pageCount' => $pager ? $pager->getPageCount() : 0,
+            'status' => $status,
+            'camera_count' => count($cameras)
+        ]));
         
         // Hiển thị view
         return view('App\Modules\camera\Views\index', $this->data);

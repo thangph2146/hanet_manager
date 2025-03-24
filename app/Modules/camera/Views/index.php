@@ -21,6 +21,7 @@
 <?= $this->endSection() ?>  
 
 <?= $this->section('content') ?>
+
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">Danh sách camera</h5>
@@ -109,6 +110,34 @@
             </div>
         <?php endif; ?>
         
+    <!-- Phần debug info (chỉ hiển thị trong môi trường development) -->
+    <?php if (ENVIRONMENT === 'development'): ?>
+    <div class="card mt-3 mx-3">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0">Debug Info</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>URL Parameters:</h6>
+                    <pre><?= json_encode($_GET, JSON_PRETTY_PRINT) ?></pre>
+                </div>
+                <div class="col-md-6">
+                    <h6>Pagination Info:</h6>
+                    <pre><?= json_encode([
+                        'current_page' => $currentPage,
+                        'per_page' => $perPage,
+                        'total_records' => $total,
+                        'total_pages' => $pager ? $pager->getPageCount() : 0,
+                        'status' => $status,
+                        'keyword' => $keyword,
+                        'camera_count' => count($cameras)
+                    ], JSON_PRETTY_PRINT) ?></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
         <div class="table-responsive">
             <div class="table-container">
                 <table id="dataTable" class="table table-striped table-hover m-0 w-100">
@@ -286,6 +315,7 @@
         </div>
     </div>
 </div>
+
 
 <script>
     var base_url = '<?= site_url() ?>';
@@ -467,12 +497,30 @@
             const perPage = this.value;
             const urlParams = new URLSearchParams(window.location.search);
             
-            // Giữ lại các tham số cần thiết
-            urlParams.set('perPage', perPage);
-            urlParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
+            // Giữ lại tất cả các tham số cần thiết
+            const paramsToKeep = ['keyword', 'status', 'sort', 'order'];
+            
+            // Tạo URL mới với tham số perPage và reset về trang 1
+            const newParams = new URLSearchParams();
+            newParams.set('perPage', perPage);
+            newParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
+            
+            // Giữ lại các tham số quan trọng
+            paramsToKeep.forEach(param => {
+                if (urlParams.has(param)) {
+                    // Đặc biệt xử lý status=0
+                    if (param === 'status' && urlParams.get(param) === '0') {
+                        newParams.set(param, '0');
+                    } 
+                    // Chỉ giữ lại tham số có giá trị
+                    else if (urlParams.get(param)) {
+                        newParams.set(param, urlParams.get(param));
+                    }
+                }
+            });
             
             // Chuyển hướng đến URL mới
-            window.location.href = window.location.pathname + '?' + urlParams.toString();
+            window.location.href = window.location.pathname + '?' + newParams.toString();
         });
     });
 </script>

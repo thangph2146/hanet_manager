@@ -291,9 +291,10 @@ class CameraPager
      */
     public function getPageURL(int $page)
     {
+        // Đảm bảo số trang nằm trong khoảng hợp lệ
         $page = max(1, min($page, $this->pageCount));
         
-        // Sử dụng path và thêm tham số page vào query string
+        // Lấy path từ thiết lập hoặc URI hiện tại
         if (empty($this->path)) {
             // Nếu không có path được thiết lập, sử dụng URI hiện tại
             $uri = service('uri');
@@ -303,8 +304,14 @@ class CameraPager
             $path = $this->path;
         }
         
+        // Log path được sử dụng
+        log_message('debug', '[Pager] Path được sử dụng: ' . $path);
+        
         // Lấy tất cả các tham số GET hiện tại
         $query = $_GET;
+        
+        // Log các tham số GET hiện tại
+        log_message('debug', '[Pager] Tham số GET gốc: ' . json_encode($query));
         
         // Cập nhật tham số page
         $query['page'] = $page;
@@ -314,16 +321,40 @@ class CameraPager
             $query['perPage'] = $this->perPage;
         }
         
+        // Đảm bảo các tham số quan trọng luôn được giữ lại
+        $importantParams = ['keyword', 'status', 'sort', 'order'];
+        foreach ($importantParams as $param) {
+            if (isset($_GET[$param])) {
+                // Xử lý đặc biệt cho trường hợp status=0
+                if ($param === 'status' && $_GET[$param] === '0') {
+                    $query[$param] = '0';
+                    log_message('debug', '[Pager] Xử lý đặc biệt: giữ lại status=0');
+                } 
+                // Chỉ giữ lại tham số có giá trị hoặc giá trị rỗng có chủ đích
+                else if ($_GET[$param] !== '') {
+                    $query[$param] = $_GET[$param];
+                }
+            }
+        }
+        
         // Lọc các tham số chỉ định trong only (nếu có)
         if (!empty($this->only)) {
+            // Log thông tin only trước khi lọc
+            log_message('debug', '[Pager] Danh sách only: ' . json_encode($this->only));
+            
             $newQuery = [];
             foreach ($this->only as $key) {
                 if (isset($query[$key])) {
                     $newQuery[$key] = $query[$key];
                 }
             }
-            // Thêm tham số page vào danh sách được giữ lại
+            
+            // Luôn thêm tham số page vào danh sách được giữ lại
             $newQuery['page'] = $page;
+            
+            // Log các tham số sau khi lọc qua only
+            log_message('debug', '[Pager] Tham số sau khi lọc qua only: ' . json_encode($newQuery));
+            
             $query = $newQuery;
         }
         
@@ -336,6 +367,9 @@ class CameraPager
             $url .= '?' . $queryString;
         }
         
+        // Log URL cuối cùng 
+        log_message('debug', '[Pager] Tạo URL cho trang ' . $page . ': ' . $url);
+        
         return $url;
     }
     
@@ -346,6 +380,11 @@ class CameraPager
      */
     public function getPageNumbers()
     {
+        // Log thông tin request hiện tại để debug
+        if (isset($_GET['status']) && $_GET['status'] === '0') {
+            log_message('debug', 'Pager: Đang xử lý getPageNumbers với status=0');
+        }
+        
         // Nếu tổng số trang ít, hiển thị tất cả
         if ($this->pageCount <= ($this->surroundCount * 2) + 3) {
             return range(1, max(1, $this->pageCount));

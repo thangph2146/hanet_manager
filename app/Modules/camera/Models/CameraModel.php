@@ -284,6 +284,11 @@ class CameraModel extends BaseModel
         $this->builder = $this->db->table($this->table);
         $this->builder->select('*');
         
+        // Loại trừ các bản ghi đã bị xóa mềm
+        if ($this->useSoftDeletes) {
+            $this->builder->where($this->table . '.' . $this->deletedField, null);
+        }
+        
         // Mặc định các tùy chọn
         $defaultOptions = [
             'limit' => 10,
@@ -295,34 +300,57 @@ class CameraModel extends BaseModel
         // Merge options
         $options = array_merge($defaultOptions, $options);
         
-        // Xử lý các điều kiện tìm kiếm
+        // Log đầy đủ tham số tìm kiếm và tùy chọn
+        log_message('debug', 'Tham số tìm kiếm và tùy chọn đầy đủ:');
+        log_message('debug', 'Tham số tìm kiếm: ' . json_encode($criteria));
+        log_message('debug', 'Tùy chọn: ' . json_encode($options));
+        
+        // Xử lý từ khóa tìm kiếm
         if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
-            $keyword = $criteria['keyword'];
+            $keyword = trim($criteria['keyword']);
+            
+            // Sử dụng LIKE chính xác
             $this->builder->groupStart();
-            $this->builder->like('ma_camera', $keyword);
-            $this->builder->orLike('ten_camera', $keyword);
-            $this->builder->orLike('ip_camera', $keyword);
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $this->builder->like($field, $keyword);
+                } else {
+                    $this->builder->orLike($field, $keyword);
+                }
+            }
             $this->builder->groupEnd();
+            
+            log_message('debug', 'Từ khóa tìm kiếm: ' . $keyword);
         }
         
-        if (isset($criteria['status']) && $criteria['status'] !== '') {
-            $this->builder->where('status', $criteria['status']);
+        // Xử lý status - đặc biệt quan tâm đến status=0
+        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
+            $status = $criteria['status'];
+            log_message('debug', 'Giá trị status nhận được: ' . var_export($status, true));
+            
+            // Chuyển đổi thành số và áp dụng cho truy vấn
+            $status = (int)$status;
+            $this->builder->where($this->table . '.status', $status);
+            log_message('debug', 'Giá trị status sau khi ép kiểu: ' . $status);
         }
         
         // Xác định xem đang lấy dữ liệu từ thùng rác hay không
-        $bin = isset($criteria['bin']) ? $criteria['bin'] : 0;
-        $this->builder->where('bin', $bin);
+        $bin = isset($criteria['bin']) ? (int)$criteria['bin'] : 0;
+        $this->builder->where($this->table . '.bin', $bin);
         
         // Thiết lập sắp xếp
         if (!empty($options['sort']) && !empty($options['order'])) {
             $this->builder->orderBy($options['sort'], $options['order']);
         }
         
-        // Lấy tổng số bản ghi tìm kiếm để cấu hình pagination
-        $total = $this->countSearchResults($criteria);
+        // Clone builder để đếm tổng số bản ghi
+        $builderForCount = clone $this->builder;
+        $total = $builderForCount->countAllResults();
+        log_message('debug', 'Tổng số bản ghi phù hợp (đếm trực tiếp): ' . $total);
         
         // Tính toán trang hiện tại từ offset và limit
         $currentPage = $options['limit'] > 0 ? floor($options['offset'] / $options['limit']) + 1 : 1;
+        log_message('debug', 'Tính toán trang: offset=' . $options['offset'] . ', limit=' . $options['limit'] . ', trang=' . $currentPage);
         
         // Khởi tạo CameraPager nếu chưa có
         if ($this->cameraPager === null) {
@@ -335,7 +363,58 @@ class CameraModel extends BaseModel
         
         // Phân trang kết quả
         if ($options['limit'] > 0) {
-            $result = $this->builder->limit($options['limit'], $options['offset'])->get()->getResult($this->returnType);
+            // Log câu lệnh SQL để debug trước khi thêm limit
+            $sqlBeforeLimit = $this->builder->getCompiledSelect(false);
+            log_message('debug', 'SQL Query trước khi limit: ' . $sqlBeforeLimit);
+            
+            // Đảm bảo offset không vượt quá tổng số bản ghi
+            if ($options['offset'] >= $total) {
+                // Nếu offset vượt quá, reset về trang 1
+                log_message('debug', 'Offset vượt quá tổng số bản ghi, reset về trang 1');
+                $options['offset'] = 0;
+                $currentPage = 1;
+                
+                // Cập nhật lại pager
+                $this->cameraPager->setCurrentPage($currentPage);
+            }
+            
+            // Thêm limit và lấy kết quả
+            $this->builder->limit($options['limit'], $options['offset']);
+            $sqlWithLimit = $this->builder->getCompiledSelect(false);
+            log_message('debug', 'SQL Query sau khi limit: ' . $sqlWithLimit);
+            
+            // Thực hiện truy vấn
+            $result = $this->builder->get()->getResult($this->returnType);
+            
+            // Debug thông tin chi tiết các bản ghi
+            if (!empty($result)) {
+                // Lấy danh sách ID của các bản ghi trả về
+                $record_ids = array_map(function($record) {
+                    return $record->camera_id;
+                }, $result);
+                
+                // Log thông tin chi tiết
+                $debug_info = [
+                    'total_records' => $total,
+                    'current_page' => $currentPage,
+                    'per_page' => $options['limit'],
+                    'offset' => $options['offset'],
+                    'record_count' => count($result),
+                    'record_ids' => $record_ids
+                ];
+                log_message('debug', 'Thông tin phân trang và kết quả: ' . json_encode($debug_info));
+                
+                // Lấy một số bản ghi đầu tiên để kiểm tra
+                if (count($result) > 0) {
+                    $sampleRecord = $result[0];
+                    log_message('debug', 'Bản ghi đầu tiên: camera_id=' . $sampleRecord->camera_id . 
+                        ', ten_camera=' . $sampleRecord->ten_camera . 
+                        ', status=' . $sampleRecord->status);
+                }
+            } else {
+                log_message('debug', 'Không tìm thấy bản ghi nào với các tham số hiện tại');
+            }
+            
             return $result ?: [];
         }
         
@@ -352,34 +431,54 @@ class CameraModel extends BaseModel
     {
         $builder = $this->builder();
         
-        // Xử lý từ khóa tìm kiếm
-        if (!empty($params['keyword'])) {
-            $keyword = trim($params['keyword']);
-            $builder->groupStart();
-            foreach ($this->searchableFields as $field) {
-                $builder->orLike($field, $keyword);
-            }
-            $builder->groupEnd();
-        }
-        
-        // Lọc theo trạng thái
-        if (isset($params['status']) && $params['status'] !== '') {
-            $builder->where('status', (int)$params['status']);
-        }
-        
-        // Mặc định không đếm những bản ghi đã soft delete
+        // Loại trừ các bản ghi đã bị xóa mềm
         if ($this->useSoftDeletes) {
             $builder->where($this->table . '.' . $this->deletedField, null);
         }
         
-        // Mặc định không đếm bản ghi trong thùng rác, trừ khi chỉ định rõ
-        if (!isset($params['bin']) || $params['bin'] === '') {
-            $builder->where('bin', 0);
-        } else {
-            $builder->where('bin', (int)$params['bin']);
+        // Log tham số đầu vào
+        log_message('debug', 'Count: Tham số đếm nhận được: ' . json_encode($params));
+        
+        // Xử lý từ khóa tìm kiếm
+        if (!empty($params['keyword'])) {
+            $keyword = trim($params['keyword']);
+            
+            $builder->groupStart();
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($field, $keyword);
+                } else {
+                    $builder->orLike($field, $keyword);
+                }
+            }
+            $builder->groupEnd();
+            
+            log_message('debug', 'Count: Từ khóa tìm kiếm: ' . $keyword);
         }
         
-        return $builder->countAllResults();
+        // Xử lý status - giống như phương thức search()
+        if (isset($params['status']) || array_key_exists('status', $params)) {
+            $status = $params['status'];
+            log_message('debug', 'Count: Giá trị status nhận được: ' . var_export($status, true));
+            
+            // Chuyển đổi thành số và áp dụng cho truy vấn
+            $status = (int)$status;
+            $builder->where($this->table . '.status', $status);
+            log_message('debug', 'Count: Giá trị status sau khi ép kiểu: ' . $status);
+        }
+        
+        // Mặc định không đếm bản ghi trong thùng rác, trừ khi chỉ định rõ
+        $bin = isset($params['bin']) ? (int)$params['bin'] : 0;
+        $builder->where($this->table . '.bin', $bin);
+        
+        // Log câu lệnh SQL để debug
+        $sqlCount = $builder->getCompiledSelect(false);
+        log_message('debug', 'Count: SQL Query để đếm: ' . $sqlCount);
+        
+        $count = $builder->countAllResults();
+        log_message('debug', 'Count: Tổng số bản ghi tìm thấy: ' . $count);
+        
+        return $count;
     }
     
     /**
