@@ -379,11 +379,11 @@
             const name = $(this).data('name');
             $('#delete-item-name').text(name);
             
-            // Lấy URL hiện tại làm return_url
-            const currentUrl = window.location.href;
+            // Lấy đường dẫn tương đối (path + query string)
+            const pathAndQuery = window.location.pathname + window.location.search;
             
-            // Tạo form xóa với tham số return_url
-            const deleteUrl = '<?= site_url('camera/delete/') ?>' + id + '?return_url=' + encodeURIComponent(currentUrl);
+            // Tạo URL xóa với tham số truy vấn return_url
+            const deleteUrl = '<?= site_url('camera/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             $('#delete-form').attr('action', deleteUrl);
             
             console.log('URL xóa:', deleteUrl);
@@ -436,8 +436,18 @@
             // Tạo form tạm thời chứa các checkbox đã chọn
             const tempForm = $('#form-delete-multiple');
             
-            // Xóa form cũ và tạo form mới
+            // Xóa các input cũ
             tempForm.empty();
+            
+            // Lấy đường dẫn tương đối (path + query string) thay vì URL đầy đủ
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Thêm URL hiện tại làm return_url
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }));
             
             // Thêm các checkbox đã chọn vào form
             $('.checkbox-item:checked').each(function() {
@@ -447,6 +457,12 @@
                     value: $(this).val()
                 });
                 tempForm.append(input);
+            });
+            
+            console.log('Deleting multiple items with return URL path:', pathAndQuery);
+            console.log('Form data:', {
+                return_url: pathAndQuery,
+                selected_ids: $('.checkbox-item:checked').map(function() { return $(this).val(); }).get()
             });
             
             // Submit form

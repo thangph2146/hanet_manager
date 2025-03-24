@@ -449,19 +449,13 @@ class Camera extends BaseController
             $this->alert->set('danger', 'Có lỗi xảy ra khi xóa camera', true);
         }
         
-        // Lấy URL trở về từ POST hoặc GET
-        $returnUrl = $this->request->getGet('return_url') ?? $this->request->getPost('return_url');
+        // Lấy URL trả về từ tham số truy vấn hoặc từ tham số đường dẫn
+        $returnUrl = $this->request->getGet('return_url') ?? $backToUrl;
         
-        if (!empty($returnUrl)) {
-            // Giải mã URL nếu đã được mã hóa
-            $returnUrl = urldecode($returnUrl);
-            log_message('debug', 'Return URL sau khi giải mã: ' . $returnUrl);
-            
-            return redirect()->to($returnUrl);
-        }
+        // Xử lý URL chuyển hướng
+        $redirectUrl = $this->processReturnUrl($returnUrl);
         
-        // Mặc định trở về trang danh sách camera
-        return redirect()->to($this->moduleUrl);
+        return redirect()->to($redirectUrl);
     }
     
     /**
@@ -668,11 +662,22 @@ class Camera extends BaseController
      */
     public function deleteMultiple()
     {
+        // Lấy các ID được chọn và URL trả về
         $selectedIds = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url');
+        
         if (empty($selectedIds)) {
             $this->alert->set('warning', 'Chưa chọn camera nào để xóa', true);
-            return redirect()->to($this->moduleUrl);
+            
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl);
         }
+        
+        // Log để debug
+        log_message('debug', 'DeleteMultiple - POST data: ' . json_encode($_POST));
+        log_message('debug', 'DeleteMultiple - Selected IDs: ' . json_encode($selectedIds));
+        log_message('debug', 'DeleteMultiple - Return URL: ' . ($returnUrl ?? 'None'));
         
         $successCount = 0;
         
@@ -691,7 +696,48 @@ class Camera extends BaseController
             $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa camera', true);
         }
         
-        return redirect()->to($this->moduleUrl);
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl);
+    }
+    
+    /**
+     * Xử lý URL trả về, loại bỏ domain nếu cần
+     * 
+     * @param string|null $returnUrl URL trả về
+     * @return string URL đích đã được xử lý
+     */
+    private function processReturnUrl($returnUrl)
+    {
+        // Mặc định là URL module
+        $redirectUrl = $this->moduleUrl;
+        
+        if (!empty($returnUrl)) {
+            // Giải mã URL
+            $decodedUrl = urldecode($returnUrl);
+            log_message('debug', 'Return URL sau khi giải mã: ' . $decodedUrl);
+            
+            // Kiểm tra nếu URL chứa domain, chỉ lấy phần path và query
+            if (strpos($decodedUrl, 'http') === 0) {
+                $urlParts = parse_url($decodedUrl);
+                $path = $urlParts['path'] ?? '';
+                $query = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
+                $decodedUrl = $path . $query;
+            }
+            
+            // Xử lý đường dẫn tương đối
+            if (strpos($decodedUrl, '/') === 0) {
+                $decodedUrl = substr($decodedUrl, 1);
+            }
+            
+            // Log cho debug
+            log_message('debug', 'URL sau khi xử lý: ' . $decodedUrl);
+            
+            // Cập nhật URL đích
+            $redirectUrl = $decodedUrl;
+        }
+        
+        return $redirectUrl;
     }
     
     /**
