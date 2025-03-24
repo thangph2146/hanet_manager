@@ -34,7 +34,7 @@
                     <i class='bx bx-export'></i> Xuất
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#" id="export-excel">Excel</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url('camera/exportExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
                     <li><a class="dropdown-item" href="#" id="export-pdf">PDF</a></li>
                 </ul>
             </div>
@@ -505,10 +505,41 @@
             $('#statusMultipleModal').modal('hide');
         });
         
-        // Xuất Excel
+        // Xuất dữ liệu
         $('#export-excel').on('click', function(e) {
             e.preventDefault();
-            window.location.href = '<?= site_url("camera/exportExcel") ?>';
+            
+            // Lấy URL hiện tại và các tham số query string
+            const currentUrl = new URL(window.location.href);
+            const queryParams = currentUrl.searchParams;
+            
+            // Tạo URL xuất Excel với các tham số cần thiết
+            let exportUrl = '<?= site_url("camera/exportExcel") ?>';
+            const params = [];
+            
+            // Thêm các tham số cần thiết
+            if (queryParams.has('keyword')) {
+                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
+            }
+            if (queryParams.has('status')) {
+                params.push('status=' + encodeURIComponent(queryParams.get('status')));
+            }
+            if (queryParams.has('sort')) {
+                params.push('sort=' + encodeURIComponent(queryParams.get('sort')));
+            }
+            if (queryParams.has('order')) {
+                params.push('order=' + encodeURIComponent(queryParams.get('order')));
+            }
+            
+            // Thêm các tham số vào URL
+            if (params.length > 0) {
+                exportUrl += '?' + params.join('&');
+            }
+            
+            console.log('Exporting to Excel with URL:', exportUrl);
+            
+            // Chuyển hướng đến URL xuất Excel
+            window.location.href = exportUrl;
         });
         
         // Xuất PDF

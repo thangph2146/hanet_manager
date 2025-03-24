@@ -32,4 +32,6 @@ $routes->group('camera', ['namespace' => 'App\Modules\camera\Controllers'], func
     $routes->get('view/(:num)', 'Camera::view/$1');
     $routes->get('exportPdf', 'Camera::exportPdf');
     $routes->get('exportExcel', 'Camera::exportExcel');
+    $routes->get('exportDeletedPdf', 'Camera::exportDeletedPdf');
+    $routes->get('exportDeletedExcel', 'Camera::exportDeletedExcel');
 }); 

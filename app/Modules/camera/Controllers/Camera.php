@@ -932,24 +932,70 @@ class Camera extends BaseController
      */
     public function exportExcel()
     {
+        // Lấy tham số lọc từ URL
+        $keyword = $this->request->getGet('keyword') ?? '';
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'ten_camera';
+        $order = $this->request->getGet('order') ?? 'ASC';
+        
+        // Xây dựng tham số tìm kiếm
+        $searchParams = [];
+        if (!empty($keyword)) {
+            $searchParams['keyword'] = $keyword;
+        }
+        
+        // Đặc biệt, chỉ thêm status vào nếu nó đã được chỉ định (bao gồm status=0)
+        if ($status !== null && $status !== '') {
+            $searchParams['status'] = (int)$status;
+        }
+        
+        // Log tham số tìm kiếm cuối cùng
+        log_message('debug', '[ExportExcel] Tham số tìm kiếm: ' . json_encode($searchParams));
+        
+        // Lấy dữ liệu camera theo bộ lọc mà không giới hạn phân trang
+        $cameras = $this->model->search($searchParams, [
+            'sort' => $sort,
+            'order' => $order,
+            'limit' => 0 // Không giới hạn số lượng kết quả
+        ]);
+        
+        log_message('debug', '[ExportExcel] Số lượng camera xuất: ' . count($cameras));
+        
         // Sử dụng thư viện PhpSpreadsheet
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         
         // Thiết lập tiêu đề
         $sheet->setCellValue('A1', 'DANH SÁCH CAMERA');
+        
+        // Thêm thông tin bộ lọc vào tiêu đề nếu có
+        $filterInfo = [];
+        if (!empty($keyword)) {
+            $filterInfo[] = "Từ khóa: " . $keyword;
+        }
+        if ($status !== null && $status !== '') {
+            $filterInfo[] = "Trạng thái: " . ($status == 1 ? 'Hoạt động' : 'Không hoạt động');
+        }
+        
+        if (!empty($filterInfo)) {
+            $sheet->setCellValue('A2', 'Bộ lọc: ' . implode(', ', $filterInfo));
+            $sheet->mergeCells('A2:G2');
+            $sheet->getStyle('A2')->getFont()->setItalic(true);
+        }
+        
         $sheet->mergeCells('A1:G1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         
         // Thiết lập header
-        $sheet->setCellValue('A3', 'STT');
-        $sheet->setCellValue('B3', 'MÃ CAMERA');
-        $sheet->setCellValue('C3', 'TÊN CAMERA');
-        $sheet->setCellValue('D3', 'ĐỊA CHỈ IP');
-        $sheet->setCellValue('E3', 'PORT');
-        $sheet->setCellValue('F3', 'TÀI KHOẢN');
-        $sheet->setCellValue('G3', 'TRẠNG THÁI');
+        $headerRow = !empty($filterInfo) ? 4 : 3;
+        $sheet->setCellValue('A' . $headerRow, 'STT');
+        $sheet->setCellValue('B' . $headerRow, 'MÃ CAMERA');
+        $sheet->setCellValue('C' . $headerRow, 'TÊN CAMERA');
+        $sheet->setCellValue('D' . $headerRow, 'ĐỊA CHỈ IP');
+        $sheet->setCellValue('E' . $headerRow, 'PORT');
+        $sheet->setCellValue('F' . $headerRow, 'TÀI KHOẢN');
+        $sheet->setCellValue('G' . $headerRow, 'TRẠNG THÁI');
         
         // Định dạng header
         $headerStyle = [
@@ -971,13 +1017,10 @@ class Camera extends BaseController
                 ],
             ],
         ];
-        $sheet->getStyle('A3:G3')->applyFromArray($headerStyle);
-        
-        // Lấy dữ liệu
-        $cameras = $this->model->getAll();
+        $sheet->getStyle('A' . $headerRow . ':G' . $headerRow)->applyFromArray($headerStyle);
         
         // Đổ dữ liệu vào sheet
-        $row = 4;
+        $row = $headerRow + 1;
         $i = 1;
         foreach ($cameras as $camera) {
             $sheet->setCellValue('A' . $row, $i);
@@ -1003,7 +1046,7 @@ class Camera extends BaseController
                 ],
             ],
         ];
-        $sheet->getStyle('A4:G' . ($row - 1))->applyFromArray($dataStyle);
+        $sheet->getStyle('A' . ($headerRow + 1) . ':G' . ($row - 1))->applyFromArray($dataStyle);
         
         // Điều chỉnh kích thước cột
         $sheet->getColumnDimension('A')->setWidth(10);
@@ -1024,7 +1067,15 @@ class Camera extends BaseController
         $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         
         // Thiết lập header để tải xuống
-        $filename = 'Danh_sach_camera_' . date('Y-m-d_H-i-s') . '.xlsx';
+        $filterSuffix = '';
+        if (!empty($keyword)) {
+            $filterSuffix .= '_keyword_' . preg_replace('/[^a-z0-9]/i', '_', $keyword);
+        }
+        if ($status !== null && $status !== '') {
+            $filterSuffix .= '_status_' . $status;
+        }
+        
+        $filename = 'Danh_sach_camera' . $filterSuffix . '_' . date('Y-m-d_H-i-s') . '.xlsx';
         
         // Redirect output to client browser
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -1120,7 +1171,37 @@ class Camera extends BaseController
      */
     public function exportDeletedExcel()
     {
-        $cameras = $this->model->getAllInRecycleBin(0); // Lấy tất cả dữ liệu không phân trang
+        // Lấy tham số lọc từ URL
+        $keyword = $this->request->getGet('keyword') ?? '';
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'updated_at';
+        $order = $this->request->getGet('order') ?? 'DESC';
+        
+        // Xây dựng tham số tìm kiếm
+        $searchParams = [
+            'bin' => 1 // Luôn lấy các camera trong thùng rác
+        ];
+        
+        if (!empty($keyword)) {
+            $searchParams['keyword'] = $keyword;
+        }
+        
+        // Đặc biệt, chỉ thêm status vào nếu nó đã được chỉ định (bao gồm status=0)
+        if ($status !== null && $status !== '') {
+            $searchParams['status'] = (int)$status;
+        }
+        
+        // Log tham số tìm kiếm cuối cùng
+        log_message('debug', '[ExportDeletedExcel] Tham số tìm kiếm: ' . json_encode($searchParams));
+        
+        // Lấy dữ liệu camera theo bộ lọc mà không giới hạn phân trang
+        $cameras = $this->model->search($searchParams, [
+            'sort' => $sort,
+            'order' => $order,
+            'limit' => 0 // Không giới hạn số lượng kết quả
+        ]);
+        
+        log_message('debug', '[ExportDeletedExcel] Số lượng camera xuất: ' . count($cameras));
         
         // Tạo đối tượng spreadsheet
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
@@ -1132,50 +1213,86 @@ class Camera extends BaseController
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
         
-        // Thiết lập ngày xuất
-        $sheet->setCellValue('A2', 'Ngày xuất: ' . date('d/m/Y H:i:s'));
-        $sheet->mergeCells('A2:G2');
+        // Thêm thông tin bộ lọc vào tiêu đề nếu có
+        $filterInfo = [];
+        if (!empty($keyword)) {
+            $filterInfo[] = "Từ khóa: " . $keyword;
+        }
+        if ($status !== null && $status !== '') {
+            $filterInfo[] = "Trạng thái: " . ($status == 1 ? 'Hoạt động' : 'Không hoạt động');
+        }
+        
+        // Thiết lập ngày xuất và bộ lọc
+        $rowInfo = 2;
+        $sheet->setCellValue('A' . $rowInfo, 'Ngày xuất: ' . date('d/m/Y H:i:s'));
+        $sheet->mergeCells('A' . $rowInfo . ':G' . $rowInfo);
+        
+        if (!empty($filterInfo)) {
+            $rowInfo++;
+            $sheet->setCellValue('A' . $rowInfo, 'Bộ lọc: ' . implode(', ', $filterInfo));
+            $sheet->mergeCells('A' . $rowInfo . ':G' . $rowInfo);
+            $sheet->getStyle('A' . $rowInfo)->getFont()->setItalic(true);
+        }
         
         // Thiết lập header
-        $headers = ['STT', 'Mã Camera', 'Tên Camera', 'Loại', 'Trạng thái', 'Địa chỉ IP', 'Ngày xóa'];
+        $headerRow = $rowInfo + 2;
+        $headers = ['STT', 'Mã Camera', 'Tên Camera', 'Địa chỉ IP', 'Port', 'Trạng thái', 'Ngày xóa'];
         $column = 'A';
-        $row = 4;
         
         foreach ($headers as $header) {
-            $sheet->setCellValue($column . $row, $header);
-            $sheet->getStyle($column . $row)->getFont()->setBold(true);
+            $sheet->setCellValue($column . $headerRow, $header);
+            $sheet->getStyle($column . $headerRow)->getFont()->setBold(true);
             $column++;
         }
         
         // Thêm dữ liệu
-        $row = 5;
+        $row = $headerRow + 1;
         $count = 1;
         foreach ($cameras as $camera) {
             $column = 'A';
             $sheet->setCellValue($column++ . $row, $count++);
-            $sheet->setCellValue($column++ . $row, $camera->camera_code);
-            $sheet->setCellValue($column++ . $row, $camera->camera_name);
-            $sheet->setCellValue($column++ . $row, $camera->type);
+            $sheet->setCellValue($column++ . $row, $camera->ma_camera);
+            $sheet->setCellValue($column++ . $row, $camera->ten_camera);
+            $sheet->setCellValue($column++ . $row, $camera->ip_camera);
+            $sheet->setCellValue($column++ . $row, $camera->port);
             $sheet->setCellValue($column++ . $row, $camera->status == 1 ? 'Hoạt động' : 'Không hoạt động');
-            $sheet->setCellValue($column++ . $row, $camera->ip_address);
-            $sheet->setCellValue($column++ . $row, $camera->deleted_at);
+            $sheet->setCellValue($column++ . $row, $camera->deleted_at ? date('d/m/Y H:i', strtotime($camera->deleted_at)) : '');
             $row++;
         }
+        
+        // Định dạng dữ liệu
+        $dataStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ];
+        $sheet->getStyle('A' . $headerRow . ':G' . ($row - 1))->applyFromArray($dataStyle);
         
         // Tự động điều chỉnh độ rộng cột
         foreach (range('A', 'G') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
         
-        // Tạo đối tượng Writer
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        // Thiết lập header để tải xuống
+        $filterSuffix = '';
+        if (!empty($keyword)) {
+            $filterSuffix .= '_keyword_' . preg_replace('/[^a-z0-9]/i', '_', $keyword);
+        }
+        if ($status !== null && $status !== '') {
+            $filterSuffix .= '_status_' . $status;
+        }
+        
+        $filename = 'Danh_sach_camera_da_xoa' . $filterSuffix . '_' . date('Y-m-d_H-i-s') . '.xlsx';
         
         // Thiết lập header
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="cameras_deleted_list.xlsx"');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
         
         // Xuất file
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save('php://output');
         exit();
     }
