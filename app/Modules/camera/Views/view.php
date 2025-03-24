@@ -1,7 +1,7 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= camera_css('view') ?>
+<?= page_css('view') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>CHI TIẾT CAMERA<?= $this->endSection() ?>
 
@@ -121,5 +121,5 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script_ext') ?>
-<?= camera_js('view') ?>
+<?= page_js('view') ?>
 <?= $this->endSection() ?>

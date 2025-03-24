@@ -1,7 +1,7 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= camera_css('form') ?>
+<?= page_css('form') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>THÊM MỚI CAMERA<?= $this->endSection() ?>
 
@@ -30,7 +30,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= camera_js('form') ?>
+<?= page_js('form') ?>
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
 		const form = document.getElementById('form-camera');

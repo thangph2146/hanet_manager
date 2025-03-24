@@ -1,8 +1,8 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= camera_css('table') ?>
-<?= camera_section_css('modal') ?>
+<?= page_css('table') ?>
+<?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>DANH SÁCH CAMERA<?= $this->endSection() ?>
 
@@ -323,8 +323,8 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= camera_js('table') ?>
-<?= camera_section_js('table') ?>
+<?= page_js('table') ?>
+<?= page_section_js('table') ?>
 
 <script>
     $(document).ready(function() {
