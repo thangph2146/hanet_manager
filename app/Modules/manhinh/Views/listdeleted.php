@@ -1,21 +1,21 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= manhinh_css('table') ?>
-<?= manhinh_section_css('modal') ?>
+<?= camera_css('table') ?>
+<?= camera_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>THÙNG RÁC - MÀN HÌNH<?= $this->endSection() ?>
+<?= $this->section('title') ?>THÙNG RÁC - CAMERA<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thùng rác - Màn hình',
-	'dashboard_url' => site_url('manhinh/dashboard'),
+	'title' => 'Thùng rác - Camera',
+	'dashboard_url' => site_url('camera/dashboard'),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Màn hình', 'url' => site_url('manhinh')],
+		['title' => 'Quản lý Camera', 'url' => site_url('camera')],
 		['title' => 'Thùng rác', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/manhinh'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+		['url' => site_url('/camera'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>
@@ -23,7 +23,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách màn hình đã xóa</h5>
+        <h5 class="card-title mb-0">Danh sách camera đã xóa</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -43,25 +43,45 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <?= form_open("manhinh/restoreMultiple", ['id' => 'form-restore-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("camera/restoreMultiple", ['id' => 'form-restore-multiple', 'class' => 'd-inline']) ?>
+                    <input type="hidden" name="_method" value="POST">
+                    <?= csrf_field() ?>
+                    <!-- Các input hidden sẽ được thêm vào bằng JavaScript -->
                     <button type="button" id="restore-selected" class="btn btn-success btn-sm me-2" disabled>
                         <i class='bx bx-revision'></i> Khôi phục mục đã chọn
                     </button>
                     <?= form_close() ?>
                     
-                    <?= form_open("manhinh/permanentDeleteMultiple", ['id' => 'form-permanent-delete-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("camera/permanentDeleteMultiple", ['id' => 'form-permanent-delete-multiple', 'class' => 'd-inline']) ?>
+                    <input type="hidden" name="_method" value="POST">
+                    <?= csrf_field() ?>
+                    <!-- Các input hidden sẽ được thêm vào bằng JavaScript -->
                     <button type="button" id="permanent-delete-selected" class="btn btn-danger btn-sm" disabled>
                         <i class='bx bx-trash-alt'></i> Xóa vĩnh viễn
                     </button>
                     <?= form_close() ?>
                 </div>
                 <div class="col-12 col-md-6">
-                    <div class="input-group search-box">
-                        <input type="text" class="form-control form-control-sm" id="table-search" placeholder="Tìm kiếm...">
-                        <button class="btn btn-outline-secondary btn-sm" type="button" id="search-btn">
-                            <i class='bx bx-search'></i>
-                        </button>
-                    </div>
+                    <form action="<?= site_url('camera/listdeleted') ?>" method="get" id="search-form">
+                        <input type="hidden" name="page" value="1">
+                        <input type="hidden" name="perPage" value="<?= $perPage ?>">
+                        <div class="input-group search-box">
+                            <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
+                            <select name="status" class="form-select form-select-sm" style="max-width: 140px;">
+                                <option value="">-- Trạng thái --</option>
+                                <option value="1" <?= (isset($status) && $status == '1') ? 'selected' : '' ?>>Hoạt động</option>
+                                <option value="0" <?= (isset($status) && $status == '0') ? 'selected' : '' ?>>Không hoạt động</option>
+                            </select>
+                            <button class="btn btn-outline-secondary btn-sm" type="submit">
+                                <i class='bx bx-search'></i>
+                            </button>
+                            <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
+                            <a href="<?= site_url('camera/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
+                                <i class='bx bx-x'></i>
+                            </a>
+                            <?php endif; ?>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -80,6 +100,48 @@
             </div>
         <?php endif; ?>
         
+        <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
+            <div class="alert alert-info m-3">
+                <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
+                <div class="small">
+                    <?php if (!empty($keyword)): ?>
+                        <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
+                    <?php endif; ?>
+                    <?php if (isset($status) && $status !== ''): ?>
+                        <span class="badge bg-secondary me-2">Trạng thái: <?= $status == 1 ? 'Hoạt động' : 'Không hoạt động' ?></span>
+                    <?php endif; ?>
+                    <a href="<?= site_url('camera/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
+                </div>
+            </div>
+        <?php endif; ?>
+        <!-- Phần debug info (chỉ hiển thị trong môi trường development) -->
+    <?php if (ENVIRONMENT === 'development'): ?>
+    <div class="card mt-3 mx-3">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0">Debug Info</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>URL Parameters:</h6>
+                    <pre><?= json_encode($_GET, JSON_PRETTY_PRINT) ?></pre>
+                </div>
+                <div class="col-md-6">
+                    <h6>Pagination Info:</h6>
+                    <pre><?= json_encode([
+                        'current_page' => $currentPage,
+                        'per_page' => $perPage,
+                        'total_records' => $total,
+                        'total_pages' => $pager ? $pager->getPageCount() : 0,
+                        'status' => $status,
+                        'keyword' => $keyword,
+                        'camera_count' => count($cameras)
+                    ], JSON_PRETTY_PRINT) ?></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
         <div class="table-responsive">
             <div class="table-container">
                 <table id="dataTable" class="table table-striped table-hover m-0 w-100">
@@ -90,36 +152,28 @@
                                     <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
                                 </div>
                             </th>
-                            <th width="15%" class="align-middle">Mã màn hình</th>
-                            <th width="30%" class="align-middle">Tên màn hình</th>
-                            <th width="15%" class="align-middle">Camera</th>
+                            <th width="10%" class="align-middle">Mã camera</th>
+                            <th width="20%" class="align-middle">Tên camera</th>
+                            <th width="20%" class="align-middle">Địa chỉ IP</th>
+                            <th width="10%" class="align-middle">Port</th>
                             <th width="10%" class="align-middle">Trạng thái</th>
                             <th width="10%" class="align-middle">Ngày xóa</th>
                             <th width="15%" class="text-center align-middle">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($manhinh)): ?>
-                            <?php foreach ($manhinh as $item): ?>
+                        <?php if (!empty($cameras)): ?>
+                            <?php foreach ($cameras as $item): ?>
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
-                                            <input type="checkbox" name="selected_ids[]" value="<?= $item->man_hinh_id ?>" class="form-check-input checkbox-item cursor-pointer">
+                                            <input type="checkbox" name="selected_ids[]" value="<?= $item->camera_id ?>" class="form-check-input checkbox-item cursor-pointer">
                                         </div>
                                     </td>
-                                    <td><?= esc($item->ma_man_hinh) ?></td>
-                                    <td><?= esc($item->ten_man_hinh) ?></td>
-                                    <td>
-                                        <?php 
-                                        if (method_exists($item, 'getCameraInfo')):
-                                            echo $item->getCameraInfo();
-                                        elseif (isset($item->camera) && !empty($item->camera)):
-                                            echo esc($item->camera->ten_camera);
-                                        else:
-                                            echo '<span class="text-muted">Không có</span>';
-                                        endif;
-                                        ?>
-                                    </td>
+                                    <td><?= esc($item->ma_camera) ?></td>
+                                    <td><?= esc($item->ten_camera) ?></td>
+                                    <td><?= esc($item->ip_camera) ?></td>
+                                    <td><?= esc($item->port) ?></td>
                                     <td>
                                         <?php if (method_exists($item, 'getStatusLabel')): ?>
                                             <?= $item->getStatusLabel() ?>
@@ -136,13 +190,14 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <form action="<?= site_url('manhinh/restore/' . $item->man_hinh_id) ?>" method="post" style="display:inline;">
+                                            <form action="<?= site_url('camera/restore/' . $item->camera_id) ?>" method="post" style="display:inline;">
+                                                <input type="hidden" name="return_url" value="<?= current_url() . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '') ?>">
                                                 <button type="submit" class="btn btn-success btn-sm" title="Khôi phục" data-bs-toggle="tooltip">
                                                     <i class="bx bx-revision mr-0"></i>
                                                 </button>
                                             </form>
                                             <button type="button" class="btn btn-danger btn-sm btn-permanent-delete" 
-                                            data-id="<?= $item->man_hinh_id ?>" data-name="<?= $item->ten_man_hinh ?>" title="Xóa vĩnh viễn" data-bs-toggle="tooltip">
+                                            data-id="<?= $item->camera_id ?>" data-name="<?= $item->ten_camera ?>" title="Xóa vĩnh viễn" data-bs-toggle="tooltip">
                                                 <i class="bx bx-trash-alt"></i>
                                             </button>
                                         </div>
@@ -151,7 +206,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" class="text-center py-3">
+                                <td colspan="8" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class='bx bx-trash text-secondary mb-2' style="font-size: 2rem;"></i>
                                         <p class="mb-0">Thùng rác trống</p>
@@ -163,9 +218,32 @@
                 </table>
             </div>
         </div>
-        <?php if (!empty($manhinh)): ?>
-            <div class="card-footer d-flex justify-content-between align-items-center py-2">
-                <div class="text-muted small">Hiển thị <span id="total-records"><?= count($manhinh) ?></span> bản ghi</div>
+        <?php if (!empty($cameras)): ?>
+            <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-2">
+                <div class="col-sm-12 col-md-5">
+                    <div class="dataTables_info">
+                        Hiển thị từ <?= (($pager->getCurrentPage() - 1) * $perPage + 1) ?> đến <?= min(($pager->getCurrentPage() - 1) * $perPage + $perPage, $total) ?> trong số <?= $total ?> bản ghi
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-7">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <div class="me-2">
+                            <select id="perPageSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                                <option value="5" <?= $perPage == 5 ? 'selected' : '' ?>>5</option>
+                                <option value="10" <?= $perPage == 10 ? 'selected' : '' ?>>10</option>
+                                <option value="15" <?= $perPage == 15 ? 'selected' : '' ?>>15</option>
+                                <option value="25" <?= $perPage == 25 ? 'selected' : '' ?>>25</option>
+                                <option value="50" <?= $perPage == 50 ? 'selected' : '' ?>>50</option>
+                            </select>
+                            <span class="ms-1">bản ghi/trang</span>
+                        </div>
+                        <div>
+                            <?php if (isset($pager) && $pager instanceof \App\Modules\camera\Libraries\CameraPager): ?>
+                                <?= $pager->render() ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
             </div>
         <?php endif; ?>
     </div>
@@ -183,7 +261,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-help-circle text-success' style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn khôi phục màn hình:</p>
+                <p class="text-center">Bạn có chắc chắn muốn khôi phục camera:</p>
                 <p class="text-center fw-bold" id="restore-item-name"></p>
             </div>
             <div class="modal-footer">
@@ -208,7 +286,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-error-circle text-danger' style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn màn hình:</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn camera:</p>
                 <p class="text-center fw-bold" id="permanent-delete-item-name"></p>
                 <div class="alert alert-warning mt-3">
                     <i class='bx bx-warning me-1'></i> Lưu ý: Hành động này không thể hoàn tác!
@@ -236,7 +314,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-help-circle text-success' style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn khôi phục <span id="restore-count" class="fw-bold"></span> màn hình đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn khôi phục <span id="restore-count" class="fw-bold"></span> camera đã chọn?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -258,7 +336,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class='bx bx-error-circle text-danger' style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn <span id="permanent-delete-count" class="fw-bold"></span> màn hình đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn <span id="permanent-delete-count" class="fw-bold"></span> camera đã chọn?</p>
                 <div class="alert alert-warning mt-3">
                     <i class='bx bx-warning me-1'></i> Lưu ý: Hành động này không thể hoàn tác!
                 </div>
@@ -277,8 +355,8 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= manhinh_js('table') ?>
-<?= manhinh_section_js('table') ?>
+<?= camera_js('table') ?>
+<?= camera_section_js('table') ?>
 
 <script>
     $(document).ready(function() {
@@ -297,39 +375,33 @@
                 lengthMenu: [10, 25, 50, 100],
                 dom: '<"row mx-0"<"col-sm-12 px-0"tr>><"row mx-0 mt-2"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
                 ordering: true,
-                responsive: false,
-                scrollX: false,
+                responsive: true,
                 columnDefs: [
-                    { orderable: false, targets: [0, 6] },
+                    { orderable: false, targets: [0, 7] },
                     { className: 'align-middle', targets: '_all' }
-                ]
+                ],
+                searching: false, // Tắt tìm kiếm của DataTable vì đã có form tìm kiếm
+                paging: false, // Tắt phân trang của DataTable vì đã có phân trang CodeIgniter
+                info: false // Tắt thông tin của DataTable
             });
             
-            // Tìm kiếm
-            $('#search-btn').on('click', function() {
-                dataTable.search($('#table-search').val()).draw();
+            // Xử lý form tìm kiếm
+            $('#search-form').on('submit', function() {
+                // Form sẽ gửi yêu cầu GET nên không cần xử lý gì thêm
+                return true;
             });
             
+            // Xử lý nhấn Enter trong ô tìm kiếm
             $('#table-search').on('keyup', function(e) {
                 if (e.key === 'Enter') {
-                    dataTable.search($(this).val()).draw();
+                    $('#search-form').submit();
                 }
             });
-
-            // Cập nhật tổng số bản ghi
-            dataTable.on('draw', function() {
-                $('#total-records').text(dataTable.page.info().recordsTotal);
-            });
-        } else {
-            // Nếu bảng đã được khởi tạo, lấy instance hiện tại
-            const dataTable = $('#dataTable').DataTable();
-            
-            // Cập nhật lại dữ liệu
-            dataTable.draw();
         }
         
         // Làm mới bảng
         $('#refresh-table').on('click', function() {
+            $('#loading-indicator').css('display', 'flex').fadeIn(100);
             location.reload();
         });
         
@@ -370,7 +442,26 @@
             const id = $(this).data('id');
             const name = $(this).data('name');
             $('#permanent-delete-item-name').text(name);
-            $('#permanent-delete-form').attr('action', base_url + '/manhinh/permanentDelete/' + id);
+            
+            // Lấy đường dẫn tương đối (path + query string) thay vì URL đầy đủ
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Cập nhật action và thêm return_url
+            const form = $('#permanent-delete-form');
+            form.attr('action', base_url + '/camera/permanentDelete/' + id);
+            
+            // Xóa trường return_url cũ nếu có
+            form.find('input[name="return_url"]').remove();
+            
+            // Thêm trường return_url mới
+            form.append($('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }));
+            
+            console.log('Deleting item with return URL path:', pathAndQuery);
+            
             $('#permanentDeleteModal').modal('show');
         });
         
@@ -389,6 +480,32 @@
             
             // Xóa form cũ và tạo form mới
             tempForm.empty();
+            
+            // Thêm CSRF field lại vào form
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: '<?= csrf_token() ?>',
+                value: '<?= csrf_hash() ?>'
+            }));
+            
+            // Thêm method lại vào form
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: '_method',
+                value: 'POST'
+            }));
+            
+            // Lấy đường dẫn tương đối (path + query string) thay vì URL đầy đủ
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Thêm URL hiện tại làm return_url
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }));
+            
+            console.log('Restoring multiple items with return URL path:', pathAndQuery);
             
             // Thêm các checkbox đã chọn vào form
             $('.checkbox-item:checked').each(function() {
@@ -423,6 +540,32 @@
             // Xóa form cũ và tạo form mới
             tempForm.empty();
             
+            // Thêm CSRF field lại vào form
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: '<?= csrf_token() ?>',
+                value: '<?= csrf_hash() ?>'
+            }));
+            
+            // Thêm method lại vào form
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: '_method',
+                value: 'POST'
+            }));
+            
+            // Lấy đường dẫn tương đối (path + query string) thay vì URL đầy đủ
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Thêm URL hiện tại làm return_url
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }));
+            
+            console.log('Permanently deleting multiple items with return URL path:', pathAndQuery);
+            
             // Thêm các checkbox đã chọn vào form
             $('.checkbox-item:checked').each(function() {
                 const input = $('<input>').attr({
@@ -443,12 +586,105 @@
         // Xuất dữ liệu
         $('#export-excel').on('click', function(e) {
             e.preventDefault();
-            window.location.href = '<?= site_url("manhinh/exportDeletedExcel") ?>';
+            
+            // Lấy URL hiện tại và các tham số query string
+            const currentUrl = new URL(window.location.href);
+            const queryParams = currentUrl.searchParams;
+            
+            // Tạo URL xuất Excel với các tham số cần thiết
+            let exportUrl = '<?= site_url("camera/exportDeletedExcel") ?>';
+            const params = [];
+            
+            // Thêm các tham số cần thiết
+            if (queryParams.has('keyword')) {
+                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
+            }
+            if (queryParams.has('status')) {
+                params.push('status=' + encodeURIComponent(queryParams.get('status')));
+            }
+            if (queryParams.has('sort')) {
+                params.push('sort=' + encodeURIComponent(queryParams.get('sort')));
+            }
+            if (queryParams.has('order')) {
+                params.push('order=' + encodeURIComponent(queryParams.get('order')));
+            }
+            
+            // Thêm các tham số vào URL
+            if (params.length > 0) {
+                exportUrl += '?' + params.join('&');
+            }
+            
+            console.log('Exporting deleted cameras to Excel with URL:', exportUrl);
+            
+            // Chuyển hướng đến URL xuất Excel
+            window.location.href = exportUrl;
         });
         
         $('#export-pdf').on('click', function(e) {
             e.preventDefault();
-            window.location.href = '<?= site_url("manhinh/exportDeletedPdf") ?>';
+            
+            // Lấy URL hiện tại và các tham số query string
+            const currentUrl = new URL(window.location.href);
+            const queryParams = currentUrl.searchParams;
+            
+            // Tạo URL xuất PDF với các tham số cần thiết
+            let exportUrl = '<?= site_url("camera/exportDeletedPdf") ?>';
+            const params = [];
+            
+            // Thêm các tham số cần thiết
+            if (queryParams.has('keyword')) {
+                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
+            }
+            if (queryParams.has('status')) {
+                params.push('status=' + encodeURIComponent(queryParams.get('status')));
+            }
+            if (queryParams.has('sort')) {
+                params.push('sort=' + encodeURIComponent(queryParams.get('sort')));
+            }
+            if (queryParams.has('order')) {
+                params.push('order=' + encodeURIComponent(queryParams.get('order')));
+            }
+            
+            // Thêm các tham số vào URL
+            if (params.length > 0) {
+                exportUrl += '?' + params.join('&');
+            }
+            
+            console.log('Exporting deleted cameras to PDF with URL:', exportUrl);
+            
+            // Chuyển hướng đến URL xuất PDF
+            window.location.href = exportUrl;
+        });
+
+        // Xử lý khi thay đổi số lượng bản ghi trên mỗi trang
+        document.getElementById('perPageSelect').addEventListener('change', function() {
+            const perPage = this.value;
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Giữ lại tất cả các tham số cần thiết
+            const paramsToKeep = ['keyword', 'status', 'sort', 'order'];
+            
+            // Tạo URL mới với tham số perPage và reset về trang 1
+            const newParams = new URLSearchParams();
+            newParams.set('perPage', perPage);
+            newParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
+            
+            // Giữ lại các tham số quan trọng
+            paramsToKeep.forEach(param => {
+                if (urlParams.has(param)) {
+                    // Đặc biệt xử lý status=0
+                    if (param === 'status' && urlParams.get(param) === '0') {
+                        newParams.set(param, '0');
+                    } 
+                    // Chỉ giữ lại tham số có giá trị
+                    else if (urlParams.get(param)) {
+                        newParams.set(param, urlParams.get(param));
+                    }
+                }
+            });
+            
+            // Chuyển hướng đến URL mới
+            window.location.href = window.location.pathname + '?' + newParams.toString();
         });
     });
 </script>

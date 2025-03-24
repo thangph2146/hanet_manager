@@ -1,11 +1,11 @@
 <?php
 /**
- * Master script file for Manhinh module
+ * Master script file for Camera module
  * Contains common CSS and JS for all views
  */
 
 // CSS section
-function manhinh_css($type = 'all') {
+function camera_css($type = 'all') {
     ob_start();
     
     // Common CSS for DataTables
@@ -48,6 +48,104 @@ function manhinh_css($type = 'all') {
         .btn i {
             margin-right: 0;
         }
+        
+        /* Cải thiện hiển thị phân trang */
+        .pagination {
+            gap: 3px;
+            margin-bottom: 0;
+        }
+        
+        .pagination .page-item .page-link {
+            color: #435ebe;
+            padding: 0.375rem 0.75rem;
+            border-color: #dee2e6;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 32px;
+            transition: all 0.3s ease;
+            border-radius: 0.25rem;
+            margin: 0 1px;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: #435ebe;
+            border-color: #435ebe;
+            color: #fff;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(67, 94, 190, 0.3);
+            z-index: 3;
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            pointer-events: none;
+        }
+        
+        .pagination .page-item .page-link:hover:not(.disabled) {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #435ebe;
+            z-index: 2;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .pagination .page-item .page-link:focus {
+            box-shadow: 0 0 0 0.15rem rgba(67, 94, 190, 0.25);
+            z-index: 3;
+        }
+        
+        .pagination-container {
+            margin-bottom: 1rem;
+        }
+        
+        /* Nút select số bản ghi */
+        #perPage {
+            min-width: 70px;
+            cursor: pointer;
+            border-color: #ced4da;
+            background-color: #fff;
+            transition: all 0.2s;
+        }
+        
+        #perPage:hover, #perPage:focus {
+            border-color: #435ebe;
+        }
+        
+        /* Thêm hiệu ứng cho nút phân trang */
+        .pagination .page-link {
+            border-radius: 0.25rem;
+            margin: 0 2px;
+        }
+        
+        /* Hiệu ứng shadow khi hover */
+        .pagination .page-item:not(.disabled) .page-link:hover {
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        /* Cải thiện text align cho active page */
+        .pagination .page-item.active .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
     </style>
     <?php
     endif;
@@ -76,7 +174,7 @@ function manhinh_css($type = 'all') {
 }
 
 // JS section
-function manhinh_js($type = 'all') {
+function camera_js($type = 'all') {
     ob_start();
     
     // DataTable scripts
@@ -90,6 +188,28 @@ function manhinh_js($type = 'all') {
     
     <script>
         $(document).ready(function() {
+            // Xử lý thay đổi số lượng bản ghi trên mỗi trang
+            function changePerPage(perPage) {
+                // Lấy URL hiện tại
+                let url = new URL(window.location.href);
+                let params = new URLSearchParams(url.search);
+                
+                // Cập nhật tham số perPage
+                params.set('perPage', perPage);
+                
+                // Quay về trang 1 khi thay đổi số lượng bản ghi
+                params.set('page', '1');
+                
+                // Cập nhật URL và chuyển hướng
+                url.search = params.toString();
+                window.location.href = url.toString();
+            }
+            
+            // Xử lý sự kiện change cho select perPage
+            $('#perPage').on('change', function() {
+                changePerPage($(this).val());
+            });
+            
             // Hiển thị thông báo thành công/lỗi với SweetAlert2
             <?php if (session()->getFlashdata('success')): ?>
                 Swal.fire({
@@ -127,25 +247,25 @@ function manhinh_js($type = 'all') {
             });
 
             // Form validation
-            $('#form-manhinh').validate({
+            $('#form-camera').validate({
                 rules: {
-                    ten_man_hinh: {
+                    ten_camera: {
                         required: true,
                         minlength: 3,
                         maxlength: 100
                     },
-                    ma_man_hinh: {
+                    ma_camera: {
                         maxlength: 20
                     }
                 },
                 messages: {
-                    ten_man_hinh: {
-                        required: "Vui lòng nhập tên màn hình",
-                        minlength: "Tên màn hình phải có ít nhất {0} ký tự",
-                        maxlength: "Tên màn hình không được vượt quá {0} ký tự"
+                    ten_camera: {
+                        required: "Vui lòng nhập tên camera",
+                        minlength: "Tên camera phải có ít nhất {0} ký tự",
+                        maxlength: "Tên camera không được vượt quá {0} ký tự"
                     },
-                    ma_man_hinh: {
-                        maxlength: "Mã màn hình không được vượt quá {0} ký tự"
+                    ma_camera: {
+                        maxlength: "Mã camera không được vượt quá {0} ký tự"
                     }
                 },
                 errorElement: 'span',
@@ -163,13 +283,13 @@ function manhinh_js($type = 'all') {
 
             // Auto-generate code from name
             let typingTimer;
-            $('#ten_man_hinh').on('input', function() {
+            $('#ten_camera').on('input', function() {
                 clearTimeout(typingTimer);
                 typingTimer = setTimeout(function() {
-                    const ten = $('#ten_man_hinh').val();
-                    if (ten && !$('#ma_man_hinh').val()) {
+                    const ten = $('#ten_camera').val();
+                    if (ten && !$('#ma_camera').val()) {
                         const ma = generateCode(ten);
-                        $('#ma_man_hinh').val(ma);
+                        $('#ma_camera').val(ma);
                     }
                 }, 500);
             });
@@ -197,7 +317,7 @@ function manhinh_js($type = 'all') {
 }
 
 // Section CSS function
-function manhinh_section_css($section) {
+function camera_section_css($section) {
     ob_start();
 
     // Modal CSS
@@ -225,7 +345,7 @@ function manhinh_section_css($section) {
 }
 
 // Section JS function
-function manhinh_section_js($section) {
+function camera_section_js($section) {
     ob_start();
 
     // Table specific additional JS
@@ -238,6 +358,13 @@ function manhinh_section_js($section) {
                 $(this).addClass('highlight-row');
             }).on('mouseleave', 'table tbody tr', function() {
                 $(this).removeClass('highlight-row');
+            });
+            
+            // Thêm hiệu ứng cho các nút phân trang
+            $('.pagination .page-link').hover(function() {
+                $(this).parent().addClass('hover-effect');
+            }, function() {
+                $(this).parent().removeClass('hover-effect');
             });
         });
     </script>
@@ -259,4 +386,4 @@ function manhinh_section_js($section) {
 <link rel="stylesheet" href="<?= base_url('assets/vendor/libs/sweetalert2/sweetalert2.css') ?>" />
 
 <!-- Module CSS -->
-<link rel="stylesheet" href="<?= base_url('css/modules/manhinh/style.css') ?>" />
+<link rel="stylesheet" href="<?= base_url('css/modules/camera/style.css') ?>" />

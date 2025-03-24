@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Modules\manhinh\Entities;
+namespace App\Modules\camera\Entities;
 
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
 
-class Manhinh extends BaseEntity
+class Camera extends BaseEntity
 {
-    protected $tableName = 'man_hinh';
-    protected $primaryKey = 'man_hinh_id';
+    protected $tableName = 'camera';
+    protected $primaryKey = 'camera_id';
     
     protected $dates = [
         'created_at',
@@ -17,9 +17,8 @@ class Manhinh extends BaseEntity
     ];
     
     protected $casts = [
-        'man_hinh_id' => 'int',
         'camera_id' => 'int',
-        'temlate_id' => 'int',
+        'port' => 'int',
         'status' => 'int',
         'bin' => 'int',
     ];
@@ -30,41 +29,49 @@ class Manhinh extends BaseEntity
         'deleted_at',
     ];
     
-    // Trường duy nhất cần kiểm tra - chỉ giữ ten_man_hinh là unique theo schema mới
+    // Trường duy nhất cần kiểm tra
     protected $uniqueFields = [
-        'ten_man_hinh' => 'Tên màn hình'
+        'ten_camera' => 'Tên camera'
     ];
     
-    // Các quy tắc xác thực cụ thể cho Manhinh
+    // Các quy tắc xác thực cụ thể cho Camera
     protected $validationRules = [
-        'ten_man_hinh' => 'required|min_length[3]|max_length[255]|is_unique[man_hinh.ten_man_hinh,man_hinh_id,{man_hinh_id}]',
-        'ma_man_hinh' => 'permit_empty|max_length[20]',
-        'camera_id' => 'permit_empty|integer',
-        'temlate_id' => 'permit_empty|integer',
+        'ten_camera' => 'required|min_length[3]|max_length[255]|is_unique[camera.ten_camera,camera_id,{camera_id}]',
+        'ma_camera' => 'permit_empty|max_length[20]',
+        'ip_camera' => 'permit_empty|max_length[100]',
+        'port' => 'permit_empty|integer',
+        'username' => 'permit_empty|max_length[50]',
+        'password' => 'permit_empty|max_length[50]',
         'status' => 'permit_empty|in_list[0,1]',
         'bin' => 'permit_empty|in_list[0,1]',
     ];
     
     protected $validationMessages = [
-        'ten_man_hinh' => [
-            'required' => 'Tên màn hình là bắt buộc',
-            'min_length' => 'Tên màn hình phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên màn hình không được vượt quá {param} ký tự',
-            'is_unique' => 'Tên màn hình đã tồn tại, vui lòng chọn tên khác',
+        'ten_camera' => [
+            'required' => 'Tên camera là bắt buộc',
+            'min_length' => 'Tên camera phải có ít nhất {param} ký tự',
+            'max_length' => 'Tên camera không được vượt quá {param} ký tự',
+            'is_unique' => 'Tên camera đã tồn tại, vui lòng chọn tên khác',
         ],
-        'ma_man_hinh' => [
-            'max_length' => 'Mã màn hình không được vượt quá {param} ký tự',
+        'ma_camera' => [
+            'max_length' => 'Mã camera không được vượt quá {param} ký tự',
         ],
-        'camera_id' => [
-            'integer' => 'ID camera phải là số nguyên',
+        'ip_camera' => [
+            'max_length' => 'IP camera không được vượt quá {param} ký tự',
         ],
-        'temlate_id' => [
-            'integer' => 'ID template phải là số nguyên',
+        'port' => [
+            'integer' => 'Port phải là số nguyên',
+        ],
+        'username' => [
+            'max_length' => 'Username không được vượt quá {param} ký tự',
+        ],
+        'password' => [
+            'max_length' => 'Password không được vượt quá {param} ký tự',
         ],
     ];
     
     /**
-     * Lấy ID của màn hình
+     * Lấy ID của camera
      *
      * @return int
      */
@@ -74,49 +81,68 @@ class Manhinh extends BaseEntity
     }
     
     /**
-     * Lấy tên màn hình
+     * Lấy tên camera
      *
      * @return string
      */
-    public function getTenManHinh(): string
+    public function getTenCamera(): string
     {
-        return $this->attributes['ten_man_hinh'] ?? '';
+        return $this->attributes['ten_camera'] ?? '';
     }
     
     /**
-     * Lấy mã màn hình
+     * Lấy mã camera
      *
      * @return string|null
      */
-    public function getMaManHinh(): ?string
+    public function getMaCamera(): ?string
     {
-        return $this->attributes['ma_man_hinh'] ?? null;
+        return $this->attributes['ma_camera'] ?? null;
     }
     
     /**
-     * Lấy ID camera
+     * Lấy IP của camera
+     *
+     * @return string|null
+     */
+    public function getIpCamera(): ?string
+    {
+        return $this->attributes['ip_camera'] ?? null;
+    }
+    
+    /**
+     * Lấy port của camera
      *
      * @return int|null
      */
-    public function getCameraId(): ?int
+    public function getPort(): ?int
     {
-        $id = $this->attributes['camera_id'] ?? null;
-        return $id !== null ? (int)$id : null;
+        $port = $this->attributes['port'] ?? null;
+        return $port !== null ? (int)$port : null;
     }
     
     /**
-     * Lấy ID template
+     * Lấy username của camera
      *
-     * @return int|null
+     * @return string|null
      */
-    public function getTemlateId(): ?int
+    public function getUsername(): ?string
     {
-        $id = $this->attributes['temlate_id'] ?? null;
-        return $id !== null ? (int)$id : null;
+        return $this->attributes['username'] ?? null;
     }
     
     /**
-     * Kiểm tra màn hình có đang hoạt động không
+     * Lấy password của camera
+     *
+     * @return string|null
+     */
+    public function getPassword(): ?string
+    {
+        return $this->attributes['password'] ?? null;
+    }
+    
+    /**
+     * Kiểm tra camera có đang hoạt động không
      *
      * @return bool
      */
@@ -126,7 +152,7 @@ class Manhinh extends BaseEntity
     }
     
     /**
-     * Đặt trạng thái hoạt động cho màn hình
+     * Đặt trạng thái hoạt động cho camera
      *
      * @param bool $status
      * @return $this
@@ -138,7 +164,7 @@ class Manhinh extends BaseEntity
     }
     
     /**
-     * Kiểm tra màn hình có đang trong thùng rác không
+     * Kiểm tra camera có đang trong thùng rác không
      *
      * @return bool
      */
@@ -160,35 +186,40 @@ class Manhinh extends BaseEntity
     }
     
     /**
-     * Lấy thông tin camera dưới dạng văn bản có định dạng
+     * Lấy thông tin IP:Port
      * 
      * @return string
      */
-    public function getCameraInfo()
+    public function getConnectionInfo()
     {
-        // Kiểm tra nếu thuộc tính camera tồn tại
-        if (isset($this->camera) && !empty($this->camera)) {
-            return '<span class="badge bg-info">' . esc($this->camera->ten_camera) . '</span>';
+        $ip = $this->getIpCamera();
+        $port = $this->getPort();
+        
+        if (empty($ip)) {
+            return '<span class="text-muted">Chưa cấu hình</span>';
         }
         
-        // Nếu không có camera hoặc chưa load
-        return '<span class="text-muted">Không có</span>';
+        if (!empty($port)) {
+            return '<span class="badge bg-info">' . esc($ip) . ':' . esc($port) . '</span>';
+        }
+        
+        return '<span class="badge bg-info">' . esc($ip) . '</span>';
     }
     
     /**
-     * Lấy thông tin template dưới dạng văn bản có định dạng
+     * Lấy thông tin đăng nhập camera
      * 
      * @return string
      */
-    public function getTemplateInfo()
+    public function getCredentialsInfo()
     {
-        // Kiểm tra nếu thuộc tính template tồn tại
-        if (isset($this->template) && !empty($this->template)) {
-            return '<span class="badge bg-info">' . esc($this->template->ten_template) . '</span>';
+        $username = $this->getUsername();
+        
+        if (empty($username)) {
+            return '<span class="text-muted">Không có</span>';
         }
         
-        // Nếu không có template hoặc chưa load
-        return '<span class="text-muted">Không có</span>';
+        return '<span class="badge bg-secondary">' . esc($username) . '</span>';
     }
     
     /**
@@ -249,75 +280,94 @@ class Manhinh extends BaseEntity
             return '';
         }
         
-        try {
-            // Chuyển đổi sang đối tượng Time
-            $time = $this->attributes['deleted_at'] instanceof Time ? 
-                $this->attributes['deleted_at'] : 
-                new Time($this->attributes['deleted_at']);
-                
-            return $time->format('d/m/Y H:i:s');
-        } catch (\Exception $e) {
-            // Trả về chuỗi rỗng nếu có lỗi
-            return '';
-        }
+        $time = $this->attributes['deleted_at'] instanceof Time ? $this->attributes['deleted_at'] : new Time($this->attributes['deleted_at']);
+        return $time->format('d/m/Y H:i:s');
     }
     
     /**
-     * Kiểm tra xem mã màn hình có phải là duy nhất không
+     * Kiểm tra mã camera có là duy nhất không
      *
-     * @param string $code Mã màn hình cần kiểm tra
-     * @param int|null $excludeId ID màn hình cần loại trừ (khi cập nhật)
+     * @param string $code Mã cần kiểm tra
+     * @param int|null $excludeId ID cần loại trừ khi kiểm tra
      * @return bool
      */
     public function isUniqueCode(string $code, ?int $excludeId = null): bool
     {
-        $model = model('App\Modules\manhinh\Models\ManhinhModel');
-        return !$model->isCodeExists($code, $excludeId);
+        return $this->validateUniqueField('ma_camera', $code, $excludeId);
     }
     
     /**
-     * Kiểm tra xem tên màn hình có phải là duy nhất không
+     * Kiểm tra tên camera có là duy nhất không
      *
-     * @param string $name Tên màn hình cần kiểm tra
-     * @param int|null $excludeId ID màn hình cần loại trừ (khi cập nhật)
+     * @param string $name Tên cần kiểm tra
+     * @param int|null $excludeId ID cần loại trừ khi kiểm tra
      * @return bool
      */
     public function isUniqueName(string $name, ?int $excludeId = null): bool
     {
-        $model = model('App\Modules\manhinh\Models\ManhinhModel');
-        return !$model->isNameExists($name, $excludeId);
+        return $this->validateUniqueField('ten_camera', $name, $excludeId);
     }
     
     /**
-     * Kiểm tra tính duy nhất của một trường khi thêm hoặc cập nhật
+     * Phương thức trợ giúp để kiểm tra tính duy nhất của một trường
      *
      * @param string $field Tên trường cần kiểm tra
      * @param mixed $value Giá trị cần kiểm tra
-     * @param int|null $exceptId ID cần loại trừ khỏi kiểm tra (khi cập nhật)
-     * @return bool true nếu giá trị là duy nhất
+     * @param int|null $exceptId ID cần loại trừ
+     * @return bool
      */
     protected function validateUniqueField(string $field, $value, ?int $exceptId = null): bool
     {
-        // Đảm bảo có model
-        $model = model('App\Modules\manhinh\Models\ManhinhModel');
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->tableName);
         
-        // Bỏ qua nếu giá trị rỗng
-        if (empty($value)) {
-            return true;
-        }
-        
-        // Tạo query builder
-        $builder = $model->builder();
-        
-        // Thêm điều kiện so sánh cho trường
         $builder->where($field, $value);
         
-        // Nếu đang cập nhật, loại trừ bản ghi hiện tại
         if ($exceptId !== null) {
             $builder->where("{$this->primaryKey} !=", $exceptId);
         }
         
-        // Kiểm tra xem có bản ghi nào khớp không
-        return ($builder->countAllResults() === 0);
+        // Trả về true nếu không tìm thấy bản ghi nào (tức là giá trị là duy nhất)
+        return $builder->countAllResults() === 0;
+    }
+    
+    /**
+     * Overrides BaseEntity setAttributes() để tự động trim dữ liệu chuỗi
+     * 
+     * @param array $data
+     * @return $this
+     */
+    public function setAttributes(array $data)
+    {
+        // Tự động trim các trường chuỗi
+        foreach ($data as $key => $value) {
+            // Chỉ trim các trường là chuỗi và không phải là mật khẩu
+            if (is_string($value) && $key !== 'password') {
+                $data[$key] = trim($value);
+            }
+        }
+        
+        // Gọi phương thức setAttributes của lớp cha
+        return parent::setAttributes($data);
+    }
+    
+    /**
+     * Lấy các quy tắc xác thực
+     *
+     * @return array
+     */
+    public function getValidationRules(): array
+    {
+        return $this->validationRules;
+    }
+    
+    /**
+     * Lấy các thông báo xác thực
+     *
+     * @return array
+     */
+    public function getValidationMessages(): array
+    {
+        return $this->validationMessages;
     }
 } 

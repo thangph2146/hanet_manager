@@ -32,4 +32,6 @@ $routes->group('manhinh', ['namespace' => 'App\Modules\manhinh\Controllers'], fu
     $routes->get('view/(:num)', 'Manhinh::view/$1');
     $routes->get('exportPdf', 'Manhinh::exportPdf');
     $routes->get('exportExcel', 'Manhinh::exportExcel');
+    $routes->get('exportDeletedPdf', 'Manhinh::exportDeletedPdf');
+    $routes->get('exportDeletedExcel', 'Manhinh::exportDeletedExcel');
 }); 
