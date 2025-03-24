@@ -1,11 +1,11 @@
 <?php
 /**
- * Master script file for Camera module
+ * Master script file for ManHinh module
  * Contains common CSS and JS for all views
  */
 
 // CSS section
-function camera_css($type = 'all') {
+function manhinh_css($type = 'all') {
     ob_start();
     
     // Common CSS for DataTables
@@ -174,7 +174,7 @@ function camera_css($type = 'all') {
 }
 
 // JS section
-function camera_js($type = 'all') {
+function manhinh_js($type = 'all') {
     ob_start();
     
     // DataTable scripts
@@ -247,25 +247,25 @@ function camera_js($type = 'all') {
             });
 
             // Form validation
-            $('#form-camera').validate({
+            $('#form-manhinh').validate({
                 rules: {
-                    ten_camera: {
+                    ten_manhinh: {
                         required: true,
                         minlength: 3,
                         maxlength: 100
                     },
-                    ma_camera: {
+                    ma_man_hinh: {
                         maxlength: 20
                     }
                 },
                 messages: {
-                    ten_camera: {
-                        required: "Vui lòng nhập tên camera",
-                        minlength: "Tên camera phải có ít nhất {0} ký tự",
-                        maxlength: "Tên camera không được vượt quá {0} ký tự"
+                    ten_man_hinh: {
+                        required: "Vui lòng nhập tên màn hình",
+                        minlength: "Tên màn hình phải có ít nhất {0} ký tự",
+                        maxlength: "Tên màn hình không được vượt quá {0} ký tự"
                     },
-                    ma_camera: {
-                        maxlength: "Mã camera không được vượt quá {0} ký tự"
+                    ma_man_hinh: {
+                        maxlength: "Mã màn hình không được vượt quá {0} ký tự"
                     }
                 },
                 errorElement: 'span',
@@ -283,13 +283,13 @@ function camera_js($type = 'all') {
 
             // Auto-generate code from name
             let typingTimer;
-            $('#ten_camera').on('input', function() {
+            $('#ten_man_hinh').on('input', function() {
                 clearTimeout(typingTimer);
                 typingTimer = setTimeout(function() {
-                    const ten = $('#ten_camera').val();
-                    if (ten && !$('#ma_camera').val()) {
+                    const ten = $('#ten_man_hinh').val();
+                    if (ten && !$('#ma_man_hinh').val()) {
                         const ma = generateCode(ten);
-                        $('#ma_camera').val(ma);
+                        $('#ma_man_hinh').val(ma);
                     }
                 }, 500);
             });
@@ -317,7 +317,7 @@ function camera_js($type = 'all') {
 }
 
 // Section CSS function
-function camera_section_css($section) {
+function manhinh_section_css($section) {
     ob_start();
 
     // Modal CSS
@@ -345,7 +345,7 @@ function camera_section_css($section) {
 }
 
 // Section JS function
-function camera_section_js($section) {
+function manhinh_section_js($section) {
     ob_start();
 
     // Table specific additional JS
@@ -386,4 +386,4 @@ function camera_section_js($section) {
 <link rel="stylesheet" href="<?= base_url('assets/vendor/libs/sweetalert2/sweetalert2.css') ?>" />
 
 <!-- Module CSS -->
-<link rel="stylesheet" href="<?= base_url('css/modules/camera/style.css') ?>" />
+<link rel="stylesheet" href="<?= base_url('css/modules/manhinh/style.css') ?>" />

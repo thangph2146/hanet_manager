@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Modules\camera\Entities;
+namespace App\Modules\manhinh\Entities;
 
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
 
-class Camera extends BaseEntity
+class ManHinh extends BaseEntity
 {
-    protected $tableName = 'camera';
-    protected $primaryKey = 'camera_id';
+    protected $tableName = 'man_hinh';
+    protected $primaryKey = 'man_hinh_id';
     
     protected $dates = [
         'created_at',
@@ -17,8 +17,9 @@ class Camera extends BaseEntity
     ];
     
     protected $casts = [
+        'man_hinh_id' => 'int',
         'camera_id' => 'int',
-        'port' => 'int',
+        'template_id' => 'int',
         'status' => 'int',
         'bin' => 'int',
     ];
@@ -31,47 +32,39 @@ class Camera extends BaseEntity
     
     // Trường duy nhất cần kiểm tra
     protected $uniqueFields = [
-        'ten_camera' => 'Tên camera'
+        'ten_man_hinh' => 'Tên màn hình'
     ];
     
-    // Các quy tắc xác thực cụ thể cho Camera
+    // Các quy tắc xác thực cụ thể cho ManHinh
     protected $validationRules = [
-        'ten_camera' => 'required|min_length[3]|max_length[255]|is_unique[camera.ten_camera,camera_id,{camera_id}]',
-        'ma_camera' => 'permit_empty|max_length[20]',
-        'ip_camera' => 'permit_empty|max_length[100]',
-        'port' => 'permit_empty|integer',
-        'username' => 'permit_empty|max_length[50]',
-        'password' => 'permit_empty|max_length[50]',
+        'ten_man_hinh' => 'required|min_length[3]|max_length[255]|is_unique[man_hinh.ten_man_hinh,man_hinh_id,{man_hinh_id}]',
+        'ma_man_hinh' => 'permit_empty|max_length[20]',
+        'camera_id' => 'permit_empty|integer',
+        'template_id' => 'permit_empty|integer',
         'status' => 'permit_empty|in_list[0,1]',
         'bin' => 'permit_empty|in_list[0,1]',
     ];
     
     protected $validationMessages = [
-        'ten_camera' => [
-            'required' => 'Tên camera là bắt buộc',
-            'min_length' => 'Tên camera phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên camera không được vượt quá {param} ký tự',
-            'is_unique' => 'Tên camera đã tồn tại, vui lòng chọn tên khác',
+        'ten_man_hinh' => [
+            'required' => 'Tên màn hình là bắt buộc',
+            'min_length' => 'Tên màn hình phải có ít nhất {param} ký tự',
+            'max_length' => 'Tên màn hình không được vượt quá {param} ký tự',
+            'is_unique' => 'Tên màn hình đã tồn tại, vui lòng chọn tên khác',
         ],
-        'ma_camera' => [
-            'max_length' => 'Mã camera không được vượt quá {param} ký tự',
+        'ma_man_hinh' => [
+            'max_length' => 'Mã màn hình không được vượt quá {param} ký tự',
         ],
-        'ip_camera' => [
-            'max_length' => 'IP camera không được vượt quá {param} ký tự',
+        'camera_id' => [
+            'integer' => 'Camera ID phải là số nguyên',
         ],
-        'port' => [
-            'integer' => 'Port phải là số nguyên',
-        ],
-        'username' => [
-            'max_length' => 'Username không được vượt quá {param} ký tự',
-        ],
-        'password' => [
-            'max_length' => 'Password không được vượt quá {param} ký tự',
+        'template_id' => [
+            'integer' => 'Template ID phải là số nguyên',
         ],
     ];
     
     /**
-     * Lấy ID của camera
+     * Lấy ID của màn hình
      *
      * @return int
      */
@@ -81,68 +74,49 @@ class Camera extends BaseEntity
     }
     
     /**
-     * Lấy tên camera
+     * Lấy tên màn hình
      *
      * @return string
      */
-    public function getTenCamera(): string
+    public function getTenManHinh(): string
     {
-        return $this->attributes['ten_camera'] ?? '';
+        return $this->attributes['ten_man_hinh'] ?? '';
     }
     
     /**
-     * Lấy mã camera
+     * Lấy mã màn hình
      *
      * @return string|null
      */
-    public function getMaCamera(): ?string
+    public function getMaManHinh(): ?string
     {
-        return $this->attributes['ma_camera'] ?? null;
+        return $this->attributes['ma_man_hinh'] ?? null;
     }
     
     /**
-     * Lấy IP của camera
-     *
-     * @return string|null
-     */
-    public function getIpCamera(): ?string
-    {
-        return $this->attributes['ip_camera'] ?? null;
-    }
-    
-    /**
-     * Lấy port của camera
+     * Lấy camera ID
      *
      * @return int|null
      */
-    public function getPort(): ?int
+    public function getCameraId(): ?int
     {
-        $port = $this->attributes['port'] ?? null;
-        return $port !== null ? (int)$port : null;
+        $cameraId = $this->attributes['camera_id'] ?? null;
+        return $cameraId !== null ? (int)$cameraId : null;
     }
     
     /**
-     * Lấy username của camera
+     * Lấy template ID
      *
-     * @return string|null
+     * @return int|null
      */
-    public function getUsername(): ?string
+    public function getTemplateId(): ?int
     {
-        return $this->attributes['username'] ?? null;
+        $templateId = $this->attributes['template_id'] ?? null;
+        return $templateId !== null ? (int)$templateId : null;
     }
     
     /**
-     * Lấy password của camera
-     *
-     * @return string|null
-     */
-    public function getPassword(): ?string
-    {
-        return $this->attributes['password'] ?? null;
-    }
-    
-    /**
-     * Kiểm tra camera có đang hoạt động không
+     * Kiểm tra màn hình có đang hoạt động không
      *
      * @return bool
      */
@@ -152,7 +126,7 @@ class Camera extends BaseEntity
     }
     
     /**
-     * Đặt trạng thái hoạt động cho camera
+     * Đặt trạng thái hoạt động cho màn hình
      *
      * @param bool $status
      * @return $this
@@ -164,7 +138,7 @@ class Camera extends BaseEntity
     }
     
     /**
-     * Kiểm tra camera có đang trong thùng rác không
+     * Kiểm tra màn hình có đang trong thùng rác không
      *
      * @return bool
      */
@@ -186,40 +160,31 @@ class Camera extends BaseEntity
     }
     
     /**
-     * Lấy thông tin IP:Port
+     * Lấy thông tin camera
      * 
      * @return string
      */
-    public function getConnectionInfo()
+    public function getCameraInfo()
     {
-        $ip = $this->getIpCamera();
-        $port = $this->getPort();
-        
-        if (empty($ip)) {
-            return '<span class="text-muted">Chưa cấu hình</span>';
+        if (empty($this->camera)) {
+            return '<span class="text-muted">Chưa gán camera</span>';
         }
         
-        if (!empty($port)) {
-            return '<span class="badge bg-info">' . esc($ip) . ':' . esc($port) . '</span>';
-        }
-        
-        return '<span class="badge bg-info">' . esc($ip) . '</span>';
+        return '<span class="badge bg-info">' . esc($this->camera->ten_camera) . '</span>';
     }
     
     /**
-     * Lấy thông tin đăng nhập camera
+     * Lấy thông tin template
      * 
      * @return string
      */
-    public function getCredentialsInfo()
+    public function getTemplateInfo()
     {
-        $username = $this->getUsername();
-        
-        if (empty($username)) {
-            return '<span class="text-muted">Không có</span>';
+        if (empty($this->template)) {
+            return '<span class="text-muted">Chưa gán template</span>';
         }
         
-        return '<span class="badge bg-secondary">' . esc($username) . '</span>';
+        return '<span class="badge bg-secondary">' . esc($this->template->ten_template) . '</span>';
     }
     
     /**
@@ -244,10 +209,15 @@ class Camera extends BaseEntity
     public function getCreatedAtFormatted()
     {
         if (empty($this->attributes['created_at'])) {
-            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
+            return '';
         }
         
-        $time = $this->attributes['created_at'] instanceof Time ? $this->attributes['created_at'] : new Time($this->attributes['created_at']);
+        if (is_string($this->attributes['created_at'])) {
+            $time = Time::parse($this->attributes['created_at']);
+        } else {
+            $time = $this->attributes['created_at'];
+        }
+        
         return $time->format('d/m/Y H:i:s');
     }
     
@@ -259,33 +229,60 @@ class Camera extends BaseEntity
     public function getUpdatedAtFormatted()
     {
         if (empty($this->attributes['updated_at'])) {
-            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
+            return '';
         }
         
-        $time = $this->attributes['updated_at'] instanceof Time ? $this->attributes['updated_at'] : new Time($this->attributes['updated_at']);
+        if (is_string($this->attributes['updated_at'])) {
+            $time = Time::parse($this->attributes['updated_at']);
+        } else {
+            $time = $this->attributes['updated_at'];
+        }
+        
         return $time->format('d/m/Y H:i:s');
     }
     
     /**
      * Lấy ngày xóa đã định dạng
-     *
+     * 
      * @return string
      */
     public function getDeletedAtFormatted()
     {
-        // Kiểm tra nếu deleted_at là null, chuỗi rỗng hoặc định dạng ngày mặc định
-        if (!isset($this->attributes['deleted_at']) || 
-            empty($this->attributes['deleted_at']) || 
-            $this->attributes['deleted_at'] == '0000-00-00 00:00:00') {
+        if (empty($this->attributes['deleted_at'])) {
             return '';
         }
         
-        $time = $this->attributes['deleted_at'] instanceof Time ? $this->attributes['deleted_at'] : new Time($this->attributes['deleted_at']);
+        if (is_string($this->attributes['deleted_at'])) {
+            $time = Time::parse($this->attributes['deleted_at']);
+        } else {
+            $time = $this->attributes['deleted_at'];
+        }
+        
         return $time->format('d/m/Y H:i:s');
     }
     
     /**
-     * Kiểm tra mã camera có là duy nhất không
+     * Lấy các quy tắc xác thực
+     * 
+     * @return array
+     */
+    public function getValidationRules()
+    {
+        return $this->validationRules;
+    }
+    
+    /**
+     * Lấy thông báo xác thực
+     * 
+     * @return array
+     */
+    public function getValidationMessages()
+    {
+        return $this->validationMessages;
+    }
+    
+    /**
+     * Kiểm tra mã màn hình có là duy nhất không
      *
      * @param string $code Mã cần kiểm tra
      * @param int|null $excludeId ID cần loại trừ khi kiểm tra
@@ -293,11 +290,11 @@ class Camera extends BaseEntity
      */
     public function isUniqueCode(string $code, ?int $excludeId = null): bool
     {
-        return $this->validateUniqueField('ma_camera', $code, $excludeId);
+        return $this->validateUniqueField('ma_man_hinh', $code, $excludeId);
     }
     
     /**
-     * Kiểm tra tên camera có là duy nhất không
+     * Kiểm tra tên màn hình có là duy nhất không
      *
      * @param string $name Tên cần kiểm tra
      * @param int|null $excludeId ID cần loại trừ khi kiểm tra
@@ -305,7 +302,7 @@ class Camera extends BaseEntity
      */
     public function isUniqueName(string $name, ?int $excludeId = null): bool
     {
-        return $this->validateUniqueField('ten_camera', $name, $excludeId);
+        return $this->validateUniqueField('ten_man_hinh', $name, $excludeId);
     }
     
     /**
@@ -329,45 +326,5 @@ class Camera extends BaseEntity
         
         // Trả về true nếu không tìm thấy bản ghi nào (tức là giá trị là duy nhất)
         return $builder->countAllResults() === 0;
-    }
-    
-    /**
-     * Overrides BaseEntity setAttributes() để tự động trim dữ liệu chuỗi
-     * 
-     * @param array $data
-     * @return $this
-     */
-    public function setAttributes(array $data)
-    {
-        // Tự động trim các trường chuỗi
-        foreach ($data as $key => $value) {
-            // Chỉ trim các trường là chuỗi và không phải là mật khẩu
-            if (is_string($value) && $key !== 'password') {
-                $data[$key] = trim($value);
-            }
-        }
-        
-        // Gọi phương thức setAttributes của lớp cha
-        return parent::setAttributes($data);
-    }
-    
-    /**
-     * Lấy các quy tắc xác thực
-     *
-     * @return array
-     */
-    public function getValidationRules(): array
-    {
-        return $this->validationRules;
-    }
-    
-    /**
-     * Lấy các thông báo xác thực
-     *
-     * @return array
-     */
-    public function getValidationMessages(): array
-    {
-        return $this->validationMessages;
     }
 } 
