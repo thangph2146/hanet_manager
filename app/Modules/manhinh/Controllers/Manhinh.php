@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\camera\Controllers;
+namespace App\Modules\manhinh\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\camera\Models\CameraModel;
+use App\Modules\manhinh\Models\ManhinhModel;
 use App\Libraries\Breadcrumb;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
@@ -17,7 +17,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-class Camera extends BaseController
+class Manhinh extends BaseController
 {
     use ResponseTrait;
     
@@ -36,13 +36,13 @@ class Camera extends BaseController
         $this->session = service('session');
         
         // Khởi tạo các thành phần cần thiết
-        $this->model = new CameraModel();
+        $this->model = new ManhinhModel();
         $this->breadcrumb = new Breadcrumb();
         $this->alert = new Alert();
         
         // Thông tin module
-        $this->moduleUrl = base_url('camera');
-        $this->moduleName = 'Camera';
+        $this->moduleUrl = base_url('manhinh');
+        $this->moduleName = 'Màn hình';
         
         // Khởi tạo data để truyền đến view
         $this->data = [
@@ -69,7 +69,7 @@ class Camera extends BaseController
         // Lấy tham số từ URL
         $page = (int)($this->request->getGet('page') ?? 1);
         $perPage = (int)($this->request->getGet('perPage') ?? 10);
-        $sort = $this->request->getGet('sort') ?? 'ten_camera';
+        $sort = $this->request->getGet('sort') ?? 'ten_man_hinh';
         $order = $this->request->getGet('order') ?? 'ASC';
         $keyword = $this->request->getGet('keyword') ?? '';
         $status = $this->request->getGet('status');
@@ -113,8 +113,8 @@ class Camera extends BaseController
         // Log tham số tìm kiếm cuối cùng
         log_message('debug', '[Controller] Tham số tìm kiếm cuối cùng: ' . json_encode($searchParams));
         
-        // Lấy dữ liệu camera và thông tin phân trang
-        $cameras = $this->model->search($searchParams, [
+        // Lấy dữ liệu màn hình và thông tin phân trang
+        $manhinhs = $this->model->search($searchParams, [
             'limit' => $perPage,
             'offset' => $offset,
             'sort' => $sort,
@@ -133,7 +133,7 @@ class Camera extends BaseController
             // Tạo URL mới với trang cuối cùng
             $redirectParams = $_GET;
             $redirectParams['page'] = $pageCount;
-            $redirectUrl = site_url('camera') . '?' . http_build_query($redirectParams);
+            $redirectUrl = site_url('manhinh') . '?' . http_build_query($redirectParams);
             
             // Chuyển hướng đến trang cuối cùng
             return redirect()->to($redirectUrl);
@@ -142,7 +142,7 @@ class Camera extends BaseController
         // Lấy pager từ model và thiết lập các tham số
         $pager = $this->model->getPager();
         if ($pager !== null) {
-            $pager->setPath('camera');
+            $pager->setPath('manhinh');
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
             $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order']);
             
@@ -159,17 +159,17 @@ class Camera extends BaseController
             ]));
         }
         
-        // Kiểm tra số lượng camera trả về
-        log_message('debug', '[Controller] Số lượng camera trả về: ' . count($cameras));
-        if (!empty($cameras)) {
-            $firstCamera = $cameras[0];
-            log_message('debug', '[Controller] Camera đầu tiên: ID=' . $firstCamera->camera_id . 
-                ', Tên=' . $firstCamera->ten_camera . 
-                ', Status=' . $firstCamera->status);
+        // Kiểm tra số lượng màn hình trả về
+        log_message('debug', '[Controller] Số lượng màn hình trả về: ' . count($manhinhs));
+        if (!empty($manhinhs)) {
+            $firstManhinh = $manhinhs[0];
+            log_message('debug', '[Controller] Màn hình đầu tiên: ID=' . $firstManhinh->man_hinh_id . 
+                ', Tên=' . $firstManhinh->ten_man_hinh . 
+                ', Status=' . $firstManhinh->status);
         }
         
         // Chuẩn bị dữ liệu cho view
-        $this->data['cameras'] = $cameras;
+        $this->data['manhinhs'] = $manhinhs;
         $this->data['pager'] = $pager;
         $this->data['currentPage'] = $page;
         $this->data['perPage'] = $perPage;
@@ -186,11 +186,11 @@ class Camera extends BaseController
             'total' => $total,
             'pageCount' => $pager ? $pager->getPageCount() : 0,
             'status' => $status,
-            'camera_count' => count($cameras)
+            'manhinh_count' => count($manhinhs)
         ]));
         
         // Hiển thị view
-        return view('App\Modules\camera\Views\index', $this->data);
+        return view('App\Modules\manhinh\Views\index', $this->data);
     }
     
     /**
@@ -201,8 +201,15 @@ class Camera extends BaseController
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Thêm mới', current_url());
         
+        // Tải danh sách camera và template đang hoạt động
+        $manhinhModel = new \App\Modules\manhinh\Models\ManhinhModel();
+        
+        // Sử dụng phương thức mới với giới hạn 20 bản ghi
+        $cameras = $manhinhModel->getRelatedCameras('', 20);
+        $templates = $manhinhModel->getRelatedTemplates('', 20);
+        
         // Chuẩn bị dữ liệu mặc định cho entity mới
-        $camera = new \App\Modules\camera\Entities\Camera([
+        $manhinh = new \App\Modules\manhinh\Entities\ManHinh([
             'status' => 1,
             'bin' => 0
         ]);
@@ -213,12 +220,14 @@ class Camera extends BaseController
             'title' => 'Thêm ' . $this->moduleName,
             'validation' => $this->validator,
             'moduleUrl' => $this->moduleUrl,
-            'camera' => $camera,
+            'manhinh' => $manhinh,
+            'cameras' => $cameras,
+            'templates' => $templates,
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
             'is_new' => true
         ];
         
-        return view('App\Modules\camera\Views\new', $viewData);
+        return view('App\Modules\manhinh\Views\new', $viewData);
     }
     
     /**
@@ -235,27 +244,25 @@ class Camera extends BaseController
 
         // Lấy dữ liệu từ request
         $data = [
-            'ten_camera' => trim($request->getPost('ten_camera')),
-            'ma_camera' => trim($request->getPost('ma_camera')),
-            'ip_camera' => trim($request->getPost('ip_camera')),
-            'port' => $request->getPost('port'),
-            'username' => trim($request->getPost('username')),
-            'password' => $request->getPost('password'),
+            'ten_man_hinh' => trim($request->getPost('ten_man_hinh')),
+            'ma_man_hinh' => trim($request->getPost('ma_man_hinh')),
+            'camera_id' => $request->getPost('camera_id') ? (int)$request->getPost('camera_id') : null,
+            'template_id' => $request->getPost('template_id') ? (int)$request->getPost('template_id') : null,
             'status' => $request->getPost('status') ?? 1,
             'bin' => 0
         ];
 
-        // Kiểm tra xem tên camera đã tồn tại chưa
-        if (!empty($data['ten_camera'])) {
+        // Kiểm tra xem tên màn hình đã tồn tại chưa
+        if (!empty($data['ten_man_hinh'])) {
             // Tìm trực tiếp trong database 
-            $existingCamera = $this->model->builder()
-                ->where('ten_camera', $data['ten_camera'])
+            $existingManhinh = $this->model->builder()
+                ->where('ten_man_hinh', $data['ten_man_hinh'])
                 ->where($this->model->deletedField, null)  // Loại trừ records đã xóa mềm
                 ->get()
                 ->getRow();
                 
-            if ($existingCamera) {
-                $this->alert->set('danger', 'Tên camera "' . $data['ten_camera'] . '" đã tồn tại, vui lòng chọn tên khác', true);
+            if ($existingManhinh) {
+                $this->alert->set('danger', 'Tên màn hình "' . $data['ten_man_hinh'] . '" đã tồn tại, vui lòng chọn tên khác', true);
                 return redirect()->back()->withInput();
             }
         }
@@ -263,7 +270,7 @@ class Camera extends BaseController
         // Lưu dữ liệu vào database
         try {
             if ($this->model->insert($data)) {
-                $this->alert->set('success', 'Thêm camera thành công', true);
+                $this->alert->set('success', 'Thêm màn hình thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
                 $errors = $this->model->errors();
@@ -271,18 +278,18 @@ class Camera extends BaseController
                     return redirect()->back()->withInput()->with('errors', $errors);
                 }
                 
-                $this->alert->set('danger', 'Có lỗi xảy ra khi thêm camera', true);
+                $this->alert->set('danger', 'Có lỗi xảy ra khi thêm màn hình', true);
                 return redirect()->back()->withInput();
             }
         } catch (\Exception $e) {
             // Log lỗi
-            log_message('error', 'Lỗi khi thêm camera: ' . $e->getMessage());
+            log_message('error', 'Lỗi khi thêm màn hình: ' . $e->getMessage());
             
             // Kiểm tra nếu là lỗi duplicate key
             if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
-                $this->alert->set('danger', 'Tên camera đã tồn tại trong hệ thống, vui lòng chọn tên khác', true);
+                $this->alert->set('danger', 'Tên màn hình đã tồn tại trong hệ thống, vui lòng chọn tên khác', true);
             } else {
-                $this->alert->set('danger', 'Có lỗi xảy ra khi thêm camera: ' . $e->getMessage(), true);
+                $this->alert->set('danger', 'Có lỗi xảy ra khi thêm màn hình: ' . $e->getMessage(), true);
             }
             
             return redirect()->back()->withInput();
@@ -295,15 +302,15 @@ class Camera extends BaseController
     public function view($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID camera không hợp lệ', true);
+            $this->alert->set('danger', 'ID màn hình không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
-        // Lấy thông tin camera với relationship
-        $camera = $this->model->findWithRelations($id);
+        // Lấy thông tin màn hình với relationship
+        $manhinh = $this->model->findWithRelations($id);
         
-        if (empty($camera)) {
-            $this->alert->set('danger', 'Không tìm thấy camera', true);
+        if (empty($manhinh)) {
+            $this->alert->set('danger', 'Không tìm thấy màn hình', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -314,11 +321,11 @@ class Camera extends BaseController
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chi tiết ' . $this->moduleName,
-            'camera' => $camera,
+            'manhinh' => $manhinh,
             'moduleUrl' => $this->moduleUrl
         ];
         
-        return view('App\Modules\camera\Views\view', $viewData);
+        return view('App\Modules\manhinh\Views\view', $viewData);
     }
     
     /**
@@ -326,33 +333,41 @@ class Camera extends BaseController
      */
     public function edit($id = null)
     {
-        if (empty($id)) {
-            $this->alert->set('danger', 'ID camera không hợp lệ', true);
+        // Nếu không có ID được cung cấp, chuyển hướng về trang danh sách
+        if ($id === null) {
             return redirect()->to($this->moduleUrl);
         }
-        
-        // Sử dụng phương thức findWithRelations từ model
-        $camera = $this->model->findWithRelations($id);
-        
-        if (empty($camera)) {
-            $this->alert->set('danger', 'Không tìm thấy camera', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
+
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Chỉnh sửa', current_url());
+
+        // Lấy thông tin màn hình theo ID
+        $manhinhModel = new \App\Modules\manhinh\Models\ManhinhModel();
+        $manhinh = $manhinhModel->findWithRelations($id);
+
+        // Nếu không tìm thấy, chuyển hướng về trang danh sách với thông báo lỗi
+        if ($manhinh === null) {
+            return redirect()->to($this->moduleUrl)->with('error', 'Màn hình không tồn tại hoặc đã bị xóa.');
+        }
+
+        // Lấy danh sách camera và template đang hoạt động
+        // Sử dụng phương thức mới với giới hạn 20 bản ghi
+        $cameras = $manhinhModel->getRelatedCameras('', 20);
+        $templates = $manhinhModel->getRelatedTemplates('', 20);
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chỉnh sửa ' . $this->moduleName,
             'validation' => $this->validator,
-            'camera' => $camera,
+            'manhinh' => $manhinh,
+            'cameras' => $cameras,
+            'templates' => $templates,
             'moduleUrl' => $this->moduleUrl,
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
         ];
         
-        return view('App\Modules\camera\Views\edit', $viewData);
+        return view('App\Modules\manhinh\Views\edit', $viewData);
     }
     
     /**
@@ -361,64 +376,82 @@ class Camera extends BaseController
     public function update($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID camera không hợp lệ', true);
+            $this->alert->set('danger', 'ID màn hình không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
-        // Lấy thông tin camera với relationship
-        $existingCamera = $this->model->findWithRelations($id);
+        // Lấy thông tin màn hình với relationship
+        $existingManhinh = $this->model->findWithRelations($id);
         
-        if (empty($existingCamera)) {
-            $this->alert->set('danger', 'Không tìm thấy camera', true);
+        if (empty($existingManhinh)) {
+            $this->alert->set('danger', 'Không tìm thấy màn hình', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
         
-        // Chuẩn bị quy tắc validation cho cập nhật - cần truyền mảng có chứa camera_id
-        $this->model->prepareValidationRules('update', ['camera_id' => $id]);
+        // Kiểm tra và chuyển đổi camera_id và template_id thành số nguyên
+        $camera_id = $this->request->getPost('camera_id');
+        $template_id = $this->request->getPost('template_id');
+        
+        // Kiểm tra và chuyển đổi camera_id
+        if ($camera_id !== null && $camera_id !== '') {
+            if (!is_numeric($camera_id)) {
+                return redirect()->back()->withInput()->with('errors', ['camera_id' => 'Camera ID phải là số nguyên']);
+            }
+            $camera_id = (int)$camera_id;
+        }
+        
+        // Kiểm tra và chuyển đổi template_id
+        if ($template_id !== null && $template_id !== '') {
+            if (!is_numeric($template_id)) {
+                return redirect()->back()->withInput()->with('errors', ['template_id' => 'Template ID phải là số nguyên']);
+            }
+            $template_id = (int)$template_id;
+        }
+        
+        // Chuẩn bị quy tắc validation cho cập nhật
+        $this->model->prepareValidationRules('update', ['man_hinh_id' => $id]);
         
         // Xử lý validation với quy tắc đã được điều chỉnh
         if (!$this->validate($this->model->getValidationRules())) {
-            // Nếu validation thất bại, quay lại form với lỗi
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
-        // Kiểm tra xem tên camera đã tồn tại chưa (trừ chính nó)
-        if (!empty($data['ten_camera']) && $this->model->isNameExists($data['ten_camera'], $id)) {
-            $this->alert->set('danger', 'Tên camera đã tồn tại', true);
+        // Kiểm tra xem tên màn hình đã tồn tại chưa (trừ chính nó)
+        if (!empty($data['ten_man_hinh']) && $this->model->isNameExists($data['ten_man_hinh'], $id)) {
+            $this->alert->set('danger', 'Tên màn hình đã tồn tại', true);
             return redirect()->back()->withInput();
         }
         
         // Chuẩn bị dữ liệu để cập nhật
         $updateData = [
-            'ten_camera' => $data['ten_camera'],
-            'ma_camera' => $data['ma_camera'] ?? null,
-            'ip_camera' => $data['ip_camera'] ?? null,
-            'port' => $data['port'] ?? null,
-            'username' => $data['username'] ?? null,
-            'status' => $data['status'] ?? 0,
-            'bin' => $data['bin'] ?? 0
+            'ten_man_hinh' => $data['ten_man_hinh'],
+            'ma_man_hinh' => $data['ma_man_hinh'] ?? null,
+            'camera_id' => $camera_id,
+            'template_id' => $template_id,
+            'status' => isset($data['status']) ? (int)$data['status'] : 0,
+            'bin' => isset($data['bin']) ? (int)$data['bin'] : 0
         ];
         
-        // Chỉ cập nhật mật khẩu nếu có nhập mật khẩu mới
-        if (!empty($data['password'])) {
-            $updateData['password'] = $data['password'];
+        // Giữ lại các trường thời gian từ dữ liệu hiện có
+        $updateData['created_at'] = $existingManhinh->created_at;
+        if ($existingManhinh->deleted_at) {
+            $updateData['deleted_at'] = $existingManhinh->deleted_at;
         }
         
-        // Giữ lại các trường thời gian từ dữ liệu hiện có
-        $updateData['created_at'] = $existingCamera->created_at;
-        if ($existingCamera->deleted_at) {
-            $updateData['deleted_at'] = $existingCamera->deleted_at;
-        }
+        // Log dữ liệu cập nhật để debug
+        log_message('debug', 'Update data: ' . json_encode($updateData));
         
         // Cập nhật dữ liệu vào database
         if ($this->model->update($id, $updateData)) {
-            $this->alert->set('success', 'Cập nhật camera thành công', true);
+            $this->alert->set('success', 'Cập nhật màn hình thành công', true);
             return redirect()->to($this->moduleUrl);
         } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật camera: ' . implode(', ', $this->model->errors()), true);
+            $errors = $this->model->errors();
+            $errorMessage = !empty($errors) ? implode(', ', $errors) : 'Lỗi không xác định';
+            $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật màn hình: ' . $errorMessage, true);
             return redirect()->back()->withInput();
         }
     }
@@ -429,24 +462,15 @@ class Camera extends BaseController
     public function delete($id = null, $backToUrl = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID camera không hợp lệ', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
-        // Kiểm tra nếu camera đang được sử dụng ở màn hình
-        $manhinhModel = new \App\Modules\manhinh\Models\ManhinhModel();
-        $usedInManhinh = $manhinhModel->where('camera_id', $id)->where('bin', 0)->countAllResults();
-        
-        if ($usedInManhinh > 0) {
-            $this->alert->set('warning', 'Không thể xóa camera đang được sử dụng bởi ' . $usedInManhinh . ' màn hình', true);
+            $this->alert->set('danger', 'ID màn hình không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Thực hiện xóa mềm (chuyển vào thùng rác)
         if ($this->model->moveToRecycleBin($id)) {
-            $this->alert->set('success', 'Đã chuyển camera vào thùng rác', true);
+            $this->alert->set('success', 'Đã chuyển màn hình vào thùng rác', true);
         } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa camera', true);
+            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa màn hình', true);
         }
         
         // Lấy URL trả về từ tham số truy vấn hoặc từ tham số đường dẫn
@@ -459,7 +483,7 @@ class Camera extends BaseController
     }
     
     /**
-     * Hiển thị danh sách camera trong thùng rác
+     * Hiển thị danh sách màn hình trong thùng rác
      */
     public function listdeleted()
     {
@@ -499,7 +523,7 @@ class Camera extends BaseController
         
         // Xây dựng tham số tìm kiếm
         $searchParams = [
-            'bin' => 1, // Luôn lấy các camera trong thùng rác
+            'bin' => 1, // Luôn lấy các màn hình trong thùng rác
             'sort' => $sort,
             'order' => $order
         ];
@@ -517,8 +541,8 @@ class Camera extends BaseController
         // Log tham số tìm kiếm cuối cùng
         log_message('debug', '[Controller:listdeleted] Tham số tìm kiếm cuối cùng: ' . json_encode($searchParams));
         
-        // Lấy dữ liệu camera và thông tin phân trang
-        $cameras = $this->model->search($searchParams, [
+        // Lấy dữ liệu màn hình và thông tin phân trang
+        $manhinhs = $this->model->search($searchParams, [
             'limit' => $perPage,
             'offset' => ($page - 1) * $perPage,
             'sort' => $sort,
@@ -530,7 +554,7 @@ class Camera extends BaseController
         // Lấy pager từ model và thiết lập các tham số
         $pager = $this->model->getPager();
         if ($pager !== null) {
-            $pager->setPath('camera/listdeleted');
+            $pager->setPath('manhinh/listdeleted');
             // Không cần thiết lập segment vì chúng ta sử dụng query string
             $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status']);
             
@@ -542,7 +566,7 @@ class Camera extends BaseController
         }
         
         // Chuẩn bị dữ liệu cho view
-        $this->data['cameras'] = $cameras;
+        $this->data['manhinhs'] = $manhinhs;
         $this->data['pager'] = $pager;
         $this->data['currentPage'] = $page;
         $this->data['perPage'] = $perPage;
@@ -553,7 +577,7 @@ class Camera extends BaseController
         $this->data['status'] = $status;
         
         // Hiển thị view
-        return view('App\Modules\camera\Views\listdeleted', $this->data);
+        return view('App\Modules\manhinh\Views\listdeleted', $this->data);
     }
     
     /**
@@ -562,7 +586,7 @@ class Camera extends BaseController
     public function restore($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID camera không hợp lệ', true);
+            $this->alert->set('danger', 'ID màn hình không hợp lệ', true);
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
@@ -571,9 +595,9 @@ class Camera extends BaseController
         log_message('debug', 'Restore - Return URL: ' . ($returnUrl ?? 'None'));
         
         if ($this->model->restoreFromRecycleBin($id)) {
-            $this->alert->set('success', 'Đã khôi phục camera từ thùng rác', true);
+            $this->alert->set('success', 'Đã khôi phục màn hình từ thùng rác', true);
         } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra khi khôi phục camera', true);
+            $this->alert->set('danger', 'Có lỗi xảy ra khi khôi phục màn hình', true);
         }
         
         // Chuyển hướng đến URL đích đã xử lý
@@ -582,12 +606,12 @@ class Camera extends BaseController
     }
     
     /**
-     * Xóa vĩnh viễn một camera
+     * Xóa vĩnh viễn một màn hình
      */
     public function permanentDelete($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID camera không hợp lệ', true);
+            $this->alert->set('danger', 'ID màn hình không hợp lệ', true);
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
@@ -596,9 +620,9 @@ class Camera extends BaseController
         log_message('debug', 'PermanentDelete - Return URL: ' . ($returnUrl ?? 'None'));
         
         if ($this->model->delete($id, true)) { // true = xóa vĩnh viễn
-            $this->alert->set('success', 'Đã xóa vĩnh viễn camera', true);
+            $this->alert->set('success', 'Đã xóa vĩnh viễn màn hình', true);
         } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa camera', true);
+            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa màn hình', true);
         }
         
         // Chuyển hướng đến URL đích đã xử lý
@@ -666,7 +690,7 @@ class Camera extends BaseController
             'moduleUrl' => $this->moduleUrl
         ];
         
-        return view('App\Modules\camera\Views\search', $viewData);
+        return view('App\Modules\manhinh\Views\search', $viewData);
     }
     
     /**
@@ -1137,7 +1161,7 @@ class Camera extends BaseController
         }
         
         // Render view thành HTML
-        $html = view('App\Modules\camera\Views\export_pdf', $data);
+        $html = view('App\Modules\manhinh\Views\export_pdf', $data);
         
         // Tạo đối tượng DOMPDF
         $options = new Options();
@@ -1220,7 +1244,7 @@ class Camera extends BaseController
         }
         
         // Render view thành HTML
-        $html = view('App\Modules\camera\Views\export_pdf', $pdfData);
+        $html = view('App\Modules\manhinh\Views\export_pdf', $pdfData);
         
         // Tạo đối tượng DOMPDF
         $options = new Options();
@@ -1379,5 +1403,55 @@ class Camera extends BaseController
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save('php://output');
         exit();
+    }
+    
+    /**
+     * Tìm kiếm camera qua AJAX
+     */
+    public function searchCameras()
+    {
+        // Kiểm tra yêu cầu Ajax
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Truy cập trực tiếp không được phép']);
+        }
+        
+        // Lấy từ khóa tìm kiếm
+        $keyword = $this->request->getGet('keyword') ?? '';
+        
+        // Tìm kiếm camera
+        $cameras = $this->model->searchCameras($keyword);
+        
+        // Trả về kết quả dưới dạng JSON
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $cameras,
+            'csrf_token_name' => csrf_token(),
+            'csrf_hash' => csrf_hash()
+        ]);
+    }
+    
+    /**
+     * Tìm kiếm template qua AJAX
+     */
+    public function searchTemplates()
+    {
+        // Kiểm tra yêu cầu Ajax
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Truy cập trực tiếp không được phép']);
+        }
+        
+        // Lấy từ khóa tìm kiếm
+        $keyword = $this->request->getGet('keyword') ?? '';
+        
+        // Tìm kiếm template
+        $templates = $this->model->searchTemplates($keyword);
+        
+        // Trả về kết quả dưới dạng JSON
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $templates,
+            'csrf_token_name' => csrf_token(),
+            'csrf_hash' => csrf_hash()
+        ]);
     }
 } 

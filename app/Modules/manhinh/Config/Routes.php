@@ -34,4 +34,6 @@ $routes->group('manhinh', ['namespace' => 'App\Modules\manhinh\Controllers'], fu
     $routes->get('exportExcel', 'Manhinh::exportExcel');
     $routes->get('exportDeletedPdf', 'Manhinh::exportDeletedPdf');
     $routes->get('exportDeletedExcel', 'Manhinh::exportDeletedExcel');
+    $routes->post('manhinh/search-cameras', 'App\Modules\manhinh\Controllers\Manhinh::searchCameras');
+    $routes->post('manhinh/search-templates', 'App\Modules\manhinh\Controllers\Manhinh::searchTemplates');
 }); 

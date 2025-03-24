@@ -1,21 +1,21 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= camera_css('table') ?>
-<?= camera_section_css('modal') ?>
+<?= manhinh_css('table') ?>
+<?= manhinh_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>DANH SÁCH CAMERA<?= $this->endSection() ?>
+<?= $this->section('title') ?>DANH SÁCH MÀN HÌNH<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Danh sách camera',
-	'dashboard_url' => site_url('camera/dashboard'),
+	'title' => 'Danh sách màn hình',
+	'dashboard_url' => site_url('manhinh/dashboard'),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Camera', 'url' => site_url('camera')],
+		['title' => 'Quản lý Màn hình', 'url' => site_url('manhinh')],
 		['title' => 'Danh sách', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/camera/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
+		['url' => site_url('/manhinh/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
 	]
 ]) ?>
 <?= $this->endSection() ?>  
@@ -24,7 +24,7 @@
 
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách camera</h5>
+        <h5 class="card-title mb-0">Danh sách màn hình</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -34,7 +34,7 @@
                     <i class='bx bx-export'></i> Xuất
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= site_url('camera/exportExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url('manhinh/exportExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
                     <li><a class="dropdown-item" href="#" id="export-pdf">PDF</a></li>
                 </ul>
             </div>
@@ -44,20 +44,20 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <?= form_open("camera/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("manhinh/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="delete-selected" class="btn btn-danger btn-sm me-2" disabled>
                         <i class='bx bx-trash'></i> Xóa mục đã chọn
                     </button>
                     <?= form_close() ?>
                     
-                    <?= form_open("camera/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("manhinh/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="status-selected" class="btn btn-warning btn-sm" disabled>
                         <i class='bx bx-refresh'></i> Đổi trạng thái
                     </button>
                     <?= form_close() ?>
                 </div>
                 <div class="col-12 col-md-6">
-                    <form action="<?= site_url('camera') ?>" method="get" id="search-form">
+                    <form action="<?= site_url('manhinh') ?>" method="get" id="search-form">
                         <input type="hidden" name="page" value="1">
                         <input type="hidden" name="perPage" value="<?= $perPage ?>">
                         <div class="input-group search-box">
@@ -71,9 +71,9 @@
                                 <i class='bx bx-search'></i>
                             </button>
                             <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
-                            <a href="<?= site_url('camera') ?>" class="btn btn-outline-danger btn-sm">
-                                <i class='bx bx-x'></i>
-                            </a>
+                                <a href="<?= site_url('manhinh') ?>" class="btn btn-outline-danger btn-sm">
+                                    <i class='bx bx-x'></i>
+                                </a>
                             <?php endif; ?>
                         </div>
                     </form>
@@ -105,7 +105,7 @@
                     <?php if (isset($status) && $status !== ''): ?>
                         <span class="badge bg-secondary me-2">Trạng thái: <?= $status == 1 ? 'Hoạt động' : 'Không hoạt động' ?></span>
                     <?php endif; ?>
-                    <a href="<?= site_url('camera') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
+                    <a href="<?= site_url('manhinh') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>
             </div>
         <?php endif; ?>
@@ -131,7 +131,7 @@
                         'total_pages' => $pager ? $pager->getPageCount() : 0,
                         'status' => $status,
                         'keyword' => $keyword,
-                        'camera_count' => count($cameras)
+                        'manhinh_count' => count($manhinhs)
                     ], JSON_PRETTY_PRINT) ?></pre>
                 </div>
             </div>
@@ -149,7 +149,7 @@
                                 </div>
                             </th>
                             <th width="10%" class="align-middle">Mã</th>
-                            <th width="20%" class="align-middle">Tên camera</th>
+                            <th width="20%" class="align-middle">Tên màn hình</th>
                             <th width="20%" class="align-middle">Địa chỉ IP</th>
                             <th width="10%" class="align-middle">Port</th>
                             <th width="15%" class="align-middle">Tên đăng nhập</th>
@@ -158,17 +158,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($cameras)) : ?>
-                            <?php foreach ($cameras as $item) : ?>
+                        <?php if (!empty($manhinhs)) : ?>
+                            <?php foreach ($manhinhs as $item) : ?>
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
-                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->camera_id ?>">
+                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->man_hinh_id ?>">
                                         </div>
                                     </td>
-                                    <td><?= esc($item->ma_camera) ?></td>
-                                    <td><?= esc($item->ten_camera) ?></td>
-                                    <td><?= esc($item->ip_camera) ?></td>
+                                    <td><?= esc($item->ma_man_hinh) ?></td>
+                                    <td><?= esc($item->ten_man_hinh) ?></td>
+                                    <td><?= esc($item->ip_man_hinh) ?></td>
                                     <td><?= esc($item->port) ?></td>
                                     <td><?= esc($item->username) ?></td>
                                     <td class="text-center">
@@ -180,15 +180,15 @@
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <a href="<?= site_url("camera/view/{$item->camera_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                            <a href="<?= site_url("manhinh/view/{$item->man_hinh_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
                                                 <i class="bx bx-info-circle text-white"></i>
                                             </a>
-                                            <a href="<?= site_url("camera/edit/{$item->camera_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
+                                            <a href="<?= site_url("manhinh/edit/{$item->man_hinh_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
                                                 <i class="bx bx-edit"></i>
                                             </a>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
-                                                    data-id="<?= $item->camera_id ?>" 
-                                                    data-name="<?= esc($item->ten_camera) ?>"
+                                                    data-id="<?= $item->man_hinh_id ?>" 
+                                                    data-name="<?= esc($item->ten_man_hinh) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa">
                                                 <i class="bx bx-trash"></i>
                                             </button>
@@ -210,7 +210,7 @@
                 </table>
             </div>
         </div>
-        <?php if (!empty($cameras)): ?>
+        <?php if (!empty($manhinhs)): ?>
             <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-2">
                 <div class="col-sm-12 col-md-5">
                     <div class="dataTables_info">
@@ -230,7 +230,7 @@
                             <span class="ms-1">bản ghi/trang</span>
                         </div>
                         <div>
-                            <?php if (isset($pager) && $pager instanceof \App\Modules\camera\Libraries\CameraPager): ?>
+                            <?php if (isset($pager) && $pager instanceof \App\Modules\manhinh\Libraries\ManHinhPager): ?>
                                 <?= $pager->render() ?>
                             <?php endif; ?>
                         </div>
@@ -253,7 +253,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa camera:</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa màn hình:</p>
                 <p class="text-center fw-bold" id="delete-item-name"></p>
                 <div class="alert alert-warning mt-3">
                     <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
@@ -281,7 +281,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> camera đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> màn hình đã chọn?</p>
                 <div class="alert alert-warning mt-3">
                     <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
                 </div>
@@ -306,7 +306,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-toggle-right text-warning" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> camera đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> màn hình đã chọn?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -323,8 +323,8 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= camera_js('table') ?>
-<?= camera_section_js('table') ?>
+<?= manhinh_js('table') ?>
+<?= manhinh_section_js('table') ?>
 
 <script>
     $(document).ready(function() {
@@ -383,7 +383,7 @@
             const pathAndQuery = window.location.pathname + window.location.search;
             
             // Tạo URL xóa với tham số truy vấn return_url
-            const deleteUrl = '<?= site_url('camera/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            const deleteUrl = '<?= site_url('manhinh/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             $('#delete-form').attr('action', deleteUrl);
             
             console.log('URL xóa:', deleteUrl);
@@ -514,7 +514,7 @@
             const queryParams = currentUrl.searchParams;
             
             // Tạo URL xuất Excel với các tham số cần thiết
-            let exportUrl = '<?= site_url("camera/exportExcel") ?>';
+            let exportUrl = '<?= site_url("manhinh/exportExcel") ?>';
             const params = [];
             
             // Thêm các tham số cần thiết
@@ -536,7 +536,7 @@
                 exportUrl += '?' + params.join('&');
             }
             
-            console.log('Exporting cameras to Excel with URL:', exportUrl);
+            console.log('Exporting manhinhs to Excel with URL:', exportUrl);
             
             // Chuyển hướng đến URL xuất Excel
             window.location.href = exportUrl;
@@ -551,7 +551,7 @@
             const queryParams = currentUrl.searchParams;
             
             // Tạo URL xuất PDF với các tham số cần thiết
-            let exportUrl = '<?= site_url("camera/exportPdf") ?>';
+            let exportUrl = '<?= site_url("manhinh/exportPdf") ?>';
             const params = [];
             
             // Thêm các tham số cần thiết
@@ -573,7 +573,7 @@
                 exportUrl += '?' + params.join('&');
             }
             
-            console.log('Exporting cameras to PDF with URL:', exportUrl);
+            console.log('Exporting manhinhs to PDF with URL:', exportUrl);
             
             // Chuyển hướng đến URL xuất PDF
             window.location.href = exportUrl;

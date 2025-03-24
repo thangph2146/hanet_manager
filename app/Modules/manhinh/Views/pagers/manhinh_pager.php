@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \App\Modules\camera\Libraries\CameraPager $pager
+ * @var \App\Modules\manhinh\Libraries\ManHinhPager $pager
  */
 
 // Tính toán thông tin phân trang
