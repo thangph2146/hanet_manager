@@ -378,7 +378,16 @@
             const id = $(this).data('id');
             const name = $(this).data('name');
             $('#delete-item-name').text(name);
-            $('#delete-form').attr('action', '<?= site_url('camera/delete/') ?>' + id);
+            
+            // Lấy URL hiện tại làm return_url
+            const currentUrl = window.location.href;
+            
+            // Tạo form xóa với tham số return_url
+            const deleteUrl = '<?= site_url('camera/delete/') ?>' + id + '?return_url=' + encodeURIComponent(currentUrl);
+            $('#delete-form').attr('action', deleteUrl);
+            
+            console.log('URL xóa:', deleteUrl);
+            
             $('#deleteModal').modal('show');
         });
         

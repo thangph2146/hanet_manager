@@ -449,7 +449,19 @@ class Camera extends BaseController
             $this->alert->set('danger', 'Có lỗi xảy ra khi xóa camera', true);
         }
         
-        return redirect()->to($backToUrl ?? $this->moduleUrl);
+        // Lấy URL trở về từ POST hoặc GET
+        $returnUrl = $this->request->getGet('return_url') ?? $this->request->getPost('return_url');
+        
+        if (!empty($returnUrl)) {
+            // Giải mã URL nếu đã được mã hóa
+            $returnUrl = urldecode($returnUrl);
+            log_message('debug', 'Return URL sau khi giải mã: ' . $returnUrl);
+            
+            return redirect()->to($returnUrl);
+        }
+        
+        // Mặc định trở về trang danh sách camera
+        return redirect()->to($this->moduleUrl);
     }
     
     /**
