@@ -6,7 +6,7 @@ use CodeIgniter\Database\BaseBuilder;
 
 class BaseModel extends Model
 {
-    protected $returnType = 'App\Entities\BaseEntity';
+    protected $returnType = 'array';
     protected $useTimestamps = true;
     protected $useSoftDeletes = true;
     protected $dateFormat = 'datetime';
@@ -14,6 +14,7 @@ class BaseModel extends Model
     protected $updatedField = 'updated_at';
     protected $deletedField = 'deleted_at';
     protected $relations = [];
+    protected $relationsToLoad = [];
     protected $searchableFields = [];
     protected $filterableFields = [];
     protected $beforeSpaceRemoval = [];
@@ -91,21 +92,23 @@ class BaseModel extends Model
     {
         // Nếu $relations là mảng đơn giản gồm các chuỗi (tên quan hệ)
         // thì chuyển đổi thành mảng kết hợp
-        $processedRelations = [];
+        $relationsToLoad = [];
         
         foreach ($relations as $key => $value) {
             // Nếu key là số nguyên và giá trị là chuỗi, đây là mảng đơn giản
             if (is_int($key) && is_string($value)) {
                 if (isset($this->relations[$value])) {
-                    $processedRelations[$value] = $this->relations[$value];
+                    $relationsToLoad[$value] = $this->relations[$value];
                 }
             } else {
                 // Nếu key là chuỗi, đây là mảng kết hợp đã có cấu hình
-                $processedRelations[$key] = $value;
+                $relationsToLoad[$key] = $value;
             }
         }
         
-        $this->relations = $processedRelations;
+        // Lưu lại danh sách quan hệ cần tải mà không ghi đè toàn bộ $this->relations
+        $this->relationsToLoad = $relationsToLoad;
+        
         return $this;
     }
 
@@ -174,6 +177,12 @@ class BaseModel extends Model
         $foreignKey = $config['foreignKey'];
         $localKey = $config['localKey'] ?? $this->primaryKey;
         $entityClass = $config['entity'] ?? 'App\Entities\BaseEntity';
+        
+        // Nếu entity class là BaseEntity (lớp trừu tượng), đặt thành null
+        if ($entityClass === 'App\Entities\BaseEntity') {
+            $entityClass = null;
+        }
+        
         $conditions = $config['conditions'] ?? [];
         $select = $config['select'] ?? '*';
         $orderBy = $config['orderBy'] ?? null;
@@ -214,13 +223,32 @@ class BaseModel extends Model
                 $result = $query->where($foreignKey, $data->$localKey)
                                ->get()
                                ->getRow();
-                return $result ? new $entityClass((array) $result) : null;
+                if ($result) {
+                    if ($entityClass && class_exists($entityClass)) {
+                        try {
+                            return new $entityClass((array) $result);
+                        } catch (\Exception $e) {
+                            return $result;
+                        }
+                    }
+                    return $result;
+                }
+                return null;
 
             case '1-n':
                 $results = $query->where($foreignKey, $data->$localKey)
                                 ->get()
                                 ->getResult();
-                return array_map(fn($row) => new $entityClass((array) $row), $results);
+                if ($entityClass && class_exists($entityClass)) {
+                    try {
+                        return array_map(function($row) use ($entityClass) {
+                            return new $entityClass((array) $row);
+                        }, $results);
+                    } catch (\Exception $e) {
+                        return $results;
+                    }
+                }
+                return $results;
 
             case 'n-n':
                 $pivotTable = $config['pivotTable'];
@@ -231,7 +259,16 @@ class BaseModel extends Model
                                 ->where("$pivotTable.$pivotLocalKey", $data->$localKey)
                                 ->get()
                                 ->getResult();
-                return array_map(fn($row) => new $entityClass((array) $row), $results);
+                if ($entityClass && class_exists($entityClass)) {
+                    try {
+                        return array_map(function($row) use ($entityClass) {
+                            return new $entityClass((array) $row);
+                        }, $results);
+                    } catch (\Exception $e) {
+                        return $results;
+                    }
+                }
+                return $results;
 
             case 'n-1':
                 // Sử dụng khóa ngoại thay vì cố định 'id'
@@ -239,7 +276,20 @@ class BaseModel extends Model
                 $result = $query->where($foreignPrimaryKey, $data->$foreignKey)
                                ->get()
                                ->getRow();
-                return $result ? new $entityClass((array) $result) : null;
+                
+                // Kiểm tra entity class có được chỉ định hay không và có thể khởi tạo được không
+                if ($result) {
+                    if ($entityClass && class_exists($entityClass)) {
+                        try {
+                            return new $entityClass((array) $result);
+                        } catch (\Exception $e) {
+                            // Nếu có lỗi khi tạo đối tượng, trả về kết quả trực tiếp
+                            return $result;
+                        }
+                    }
+                    return $result;
+                }
+                return null;
 
             default:
                 return null;
@@ -376,7 +426,39 @@ class BaseModel extends Model
             $builder->limit($options['limit'], $offset);
         }
         
-        return $builder->get()->getResult($this->returnType);
+        $results = $builder->get()->getResult($this->returnType);
+        
+        // Nếu có relationsToLoad, tải các quan hệ cho kết quả
+        return $this->loadRelationsForResults($results);
+    }
+    
+    /**
+     * Tải các mối quan hệ cho kết quả trả về
+     *
+     * @param array $results Mảng kết quả cần tải quan hệ
+     * @return array Mảng kết quả đã tải quan hệ
+     */
+    protected function loadRelationsForResults(array $results)
+    {
+        if (empty($results)) {
+            return $results;
+        }
+        
+        // Kiểm tra xem có mối quan hệ nào cần tải không
+        $relationsToLoad = !empty($this->relationsToLoad) ? $this->relationsToLoad : $this->relations;
+        if (empty($relationsToLoad)) {
+            return $results;
+        }
+        
+        // Tải quan hệ cho từng mục trong kết quả
+        foreach ($results as $index => $item) {
+            foreach ($relationsToLoad as $relation => $config) {
+                $item->$relation = $this->fetchRelation($relation, $config, $item);
+                $results[$index] = $item;
+            }
+        }
+        
+        return $results;
     }
 
     // Soft delete operations
@@ -448,5 +530,39 @@ class BaseModel extends Model
     protected function buildConcatFields(array $fields, string $separator = ' ')
     {
         return "CONCAT(" . implode(", '{$separator}', ", $fields) . ")";
+    }
+
+    /**
+     * Override phương thức findAll để hỗ trợ tải các mối quan hệ
+     *
+     * @param int|null $limit Giới hạn kết quả
+     * @param int $offset Vị trí bắt đầu
+     * @return array Mảng kết quả với relations
+     */
+    public function findAll(?int $limit = null, int $offset = 0)
+    {
+        // Lấy kết quả gốc từ lớp cha
+        $results = parent::findAll($limit, $offset);
+        
+        // Sử dụng phương thức chung để tải quan hệ
+        return $this->loadRelationsForResults($results);
+    }
+
+    /**
+     * Override phương thức paginate để hỗ trợ tải các mối quan hệ
+     *
+     * @param int|null $perPage Số bản ghi mỗi trang
+     * @param string $group Nhóm phân trang
+     * @param int|null $page Trang hiện tại
+     * @param int $segment Phân đoạn
+     * @return array Mảng kết quả phân trang với relations
+     */
+    public function paginate(?int $perPage = null, string $group = 'default', ?int $page = null, int $segment = 0)
+    {
+        // Lấy kết quả phân trang gốc từ lớp cha
+        $results = parent::paginate($perPage, $group, $page, $segment);
+        
+        // Sử dụng phương thức chung để tải quan hệ
+        return $this->loadRelationsForResults($results);
     }
 }

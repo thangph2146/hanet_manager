@@ -55,6 +55,9 @@ class Autoload extends AutoloadConfig
         'App\Modules\nganh' => APPPATH . 'Modules/nganh',
         'App\Modules\loaisukien' => APPPATH . 'Modules/loaisukien',
         'App\Modules\facenguoidung' => APPPATH . 'Modules/facenguoidung',
+        'App\Modules\manhinh' => APPPATH . 'Modules/manhinh',
+        'App\Modules\camera' => APPPATH . 'Modules/camera',
+        'App\Modules\template' => APPPATH . 'Modules/template',
     ];
 
     /**
