@@ -75,12 +75,14 @@ class CameraPager
      */
     public function __construct(int $total = 0, int $perPage = 10, int $currentPage = 1)
     {
-        $this->total = $total;
-        $this->perPage = $perPage;
-        $this->currentPage = $currentPage;
+        $this->total = max(0, $total);
+        $this->perPage = max(1, $perPage);
         
         // Tính tổng số trang
         $this->calculatePageCount();
+        
+        // Đảm bảo trang hiện tại hợp lệ
+        $this->currentPage = max(1, min($currentPage, $this->pageCount > 0 ? $this->pageCount : 1));
     }
     
     /**
@@ -127,8 +129,12 @@ class CameraPager
      */
     public function setTotal(int $total)
     {
-        $this->total = $total;
+        $this->total = max(0, $total);
         $this->calculatePageCount();
+        
+        // Đảm bảo trang hiện tại vẫn hợp lệ sau khi tổng số trang thay đổi
+        $this->currentPage = max(1, min($this->currentPage, $this->pageCount > 0 ? $this->pageCount : 1));
+        
         return $this;
     }
     
@@ -140,8 +146,12 @@ class CameraPager
      */
     public function setPerPage(int $perPage)
     {
-        $this->perPage = $perPage;
+        $this->perPage = max(1, $perPage);
         $this->calculatePageCount();
+        
+        // Đảm bảo trang hiện tại vẫn hợp lệ sau khi tổng số trang thay đổi
+        $this->currentPage = max(1, min($this->currentPage, $this->pageCount > 0 ? $this->pageCount : 1));
+        
         return $this;
     }
     
@@ -153,7 +163,8 @@ class CameraPager
      */
     public function setCurrentPage(int $currentPage)
     {
-        $this->currentPage = $currentPage;
+        // Đảm bảo trang hiện tại hợp lệ (nằm trong khoảng từ 1 đến tổng số trang)
+        $this->currentPage = max(1, min($currentPage, $this->pageCount > 0 ? $this->pageCount : 1));
         return $this;
     }
     
@@ -254,7 +265,22 @@ class CameraPager
      */
     protected function calculatePageCount()
     {
-        $this->pageCount = $this->perPage > 0 ? (int)ceil($this->total / $this->perPage) : 1;
+        // Đảm bảo perPage > 0 để tránh chia cho 0
+        if ($this->perPage < 1) {
+            $this->perPage = 1;
+        }
+        
+        // Nếu không có bản ghi nào, vẫn có ít nhất 1 trang
+        if ($this->total <= 0) {
+            $this->pageCount = 1;
+        } else {
+            $this->pageCount = (int)ceil($this->total / $this->perPage);
+        }
+        
+        // Đảm bảo luôn có ít nhất 1 trang
+        if ($this->pageCount < 1) {
+            $this->pageCount = 1;
+        }
     }
     
     /**
@@ -267,32 +293,28 @@ class CameraPager
     {
         $page = max(1, min($page, $this->pageCount));
         
-        // Nếu không có path, sử dụng đường dẫn hiện tại
+        // Sử dụng path và thêm tham số page vào query string
         if (empty($this->path)) {
-            // Lấy đường dẫn hiện tại không bao gồm segment chứa số trang
+            // Nếu không có path được thiết lập, sử dụng URI hiện tại
             $uri = service('uri');
-            $segments = $uri->getSegments();
-            
-            // Loại bỏ segment số trang nếu có
-            if (count($segments) >= $this->segment) {
-                $segments[$this->segment - 1] = $page;
-            } else {
-                // Thêm segment số trang nếu chưa có
-                while (count($segments) < $this->segment - 1) {
-                    $segments[] = '';
-                }
-                $segments[] = $page;
-            }
-            
-            $path = implode('/', $segments);
+            $path = implode('/', $uri->getSegments());
         } else {
-            $path = $this->path . '/' . $page;
+            // Sử dụng path đã được thiết lập
+            $path = $this->path;
         }
         
-        // Thêm các tham số GET nếu cần
+        // Lấy tất cả các tham số GET hiện tại
         $query = $_GET;
         
-        // Chỉ giữ lại các tham số đã chỉ định trong only
+        // Cập nhật tham số page
+        $query['page'] = $page;
+        
+        // Đảm bảo perPage luôn được giữ lại
+        if (!isset($query['perPage']) && $this->perPage != 10) {
+            $query['perPage'] = $this->perPage;
+        }
+        
+        // Lọc các tham số chỉ định trong only (nếu có)
         if (!empty($this->only)) {
             $newQuery = [];
             foreach ($this->only as $key) {
@@ -300,16 +322,21 @@ class CameraPager
                     $newQuery[$key] = $query[$key];
                 }
             }
+            // Thêm tham số page vào danh sách được giữ lại
+            $newQuery['page'] = $page;
             $query = $newQuery;
         }
         
+        // Tạo query string từ các tham số
         $queryString = http_build_query($query);
         
+        // Kết hợp path và query string
+        $url = site_url($path);
         if (!empty($queryString)) {
-            $path .= '?' . $queryString;
+            $url .= '?' . $queryString;
         }
         
-        return site_url($path);
+        return $url;
     }
     
     /**
@@ -321,7 +348,7 @@ class CameraPager
     {
         // Nếu tổng số trang ít, hiển thị tất cả
         if ($this->pageCount <= ($this->surroundCount * 2) + 3) {
-            return range(1, $this->pageCount);
+            return range(1, max(1, $this->pageCount));
         }
         
         // Xác định phạm vi trang cần hiển thị
@@ -381,6 +408,11 @@ class CameraPager
      */
     protected function display()
     {
+        // Nếu chỉ có 1 trang hoặc không có bản ghi nào, không cần hiển thị phân trang
+        if ($this->pageCount <= 1 || $this->total <= 0) {
+            return '';
+        }
+        
         // Tìm kiếm template phân trang
         $viewPath = 'App\Modules\camera\Views\pagers\camera_pager';
         

@@ -85,14 +85,16 @@ class CameraModel extends BaseModel
         // Lấy tổng số bản ghi để cấu hình pagination
         $total = $this->countAll();
         
+        // Tính toán trang hiện tại từ offset và limit
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
         // Khởi tạo CameraPager nếu chưa có
         if ($this->cameraPager === null) {
-            $page = $offset / $limit + 1;
-            $this->cameraPager = new CameraPager($total, $limit, $page);
+            $this->cameraPager = new CameraPager($total, $limit, $currentPage);
         } else {
             $this->cameraPager->setTotal($total)
                              ->setPerPage($limit)
-                             ->setCurrentPage($offset / $limit + 1);
+                             ->setCurrentPage($currentPage);
         }
         
         // Lấy dữ liệu với phân trang
@@ -147,14 +149,16 @@ class CameraModel extends BaseModel
         // Lấy tổng số bản ghi
         $total = $this->countAllActive();
         
+        // Tính toán trang hiện tại từ offset và limit
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
         // Khởi tạo CameraPager nếu chưa có
         if ($this->cameraPager === null) {
-            $page = $offset / $limit + 1;
-            $this->cameraPager = new CameraPager($total, $limit, $page);
+            $this->cameraPager = new CameraPager($total, $limit, $currentPage);
         } else {
             $this->cameraPager->setTotal($total)
                              ->setPerPage($limit)
-                             ->setCurrentPage($offset / $limit + 1);
+                             ->setCurrentPage($currentPage);
         }
         
         // Nếu limit > 0 thì sử dụng phân trang
@@ -210,14 +214,16 @@ class CameraModel extends BaseModel
         // Lấy tổng số bản ghi để cấu hình pagination
         $total = $this->countAllInRecycleBin();
         
+        // Tính toán trang hiện tại từ offset và limit
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
         // Khởi tạo CameraPager nếu chưa có
         if ($this->cameraPager === null) {
-            $page = $offset / $limit + 1;
-            $this->cameraPager = new CameraPager($total, $limit, $page);
+            $this->cameraPager = new CameraPager($total, $limit, $currentPage);
         } else {
             $this->cameraPager->setTotal($total)
                              ->setPerPage($limit)
-                             ->setCurrentPage($offset / $limit + 1);
+                             ->setCurrentPage($currentPage);
         }
         
         // Lấy dữ liệu với phân trang
@@ -315,14 +321,16 @@ class CameraModel extends BaseModel
         // Lấy tổng số bản ghi tìm kiếm để cấu hình pagination
         $total = $this->countSearchResults($criteria);
         
+        // Tính toán trang hiện tại từ offset và limit
+        $currentPage = $options['limit'] > 0 ? floor($options['offset'] / $options['limit']) + 1 : 1;
+        
         // Khởi tạo CameraPager nếu chưa có
         if ($this->cameraPager === null) {
-            $page = $options['offset'] / $options['limit'] + 1;
-            $this->cameraPager = new CameraPager($total, $options['limit'], $page);
+            $this->cameraPager = new CameraPager($total, $options['limit'], $currentPage);
         } else {
             $this->cameraPager->setTotal($total)
                              ->setPerPage($options['limit'])
-                             ->setCurrentPage($options['offset'] / $options['limit'] + 1);
+                             ->setCurrentPage($currentPage);
         }
         
         // Phân trang kết quả

@@ -494,20 +494,17 @@
             window.location.href = '<?= site_url("camera/exportDeletedPdf") ?>';
         });
 
-        // Xử lý thay đổi số bản ghi mỗi trang
-        $('#perPage').on('change', function() {
-            var perPage = $(this).val();
-            var currentUrl = new URL(window.location.href);
+        // Xử lý khi thay đổi số lượng bản ghi trên mỗi trang
+        document.getElementById('perPage').addEventListener('change', function() {
+            const perPage = this.value;
+            const urlParams = new URLSearchParams(window.location.search);
             
-            // Cập nhật tham số perPage và đặt lại page về 1
-            currentUrl.searchParams.set('perPage', perPage);
-            currentUrl.searchParams.set('page', 1);
-            
-            // Hiển thị loading indicator
-            $('#loading-indicator').fadeIn();
+            // Giữ lại các tham số cần thiết
+            urlParams.set('perPage', perPage);
+            urlParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
             
             // Chuyển hướng đến URL mới
-            window.location.href = currentUrl.toString();
+            window.location.href = window.location.pathname + '?' + urlParams.toString();
         });
     });
 </script>

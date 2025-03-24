@@ -105,8 +105,14 @@ class Camera extends BaseController
         $pager = $this->model->getPager();
         if ($pager !== null) {
             $pager->setPath('camera');
-            $pager->setSegment(2);
+            // Không cần thiết lập segment vì chúng ta sử dụng query string
             $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order']);
+            
+            // Đảm bảo perPage được thiết lập đúng trong pager
+            $pager->setPerPage($perPage);
+            
+            // Thiết lập trang hiện tại
+            $pager->setCurrentPage($page);
         }
         
         // Chuẩn bị dữ liệu cho view
@@ -388,17 +394,15 @@ class Camera extends BaseController
         $sort = $this->request->getGet('sort') ?? 'updated_at';
         $order = $this->request->getGet('order') ?? 'DESC';
         $keyword = $this->request->getGet('keyword') ?? '';
-        $status = $this->request->getGet('status') ?? '';
         
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
         
-        // Lấy danh sách camera trong thùng rác
-        if (!empty($keyword) || $status !== '') {
+        // Lấy danh sách camera dựa trên tìm kiếm hoặc tất cả
+        if (!empty($keyword)) {
             $searchParams = [
                 'keyword' => $keyword,
-                'status' => $status,
-                'bin' => 1, // Đang trong thùng rác
+                'bin' => 1,
                 'sort' => $sort,
                 'order' => $order
             ];
@@ -413,7 +417,7 @@ class Camera extends BaseController
             
             $total = $this->model->countSearchResults($searchParams);
         } else {
-            // Lấy tất cả camera trong thùng rác và thông tin phân trang
+            // Lấy tất cả camera đã xóa
             $cameras = $this->model->getAllInRecycleBin($perPage, ($page - 1) * $perPage, $sort, $order);
             $total = $this->model->countAllInRecycleBin();
         }
@@ -422,8 +426,14 @@ class Camera extends BaseController
         $pager = $this->model->getPager();
         if ($pager !== null) {
             $pager->setPath('camera/listdeleted');
-            $pager->setSegment(3);
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order']);
+            // Không cần thiết lập segment vì chúng ta sử dụng query string
+            $pager->setOnly(['keyword', 'perPage', 'sort', 'order']);
+            
+            // Đảm bảo perPage được thiết lập đúng trong pager
+            $pager->setPerPage($perPage);
+            
+            // Thiết lập trang hiện tại
+            $pager->setCurrentPage($page);
         }
         
         // Chuẩn bị dữ liệu cho view
@@ -435,7 +445,6 @@ class Camera extends BaseController
         $this->data['sort'] = $sort;
         $this->data['order'] = $order;
         $this->data['keyword'] = $keyword;
-        $this->data['status'] = $status;
         
         // Hiển thị view
         return view('App\Modules\camera\Views\listdeleted', $this->data);

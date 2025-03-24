@@ -191,12 +191,14 @@
                 <div class="col-sm-12 col-md-7">
                     <div class="d-flex justify-content-end align-items-center">
                         <div class="me-2">
-                            <select id="perPage" class="form-select form-select-sm" aria-label="Items per page">
+                            <select id="perPageSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                                <option value="5" <?= $perPage == 5 ? 'selected' : '' ?>>5</option>
                                 <option value="10" <?= $perPage == 10 ? 'selected' : '' ?>>10</option>
+                                <option value="15" <?= $perPage == 15 ? 'selected' : '' ?>>15</option>
                                 <option value="25" <?= $perPage == 25 ? 'selected' : '' ?>>25</option>
                                 <option value="50" <?= $perPage == 50 ? 'selected' : '' ?>>50</option>
-                                <option value="100" <?= $perPage == 100 ? 'selected' : '' ?>>100</option>
                             </select>
+                            <span class="ms-1">bản ghi/trang</span>
                         </div>
                         <div>
                             <?php if (isset($pager) && $pager instanceof \App\Modules\camera\Libraries\CameraPager): ?>
@@ -463,20 +465,17 @@
             window.location.href = '<?= site_url("camera/exportPdf") ?>';
         });
 
-        // Xử lý thay đổi số bản ghi mỗi trang
-        $('#perPage').on('change', function() {
-            var perPage = $(this).val();
-            var currentUrl = new URL(window.location.href);
+        // Xử lý khi thay đổi số lượng bản ghi trên mỗi trang
+        document.getElementById('perPageSelect').addEventListener('change', function() {
+            const perPage = this.value;
+            const urlParams = new URLSearchParams(window.location.search);
             
-            // Cập nhật tham số perPage và đặt lại page về 1
-            currentUrl.searchParams.set('perPage', perPage);
-            currentUrl.searchParams.set('page', 1);
-            
-            // Hiển thị loading indicator
-            $('#loading-indicator').fadeIn();
+            // Giữ lại các tham số cần thiết
+            urlParams.set('perPage', perPage);
+            urlParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
             
             // Chuyển hướng đến URL mới
-            window.location.href = currentUrl.toString();
+            window.location.href = window.location.pathname + '?' + urlParams.toString();
         });
     });
 </script>
