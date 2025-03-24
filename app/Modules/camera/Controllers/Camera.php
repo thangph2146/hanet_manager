@@ -377,7 +377,7 @@ class Camera extends BaseController
         $data = $this->request->getPost();
         
         // Chuẩn bị quy tắc validation cho cập nhật
-        $this->model->prepareValidationRules('update', $id);
+        $this->model->prepareValidationRules('update', ['camera_id' => $id]);
         
         // Xử lý validation với quy tắc đã được điều chỉnh
         if (!$this->validate($this->model->getValidationRules())) {
@@ -457,40 +457,65 @@ class Camera extends BaseController
         $sort = $this->request->getGet('sort') ?? 'updated_at';
         $order = $this->request->getGet('order') ?? 'DESC';
         $keyword = $this->request->getGet('keyword') ?? '';
+        $status = $this->request->getGet('status');
+        
+        // Kiểm tra các tham số không hợp lệ
+        if ($page < 1) $page = 1;
+        if ($perPage < 1) $perPage = 10;
+        
+        // Log chi tiết URL và tham số
+        log_message('debug', '[Controller:listdeleted] URL đầy đủ: ' . current_url() . '?' . http_build_query($_GET));
+        log_message('debug', '[Controller:listdeleted] Tham số request: ' . json_encode($_GET));
+        log_message('debug', '[Controller:listdeleted] Đã xử lý: page=' . $page . ', perPage=' . $perPage . ', sort=' . $sort . 
+            ', order=' . $order . ', keyword=' . $keyword . ', status=' . $status);
+        
+        // Đảm bảo status được xử lý đúng cách, kể cả khi status=0
+        // Lưu ý rằng status=0 là một giá trị hợp lệ (không hoạt động)
+        $statusFilter = null;
+        if ($status !== null && $status !== '') {
+            $statusFilter = (int)$status;
+            log_message('debug', '[Controller:listdeleted] Status từ request: ' . $status . ' sau khi ép kiểu: ' . $statusFilter);
+        }
         
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
         
-        // Lấy danh sách camera dựa trên tìm kiếm hoặc tất cả
+        // Xây dựng tham số tìm kiếm
+        $searchParams = [
+            'bin' => 1, // Luôn lấy các camera trong thùng rác
+            'sort' => $sort,
+            'order' => $order
+        ];
+        
+        // Thêm keyword nếu có
         if (!empty($keyword)) {
-            $searchParams = [
-                'keyword' => $keyword,
-                'bin' => 1,
-                'sort' => $sort,
-                'order' => $order
-            ];
-            
-            // Lấy dữ liệu camera và thông tin phân trang
-            $cameras = $this->model->search($searchParams, [
-                'limit' => $perPage,
-                'offset' => ($page - 1) * $perPage,
-                'sort' => $sort,
-                'order' => $order
-            ]);
-            
-            $total = $this->model->countSearchResults($searchParams);
-        } else {
-            // Lấy tất cả camera đã xóa
-            $cameras = $this->model->getAllInRecycleBin($perPage, ($page - 1) * $perPage, $sort, $order);
-            $total = $this->model->countAllInRecycleBin();
+            $searchParams['keyword'] = $keyword;
         }
+        
+        // Đặc biệt, chỉ thêm status vào nếu nó đã được chỉ định (bao gồm status=0)
+        if ($status !== null && $status !== '') {
+            $searchParams['status'] = $statusFilter;
+        }
+        
+        // Log tham số tìm kiếm cuối cùng
+        log_message('debug', '[Controller:listdeleted] Tham số tìm kiếm cuối cùng: ' . json_encode($searchParams));
+        
+        // Lấy dữ liệu camera và thông tin phân trang
+        $cameras = $this->model->search($searchParams, [
+            'limit' => $perPage,
+            'offset' => ($page - 1) * $perPage,
+            'sort' => $sort,
+            'order' => $order
+        ]);
+        
+        $total = $this->model->countSearchResults($searchParams);
         
         // Lấy pager từ model và thiết lập các tham số
         $pager = $this->model->getPager();
         if ($pager !== null) {
             $pager->setPath('camera/listdeleted');
             // Không cần thiết lập segment vì chúng ta sử dụng query string
-            $pager->setOnly(['keyword', 'perPage', 'sort', 'order']);
+            $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status']);
             
             // Đảm bảo perPage được thiết lập đúng trong pager
             $pager->setPerPage($perPage);
@@ -504,10 +529,11 @@ class Camera extends BaseController
         $this->data['pager'] = $pager;
         $this->data['currentPage'] = $page;
         $this->data['perPage'] = $perPage;
-        $this->data['total'] = $pager ? $pager->getTotal() : 0;
+        $this->data['total'] = $total;
         $this->data['sort'] = $sort;
         $this->data['order'] = $order;
         $this->data['keyword'] = $keyword;
+        $this->data['status'] = $status;
         
         // Hiển thị view
         return view('App\Modules\camera\Views\listdeleted', $this->data);
@@ -694,21 +720,74 @@ class Camera extends BaseController
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
+        // Log toàn bộ POST data để debug
+        log_message('debug', 'RestoreMultiple - POST data: ' . json_encode($_POST));
+        log_message('debug', 'RestoreMultiple - Selected IDs: ' . json_encode($selectedIds));
+        
         $successCount = 0;
+        $failCount = 0;
+        $errorMessages = [];
         
         // Kiểm tra nếu $selectedIds đã là mảng thì sử dụng trực tiếp, không cần explode
         $idArray = is_array($selectedIds) ? $selectedIds : explode(',', $selectedIds);
         
+        // Log thông tin mảng ID để debug
+        log_message('debug', 'RestoreMultiple - ID Array: ' . json_encode($idArray));
+        log_message('debug', 'RestoreMultiple - Số lượng ID cần khôi phục: ' . count($idArray));
+        
         foreach ($idArray as $id) {
-            if ($this->model->restoreFromRecycleBin($id)) {
-                $successCount++;
+            log_message('debug', 'RestoreMultiple - Đang khôi phục ID: ' . $id);
+            
+            try {
+                $camera = $this->model->find($id);
+                if (!$camera) {
+                    log_message('error', 'RestoreMultiple - Không tìm thấy camera với ID: ' . $id);
+                    $failCount++;
+                    $errorMessages[] = "Không tìm thấy camera ID: {$id}";
+                    continue;
+                }
+                
+                // Kiểm tra xem camera có đang trong thùng rác không
+                if ($camera->bin != 1) {
+                    log_message('warning', 'RestoreMultiple - Camera ID: ' . $id . ' không nằm trong thùng rác (bin = ' . $camera->bin . ')');
+                    $failCount++;
+                    $errorMessages[] = "Camera ID: {$id} không nằm trong thùng rác";
+                    continue;
+                }
+                
+                // Đặt lại trạng thái bin và lưu
+                $camera->bin = 0;
+                if ($this->model->save($camera)) {
+                    $successCount++;
+                    log_message('debug', 'RestoreMultiple - Khôi phục thành công ID: ' . $id);
+                } else {
+                    $failCount++;
+                    $errors = $this->model->errors() ? json_encode($this->model->errors()) : 'Unknown error';
+                    log_message('error', 'RestoreMultiple - Lỗi lưu camera ID: ' . $id . ', Errors: ' . $errors);
+                    $errorMessages[] = "Lỗi lưu camera ID: {$id}";
+                }
+            } catch (\Exception $e) {
+                $failCount++;
+                log_message('error', 'RestoreMultiple - Ngoại lệ khi khôi phục ID: ' . $id . ', Error: ' . $e->getMessage());
+                $errorMessages[] = "Lỗi khôi phục ID: {$id} - " . $e->getMessage();
             }
         }
         
+        // Tổng kết kết quả
+        log_message('info', "RestoreMultiple - Kết quả: Thành công: {$successCount}, Thất bại: {$failCount}");
+        
         if ($successCount > 0) {
-            $this->alert->set('success', "Đã khôi phục $successCount camera từ thùng rác", true);
+            if ($failCount > 0) {
+                $this->alert->set('warning', "Đã khôi phục {$successCount} camera, nhưng có {$failCount} camera không thể khôi phục", true);
+            } else {
+                $this->alert->set('success', "Đã khôi phục {$successCount} camera từ thùng rác", true);
+            }
         } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra, không thể khôi phục camera', true);
+            $this->alert->set('danger', 'Có lỗi xảy ra, không thể khôi phục camera nào', true);
+            // Log chi tiết lỗi
+            if (!empty($errorMessages)) {
+                log_message('error', 'RestoreMultiple - Chi tiết lỗi: ' . json_encode($errorMessages));
+            }
         }
         
         return redirect()->to($this->moduleUrl . '/listdeleted');

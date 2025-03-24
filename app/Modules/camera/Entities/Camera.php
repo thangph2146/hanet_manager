@@ -350,4 +350,24 @@ class Camera extends BaseEntity
         // Gọi phương thức setAttributes của lớp cha
         return parent::setAttributes($data);
     }
+    
+    /**
+     * Lấy các quy tắc xác thực
+     *
+     * @return array
+     */
+    public function getValidationRules(): array
+    {
+        return $this->validationRules;
+    }
+    
+    /**
+     * Lấy các thông báo xác thực
+     *
+     * @return array
+     */
+    public function getValidationMessages(): array
+    {
+        return $this->validationMessages;
+    }
 } 

@@ -544,14 +544,30 @@ class CameraModel extends BaseModel
         $camera = $this->find($id);
         
         if (!$camera) {
+            log_message('error', "Không tìm thấy camera với ID: {$id}");
             return false;
         }
         
-        // Cập nhật trạng thái bin thành 0 (không trong thùng rác)
-        $camera->bin = 0;
+        log_message('debug', "Bắt đầu khôi phục camera ID: {$id}, tên: {$camera->ten_camera}");
         
-        // Lưu vào cơ sở dữ liệu
-        return $this->save($camera);
+        try {
+            // Cập nhật trạng thái bin thành 0 (không trong thùng rác)
+            $camera->bin = 0;
+            
+            // Lưu vào cơ sở dữ liệu
+            $success = $this->save($camera);
+            
+            if ($success) {
+                log_message('debug', "Khôi phục thành công camera ID: {$id}");
+            } else {
+                log_message('error', "Lỗi khi lưu camera: " . print_r($this->errors(), true));
+            }
+            
+            return $success;
+        } catch (\Exception $e) {
+            log_message('error', "Ngoại lệ khi khôi phục camera: " . $e->getMessage());
+            return false;
+        }
     }
     
     /**

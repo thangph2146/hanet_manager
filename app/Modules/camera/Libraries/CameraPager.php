@@ -326,7 +326,7 @@ class CameraPager
         foreach ($importantParams as $param) {
             if (isset($_GET[$param])) {
                 // Xử lý đặc biệt cho trường hợp status=0
-                if ($param === 'status' && $_GET[$param] === '0') {
+                if ($param === 'status' && (string)$_GET[$param] === '0') {
                     $query[$param] = '0';
                     log_message('debug', '[Pager] Xử lý đặc biệt: giữ lại status=0');
                 } 
