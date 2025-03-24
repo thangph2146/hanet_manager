@@ -5,7 +5,7 @@
  */
 
 // CSS section
-function manhinh_css($type = 'all') {
+function page_css($type = 'all') {
     ob_start();
     
     // Common CSS for DataTables
@@ -174,7 +174,7 @@ function manhinh_css($type = 'all') {
 }
 
 // JS section
-function manhinh_js($type = 'all') {
+function page_js($type = 'all') {
     ob_start();
     
     // DataTable scripts
@@ -317,7 +317,7 @@ function manhinh_js($type = 'all') {
 }
 
 // Section CSS function
-function manhinh_section_css($section) {
+function page_section_css($section) {
     ob_start();
 
     // Modal CSS
@@ -345,7 +345,7 @@ function manhinh_section_css($section) {
 }
 
 // Section JS function
-function manhinh_section_js($section) {
+function page_section_js($section) {
     ob_start();
 
     // Table specific additional JS

@@ -1,6 +1,6 @@
 <?php
 /**
- * @var \App\Modules\manhinh\Libraries\ManHinhPager $pager
+ * @var \App\Modules\manhinh\Libraries\Pager $pager
  */
 
 // Tính toán thông tin phân trang

@@ -4,7 +4,7 @@ namespace App\Modules\manhinh\Models;
 
 use App\Models\BaseModel;
 use App\Modules\manhinh\Entities\ManHinh;
-use App\Modules\manhinh\Libraries\ManHinhPager;
+use App\Modules\manhinh\Libraries\Pager;
 
 class ManhinhModel extends BaseModel
 {
@@ -64,7 +64,7 @@ class ManhinhModel extends BaseModel
     protected $skipValidation = false;
     
     // Manhinh pager
-    protected $manhinhPager = null;
+    public $pager = null;
     
     /**
      * Lấy tất cả màn hình
@@ -93,11 +93,11 @@ class ManhinhModel extends BaseModel
         // Tính toán trang hiện tại từ offset và limit
         $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
         
-        // Khởi tạo ManhinhPager nếu chưa có
-        if ($this->manhinhPager === null) {
-            $this->manhinhPager = new ManhinhPager($total, $limit, $currentPage);
+        // Khởi tạo pager nếu chưa có
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
         } else {
-            $this->manhinhPager->setTotal($total)
+            $this->pager->setTotal($total)
                              ->setPerPage($limit)
                              ->setCurrentPage($currentPage);
         }
@@ -240,10 +240,10 @@ class ManhinhModel extends BaseModel
             $currentPage = $options['limit'] > 0 ? floor($options['offset'] / $options['limit']) + 1 : 1;
             
             // Tạo đối tượng phân trang
-            if ($this->manhinhPager === null) {
-                $this->manhinhPager = new ManhinhPager($total, $options['limit'], $currentPage);
+            if ($this->pager === null) {
+                $this->pager = new Pager($total, $options['limit'], $currentPage);
             } else {
-                $this->manhinhPager->setTotal($total)
+                $this->pager->setTotal($total)
                                 ->setPerPage($options['limit'])
                                 ->setCurrentPage($currentPage);
             }
@@ -307,11 +307,11 @@ class ManhinhModel extends BaseModel
         // Tính toán trang hiện tại từ offset và limit
         $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
         
-        // Khởi tạo ManhinhPager nếu chưa có
-        if ($this->manhinhPager === null) {
-            $this->manhinhPager = new ManhinhPager($total, $limit, $currentPage);
+        // Khởi tạo pager nếu chưa có
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
         } else {
-            $this->manhinhPager->setTotal($total)
+            $this->pager->setTotal($total)
                             ->setPerPage($limit)
                             ->setCurrentPage($currentPage);
         }
@@ -510,11 +510,11 @@ class ManhinhModel extends BaseModel
     /**
      * Lấy hoặc tạo Pager
      * 
-     * @return \App\Modules\manhinh\Libraries\ManhinhPager|null
+     * @return \App\Modules\manhinh\Libraries\pager|null
      */
     public function getPager()
     {
-        return $this->manhinhPager;
+        return $this->pager;
     }
     
     /**
@@ -524,8 +524,8 @@ class ManhinhModel extends BaseModel
      */
     public function setSurroundCount(int $count)
     {
-        if ($this->manhinhPager) {
-            $this->manhinhPager->setSurroundCount($count);
+        if ($this->pager) {
+            $this->pager->setSurroundCount($count);
         }
     }
     

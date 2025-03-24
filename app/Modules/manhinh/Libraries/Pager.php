@@ -8,7 +8,7 @@ namespace App\Modules\manhinh\Libraries;
  * Lớp này thay thế cho \CodeIgniter\Pager\Pager mặc định để tùy chỉnh
  * cách hiển thị và xử lý phân trang riêng cho module Camera.
  */
-class ManHinhPager
+class Pager
 {
     /**
      * Số lượng trang hiển thị xung quanh trang hiện tại
@@ -453,7 +453,7 @@ class ManHinhPager
         }
         
         // Tìm kiếm template phân trang
-        $viewPath = 'App\Modules\manhinh\Views\pagers\manhinh_pager';
+        $viewPath = 'App\Modules\manhinh\Views\pagers\pager';
         
         // Truyền dữ liệu cho view
         $data = [

@@ -1,7 +1,7 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= manhinh_css('form') ?>
+<?= page_css('form') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>THÊM MỚI MÀN HÌNH<?= $this->endSection() ?>
 
@@ -30,7 +30,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= manhinh_js('form') ?>
+<?= page_js('form') ?>
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
 		const form = document.getElementById('form-manhinh');

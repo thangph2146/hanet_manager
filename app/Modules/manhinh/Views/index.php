@@ -1,8 +1,8 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= manhinh_css('table') ?>
-<?= manhinh_section_css('modal') ?>
+<?= page_css('table') ?>
+<?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>DANH SÁCH MÀN HÌNH<?= $this->endSection() ?>
 
@@ -230,7 +230,7 @@
                             <span class="ms-1">bản ghi/trang</span>
                         </div>
                         <div>
-                            <?php if (isset($pager) && $pager instanceof \App\Modules\manhinh\Libraries\ManHinhPager): ?>
+                            <?php if (isset($pager) && $pager instanceof \App\Modules\manhinh\Libraries\Pager): ?>
                                 <?= $pager->render() ?>
                             <?php endif; ?>
                         </div>
@@ -323,8 +323,8 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= manhinh_js('table') ?>
-<?= manhinh_section_js('table') ?>
+<?= page_js('table') ?>
+<?= page_section_js('table') ?>
 
 <script>
     $(document).ready(function() {
