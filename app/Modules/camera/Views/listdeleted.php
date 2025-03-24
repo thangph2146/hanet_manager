@@ -442,7 +442,26 @@
             const id = $(this).data('id');
             const name = $(this).data('name');
             $('#permanent-delete-item-name').text(name);
-            $('#permanent-delete-form').attr('action', base_url + '/camera/permanentDelete/' + id);
+            
+            // Lấy đường dẫn tương đối (path + query string) thay vì URL đầy đủ
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Cập nhật action và thêm return_url
+            const form = $('#permanent-delete-form');
+            form.attr('action', base_url + '/camera/permanentDelete/' + id);
+            
+            // Xóa trường return_url cũ nếu có
+            form.find('input[name="return_url"]').remove();
+            
+            // Thêm trường return_url mới
+            form.append($('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }));
+            
+            console.log('Deleting item with return URL path:', pathAndQuery);
+            
             $('#permanentDeleteModal').modal('show');
         });
         
