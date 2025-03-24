@@ -566,13 +566,19 @@ class Camera extends BaseController
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
+        // Lấy URL trả về từ form
+        $returnUrl = $this->request->getPost('return_url');
+        log_message('debug', 'Restore - Return URL: ' . ($returnUrl ?? 'None'));
+        
         if ($this->model->restoreFromRecycleBin($id)) {
             $this->alert->set('success', 'Đã khôi phục camera từ thùng rác', true);
         } else {
             $this->alert->set('danger', 'Có lỗi xảy ra khi khôi phục camera', true);
         }
         
-        return redirect()->to($this->moduleUrl . '/listdeleted');
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
     }
     
     /**
@@ -585,13 +591,19 @@ class Camera extends BaseController
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
+        // Lấy URL trả về từ form
+        $returnUrl = $this->request->getPost('return_url');
+        log_message('debug', 'PermanentDelete - Return URL: ' . ($returnUrl ?? 'None'));
+        
         if ($this->model->delete($id, true)) { // true = xóa vĩnh viễn
             $this->alert->set('success', 'Đã xóa vĩnh viễn camera', true);
         } else {
             $this->alert->set('danger', 'Có lỗi xảy ra khi xóa camera', true);
         }
         
-        return redirect()->to($this->moduleUrl . '/listdeleted');
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
     }
     
     /**
@@ -783,15 +795,22 @@ class Camera extends BaseController
      */
     public function restoreMultiple()
     {
+        // Lấy các ID được chọn và URL trả về
         $selectedIds = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url');
+        
         if (empty($selectedIds)) {
             $this->alert->set('warning', 'Chưa chọn camera nào để khôi phục', true);
-            return redirect()->to($this->moduleUrl . '/listdeleted');
+            
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
         }
         
         // Log toàn bộ POST data để debug
         log_message('debug', 'RestoreMultiple - POST data: ' . json_encode($_POST));
         log_message('debug', 'RestoreMultiple - Selected IDs: ' . json_encode($selectedIds));
+        log_message('debug', 'RestoreMultiple - Return URL: ' . ($returnUrl ?? 'None'));
         
         $successCount = 0;
         $failCount = 0;
@@ -859,7 +878,9 @@ class Camera extends BaseController
             }
         }
         
-        return redirect()->to($this->moduleUrl . '/listdeleted');
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
     }
     
     /**
@@ -867,11 +888,22 @@ class Camera extends BaseController
      */
     public function permanentDeleteMultiple()
     {
+        // Lấy các ID được chọn và URL trả về
         $selectedIds = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url');
+        
         if (empty($selectedIds)) {
             $this->alert->set('warning', 'Chưa chọn camera nào để xóa vĩnh viễn', true);
-            return redirect()->to($this->moduleUrl . '/listdeleted');
+            
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
         }
+        
+        // Log để debug
+        log_message('debug', 'PermanentDeleteMultiple - POST data: ' . json_encode($_POST));
+        log_message('debug', 'PermanentDeleteMultiple - Selected IDs: ' . json_encode($selectedIds));
+        log_message('debug', 'PermanentDeleteMultiple - Return URL: ' . ($returnUrl ?? 'None'));
         
         $successCount = 0;
         
@@ -890,7 +922,9 @@ class Camera extends BaseController
             $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa camera', true);
         }
         
-        return redirect()->to($this->moduleUrl . '/listdeleted');
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
     }
     
     /**

@@ -191,6 +191,7 @@
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <form action="<?= site_url('camera/restore/' . $item->camera_id) ?>" method="post" style="display:inline;">
+                                                <input type="hidden" name="return_url" value="<?= current_url() . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '') ?>">
                                                 <button type="submit" class="btn btn-success btn-sm" title="Khôi phục" data-bs-toggle="tooltip">
                                                     <i class="bx bx-revision mr-0"></i>
                                                 </button>
@@ -475,6 +476,18 @@
                 value: 'POST'
             }));
             
+            // Lấy đường dẫn tương đối (path + query string) thay vì URL đầy đủ
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Thêm URL hiện tại làm return_url
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }));
+            
+            console.log('Restoring multiple items with return URL path:', pathAndQuery);
+            
             // Thêm các checkbox đã chọn vào form
             $('.checkbox-item:checked').each(function() {
                 const input = $('<input>').attr({
@@ -521,6 +534,18 @@
                 name: '_method',
                 value: 'POST'
             }));
+            
+            // Lấy đường dẫn tương đối (path + query string) thay vì URL đầy đủ
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Thêm URL hiện tại làm return_url
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }));
+            
+            console.log('Permanently deleting multiple items with return URL path:', pathAndQuery);
             
             // Thêm các checkbox đã chọn vào form
             $('.checkbox-item:checked').each(function() {
