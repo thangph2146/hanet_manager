@@ -132,9 +132,11 @@ class ManhinhModel extends BaseModel
      * Lấy màn hình theo ID với các quan hệ
      * 
      * @param int $id ID của màn hình
+     * @param array $relations Các quan hệ cần lấy
+     * @param bool $validate Kiểm tra hợp lệ hay không
      * @return object|null
      */
-    public function findWithRelations($id)
+    public function findWithRelations($id, $relations = [], $validate = false)
     {
         // Lấy thông tin màn hình
         $manhinh = $this->find($id);
@@ -530,9 +532,10 @@ class ManhinhModel extends BaseModel
     /**
      * Lấy các quy tắc validation hiện tại
      * 
+     * @param array $options Tùy chọn bổ sung
      * @return array
      */
-    public function getValidationRules()
+    public function getValidationRules(array $options = []): array
     {
         return $this->validationRules;
     }

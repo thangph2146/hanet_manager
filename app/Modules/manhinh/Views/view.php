@@ -1,20 +1,20 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= camera_css('view') ?>
+<?= manhinh_css('view') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CHI TIẾT CAMERA<?= $this->endSection() ?>
+<?= $this->section('title') ?>CHI TIẾT MÀN HÌNH<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Chi tiết camera',
-    'dashboard_url' => site_url('camera/dashboard'),
+    'title' => 'Chi tiết màn hình',
+    'dashboard_url' => site_url('manhinh/dashboard'),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Camera', 'url' => site_url('camera')],
+        ['title' => 'Quản lý Màn Hình', 'url' => site_url('manhinh')],
         ['title' => 'Chi tiết', 'active' => true]
     ],
     'actions' => [
-        ['url' => site_url('/camera'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+        ['url' => site_url('/manhinh'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
     ]
 ]) ?>
 <?= $this->endSection() ?>
@@ -22,9 +22,9 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Chi tiết camera <?= esc($camera->ten_camera) ?></h5>
+        <h5 class="card-title mb-0">Chi tiết màn hình <?= esc($manhinh->ten_man_hinh) ?></h5>
         <div class="d-flex gap-2">
-            <a href="<?= site_url("camera/edit/{$camera->camera_id}") ?>" class="btn btn-sm btn-primary">
+            <a href="<?= site_url("manhinh/edit/{$manhinh->man_hinh_id}") ?>" class="btn btn-sm btn-primary">
                 <i class="bx bx-edit me-1"></i> Chỉnh sửa
             </a>
             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
@@ -51,29 +51,29 @@
             <table class="table table-bordered">
                 <tbody>
                     <tr>
-                        <th style="width: 200px;">Mã camera</th>
-                        <td><?= esc($camera->ma_camera) ?></td>
+                        <th style="width: 200px;">Mã màn hình</th>
+                        <td><?= esc($manhinh->ma_man_hinh) ?></td>
                     </tr>
                     <tr>
-                        <th>Tên camera</th>
-                        <td><?= esc($camera->ten_camera) ?></td>
+                        <th>Tên màn hình</th>
+                        <td><?= esc($manhinh->ten_man_hinh) ?></td>
                     </tr>
                     <tr>
                         <th>Địa chỉ IP</th>
-                        <td><?= esc($camera->ip_camera) ?></td>
+                        <td><?= esc($manhinh->ip_man_hinh) ?></td>
                     </tr>
                     <tr>
                         <th>Port</th>
-                        <td><?= esc($camera->port) ?></td>
+                        <td><?= esc($manhinh->port) ?></td>
                     </tr>
                     <tr>
                         <th>Tên đăng nhập</th>
-                        <td><?= esc($camera->username) ?></td>
+                        <td><?= esc($manhinh->username) ?></td>
                     </tr>
                     <tr>
                         <th>Trạng thái</th>
                         <td>
-                            <?php if ($camera->status == 1) : ?>
+                            <?php if ($manhinh->status == 1) : ?>
                                 <span class="badge bg-success">Hoạt động</span>
                             <?php else : ?>
                                 <span class="badge bg-danger">Không hoạt động</span>
@@ -82,13 +82,13 @@
                     </tr>
                     <tr>
                         <th>Ngày tạo</th>
-                        <td><?= date('d/m/Y H:i:s', strtotime($camera->created_at)) ?></td>
+                        <td><?= date('d/m/Y H:i:s', strtotime($manhinh->created_at)) ?></td>
                     </tr>
                     <tr>
                         <th>Cập nhật lần cuối</th>
                         <td>
-                            <?php if (!empty($camera->updated_at)) : ?>
-                                <?= date('d/m/Y H:i:s', strtotime($camera->updated_at)) ?>
+                            <?php if (!empty($manhinh->updated_at)) : ?>
+                                <?= date('d/m/Y H:i:s', strtotime($manhinh->updated_at)) ?>
                             <?php else : ?>
                                 <span class="text-muted">Chưa cập nhật</span>
                             <?php endif; ?>
@@ -109,11 +109,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn xóa camera <strong><?= esc($camera->ten_camera) ?></strong> không?
+                Bạn có chắc chắn muốn xóa màn hình <strong><?= esc($manhinh->ten_man_hinh) ?></strong> không?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <a href="<?= site_url("camera/delete/{$camera->camera_id}") ?>" class="btn btn-danger">Xóa</a>
+                <a href="<?= site_url("manhinh/delete/{$manhinh->man_hinh_id}") ?>" class="btn btn-danger">Xóa</a>
             </div>
         </div>
     </div>
@@ -121,5 +121,5 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script_ext') ?>
-<?= camera_js('view') ?>
+<?= manhinh_js('view') ?>
 <?= $this->endSection() ?>
