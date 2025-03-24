@@ -58,6 +58,7 @@ class Autoload extends AutoloadConfig
         'App\Modules\manhinh' => APPPATH . 'Modules/manhinh',
         'App\Modules\camera' => APPPATH . 'Modules/camera',
         'App\Modules\template' => APPPATH . 'Modules/template',
+        'App\Modules\diengia' => APPPATH . 'Modules/diengia',
     ];
 
     /**
