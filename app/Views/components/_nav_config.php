@@ -335,6 +335,24 @@ function nav_config() {
                 ]
             ],
             [
+                'title' => 'Quản lý Sự Kiện Diễn Giả',
+                'icon' => 'bx bx-calendar-event',
+                'submenu' => [
+                    [
+                        'title' => 'Danh Sách Sự Kiện Diễn Giả',
+                        'url' => site_url('sukiendiengia')
+                    ],
+                    [
+                        'title' => 'Danh sách Sự Kiện Diễn Giả bị xóa',
+                        'url' => site_url('sukiendiengia/listdeleted')
+                    ],
+                    [
+                        'title' => 'Thêm Sự Kiện Diễn Giả mới',
+                        'url' => site_url('sukiendiengia/new')
+                    ]
+                ]
+            ],
+            [
                 'type' => 'label',
                 'title' => 'Quản lý Thiết Bị'
             ],
