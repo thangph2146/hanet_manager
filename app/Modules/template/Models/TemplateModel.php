@@ -4,279 +4,463 @@ namespace App\Modules\template\Models;
 
 use App\Models\BaseModel;
 use App\Modules\template\Entities\Template;
-use CodeIgniter\Database\ConnectionInterface;
-use CodeIgniter\Validation\ValidationInterface;
+use App\Modules\template\Libraries\Pager;
 
 class TemplateModel extends BaseModel
 {
     protected $table = 'template';
     protected $primaryKey = 'template_id';
-    protected $useSoftDeletes = false;
+    protected $useAutoIncrement = true;
+    
+    protected $useSoftDeletes = true;
     protected $deletedField = 'deleted_at';
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
     
     protected $allowedFields = [
-        'ma_template',
         'ten_template',
+        'ma_template',
         'status',
         'bin',
-        'deleted_at',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'deleted_at'
     ];
     
-    protected $returnType = 'App\Modules\template\Entities\Template';
+    protected $returnType = Template::class;
     
-    // Các trường được tìm kiếm
+    // Trường có thể tìm kiếm
     protected $searchableFields = [
-        'ma_template',
-        'ten_template'
+        'ten_template',
+        'ma_template'
     ];
     
-    // Các trường có thể lọc
+    // Trường có thể lọc
     protected $filterableFields = [
         'status',
-        'bin',
-        'created_at'
-    ];
-    
-    // Các trường cần kiểm tra tính duy nhất
-    protected $uniqueFields = [
-        'ma_template' => 'Mã template',
-        'ten_template' => 'Tên template'
-    ];
-    
-    // Các trường loại bỏ khoảng trắng thừa trước khi lưu
-    protected $beforeSpaceRemoval = [
-        'ma_template',
-        'ten_template'
+        'bin'
     ];
     
     // Các quy tắc xác thực
-    public $validationRules = [
-        'ten_template' => 'required|min_length[3]|max_length[200]',
-        'ma_template' => 'required|max_length[20]',
-        'status' => 'permit_empty|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
-    ];
+    protected $validationRules = [];
+    protected $validationMessages = [];
+    protected $skipValidation = false;
     
-    public $validationMessages = [
-        'ten_template' => [
-            'required' => 'Tên template là bắt buộc',
-            'min_length' => 'Tên template phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên template không được vượt quá {param} ký tự',
-        ],
-        'ma_template' => [
-            'required' => 'Mã template là bắt buộc',
-            'max_length' => 'Mã template không được vượt quá {param} ký tự',
-        ]
-    ];
-    
-    public function __construct(ConnectionInterface &$db = null, ValidationInterface $validation = null)
-    {
-        parent::__construct($db, $validation);
-    }
-    
-    /**
-     * Khởi tạo query cơ bản cho model
-     * 
-     * @return BaseBuilder
-     */
-    protected function getBaseQuery()
-    {
-        return parent::getBaseQuery()->where('bin', 0);
-    }
-    
-    /**
-     * Lấy tất cả các bản ghi template đã xóa
-     *
-     * @return array
-     */
-    public function getAllDeleted()
-    {
-        $query = $this->withDeleted()
-                 ->where('deleted_at IS NOT NULL')
-                 ->orderBy('deleted_at', 'DESC');
-        
-        return $query->findAll();
-    }
-    
-    /**
-     * Kiểm tra tên template đã tồn tại chưa
-     *
-     * @param string $tenTemplate
-     * @param int|null $exceptId ID template cần loại trừ khi kiểm tra
-     * @return bool
-     */
-    public function isNameExists(string $tenTemplate, int $exceptId = null)
-    {
-        $builder = $this->where('ten_template', $tenTemplate);
-        
-        if ($exceptId !== null) {
-            $builder->where('template_id !=', $exceptId);
-        }
-        
-        return $builder->countAllResults() > 0;
-    }
-    
-    /**
-     * Kiểm tra mã template đã tồn tại chưa
-     *
-     * @param string $maTemplate
-     * @param int|null $exceptId ID template cần loại trừ khi kiểm tra
-     * @return bool
-     */
-    public function isCodeExists(string $maTemplate, int $exceptId = null)
-    {
-        $builder = $this->where('ma_template', $maTemplate);
-        
-        if ($exceptId !== null) {
-            $builder->where('template_id !=', $exceptId);
-        }
-        
-        return $builder->countAllResults() > 0;
-    }
-    
-    /**
-     * Tìm kiếm template theo từ khóa và bộ lọc
-     * Tận dụng phương thức search từ BaseModel
-     * 
-     * @param array $criteria Tiêu chí tìm kiếm
-     * @param array $options Tùy chọn bổ sung
-     * @return array
-     */
-    public function search(array $criteria = [], array $options = [])
-    {
-        // Biến đổi criteria để phù hợp với BaseModel
-        $searchCriteria = [];
-        
-        if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
-            $searchCriteria['search'] = $criteria['keyword'];
-        }
-        
-        if (isset($criteria['filters']) && is_array($criteria['filters'])) {
-            $searchCriteria['filters'] = $criteria['filters'];
-        }
-        
-        // Thiết lập tùy chọn
-        $searchOptions = [];
-        
-        if (isset($options['sort_field']) && isset($options['sort_direction'])) {
-            $searchOptions['sort'] = $options['sort_field'];
-            $searchOptions['sort_direction'] = $options['sort_direction'];
-        }
-        
-        if (isset($options['limit']) && isset($options['offset'])) {
-            $searchOptions['limit'] = $options['limit'];
-            $searchOptions['page'] = floor($options['offset'] / $options['limit']) + 1;
-        }
-        
-        // Chỉ hiển thị bản ghi không bị xóa mềm và không trong thùng rác
-        $builder = $this->where('bin', 0);
-        
-        return parent::search($searchCriteria, $searchOptions);
-    }
-    
-    /**
-     * Chuyển template vào thùng rác
-     *
-     * @param int $id
-     * @return bool
-     */
-    public function moveToRecycleBin(int $id): bool
-    {
-        return $this->update($id, ['bin' => 1]);
-    }
-    
-    /**
-     * Khôi phục template từ thùng rác
-     *
-     * @param int $id
-     * @return bool
-     */
-    public function restoreFromRecycleBin(int $id): bool
-    {
-        return $this->update($id, ['bin' => 0]);
-    }
+    // Template pager
+    protected $Pager = null;
     
     /**
      * Lấy tất cả template
      *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAll()
+    public function getAll($limit = 10, $offset = 0, $sort = 'ten_template', $order = 'ASC')
     {
-        return $this->where('bin', 0)
-                    ->orderBy('ten_template', 'ASC')
-                    ->findAll();
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        $this->builder->where('deleted_at', null);
+        $this->builder->where('bin', 0);
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
+        }
+        
+        $total = $this->countAll();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->Pager === null) {
+            $this->Pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->Pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        return $result ?: [];
+    }
+    
+    /**
+     * Đếm tổng số template không nằm trong thùng rác
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAll($conditions = [])
+    {
+        $builder = $this->builder();
+        $builder->where('bin', 0);
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
     }
     
     /**
      * Lấy tất cả template đang hoạt động
      *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAllActive()
+    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'ten_template', string $order = 'ASC')
     {
-        return $this->where('bin', 0)
-                    ->where('status', 1)
-                    ->orderBy('ten_template', 'ASC')
-                    ->findAll();
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        $this->builder->where('deleted_at', null);
+        $this->builder->where('bin', 0);
+        $this->builder->where('status', 1);
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
+        }
+        
+        $total = $this->countAllActive();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->Pager === null) {
+            $this->Pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->Pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        if ($limit > 0) {
+            $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+            return $result ?: [];
+        }
+        
+        return $this->findAll();
+    }
+    
+    /**
+     * Đếm tổng số template đang hoạt động
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAllActive($conditions = [])
+    {
+        $builder = $this->builder();
+        $builder->where('bin', 0);
+        $builder->where('status', 1);
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
     }
     
     /**
      * Lấy tất cả template trong thùng rác
      *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAllInRecycleBin()
+    public function getAllInRecycleBin(int $limit = 10, int $offset = 0, string $sort = 'updated_at', string $order = 'DESC')
     {
-        return $this->where('bin', 1)
-                    ->orderBy('updated_at', 'DESC')
-                    ->findAll();
-    }
-    
-    /**
-     * Tìm và trả về một template với ID cho trước
-     * 
-     * @param int $id
-     * @return object|null
-     */
-    public function findById(int $id)
-    {
-        return $this->find($id);
-    }
-    
-    /**
-     * Đếm số kết quả tìm kiếm
-     *
-     * @param array $criteria
-     * @return int
-     */
-    public function countSearchResults(array $criteria = [])
-    {
-        $builder = $this->builder();
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        $this->builder->where('bin', 1);
         
-        // Thêm điều kiện tìm kiếm
-        if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
-            $keyword = $criteria['keyword'];
-            $builder->groupStart()
-                    ->like('ten_template', $keyword)
-                    ->orLike('ma_template', $keyword)
-                    ->groupEnd();
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
         }
         
-        // Thêm điều kiện lọc
-        if (isset($criteria['filters']) && is_array($criteria['filters'])) {
-            foreach ($criteria['filters'] as $field => $value) {
-                if ($value !== '' && $value !== null) {
-                    $builder->where($field, $value);
-                }
-            }
+        $total = $this->countAllInRecycleBin();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->Pager === null) {
+            $this->Pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->Pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        if ($limit > 0) {
+            $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+            return $result ?: [];
+        }
+        
+        return $this->findAll();
+    }
+    
+    /**
+     * Đếm tổng số template trong thùng rác
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAllInRecycleBin($conditions = [])
+    {
+        $builder = $this->builder();
+        $builder->where('bin', 1);
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
         }
         
         return $builder->countAllResults();
+    }
+    
+    /**
+     * Tìm kiếm template
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @param array $options Tùy chọn tìm kiếm (limit, offset, relations, sort, order)
+     * @return array
+     */
+    public function search(array $criteria = [], array $options = [])
+    {
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        
+        if ($this->useSoftDeletes) {
+            $this->builder->where($this->table . '.' . $this->deletedField, null);
+        }
+        
+        $defaultOptions = [
+            'limit' => 10,
+            'offset' => 0,
+            'sort' => 'ten_template',
+            'order' => 'ASC'
+        ];
+        
+        $options = array_merge($defaultOptions, $options);
+        
+        if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
+            
+            $this->builder->groupStart();
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $this->builder->like($field, $keyword);
+                } else {
+                    $this->builder->orLike($field, $keyword);
+                }
+            }
+            $this->builder->groupEnd();
+        }
+        
+        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
+            $status = (int)$criteria['status'];
+            $this->builder->where($this->table . '.status', $status);
+        }
+        
+        $bin = isset($criteria['bin']) ? (int)$criteria['bin'] : 0;
+        $this->builder->where($this->table . '.bin', $bin);
+        
+        if (!empty($options['sort']) && !empty($options['order'])) {
+            $this->builder->orderBy($options['sort'], $options['order']);
+        }
+        
+        $builderForCount = clone $this->builder;
+        $total = $builderForCount->countAllResults();
+        
+        $currentPage = $options['limit'] > 0 ? floor($options['offset'] / $options['limit']) + 1 : 1;
+        
+        if ($this->Pager === null) {
+            $this->Pager = new Pager($total, $options['limit'], $currentPage);
+        } else {
+            $this->Pager->setTotal($total)
+                        ->setPerPage($options['limit'])
+                        ->setCurrentPage($currentPage);
+        }
+        
+        if ($options['limit'] > 0) {
+            if ($options['offset'] >= $total) {
+                $options['offset'] = 0;
+                $currentPage = 1;
+                $this->Pager->setCurrentPage($currentPage);
+            }
+            
+            $this->builder->limit($options['limit'], $options['offset']);
+            $result = $this->builder->get()->getResult($this->returnType);
+            
+            return $result ?: [];
+        }
+        
+        return $this->findAll();
+    }
+    
+    /**
+     * Đếm số lượng kết quả tìm kiếm
+     *
+     * @param array $params Tham số tìm kiếm
+     * @return int
+     */
+    public function countSearchResults(array $params)
+    {
+        $builder = $this->builder();
+        
+        if ($this->useSoftDeletes) {
+            $builder->where($this->table . '.' . $this->deletedField, null);
+        }
+        
+        if (!empty($params['keyword'])) {
+            $keyword = trim($params['keyword']);
+            
+            $builder->groupStart();
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($field, $keyword);
+                } else {
+                    $builder->orLike($field, $keyword);
+                }
+            }
+            $builder->groupEnd();
+        }
+        
+        if (isset($params['status']) || array_key_exists('status', $params)) {
+            $status = (int)$params['status'];
+            $builder->where($this->table . '.status', $status);
+        }
+        
+        $bin = isset($params['bin']) ? (int)$params['bin'] : 0;
+        $builder->where($this->table . '.bin', $bin);
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Chuẩn bị các quy tắc xác thực dựa trên ngữ cảnh
+     *
+     * @param string $scenario Tình huống xác thực ('insert' hoặc 'update')
+     * @param array $data Dữ liệu cần xác thực
+     */
+    public function prepareValidationRules(string $scenario = 'insert', array $data = [])
+    {
+        $entity = new Template();
+        $this->validationRules = $entity->getValidationRules();
+        $this->validationMessages = $entity->getValidationMessages();
+        
+        unset($this->validationRules['created_at']);
+        unset($this->validationRules['updated_at']);
+        unset($this->validationRules['deleted_at']);
+        
+        if ($scenario === 'update' && isset($data['template_id'])) {
+            foreach ($this->validationRules as $field => &$rules) {
+                if (strpos($rules, 'is_unique') !== false) {
+                    $rules = str_replace('{template_id}', $data['template_id'], $rules);
+                }
+            }
+        } elseif ($scenario === 'insert') {
+            foreach ($this->validationRules as $field => &$rules) {
+                if (strpos($rules, 'is_unique') !== false) {
+                    $rules = str_replace(',template_id,{template_id}', '', $rules);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Chuyển một template vào thùng rác
+     *
+     * @param int $id ID của template cần chuyển vào thùng rác
+     * @return bool Trả về true nếu thành công, false nếu thất bại
+     */
+    public function moveToRecycleBin($id)
+    {
+        $template = $this->find($id);
+        
+        if (!$template) {
+            return false;
+        }
+        
+        $template->bin = 1;
+        return $this->save($template);
+    }
+    
+    /**
+     * Khôi phục template từ thùng rác
+     *
+     * @param int $id ID của template cần khôi phục
+     * @return bool Trả về true nếu thành công, false nếu thất bại
+     */
+    public function restoreFromRecycleBin($id)
+    {
+        $template = $this->find($id);
+        
+        if (!$template) {
+            log_message('error', "Không tìm thấy template với ID: {$id}");
+            return false;
+        }
+        
+        try {
+            $template->bin = 0;
+            $success = $this->save($template);
+            
+            if (!$success) {
+                log_message('error', "Lỗi khi lưu template: " . print_r($this->errors(), true));
+            }
+            
+            return $success;
+        } catch (\Exception $e) {
+            log_message('error', "Ngoại lệ khi khôi phục template: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Kiểm tra xem tên template đã tồn tại chưa
+     *
+     * @param string $name Tên template cần kiểm tra
+     * @param int|null $exceptId ID template để loại trừ khỏi việc kiểm tra (hữu ích khi cập nhật)
+     * @return bool Trả về true nếu tên đã tồn tại, false nếu chưa
+     */
+    public function isNameExists(string $name, ?int $exceptId = null): bool
+    {
+        $builder = $this->builder();
+        $builder->where('ten_template', $name);
+        
+        if ($exceptId !== null) {
+            $builder->where("{$this->primaryKey} !=", $exceptId);
+        }
+        
+        if ($this->useSoftDeletes) {
+            $builder->where($this->deletedField, null);
+        }
+        
+        return $builder->countAllResults() > 0;
+    }
+    
+    /**
+     * Thiết lập số lượng liên kết trang hiển thị xung quanh trang hiện tại
+     * 
+     * @param int $count Số lượng liên kết trang hiển thị (mỗi bên)
+     * @return $this
+     */
+    public function setSurroundCount(int $count)
+    {
+        if ($this->Pager !== null) {
+            $this->Pager->setSurroundCount($count);
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Lấy đối tượng phân trang 
+     * 
+     * @return Pager|null
+     */
+    public function getPager()
+    {
+        return $this->Pager;
     }
 } 

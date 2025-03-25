@@ -30,15 +30,14 @@ class Template extends BaseEntity
     
     // Trường duy nhất cần kiểm tra
     protected $uniqueFields = [
-        'ma_template' => 'Mã template',
         'ten_template' => 'Tên template'
     ];
     
     // Các quy tắc xác thực cụ thể cho Template
     protected $validationRules = [
-        'ten_template' => 'required|min_length[3]|max_length[200]',
-        'ma_template' => 'required|max_length[20]',
-        'status' => 'permit_empty|in_list[0,1]',
+        'ten_template' => 'required|min_length[3]|max_length[255]|is_unique[template.ten_template,template_id,{template_id}]',
+        'ma_template' => 'permit_empty|max_length[20]',
+        'status' => 'required|in_list[0,1]',
         'bin' => 'permit_empty|in_list[0,1]',
     ];
     
@@ -47,10 +46,14 @@ class Template extends BaseEntity
             'required' => 'Tên template là bắt buộc',
             'min_length' => 'Tên template phải có ít nhất {param} ký tự',
             'max_length' => 'Tên template không được vượt quá {param} ký tự',
+            'is_unique' => 'Tên template đã tồn tại, vui lòng chọn tên khác',
         ],
         'ma_template' => [
-            'required' => 'Mã template là bắt buộc',
             'max_length' => 'Mã template không được vượt quá {param} ký tự',
+        ],
+        'status' => [
+            'required' => 'Trạng thái không được để trống',
+            'in_list' => 'Trạng thái không hợp lệ',
         ],
     ];
     
@@ -186,61 +189,94 @@ class Template extends BaseEntity
             return '';
         }
         
-        try {
-            // Chuyển đổi sang đối tượng Time
-            $time = $this->attributes['deleted_at'] instanceof Time ? 
-                $this->attributes['deleted_at'] : 
-                new Time($this->attributes['deleted_at']);
-                
-            return $time->format('d/m/Y H:i:s');
-        } catch (\Exception $e) {
-            // Trả về chuỗi rỗng nếu có lỗi
-            return '';
-        }
+        $time = $this->attributes['deleted_at'] instanceof Time ? $this->attributes['deleted_at'] : new Time($this->attributes['deleted_at']);
+        return $time->format('d/m/Y H:i:s');
     }
     
     /**
-     * Kiểm tra xem mã template có phải là duy nhất không
+     * Kiểm tra mã template có là duy nhất không
      *
-     * @param string $code Mã template cần kiểm tra
-     * @param int|null $excludeId ID template cần loại trừ (khi cập nhật)
+     * @param string $code Mã cần kiểm tra
+     * @param int|null $excludeId ID cần loại trừ khi kiểm tra
      * @return bool
      */
     public function isUniqueCode(string $code, ?int $excludeId = null): bool
     {
-        $model = model('App\Modules\template\Models\TemplateModel');
-        return !$model->isCodeExists($code, $excludeId);
+        return $this->validateUniqueField('ma_template', $code, $excludeId);
     }
     
     /**
-     * Kiểm tra xem tên template có phải là duy nhất không
+     * Kiểm tra tên template có là duy nhất không
      *
-     * @param string $name Tên template cần kiểm tra
-     * @param int|null $excludeId ID template cần loại trừ (khi cập nhật)
+     * @param string $name Tên cần kiểm tra
+     * @param int|null $excludeId ID cần loại trừ khi kiểm tra
      * @return bool
      */
     public function isUniqueName(string $name, ?int $excludeId = null): bool
     {
-        $model = model('App\Modules\template\Models\TemplateModel');
-        return !$model->isNameExists($name, $excludeId);
+        return $this->validateUniqueField('ten_template', $name, $excludeId);
     }
     
     /**
-     * Phương thức chung để kiểm tra trường duy nhất
-     * 
+     * Phương thức trợ giúp để kiểm tra tính duy nhất của một trường
+     *
      * @param string $field Tên trường cần kiểm tra
      * @param mixed $value Giá trị cần kiểm tra
-     * @param int|null $exceptId ID cần loại trừ (khi cập nhật)
+     * @param int|null $exceptId ID cần loại trừ
      * @return bool
      */
     protected function validateUniqueField(string $field, $value, ?int $exceptId = null): bool
     {
-        if ($field === 'ma_template') {
-            return $this->isUniqueCode($value, $exceptId);
-        } elseif ($field === 'ten_template') {
-            return $this->isUniqueName($value, $exceptId);
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->tableName);
+        
+        $builder->where($field, $value);
+        
+        if ($exceptId !== null) {
+            $builder->where("{$this->primaryKey} !=", $exceptId);
         }
         
-        return true;
+        // Trả về true nếu không tìm thấy bản ghi nào (tức là giá trị là duy nhất)
+        return $builder->countAllResults() === 0;
+    }
+    
+    /**
+     * Overrides BaseEntity setAttributes() để tự động trim dữ liệu chuỗi
+     * 
+     * @param array $data
+     * @return $this
+     */
+    public function setAttributes(array $data)
+    {
+        // Tự động trim các trường chuỗi
+        foreach ($data as $key => $value) {
+            // Chỉ trim các trường là chuỗi và không phải là mật khẩu
+            if (is_string($value) && $key !== 'password') {
+                $data[$key] = trim($value);
+            }
+        }
+        
+        // Gọi phương thức setAttributes của lớp cha
+        return parent::setAttributes($data);
+    }
+    
+    /**
+     * Lấy các quy tắc xác thực
+     *
+     * @return array
+     */
+    public function getValidationRules(): array
+    {
+        return $this->validationRules;
+    }
+    
+    /**
+     * Lấy các thông báo xác thực
+     *
+     * @return array
+     */
+    public function getValidationMessages(): array
+    {
+        return $this->validationMessages;
     }
 } 
