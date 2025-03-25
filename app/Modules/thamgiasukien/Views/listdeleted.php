@@ -1,3 +1,6 @@
+<?php
+$module_name = 'thamgiasukien';
+?>
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
@@ -9,13 +12,13 @@
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
 	'title' => 'Thùng rác - Tham gia sự kiện',
-	'dashboard_url' => site_url('thamgiasukien/dashboard'),
+	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Tham Gia Sự Kiện', 'url' => site_url('thamgiasukien')],
+		['title' => 'Quản lý Tham Gia Sự Kiện', 'url' => site_url($module_name)],
 		['title' => 'Thùng rác', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/thamgiasukien'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+		['url' => site_url('/' . $module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>
@@ -33,7 +36,7 @@
                     <i class='bx bx-export'></i> Xuất
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= site_url('thamgiasukien/exportDeletedExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url($module_name . '/exportDeletedExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
                     <li><a class="dropdown-item" href="#" id="export-pdf">PDF</a></li>
                 </ul>
             </div>
@@ -43,17 +46,17 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <a href="<?= site_url('thamgiasukien') ?>" class="btn btn-outline-primary btn-sm">
+                    <a href="<?= site_url($module_name) ?>" class="btn btn-outline-primary btn-sm">
                         <i class='bx bx-arrow-back'></i> Danh sách tham gia sự kiện
                     </a>
-                    <form id="form-restore-multiple" action="<?= site_url('thamgiasukien/restoreMultiple') ?>" method="post" class="d-inline">
+                    <form id="form-restore-multiple" action="<?= site_url($module_name . '/restoreMultiple') ?>" method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <button type="button" id="restore-selected" class="btn btn-success btn-sm me-2" disabled>
                             <i class='bx bx-revision'></i> Khôi phục mục đã chọn
                         </button>
                     </form>
                     
-                    <form id="form-delete-multiple" action="<?= site_url('thamgiasukien/permanentDeleteMultiple') ?>" method="post" class="d-inline">
+                    <form id="form-delete-multiple" action="<?= site_url($module_name . '/permanentDeleteMultiple') ?>" method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <button type="button" id="delete-permanent-multiple" class="btn btn-danger btn-sm" disabled>
                             <i class='bx bx-trash'></i> Xóa vĩnh viễn
@@ -63,7 +66,7 @@
                    
                 </div>
                 <div class="col-12 col-md-6">
-                    <form action="<?= site_url('thamgiasukien/listdeleted') ?>" method="get" id="search-form">
+                    <form action="<?= site_url($module_name . '/listdeleted') ?>" method="get" id="search-form">
                         <input type="hidden" name="page" value="1">
                         <input type="hidden" name="perPage" value="<?= $perPage ?>">
                         <div class="input-group search-box">
@@ -78,7 +81,7 @@
                                 <i class='bx bx-search'></i>
                             </button>
                             <?php if (!empty($keyword) || (isset($phuong_thuc_diem_danh) && $phuong_thuc_diem_danh !== '')): ?>
-                            <a href="<?= site_url('thamgiasukien/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
+                            <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
                                 <i class='bx bx-x'></i>
                             </a>
                             <?php endif; ?>
@@ -118,7 +121,7 @@
                             ?>
                         </span>
                     <?php endif; ?>
-                    <a href="<?= site_url('thamgiasukien/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
+                    <a href="<?= site_url($module_name . '/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>
             </div>
         <?php endif; ?>
@@ -246,9 +249,7 @@
                             <span class="ms-1">bản ghi/trang</span>
                         </div>
                         <div>
-                            <?php if (isset($pager) && $pager instanceof \App\Modules\thamgiasukien\Libraries\Pager): ?>
-                                <?= $pager->render() ?>
-                            <?php endif; ?>
+                            <?= $pager->render() ?>
                         </div>
                     </div>
                 </div>

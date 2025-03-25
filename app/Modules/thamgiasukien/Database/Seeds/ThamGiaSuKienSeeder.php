@@ -67,13 +67,12 @@ class ThamGiaSuKienSeeder extends Seeder
                     'phuong_thuc_diem_danh' => $phuongThucDiemDanh[array_rand($phuongThucDiemDanh)],
                     'ghi_chu' => rand(0, 1) ? 'Ghi chú cho tham gia sự kiện #' . $i : null,
                     'status' => rand(0, 1),
-                    'bin' => 0,
                     'created_at' => $createdAt->toDateTimeString(),
                     'updated_at' => $createdAt->toDateTimeString(),
                     'deleted_at' => null
                 ];
             }
-            
+
 
             // Thêm dữ liệu vào bảng tham_gia_su_kien theo lô
             if (!empty($data)) {
