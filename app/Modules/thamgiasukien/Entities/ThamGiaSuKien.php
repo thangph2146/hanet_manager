@@ -21,8 +21,7 @@ class ThamGiaSuKien extends BaseEntity
         'tham_gia_su_kien_id' => 'int',
         'nguoi_dung_id' => 'int',
         'su_kien_id' => 'int',
-        'status' => 'int',
-        'bin' => 'int'
+        'status' => 'int'
     ];
     
     // Định nghĩa các trường là khóa ngoại
@@ -55,7 +54,7 @@ class ThamGiaSuKien extends BaseEntity
             'label' => 'ID sự kiện'
         ],
         'thoi_gian_diem_danh' => [
-            'rules' => 'permit_empty|valid_date',
+            'rules' => 'permit_empty',
             'label' => 'Thời gian điểm danh'
         ],
         'phuong_thuc_diem_danh' => [
@@ -69,10 +68,6 @@ class ThamGiaSuKien extends BaseEntity
         'status' => [
             'rules' => 'required|in_list[0,1]',
             'label' => 'Trạng thái'
-        ],
-        'bin' => [
-            'rules' => 'permit_empty|in_list[0,1]',
-            'label' => 'Thùng rác'
         ]
     ];
     
@@ -88,7 +83,6 @@ class ThamGiaSuKien extends BaseEntity
             'greater_than' => '{field} phải lớn hơn 0'
         ],
         'thoi_gian_diem_danh' => [
-            'valid_date' => '{field} không hợp lệ'
         ],
         'phuong_thuc_diem_danh' => [
             'required' => '{field} là bắt buộc',
@@ -96,9 +90,6 @@ class ThamGiaSuKien extends BaseEntity
         ],
         'status' => [
             'required' => '{field} không được để trống',
-            'in_list' => '{field} không hợp lệ'
-        ],
-        'bin' => [
             'in_list' => '{field} không hợp lệ'
         ]
     ];
@@ -194,25 +185,13 @@ class ThamGiaSuKien extends BaseEntity
     }
     
     /**
-     * Kiểm tra trạng thái thùng rác
+     * Kiểm tra xem bản ghi đã bị xóa chưa
      *
      * @return bool
      */
-    public function isBin(): bool
+    public function isDeleted(): bool
     {
-        return (bool)($this->attributes['bin'] ?? false);
-    }
-    
-    /**
-     * Đặt trạng thái thùng rác
-     *
-     * @param bool $bin
-     * @return $this
-     */
-    public function setBin(bool $bin)
-    {
-        $this->attributes['bin'] = (int)$bin;
-        return $this;
+        return !empty($this->attributes['deleted_at']);
     }
     
     /**
@@ -335,7 +314,7 @@ class ThamGiaSuKien extends BaseEntity
         return $builder->where([
             'nguoi_dung_id' => $nguoiDungId,
             'su_kien_id' => $suKienId,
-            'bin' => 0
+            'deleted_at IS NULL' => null
         ])->countAllResults() > 0;
     }
 } 

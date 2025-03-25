@@ -138,7 +138,8 @@ class ThamGiaSuKien extends BaseController
         ]);
         
         // Lấy tổng số kết quả
-        $total = $this->model->getPager()->getTotal();
+        $pager = $this->model->getPager();
+        $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($searchParams);
         log_message('debug', '[Controller] Tổng số kết quả từ pager: ' . $total);
         
         // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
@@ -261,6 +262,20 @@ class ThamGiaSuKien extends BaseController
             'ghi_chu' => trim($request->getPost('ghi_chu')),
             'status' => $request->getPost('status') ?? 1
         ];
+
+        // Xử lý thời gian điểm danh từ datetime-local
+        if (!empty($data['thoi_gian_diem_danh'])) {
+            // Chuyển định dạng datetime-local (2025-03-18T12:35) sang định dạng MySQL (Y-m-d H:i:s)
+            try {
+                $datetime = new \DateTime($data['thoi_gian_diem_danh']);
+                $data['thoi_gian_diem_danh'] = $datetime->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                log_message('error', 'Lỗi chuyển đổi thời gian: ' . $e->getMessage());
+                $data['thoi_gian_diem_danh'] = null;
+            }
+        } else {
+            $data['thoi_gian_diem_danh'] = null;
+        }
 
         // Kiểm tra xem người dùng đã tham gia sự kiện này chưa
         if (!empty($data['nguoi_dung_id']) && !empty($data['su_kien_id'])) {
@@ -411,6 +426,22 @@ class ThamGiaSuKien extends BaseController
             'status' => $data['status'] ?? 0
         ];
         
+        // Xử lý nếu trường thoi_gian_diem_danh rỗng
+        if (empty($updateData['thoi_gian_diem_danh'])) {
+            $updateData['thoi_gian_diem_danh'] = null;
+        }
+        // Xử lý thời gian điểm danh từ datetime-local nếu không rỗng
+        else {
+            // Chuyển định dạng datetime-local (2025-03-18T12:35) sang định dạng MySQL (Y-m-d H:i:s)
+            try {
+                $datetime = new \DateTime($updateData['thoi_gian_diem_danh']);
+                $updateData['thoi_gian_diem_danh'] = $datetime->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                log_message('error', 'Lỗi chuyển đổi thời gian: ' . $e->getMessage());
+                $updateData['thoi_gian_diem_danh'] = null;
+            }
+        }
+        
         // Giữ lại các trường thời gian từ dữ liệu hiện có
         $updateData['created_at'] = $existingRecord->created_at;
         
@@ -445,7 +476,7 @@ class ThamGiaSuKien extends BaseController
             return redirect()->to($this->moduleUrl);
         }
         
-        // Thực hiện xóa mềm (chuyển vào thùng rác)
+        // Thực hiện xóa mềm (sử dụng deleted_at thay vì bin)
         if ($this->model->delete($id)) {
             $this->alert->set('success', 'Đã xóa dữ liệu tham gia sự kiện thành công', true);
         } else {
@@ -541,17 +572,25 @@ class ThamGiaSuKien extends BaseController
         
         // Lấy pager từ model và thiết lập các tham số
         $pager = $this->model->getPager();
-        if ($pager !== null) {
-            $pager->setPath('thamgiasukien/listdeleted');
-            // Không cần thiết lập segment vì chúng ta sử dụng query string
-            $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'nguoi_dung_id', 'su_kien_id']);
-            
-            // Đảm bảo perPage được thiết lập đúng trong pager
-            $pager->setPerPage($perPage);
-            
-            // Thiết lập trang hiện tại
-            $pager->setCurrentPage($page);
+        if ($pager === null) {
+            // Tạo pager mới nếu getPager() trả về null
+            $pager = new \App\Modules\thamgiasukien\Libraries\Pager(
+                $total,
+                $perPage,
+                $page
+            );
+            $pager->setSurroundCount(3);
         }
+        
+        $pager->setPath('thamgiasukien/listdeleted');
+        // Không cần thiết lập segment vì chúng ta sử dụng query string
+        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'nguoi_dung_id', 'su_kien_id']);
+        
+        // Đảm bảo perPage được thiết lập đúng trong pager
+        $pager->setPerPage($perPage);
+        
+        // Thiết lập trang hiện tại
+        $pager->setCurrentPage($page);
         
         // Chuẩn bị dữ liệu cho view
         $this->data['thamGiaSuKiens'] = $items;
@@ -584,7 +623,8 @@ class ThamGiaSuKien extends BaseController
         $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
         log_message('debug', 'Restore - Return URL: ' . ($returnUrl ?? 'None'));
         
-        if ($this->model->restoreFromRecycleBin($id)) {
+        // Khôi phục bản ghi bằng cách đặt deleted_at thành NULL
+        if ($this->model->update($id, ['deleted_at' => null])) {
             $this->alert->set('success', 'Đã khôi phục dữ liệu từ thùng rác', true);
         } else {
             $this->alert->set('danger', 'Có lỗi xảy ra khi khôi phục dữ liệu', true);
@@ -689,11 +729,11 @@ class ThamGiaSuKien extends BaseController
     public function deleteMultiple()
     {
         // Lấy các ID được chọn và URL trả về
-        $selectedIds = $this->request->getPost('selected_ids');
+        $selectedItems = $this->request->getPost('selected_ids');
         $returnUrl = $this->request->getPost('return_url');
         
-        if (empty($selectedIds)) {
-            $this->alert->set('warning', 'Chưa chọn template nào để xóa', true);
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để xóa', true);
             
             // Chuyển hướng đến URL đích đã xử lý
             $redirectUrl = $this->processReturnUrl($returnUrl);
@@ -702,24 +742,24 @@ class ThamGiaSuKien extends BaseController
         
         // Log để debug
         log_message('debug', 'DeleteMultiple - POST data: ' . json_encode($_POST));
-        log_message('debug', 'DeleteMultiple - Selected IDs: ' . json_encode($selectedIds));
+        log_message('debug', 'DeleteMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
         log_message('debug', 'DeleteMultiple - Return URL: ' . ($returnUrl ?? 'None'));
         
         $successCount = 0;
         
-        // Kiểm tra nếu $selectedIds đã là mảng thì sử dụng trực tiếp, không cần explode
-        $idArray = is_array($selectedIds) ? $selectedIds : explode(',', $selectedIds);
+        // Đảm bảo $selectedItems là mảng
+        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
         
         foreach ($idArray as $id) {
-            if ($this->model->moveToRecycleBin($id)) {
+            if ($this->model->delete($id)) {
                 $successCount++;
             }
         }
         
         if ($successCount > 0) {
-            $this->alert->set('success', "Đã chuyển $successCount template vào thùng rác", true);
+            $this->alert->set('success', "Đã chuyển $successCount dữ liệu vào thùng rác", true);
         } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa template', true);
+            $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa dữ liệu', true);
         }
         
         // Chuyển hướng đến URL đích đã xử lý
@@ -771,37 +811,85 @@ class ThamGiaSuKien extends BaseController
      */
     public function statusMultiple()
     {
-        $selectedIds = $this->request->getPost('selected_ids');
-        $newStatus = $this->request->getPost('status');
+        // Lấy dữ liệu từ POST request
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
         
-        if (empty($selectedIds)) {
-            $this->alert->set('warning', 'Chưa chọn template nào để thay đổi trạng thái', true);
-            return redirect()->to($this->moduleUrl);
+        // Log thông tin chi tiết để debug
+        log_message('debug', '[statusMultiple] - Request Method: ' . $this->request->getMethod());
+        log_message('debug', '[statusMultiple] - POST data: ' . json_encode($_POST));
+        log_message('debug', '[statusMultiple] - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', '[statusMultiple] - Return URL: ' . ($returnUrl ?? 'None'));
+        log_message('debug', '[statusMultiple] - CSRF: ' . json_encode($this->request->getPost(csrf_token()))); 
+        log_message('debug', '[statusMultiple] - Server variables: ' . json_encode($_SERVER));
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để thay đổi trạng thái', true);
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl);
         }
         
-        if ($newStatus === null || !in_array($newStatus, ['0', '1'])) {
-            $this->alert->set('warning', 'Trạng thái không hợp lệ', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
+        // Khởi tạo biến đếm kết quả
         $successCount = 0;
-        // Kiểm tra nếu $selectedIds đã là mảng thì sử dụng trực tiếp, không cần explode
-        $idArray = is_array($selectedIds) ? $selectedIds : explode(',', $selectedIds);
+        $errorCount = 0;
+        $errors = [];
         
-        foreach ($idArray as $id) {
-            if ($this->model->update($id, ['status' => $newStatus])) {
-                $successCount++;
+        // Xử lý từng ID được chọn
+        foreach ($selectedItems as $id) {
+            try {
+                // Lấy thông tin hiện tại của bản ghi
+                $currentRecord = $this->model->find($id);
+                
+                if (!$currentRecord) {
+                    $errorCount++;
+                    $errors[] = "Không tìm thấy bản ghi với ID: $id";
+                    continue;
+                }
+                
+                // Đổi trạng thái ngược lại (0 -> 1 hoặc 1 -> 0)
+                $newStatus = $currentRecord->status == '1' ? '0' : '1';
+                
+                // Cập nhật trạng thái
+                $updateResult = $this->model->update($id, ['status' => $newStatus]);
+                
+                if ($updateResult) {
+                    $successCount++;
+                    log_message('debug', "[statusMultiple] - Successfully updated status for ID: $id to: $newStatus");
+                } else {
+                    $errorCount++;
+                    $errors[] = "Lỗi khi cập nhật trạng thái cho ID: $id";
+                    log_message('error', "[statusMultiple] - Failed to update status for ID: $id");
+                }
+            } catch (\Exception $e) {
+                $errorCount++;
+                $errors[] = "Lỗi khi xử lý ID: $id - " . $e->getMessage();
+                log_message('error', "[statusMultiple] - Error processing ID: $id - " . $e->getMessage());
             }
         }
         
-        if ($successCount > 0) {
-            $statusText = $newStatus == '1' ? 'hoạt động' : 'không hoạt động';
-            $this->alert->set('success', "Đã chuyển $successCount template sang trạng thái $statusText", true);
-        } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra, không thể thay đổi trạng thái', true);
+        // Log kết quả cuối cùng
+        log_message('debug', "[statusMultiple] - Final Results - Success: $successCount, Errors: $errorCount");
+        if (!empty($errors)) {
+            log_message('error', "[statusMultiple] - Error Details: " . json_encode($errors));
         }
         
-        return redirect()->to($this->moduleUrl);
+        // Thiết lập thông báo kết quả
+        if ($successCount > 0) {
+            $message = "Đã cập nhật thành công trạng thái cho $successCount mục";
+            if ($errorCount > 0) {
+                $message .= " (có $errorCount mục lỗi)";
+            }
+            $this->alert->set('success', $message, true);
+        } else {
+            $this->alert->set('error', 'Không thể cập nhật trạng thái cho bất kỳ mục nào', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        log_message('debug', "[statusMultiple] - Redirecting to: " . ($redirectUrl ?: $this->moduleUrl));
+        
+        return redirect()->to($redirectUrl ?: $this->moduleUrl);
     }
     
     /**
@@ -810,13 +898,7 @@ class ThamGiaSuKien extends BaseController
     public function restoreMultiple()
     {
         // Lấy các ID được chọn từ form và URL trả về
-        $selectedItems = $this->request->getPost('selected_items');
-        
-        // Kiểm tra nếu selectedItems là mảng (selected_items[])
-        if (is_array($this->request->getPost('selected_items[]'))) {
-            $selectedItems = $this->request->getPost('selected_items[]');
-        }
-        
+        $selectedItems = $this->request->getPost('selected_ids');
         $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
         
         // Log thông tin để debug
@@ -847,32 +929,15 @@ class ThamGiaSuKien extends BaseController
             log_message('debug', 'RestoreMultiple - Đang khôi phục ID: ' . $id);
             
             try {
-                $template = $this->model->find($id);
-                if (!$template) {
-                    log_message('error', 'RestoreMultiple - Không tìm thấy dữ liệu với ID: ' . $id);
-                    $failCount++;
-                    $errorMessages[] = "Không tìm thấy dữ liệu ID: {$id}";
-                    continue;
-                }
-                
-                // Kiểm tra xem bản ghi có đang trong thùng rác không
-                if ($template->bin != 1) {
-                    log_message('warning', 'RestoreMultiple - Dữ liệu ID: ' . $id . ' không nằm trong thùng rác (bin = ' . $template->bin . ')');
-                    $failCount++;
-                    $errorMessages[] = "Dữ liệu ID: {$id} không nằm trong thùng rác";
-                    continue;
-                }
-                
-                // Đặt lại trạng thái bin và lưu
-                $template->bin = false;
-                if ($this->model->save($template)) {
+                // Khôi phục bằng cách đặt deleted_at thành NULL
+                if ($this->model->update($id, ['deleted_at' => null])) {
                     $successCount++;
                     log_message('debug', 'RestoreMultiple - Khôi phục thành công ID: ' . $id);
                 } else {
                     $failCount++;
                     $errors = $this->model->errors() ? json_encode($this->model->errors()) : 'Unknown error';
-                    log_message('error', 'RestoreMultiple - Lỗi lưu dữ liệu ID: ' . $id . ', Errors: ' . $errors);
-                    $errorMessages[] = "Lỗi lưu dữ liệu ID: {$id}";
+                    log_message('error', 'RestoreMultiple - Lỗi khôi phục dữ liệu ID: ' . $id . ', Errors: ' . $errors);
+                    $errorMessages[] = "Lỗi khôi phục dữ liệu ID: {$id}";
                 }
             } catch (\Exception $e) {
                 $failCount++;
@@ -909,13 +974,7 @@ class ThamGiaSuKien extends BaseController
     public function permanentDeleteMultiple()
     {
         // Lấy các ID được chọn từ form và URL trả về
-        $selectedItems = $this->request->getPost('selected_items');
-        
-        // Kiểm tra nếu selectedItems là mảng (selected_items[])
-        if (is_array($this->request->getPost('selected_items[]'))) {
-            $selectedItems = $this->request->getPost('selected_items[]');
-        }
-        
+        $selectedItems = $this->request->getPost('selected_ids');
         $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
         
         // Log thông tin để debug
@@ -979,7 +1038,7 @@ class ThamGiaSuKien extends BaseController
         // Chuẩn bị điều kiện tìm kiếm
         $searchCriteria = [
             'keyword' => $keyword,
-            'bin' => 0
+            'deleted' => false // Chỉ lấy các bản ghi chưa xóa
         ];
         
         // Thêm điều kiện tìm kiếm nếu có giá trị
@@ -1157,7 +1216,7 @@ class ThamGiaSuKien extends BaseController
         // Chuẩn bị điều kiện tìm kiếm
         $searchCriteria = [
             'keyword' => $keyword,
-            'bin' => 0
+            'deleted' => false // Chỉ lấy các bản ghi chưa xóa
         ];
         
         // Thêm điều kiện tìm kiếm nếu có giá trị
@@ -1229,7 +1288,7 @@ class ThamGiaSuKien extends BaseController
         // Chuẩn bị điều kiện tìm kiếm
         $searchCriteria = [
             'keyword' => $keyword,
-            'bin' => 1
+            'deleted' => true // Chỉ lấy các bản ghi đã xóa
         ];
         
         // Thêm điều kiện tìm kiếm nếu có giá trị
@@ -1301,7 +1360,7 @@ class ThamGiaSuKien extends BaseController
         // Chuẩn bị điều kiện tìm kiếm
         $searchCriteria = [
             'keyword' => $keyword,
-            'bin' => 1
+            'deleted' => true // Chỉ lấy các bản ghi đã xóa
         ];
         
         // Thêm điều kiện tìm kiếm nếu có giá trị
@@ -1515,28 +1574,28 @@ class ThamGiaSuKien extends BaseController
     }
 
     // Thêm vào phương thức này để hỗ trợ tìm kiếm các bản ghi đã xóa
-    public function searchDeleted(array $params, array $options = [])
+    public function searchDeleted(array $criteria = [], array $options = [])
     {
         // Đảm bảo withDeleted được thiết lập
         $this->model->withDeleted();
         
         // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
-        $params['deleted'] = true;
+        $criteria['deleted'] = true;
         
         // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
-        return $this->model->search($params, $options);
+        return $this->model->search($criteria, $options);
     }
     
     // Đếm số lượng bản ghi đã xóa theo tiêu chí tìm kiếm
-    public function countDeletedResults(array $params)
+    public function countDeletedResults(array $criteria = [])
     {
         // Đảm bảo withDeleted được thiết lập
         $this->model->withDeleted();
         
         // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
-        $params['deleted'] = true;
+        $criteria['deleted'] = true;
         
         // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
-        return $this->model->countSearchResults($params);
+        return $this->model->countSearchResults($criteria);
     }
 } 

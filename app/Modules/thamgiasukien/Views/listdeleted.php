@@ -43,6 +43,9 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
+                    <a href="<?= site_url('thamgiasukien') ?>" class="btn btn-outline-primary btn-sm">
+                        <i class='bx bx-arrow-back'></i> Danh sách tham gia sự kiện
+                    </a>
                     <form id="form-restore-multiple" action="<?= site_url('thamgiasukien/restoreMultiple') ?>" method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <button type="button" id="restore-selected" class="btn btn-success btn-sm me-2" disabled>
@@ -52,10 +55,12 @@
                     
                     <form id="form-delete-multiple" action="<?= site_url('thamgiasukien/permanentDeleteMultiple') ?>" method="post" class="d-inline">
                         <?= csrf_field() ?>
-                        <button type="button" id="delete-selected" class="btn btn-danger btn-sm" disabled>
+                        <button type="button" id="delete-permanent-multiple" class="btn btn-danger btn-sm" disabled>
                             <i class='bx bx-trash'></i> Xóa vĩnh viễn
                         </button>
                     </form>
+
+                   
                 </div>
                 <div class="col-12 col-md-6">
                     <form action="<?= site_url('thamgiasukien/listdeleted') ?>" method="get" id="search-form">
@@ -170,7 +175,7 @@
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
-                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->tham_gia_su_kien_id ?>">
+                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_items[]" value="<?= $item->tham_gia_su_kien_id ?>">
                                         </div>
                                     </td>
                                     <td><?= esc($item->tham_gia_su_kien_id) ?></td>
@@ -361,313 +366,5 @@
 <?= $this->section('script') ?>
 <?= page_js('table') ?>
 <?= page_section_js('table') ?>
-
-<script>
-    $(document).ready(function() {
-        // Kiểm tra xem bảng đã được khởi tạo thành DataTable chưa
-        if (!$.fn.DataTable.isDataTable('#dataTable')) {
-            // Khởi tạo tooltips
-            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            [...tooltips].map(t => new bootstrap.Tooltip(t));
-            
-            // Khởi tạo DataTable với cấu hình tiếng Việt
-            const dataTable = $('#dataTable').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json',
-                },
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                dom: '<"row mx-0"<"col-sm-12 px-0"tr>><"row mx-0 mt-2"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
-                ordering: true,
-                responsive: true,
-                columnDefs: [
-                    { orderable: false, targets: [0, 7] },
-                    { className: 'align-middle', targets: '_all' }
-                ],
-                searching: false, // Tắt tìm kiếm của DataTable vì đã có form tìm kiếm
-                paging: false, // Tắt phân trang của DataTable vì đã có phân trang CodeIgniter
-                info: false // Tắt thông tin của DataTable
-            });
-            
-            // Xử lý form tìm kiếm
-            $('#search-form').on('submit', function() {
-                // Form sẽ gửi yêu cầu GET nên không cần xử lý gì thêm
-                return true;
-            });
-            
-            // Xử lý nhấn Enter trong ô tìm kiếm
-            $('#table-search').on('keyup', function(e) {
-                if (e.key === 'Enter') {
-                    $('#search-form').submit();
-                }
-            });
-        }
-        
-        // Làm mới bảng
-        $('#refresh-table').on('click', function() {
-            $('#loading-indicator').css('display', 'flex').fadeIn(100);
-            location.reload();
-        });
-        
-        // Xử lý nút khôi phục
-        $('.btn-restore').on('click', function() {
-            const id = $(this).data('id');
-            const name = $(this).data('name');
-            $('#restore-item-name').text(name);
-            
-            // Lấy đường dẫn tương đối (path + query string)
-            const pathAndQuery = window.location.pathname + window.location.search;
-            
-            // Tạo URL khôi phục với tham số truy vấn return_url
-            const restoreUrl = '<?= site_url('thamgiasukien/restore/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
-            $('#restore-form').attr('action', restoreUrl);
-            
-            console.log('URL khôi phục:', restoreUrl);
-            
-            $('#restoreModal').modal('show');
-        });
-        
-        // Xử lý nút xóa vĩnh viễn
-        $('.btn-delete').on('click', function() {
-            const id = $(this).data('id');
-            const name = $(this).data('name');
-            $('#delete-item-name').text(name);
-            
-            // Lấy đường dẫn tương đối (path + query string)
-            const pathAndQuery = window.location.pathname + window.location.search;
-            
-            // Tạo URL xóa với tham số truy vấn return_url
-            const deleteUrl = '<?= site_url('thamgiasukien/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
-            $('#delete-form').attr('action', deleteUrl);
-            
-            console.log('URL xóa vĩnh viễn:', deleteUrl);
-            
-            $('#deleteModal').modal('show');
-        });
-        
-        // Chọn tất cả
-        $('#select-all').on('change', function() {
-            const isChecked = $(this).prop('checked');
-            $('.checkbox-item').prop('checked', isChecked);
-            updateActionButtons();
-        });
-        
-        // Cập nhật trạng thái nút hành động khi checkbox thay đổi
-        $(document).on('change', '.checkbox-item', function() {
-            updateActionButtons();
-            
-            // Nếu bỏ chọn một item, bỏ chọn select-all
-            if (!$(this).prop('checked')) {
-                $('#select-all').prop('checked', false);
-            }
-            
-            // Nếu chọn tất cả items, chọn select-all
-            if ($('.checkbox-item:checked').length === $('.checkbox-item').length) {
-                $('#select-all').prop('checked', true);
-            }
-        });
-        
-        // Function cập nhật trạng thái của các nút hành động
-        function updateActionButtons() {
-            const selectedCount = $('.checkbox-item:checked').length;
-            if (selectedCount > 0) {
-                $('#restore-selected, #delete-selected').prop('disabled', false);
-            } else {
-                $('#restore-selected, #delete-selected').prop('disabled', true);
-            }
-        }
-        
-        // Xử lý nút khôi phục nhiều
-        $('#restore-selected').on('click', function() {
-            if ($('.checkbox-item:checked').length > 0) {
-                $('#restore-count').text($('.checkbox-item:checked').length);
-                $('#restoreMultipleModal').modal('show');
-            }
-        });
-        
-        // Xử lý xác nhận khôi phục nhiều
-        $('#confirm-restore-multiple').on('click', function() {
-            // Lấy form
-            const form = $('#form-restore-multiple');
-            
-            // Lấy danh sách ID đã chọn
-            const selectedItems = [];
-            $('.checkbox-item:checked').each(function() {
-                selectedItems.push($(this).val());
-            });
-            
-            // Nếu không có item nào được chọn, hiển thị thông báo
-            if (selectedItems.length === 0) {
-                alert('Vui lòng chọn ít nhất một bản ghi để khôi phục');
-                $('#restoreMultipleModal').modal('hide');
-                return;
-            }
-            
-            // Xóa tất cả input hiện có (trừ CSRF token)
-            form.find('input:not([name="<?= csrf_token() ?>"])').remove();
-            
-            // Thêm các checkbox đã chọn vào form dưới dạng input hidden
-            selectedItems.forEach(function(id) {
-                form.append($('<input>').attr({
-                    type: 'hidden',
-                    name: 'selected_items[]',
-                    value: id
-                }));
-            });
-            
-            // Thêm URL hiện tại làm return_url nếu chưa có
-            if (form.find('input[name="return_url"]').length === 0) {
-                const pathAndQuery = window.location.pathname + window.location.search;
-                form.append($('<input>').attr({
-                    type: 'hidden',
-                    name: 'return_url',
-                    value: pathAndQuery
-                }));
-            }
-            
-            // Submit form
-            form.submit();
-            
-            // Đóng modal
-            $('#restoreMultipleModal').modal('hide');
-        });
-        
-        // Xử lý nút xóa vĩnh viễn nhiều
-        $('#delete-selected').on('click', function() {
-            if ($('.checkbox-item:checked').length > 0) {
-                $('#delete-count').text($('.checkbox-item:checked').length);
-                $('#deleteMultipleModal').modal('show');
-            }
-        });
-        
-        // Xử lý xác nhận xóa vĩnh viễn nhiều
-        $('#confirm-delete-multiple').on('click', function() {
-            // Lấy form
-            const form = $('#form-delete-multiple');
-            
-            // Lấy danh sách ID đã chọn
-            const selectedItems = [];
-            $('.checkbox-item:checked').each(function() {
-                selectedItems.push($(this).val());
-            });
-            
-            // Nếu không có item nào được chọn, hiển thị thông báo
-            if (selectedItems.length === 0) {
-                alert('Vui lòng chọn ít nhất một bản ghi để xóa vĩnh viễn');
-                $('#deleteMultipleModal').modal('hide');
-                return;
-            }
-            
-            // Xóa tất cả input hiện có (trừ CSRF token)
-            form.find('input:not([name="<?= csrf_token() ?>"])').remove();
-            
-            // Thêm các checkbox đã chọn vào form dưới dạng input hidden
-            selectedItems.forEach(function(id) {
-                form.append($('<input>').attr({
-                    type: 'hidden',
-                    name: 'selected_items[]',
-                    value: id
-                }));
-            });
-            
-            // Thêm URL hiện tại làm return_url nếu chưa có
-            if (form.find('input[name="return_url"]').length === 0) {
-                const pathAndQuery = window.location.pathname + window.location.search;
-                form.append($('<input>').attr({
-                    type: 'hidden',
-                    name: 'return_url',
-                    value: pathAndQuery
-                }));
-            }
-            
-            // Submit form
-            form.submit();
-            
-            // Đóng modal
-            $('#deleteMultipleModal').modal('hide');
-        });
-        
-        // Xuất dữ liệu Excel
-        $('#export-excel').on('click', function(e) {
-            e.preventDefault();
-            
-            // Lấy URL hiện tại và các tham số query string
-            const currentUrl = new URL(window.location.href);
-            const queryParams = currentUrl.searchParams;
-            
-            // Tạo URL xuất Excel với các tham số cần thiết
-            let exportUrl = '<?= site_url("thamgiasukien/exportDeletedExcel") ?>';
-            const params = [];
-            
-            // Thêm các tham số cần thiết
-            if (queryParams.has('keyword')) {
-                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
-            }
-            if (queryParams.has('phuong_thuc_diem_danh')) {
-                params.push('phuong_thuc_diem_danh=' + encodeURIComponent(queryParams.get('phuong_thuc_diem_danh')));
-            }
-            
-            // Thêm các tham số vào URL
-            if (params.length > 0) {
-                exportUrl += '?' + params.join('&');
-            }
-            
-            // Chuyển hướng đến URL xuất Excel
-            window.location.href = exportUrl;
-        });
-        
-        // Xuất PDF
-        $('#export-pdf').on('click', function(e) {
-            e.preventDefault();
-            
-            // Lấy URL hiện tại và các tham số query string
-            const currentUrl = new URL(window.location.href);
-            const queryParams = currentUrl.searchParams;
-            
-            // Tạo URL xuất PDF với các tham số cần thiết
-            let exportUrl = '<?= site_url("thamgiasukien/exportDeletedPdf") ?>';
-            const params = [];
-            
-            // Thêm các tham số cần thiết
-            if (queryParams.has('keyword')) {
-                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
-            }
-            if (queryParams.has('phuong_thuc_diem_danh')) {
-                params.push('phuong_thuc_diem_danh=' + encodeURIComponent(queryParams.get('phuong_thuc_diem_danh')));
-            }
-            
-            // Thêm các tham số vào URL
-            if (params.length > 0) {
-                exportUrl += '?' + params.join('&');
-            }
-            
-            // Chuyển hướng đến URL xuất PDF
-            window.location.href = exportUrl;
-        });
-        
-        // Xử lý khi thay đổi số lượng bản ghi trên mỗi trang
-        document.getElementById('perPageSelect').addEventListener('change', function() {
-            const perPage = this.value;
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            // Giữ lại tất cả các tham số cần thiết
-            const paramsToKeep = ['keyword', 'phuong_thuc_diem_danh'];
-            
-            // Tạo URL mới với tham số perPage và reset về trang 1
-            const newParams = new URLSearchParams();
-            newParams.set('perPage', perPage);
-            newParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
-            
-            // Giữ lại các tham số quan trọng
-            paramsToKeep.forEach(param => {
-                if (urlParams.has(param) && urlParams.get(param)) {
-                    newParams.set(param, urlParams.get(param));
-                }
-            });
-            
-            // Chuyển hướng đến URL mới
-            window.location.href = window.location.pathname + '?' + newParams.toString();
-        });
-    });
-</script>
+<?= page_table_js() ?>
 <?= $this->endSection() ?> 

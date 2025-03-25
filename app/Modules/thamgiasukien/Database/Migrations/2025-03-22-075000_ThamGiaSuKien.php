@@ -41,11 +41,6 @@ class ThamGiaSuKien extends Migration
                 'constraint' => 1,
                 'default' => 1
             ],
-            'bin' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'default' => 0
-            ],
             'created_at' => [
                 'type' => 'TIMESTAMP',
                 'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP'),

@@ -5,6 +5,8 @@
  * @var string $action Form submission URL
  * @var string $method Form method (POST or PUT)
  * @var ThamGiaSuKien $thamGiaSuKien ThamGiaSuKien entity data for editing (optional)
+ * @var array $nguoiDungList Danh sách người dùng (nếu có)
+ * @var array $suKienList Danh sách sự kiện (nếu có)
  */
 
 // Set default values if editing
@@ -21,18 +23,46 @@ $action = isset($action) ? $action : site_url('thamgiasukien/create');
 $method = isset($method) ? $method : 'POST';
 
 // Xác định tiêu đề form dựa trên mode
-$formTitle = isset($is_new) && $is_new ? 'Thêm mới tham gia sự kiện' : 'Cập nhật tham gia sự kiện';
 $isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
+
+// Format thời gian điểm danh cho input datetime-local nếu có
+if (!empty($thoi_gian_diem_danh)) {
+    try {
+        // Đảm bảo thời gian điểm danh có định dạng Y-m-d\TH:i
+        if ($thoi_gian_diem_danh instanceof \CodeIgniter\I18n\Time) {
+            $thoi_gian_diem_danh = $thoi_gian_diem_danh->format('Y-m-d\TH:i');
+        } else {
+            // Xử lý nhiều định dạng có thể có
+            $date = date_create($thoi_gian_diem_danh);
+            if ($date) {
+                $thoi_gian_diem_danh = date_format($date, 'Y-m-d\TH:i');
+            } else {
+                // Nếu không thể parse, để trống để người dùng nhập lại
+                $thoi_gian_diem_danh = '';
+            }
+        }
+    } catch (\Exception $e) {
+        // Nếu có lỗi xử lý thời gian, để trống
+        $thoi_gian_diem_danh = '';
+        log_message('error', 'Lỗi định dạng thời gian điểm danh: ' . $e->getMessage());
+    }
+}
+
+// Nếu không có giá trị, đặt giá trị mặc định là thời gian hiện tại
+if (empty($thoi_gian_diem_danh)) {
+    $now = new \DateTime();
+    $thoi_gian_diem_danh = $now->format('Y-m-d\TH:i');
+}
 ?>
 
 <!-- Form chính -->
 <form action="<?= $action ?>" method="<?= $method ?>" id="thamGiaSuKienForm" class="needs-validation" novalidate>
+    <?= csrf_field() ?>
+    
     <?php if ($isUpdate): ?>
         <input type="hidden" name="tham_gia_su_kien_id" value="<?= $id ?>">
     <?php endif; ?>
-
-    <h4 class="mb-3"><?= $formTitle ?></h4>
-
+    
     <!-- Hiển thị thông báo lỗi nếu có -->
     <?php if (session('error')): ?>
         <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
@@ -68,6 +98,21 @@ $isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
         </div>
     <?php endif; ?>
 
+    <!-- Hiển thị thông báo thành công -->
+    <?php if (session('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-start border-success border-4" role="alert">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class='bx bx-check-circle fs-3'></i>
+                </div>
+                <div>
+                    <strong>Thành công!</strong> <?= session('success') ?>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="card-title mb-0">
@@ -85,17 +130,29 @@ $isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
-                        <input type="number" class="form-control <?= isset($validation) && $validation->hasError('nguoi_dung_id') ? 'is-invalid' : '' ?>" 
+                        <?php if (isset($nguoiDungList) && !empty($nguoiDungList)): ?>
+                            <select class="form-select <?= isset($validation) && $validation->hasError('nguoi_dung_id') ? 'is-invalid' : '' ?>" 
+                                id="nguoi_dung_id" name="nguoi_dung_id" required>
+                                <option value="">-- Chọn người dùng --</option>
+                                <?php foreach ($nguoiDungList as $user): ?>
+                                    <option value="<?= $user->nguoi_dung_id ?>" <?= old('nguoi_dung_id', $nguoi_dung_id) == $user->nguoi_dung_id ? 'selected' : '' ?>>
+                                        <?= esc($user->ho_ten ?? 'ID: ' . $user->nguoi_dung_id) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php else: ?>
+                            <input type="number" class="form-control <?= isset($validation) && $validation->hasError('nguoi_dung_id') ? 'is-invalid' : '' ?>" 
                                 id="nguoi_dung_id" name="nguoi_dung_id" 
                                 value="<?= old('nguoi_dung_id', $nguoi_dung_id) ?>" 
                                 placeholder="ID người dùng"
                                 required min="1">
+                        <?php endif; ?>
                         <?php if (isset($validation) && $validation->hasError('nguoi_dung_id')): ?>
                             <div class="invalid-feedback">
                                 <?= $validation->getError('nguoi_dung_id') ?>
                             </div>
                         <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng nhập ID người dùng</div>
+                            <div class="invalid-feedback">Vui lòng nhập/chọn ID người dùng</div>
                         <?php endif; ?>
                     </div>
                     <div class="form-text text-muted">
@@ -111,17 +168,29 @@ $isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-calendar-event'></i></span>
-                        <input type="number" class="form-control <?= isset($validation) && $validation->hasError('su_kien_id') ? 'is-invalid' : '' ?>" 
+                        <?php if (isset($suKienList) && !empty($suKienList)): ?>
+                            <select class="form-select <?= isset($validation) && $validation->hasError('su_kien_id') ? 'is-invalid' : '' ?>" 
+                                id="su_kien_id" name="su_kien_id" required>
+                                <option value="">-- Chọn sự kiện --</option>
+                                <?php foreach ($suKienList as $event): ?>
+                                    <option value="<?= $event->su_kien_id ?>" <?= old('su_kien_id', $su_kien_id) == $event->su_kien_id ? 'selected' : '' ?>>
+                                        <?= esc($event->ten_su_kien ?? 'ID: ' . $event->su_kien_id) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php else: ?>
+                            <input type="number" class="form-control <?= isset($validation) && $validation->hasError('su_kien_id') ? 'is-invalid' : '' ?>" 
                                 id="su_kien_id" name="su_kien_id" 
                                 value="<?= old('su_kien_id', $su_kien_id) ?>" 
                                 placeholder="ID sự kiện"
                                 required min="1">
+                        <?php endif; ?>
                         <?php if (isset($validation) && $validation->hasError('su_kien_id')): ?>
                             <div class="invalid-feedback">
                                 <?= $validation->getError('su_kien_id') ?>
                             </div>
                         <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng nhập ID sự kiện</div>
+                            <div class="invalid-feedback">Vui lòng nhập/chọn ID sự kiện</div>
                         <?php endif; ?>
                     </div>
                     <div class="form-text text-muted">
@@ -144,11 +213,13 @@ $isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
                             <div class="invalid-feedback">
                                 <?= $validation->getError('thoi_gian_diem_danh') ?>
                             </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng nhập đúng định dạng ngày giờ</div>
                         <?php endif; ?>
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Thời gian người dùng điểm danh tham gia sự kiện
+                        Định dạng: YYYY-MM-DD HH:MM (ví dụ: <?= date('Y-m-d H:i') ?>)
                     </div>
                 </div>
 
@@ -161,6 +232,7 @@ $isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
                         <span class="input-group-text bg-light"><i class='bx bx-qr-scan'></i></span>
                         <select class="form-select <?= isset($validation) && $validation->hasError('phuong_thuc_diem_danh') ? 'is-invalid' : '' ?>" 
                                id="phuong_thuc_diem_danh" name="phuong_thuc_diem_danh" required>
+                            <option value="">-- Chọn phương thức --</option>
                             <option value="qr_code" <?= old('phuong_thuc_diem_danh', $phuong_thuc_diem_danh) == 'qr_code' ? 'selected' : '' ?>>QR Code</option>
                             <option value="face_id" <?= old('phuong_thuc_diem_danh', $phuong_thuc_diem_danh) == 'face_id' ? 'selected' : '' ?>>Face ID</option>
                             <option value="manual" <?= old('phuong_thuc_diem_danh', $phuong_thuc_diem_danh) == 'manual' ? 'selected' : '' ?>>Thủ công</option>
@@ -172,6 +244,10 @@ $isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
                         <?php else: ?>
                             <div class="invalid-feedback">Vui lòng chọn phương thức điểm danh</div>
                         <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Phương thức điểm danh người dùng sử dụng
                     </div>
                 </div>
 
@@ -189,15 +265,22 @@ $isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
                             </div>
                         <?php endif; ?>
                     </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Thông tin bổ sung về việc tham gia sự kiện
+                    </div>
                 </div>
 
                 <!-- Status -->
                 <div class="col-md-6">
-                    <label for="status" class="form-label fw-semibold">Trạng thái</label>
+                    <label for="status" class="form-label fw-semibold">
+                        Trạng thái <span class="text-danger">*</span>
+                    </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-toggle-left'></i></span>
                         <select class="form-select <?= isset($validation) && $validation->hasError('status') ? 'is-invalid' : '' ?>" 
-                               id="status" name="status">
+                               id="status" name="status" required>
+                            <option value="">-- Chọn trạng thái --</option>
                             <option value="1" <?= old('status', $status) == '1' ? 'selected' : '' ?>>Hoạt động</option>
                             <option value="0" <?= old('status', $status) == '0' ? 'selected' : '' ?>>Không hoạt động</option>
                         </select>
@@ -205,6 +288,8 @@ $isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
                             <div class="invalid-feedback">
                                 <?= $validation->getError('status') ?>
                             </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng chọn trạng thái</div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -248,5 +333,66 @@ $isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
         
         // Tự động focus vào trường đầu tiên
         document.getElementById('nguoi_dung_id').focus();
+        
+        // Khi chọn người dùng và sự kiện, kiểm tra xem người dùng đã tham gia sự kiện chưa
+        const nguoiDungInput = document.getElementById('nguoi_dung_id');
+        const suKienInput = document.getElementById('su_kien_id');
+        
+        function checkUserEventParticipation() {
+            const nguoiDungValue = nguoiDungInput.value;
+            const suKienValue = suKienInput.value;
+            
+            if (!nguoiDungValue || !suKienValue) {
+                return;
+            }
+            
+            // Chỉ thực hiện kiểm tra khi thêm mới (không phải cập nhật)
+            <?php if (!$isUpdate): ?>
+            fetch('<?= site_url('thamgiasukien/checkUserParticipation') ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="<?= csrf_token() ?>"]').value
+                },
+                body: JSON.stringify({
+                    nguoi_dung_id: nguoiDungValue,
+                    su_kien_id: suKienValue
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    const warningHtml = `
+                        <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+                            <i class='bx bx-info-circle me-1'></i>
+                            Người dùng này đã tham gia sự kiện được chọn.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
+                    
+                    // Xóa cảnh báo cũ nếu có
+                    const oldWarning = document.querySelector('.participation-warning');
+                    if (oldWarning) {
+                        oldWarning.remove();
+                    }
+                    
+                    // Thêm cảnh báo mới
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'participation-warning';
+                    alertDiv.innerHTML = warningHtml;
+                    
+                    const formCard = document.querySelector('.card');
+                    formCard.parentNode.insertBefore(alertDiv, formCard);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+            <?php endif; ?>
+        }
+        
+        if (nguoiDungInput && suKienInput) {
+            nguoiDungInput.addEventListener('change', checkUserEventParticipation);
+            suKienInput.addEventListener('change', checkUserEventParticipation);
+        }
     });
 </script> 

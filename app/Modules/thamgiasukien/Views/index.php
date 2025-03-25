@@ -44,17 +44,21 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <?= form_open("thamgiasukien/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
-                    <button type="button" id="delete-selected" class="btn btn-danger btn-sm me-2" disabled>
-                        <i class='bx bx-trash'></i> Xóa mục đã chọn
-                    </button>
-                    <?= form_close() ?>
-                    
-                    <?= form_open("thamgiasukien/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
-                    <button type="button" id="status-selected" class="btn btn-warning btn-sm" disabled>
-                        <i class='bx bx-refresh'></i> Đổi trạng thái
-                    </button>
-                    <?= form_close() ?>
+                    <form id="form-delete-multiple" action="<?= site_url('thamgiasukien/deleteMultiple') ?>" method="post" class="d-inline">
+                        <?= csrf_field() ?>
+                        <button type="button" id="delete-selected-multiple" class="btn btn-danger btn-sm me-2" disabled>
+                            <i class='bx bx-trash'></i> Xóa mục đã chọn
+                        </button>
+                    </form>
+                    <form id="form-status-multiple" action="<?= site_url('thamgiasukien/statusMultiple') ?>" method="post" class="d-inline">       
+                        <?= csrf_field() ?>
+                        <button type="button" id="status-selected-multiple" class="btn btn-primary btn-sm" disabled>
+                            <i class='bx bx-toggle-right'></i> Đổi trạng thái
+                        </button>
+                    </form>
+                    <a href="<?= site_url('thamgiasukien/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
+                        <i class='bx bx-trash'></i> Danh sách đã xóa
+                    </a>
                 </div>
                 <div class="col-12 col-md-6">
                     <form action="<?= site_url('thamgiasukien') ?>" method="get" id="search-form">
@@ -179,7 +183,7 @@
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
-                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->tham_gia_su_kien_id ?>">
+                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_items[]" value="<?= $item->tham_gia_su_kien_id ?>">
                                         </div>
                                     </td>
                                     <td><?= esc($item->tham_gia_su_kien_id) ?></td>
@@ -196,11 +200,16 @@
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-center">
-                                        <?php if ($item->status == 1): ?>
-                                            <span class="badge bg-success">Hoạt động</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-danger">Không hoạt động</span>
-                                        <?php endif; ?>
+                                        <form action="<?= site_url('thamgiasukien/statusMultiple') ?>" method="post" class="d-inline">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="selected_ids[]" value="<?= $item->tham_gia_su_kien_id ?>">
+                                            <input type="hidden" name="return_url" value="<?= current_url() ?>">
+                                            <button type="submit" class="btn btn-sm <?= $item->status == 1 ? 'btn-success' : 'btn-danger' ?> status-toggle" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="<?= $item->status == 1 ? 'Đang hoạt động - Click để tắt' : 'Đang tắt - Click để bật' ?>">
+                                                <?= $item->status == 1 ? 'Hoạt động' : 'Không hoạt động' ?>
+                                            </button>
+                                        </form>
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
@@ -349,296 +358,5 @@
 <?= $this->section('script') ?>
 <?= page_js('table') ?>
 <?= page_section_js('table') ?>
-
-<script>
-    $(document).ready(function() {
-        // Kiểm tra xem bảng đã được khởi tạo thành DataTable chưa
-        if (!$.fn.DataTable.isDataTable('#dataTable')) {
-            // Khởi tạo tooltips
-            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            [...tooltips].map(t => new bootstrap.Tooltip(t));
-            
-            // Khởi tạo DataTable với cấu hình tiếng Việt
-            const dataTable = $('#dataTable').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json',
-                },
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                dom: '<"row mx-0"<"col-sm-12 px-0"tr>><"row mx-0 mt-2"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
-                ordering: true,
-                responsive: true,
-                columnDefs: [
-                    { orderable: false, targets: [0, 7] },
-                    { className: 'align-middle', targets: '_all' }
-                ],
-                searching: false, // Tắt tìm kiếm của DataTable vì đã có form tìm kiếm
-                paging: false, // Tắt phân trang của DataTable vì đã có phân trang CodeIgniter
-                info: false // Tắt thông tin của DataTable
-            });
-            
-            // Xử lý form tìm kiếm
-            $('#search-form').on('submit', function() {
-                // Form sẽ gửi yêu cầu GET nên không cần xử lý gì thêm
-                return true;
-            });
-            
-            // Xử lý nhấn Enter trong ô tìm kiếm
-            $('#table-search').on('keyup', function(e) {
-                if (e.key === 'Enter') {
-                    $('#search-form').submit();
-                }
-            });
-        }
-        
-        // Làm mới bảng
-        $('#refresh-table').on('click', function() {
-            $('#loading-indicator').css('display', 'flex').fadeIn(100);
-            location.reload();
-        });
-        
-        // Xử lý nút xóa
-        $('.btn-delete').on('click', function() {
-            const id = $(this).data('id');
-            const name = $(this).data('name');
-            $('#delete-item-name').text(name);
-            
-            // Lấy đường dẫn tương đối (path + query string)
-            const pathAndQuery = window.location.pathname + window.location.search;
-            
-            // Tạo URL xóa với tham số truy vấn return_url
-            const deleteUrl = '<?= site_url('thamgiasukien/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
-            $('#delete-form').attr('action', deleteUrl);
-            
-            console.log('URL xóa:', deleteUrl);
-            
-            $('#deleteModal').modal('show');
-        });
-        
-        // Chọn tất cả
-        $('#select-all').on('change', function() {
-            const isChecked = $(this).prop('checked');
-            $('.checkbox-item').prop('checked', isChecked);
-            updateActionButtons();
-        });
-        
-        // Cập nhật trạng thái nút hành động khi checkbox thay đổi
-        $(document).on('change', '.checkbox-item', function() {
-            updateActionButtons();
-            
-            // Nếu bỏ chọn một item, bỏ chọn select-all
-            if (!$(this).prop('checked')) {
-                $('#select-all').prop('checked', false);
-            }
-            
-            // Nếu chọn tất cả items, chọn select-all
-            if ($('.checkbox-item:checked').length === $('.checkbox-item').length) {
-                $('#select-all').prop('checked', true);
-            }
-        });
-        
-        // Function cập nhật trạng thái của các nút hành động
-        function updateActionButtons() {
-            const selectedCount = $('.checkbox-item:checked').length;
-            if (selectedCount > 0) {
-                $('#delete-selected, #status-selected').prop('disabled', false);
-            } else {
-                $('#delete-selected, #status-selected').prop('disabled', true);
-            }
-        }
-        
-        // Xử lý nút xóa nhiều
-        $('#delete-selected').on('click', function() {
-            if ($('.checkbox-item:checked').length > 0) {
-                $('#selected-count').text($('.checkbox-item:checked').length);
-                $('#deleteMultipleModal').modal('show');
-            }
-        });
-        
-        // Xử lý xác nhận xóa nhiều
-        $('#confirm-delete-multiple').on('click', function() {
-            // Tạo form tạm thời chứa các checkbox đã chọn
-            const tempForm = $('#form-delete-multiple');
-            
-            // Xóa các input cũ
-            tempForm.empty();
-            
-            // Lấy đường dẫn tương đối (path + query string) thay vì URL đầy đủ
-            const pathAndQuery = window.location.pathname + window.location.search;
-            
-            // Thêm URL hiện tại làm return_url
-            tempForm.append($('<input>').attr({
-                type: 'hidden',
-                name: 'return_url',
-                value: pathAndQuery
-            }));
-            
-            // Thêm các checkbox đã chọn vào form
-            $('.checkbox-item:checked').each(function() {
-                const input = $('<input>').attr({
-                    type: 'hidden',
-                    name: 'selected_ids[]',
-                    value: $(this).val()
-                });
-                tempForm.append(input);
-            });
-            
-            console.log('Deleting multiple items with return URL path:', pathAndQuery);
-            console.log('Form data:', {
-                return_url: pathAndQuery,
-                selected_ids: $('.checkbox-item:checked').map(function() { return $(this).val(); }).get()
-            });
-            
-            // Submit form
-            tempForm.submit();
-            
-            // Đóng modal
-            $('#deleteMultipleModal').modal('hide');
-        });
-        
-        // Xử lý nút đổi trạng thái nhiều
-        $('#status-selected').on('click', function() {
-            if ($('.checkbox-item:checked').length > 0) {
-                $('#status-count').text($('.checkbox-item:checked').length);
-                $('#statusMultipleModal').modal('show');
-            }
-        });
-        
-        // Xử lý xác nhận đổi trạng thái nhiều
-        $('#confirm-status-multiple').on('click', function() {
-            // Tạo form tạm thời chứa các checkbox đã chọn
-            const tempForm = $('#form-status-multiple');
-            
-            // Xóa form cũ và tạo form mới
-            tempForm.empty();
-            
-            // Thêm các checkbox đã chọn vào form
-            $('.checkbox-item:checked').each(function() {
-                const input = $('<input>').attr({
-                    type: 'hidden',
-                    name: 'selected_ids[]',
-                    value: $(this).val()
-                });
-                tempForm.append(input);
-            });
-            
-            // Submit form
-            tempForm.submit();
-            
-            // Đóng modal
-            $('#statusMultipleModal').modal('hide');
-        });
-        
-        // Xuất dữ liệu
-        $('#export-excel').on('click', function(e) {
-            e.preventDefault();
-            
-            // Lấy URL hiện tại và các tham số query string
-            const currentUrl = new URL(window.location.href);
-            const queryParams = currentUrl.searchParams;
-            
-            // Tạo URL xuất Excel với các tham số cần thiết
-            let exportUrl = '<?= site_url("thamgiasukien/exportExcel") ?>';
-            const params = [];
-            
-            // Thêm các tham số cần thiết
-            if (queryParams.has('keyword')) {
-                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
-            }
-            if (queryParams.has('status')) {
-                params.push('status=' + encodeURIComponent(queryParams.get('status')));
-            }
-            if (queryParams.has('phuong_thuc_diem_danh')) {
-                params.push('phuong_thuc_diem_danh=' + encodeURIComponent(queryParams.get('phuong_thuc_diem_danh')));
-            }
-            if (queryParams.has('sort')) {
-                params.push('sort=' + encodeURIComponent(queryParams.get('sort')));
-            }
-            if (queryParams.has('order')) {
-                params.push('order=' + encodeURIComponent(queryParams.get('order')));
-            }
-            
-            // Thêm các tham số vào URL
-            if (params.length > 0) {
-                exportUrl += '?' + params.join('&');
-            }
-            
-            console.log('Exporting data to Excel with URL:', exportUrl);
-            
-            // Chuyển hướng đến URL xuất Excel
-            window.location.href = exportUrl;
-        });
-        
-        // Xuất PDF
-        $('#export-pdf').on('click', function(e) {
-            e.preventDefault();
-            
-            // Lấy URL hiện tại và các tham số query string
-            const currentUrl = new URL(window.location.href);
-            const queryParams = currentUrl.searchParams;
-            
-            // Tạo URL xuất PDF với các tham số cần thiết
-            let exportUrl = '<?= site_url("thamgiasukien/exportPdf") ?>';
-            const params = [];
-            
-            // Thêm các tham số cần thiết
-            if (queryParams.has('keyword')) {
-                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
-            }
-            if (queryParams.has('status')) {
-                params.push('status=' + encodeURIComponent(queryParams.get('status')));
-            }
-            if (queryParams.has('phuong_thuc_diem_danh')) {
-                params.push('phuong_thuc_diem_danh=' + encodeURIComponent(queryParams.get('phuong_thuc_diem_danh')));
-            }
-            if (queryParams.has('sort')) {
-                params.push('sort=' + encodeURIComponent(queryParams.get('sort')));
-            }
-            if (queryParams.has('order')) {
-                params.push('order=' + encodeURIComponent(queryParams.get('order')));
-            }
-            
-            // Thêm các tham số vào URL
-            if (params.length > 0) {
-                exportUrl += '?' + params.join('&');
-            }
-            
-            console.log('Exporting data to PDF with URL:', exportUrl);
-            
-            // Chuyển hướng đến URL xuất PDF
-            window.location.href = exportUrl;
-        });
-
-        // Xử lý khi thay đổi số lượng bản ghi trên mỗi trang
-        document.getElementById('perPageSelect').addEventListener('change', function() {
-            const perPage = this.value;
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            // Giữ lại tất cả các tham số cần thiết
-            const paramsToKeep = ['keyword', 'status', 'phuong_thuc_diem_danh', 'sort', 'order'];
-            
-            // Tạo URL mới với tham số perPage và reset về trang 1
-            const newParams = new URLSearchParams();
-            newParams.set('perPage', perPage);
-            newParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
-            
-            // Giữ lại các tham số quan trọng
-            paramsToKeep.forEach(param => {
-                if (urlParams.has(param)) {
-                    // Đặc biệt xử lý status=0
-                    if (param === 'status' && urlParams.get(param) === '0') {
-                        newParams.set(param, '0');
-                    } 
-                    // Chỉ giữ lại tham số có giá trị
-                    else if (urlParams.get(param)) {
-                        newParams.set(param, urlParams.get(param));
-                    }
-                }
-            });
-            
-            // Chuyển hướng đến URL mới
-            window.location.href = window.location.pathname + '?' + newParams.toString();
-        });
-    });
-</script>
+<?= page_table_js() ?>
 <?= $this->endSection() ?> 
