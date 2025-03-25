@@ -240,10 +240,10 @@ class ThamGiaSuKien extends BaseController
      */
     public function create()
     {
-        // Xác thực dữ liệu gửi lên
+        // Lấy dữ liệu từ form
         $data = $this->request->getPost();
         
-        // Xử lý thoi_gian_diem_danh nếu có giá trị
+        // Xử lý thời gian điểm danh nếu có
         if (!empty($data['thoi_gian_diem_danh'])) {
             try {
                 $time = Time::parse($data['thoi_gian_diem_danh']);
@@ -255,6 +255,7 @@ class ThamGiaSuKien extends BaseController
                     ->with('error', 'Thời gian điểm danh không hợp lệ');
             }
         }
+        
         // Chuẩn bị quy tắc validation cho thêm mới
         $this->model->prepareValidationRules('insert');
         
@@ -264,19 +265,15 @@ class ThamGiaSuKien extends BaseController
         }
         
         // Kiểm tra xem người dùng đã tham gia sự kiện chưa
-        $entity = new ThamGiaSuKien();
-        if ($entity->isUserJoinedEvent($data['nguoi_dung_id'], $data['su_kien_id'])) {
+        if ($this->model->isUserJoinedEvent($data['nguoi_dung_id'], $data['su_kien_id'])) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Người dùng này đã tham gia sự kiện được chọn.');
         }
         
         try {
-            // Tạo entity mới
-            $entity = new ThamGiaSuKien($data);
-            
-            // Lưu dữ liệu
-            if ($this->model->insert($entity)) {
+            // Lưu dữ liệu trực tiếp
+            if ($this->model->insert($data)) {
                 $this->alert->set('success', 'Thêm mới ' . $this->moduleName . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
@@ -380,31 +377,27 @@ class ThamGiaSuKien extends BaseController
         // Xử lý thời gian điểm danh
         if (!empty($data['thoi_gian_diem_danh'])) {
             try {
-                // Chuyển đổi từ định dạng Y-m-d\TH:i sang Y-m-d H:i:s
-                $data['thoi_gian_diem_danh'] = date('Y-m-d H:i:s', strtotime($data['thoi_gian_diem_danh']));
-              
+                $time = Time::parse($data['thoi_gian_diem_danh']);
+                $data['thoi_gian_diem_danh'] = $time->format('Y-m-d H:i:s');
             } catch (\Exception $e) {
                 log_message('error', 'Lỗi xử lý thời gian điểm danh: ' . $e->getMessage());
-                $this->alert->set('danger', 'Định dạng thời gian điểm danh không hợp lệ', true);
-                return redirect()->back()->withInput();
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Thời gian điểm danh không hợp lệ');
             }
         }
     
         // Chuẩn bị quy tắc validation cho cập nhật
         $this->model->prepareValidationRules('update', ['tham_gia_su_kien_id' => $id]);
+        
         // Kiểm tra dữ liệu
         if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
-            echo print_r($this->validator->getErrors());
-            die();
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
         try {
-            // Cập nhật entity
-            $entity = new \App\Modules\thamgiasukien\Entities\ThamGiaSuKien($data);
-            
-            // Lưu dữ liệu
-            if ($this->model->update($id, $entity)) {
+            // Lưu dữ liệu trực tiếp
+            if ($this->model->update($id, $data)) {
                 $this->alert->set('success', 'Cập nhật ' . $this->moduleName . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {

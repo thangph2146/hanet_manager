@@ -50,11 +50,11 @@ class ThamGiaSuKien extends BaseEntity
     // Các quy tắc xác thực cụ thể cho ThamGiaSuKien
     protected $validationRules = [
         'nguoi_dung_id' => [
-            'rules' => 'required|integer|greater_than[0]',
+            'rules' => 'required',
             'label' => 'ID người dùng'
         ],
         'su_kien_id' => [
-            'rules' => 'required|integer|greater_than[0]',
+            'rules' => 'required',
             'label' => 'ID sự kiện'
         ],
         'thoi_gian_diem_danh' => [
@@ -76,15 +76,12 @@ class ThamGiaSuKien extends BaseEntity
     ];
     
     protected $validationMessages = [
+
         'nguoi_dung_id' => [
             'required' => '{field} là bắt buộc',
-            'integer' => '{field} phải là số nguyên',
-            'greater_than' => '{field} phải lớn hơn 0'
         ],
         'su_kien_id' => [
             'required' => '{field} là bắt buộc',
-            'integer' => '{field} phải là số nguyên',
-            'greater_than' => '{field} phải lớn hơn 0'
         ],
         'thoi_gian_diem_danh' => [
             'valid_date' => '{field} không hợp lệ.'
@@ -315,24 +312,5 @@ class ThamGiaSuKien extends BaseEntity
     public function getValidationMessages(): array
     {
         return $this->validationMessages;
-    }
-    
-    /**
-     * Kiểm tra xem người dùng đã tham gia sự kiện chưa
-     *
-     * @param int $nguoiDungId
-     * @param int $suKienId
-     * @return bool
-     */
-    public function isUserJoinedEvent(int $nguoiDungId, int $suKienId): bool
-    {
-        $db = \Config\Database::connect();
-        $builder = $db->table($this->tableName);
-        
-        return $builder->where([
-            'nguoi_dung_id' => $nguoiDungId,
-            'su_kien_id' => $suKienId,
-            'deleted_at IS NULL' => null
-        ])->countAllResults() > 0;
     }
 } 

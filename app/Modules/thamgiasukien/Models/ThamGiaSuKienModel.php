@@ -378,9 +378,13 @@ class ThamGiaSuKienModel extends BaseModel
         $this->validationRules = $entity->getValidationRules();
         $this->validationMessages = $entity->getValidationMessages();
         
+        // Loại trừ các trường timestamp và primary key khi thêm mới
         unset($this->validationRules['created_at']);
         unset($this->validationRules['updated_at']);
         unset($this->validationRules['deleted_at']);
+        if ($scenario === 'insert') {
+            unset($this->validationRules['tham_gia_su_kien_id']);
+        }
         
         if ($scenario === 'update' && isset($data['tham_gia_su_kien_id'])) {
             foreach ($this->validationRules as $field => &$rules) {
@@ -540,5 +544,23 @@ class ThamGiaSuKienModel extends BaseModel
             log_message('error', 'Lỗi định dạng thời gian: ' . $e->getMessage() . ' - Input: ' . $datetime);
             return null;
         }
+    }
+    
+    /**
+     * Kiểm tra xem người dùng đã tham gia sự kiện chưa
+     *
+     * @param int $nguoiDungId
+     * @param int $suKienId
+     * @return bool
+     */
+    public function isUserJoinedEvent(int $nguoiDungId, int $suKienId): bool
+    {
+        $builder = $this->builder();
+        
+        return $builder->where([
+            'nguoi_dung_id' => $nguoiDungId,
+            'su_kien_id' => $suKienId,
+            'deleted_at IS NULL' => null
+        ])->countAllResults() > 0;
     }
 } 

@@ -16,11 +16,11 @@ class ThamGiaSuKien extends Migration
             'nguoi_dung_id' => [
                 'type' => 'INT',
                 'unsigned' => true,
-                'null' => false
+                'null' => true
             ],
             'su_kien_id' => [
                 'type' => 'INT',
-                'null' => false
+                'null' => true
             ],
             'thoi_gian_diem_danh' => [
                 'type' => 'DATETIME',
@@ -30,7 +30,7 @@ class ThamGiaSuKien extends Migration
                 'type' => 'ENUM',
                 'constraint' => ['qr_code', 'face_id', 'manual'],
                 'default' => 'manual',
-                'null' => false
+                'null' => true
             ],
             'ghi_chu' => [
                 'type' => 'TEXT',
@@ -43,7 +43,7 @@ class ThamGiaSuKien extends Migration
             ],
             'created_at' => [
                 'type' => 'DATETIME',
-                'null' => false
+                'null' => true
             ],
             'updated_at' => [
                 'type' => 'DATETIME',

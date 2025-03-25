@@ -52,7 +52,7 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
 <form action="<?= $action ?>" method="<?= $method ?>" id="thamGiaSuKienForm" class="needs-validation" novalidate>
     <?= csrf_field() ?>
     
-    <?php if ($isUpdate): ?>
+    <?php if ($id): ?>
         <input type="hidden" name="tham_gia_su_kien_id" value="<?= $id ?>">
     <?php endif; ?>
     
