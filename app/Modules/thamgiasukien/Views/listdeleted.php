@@ -125,34 +125,7 @@ $module_name = 'thamgiasukien';
                 </div>
             </div>
         <?php endif; ?>
-        <!-- Phần debug info (chỉ hiển thị trong môi trường development) -->
-    <?php if (ENVIRONMENT === 'development'): ?>
-    <div class="card mt-3 mx-3">
-        <div class="card-header bg-info text-white">
-            <h5 class="card-title mb-0">Debug Info</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6>URL Parameters:</h6>
-                    <pre><?= json_encode($_GET, JSON_PRETTY_PRINT) ?></pre>
-                </div>
-                <div class="col-md-6">
-                    <h6>Pagination Info:</h6>
-                    <pre><?= json_encode([
-                        'current_page' => $currentPage,
-                        'per_page' => $perPage,
-                        'total_records' => $total,
-                        'total_pages' => $pager ? $pager->getPageCount() : 0,
-                        'keyword' => $keyword,
-                        'phuong_thuc_diem_danh' => $phuong_thuc_diem_danh ?? null,
-                        'thamgiasukien_count' => isset($thamGiaSuKiens) && (is_array($thamGiaSuKiens) || $thamGiaSuKiens instanceof Countable) ? count($thamGiaSuKiens) : 0
-                    ], JSON_PRETTY_PRINT) ?></pre>
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php endif; ?>
+  
         <div class="table-responsive">
             <div class="table-container">
                 <table id="dataTable" class="table table-striped table-hover m-0 w-100">
