@@ -9,6 +9,8 @@
  * @var array $suKienList Danh sách sự kiện (nếu có)
  */
 
+$module_name = 'thamgiasukien';
+
 // Set default values if editing
 $nguoi_dung_id = isset($thamGiaSuKien) ? $thamGiaSuKien->getNguoiDungId() : '';
 $su_kien_id = isset($thamGiaSuKien) ? $thamGiaSuKien->getSuKienId() : '';
@@ -19,7 +21,7 @@ $status = isset($thamGiaSuKien) ? (string)$thamGiaSuKien->isActive() : '1';
 $id = isset($thamGiaSuKien) ? $thamGiaSuKien->getId() : '';
 
 // Set default values for form action and method
-$action = isset($action) ? $action : site_url('thamgiasukien/create');
+$action = isset($action) ? $action : site_url($module_name . '/create');
 $method = isset($method) ? $method : 'POST';
 
 // Xác định tiêu đề form dựa trên mode
@@ -49,7 +51,7 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
 ?>
 
 <!-- Form chính -->
-<form action="<?= $action ?>" method="<?= $method ?>" id="thamGiaSuKienForm" class="needs-validation" novalidate>
+<form action="<?= $action ?>" method="<?= $method ?>" id="form-<?= $module_name ?>" class="needs-validation" novalidate>
     <?= csrf_field() ?>
     
     <?php if ($id): ?>
@@ -300,7 +302,7 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
                 </span>
                 
                 <div class="d-flex gap-2">
-                    <a href="<?= site_url('thamgiasukien') ?>" class="btn btn-light">
+                    <a href="<?= site_url($module_name) ?>" class="btn btn-light">
                         <i class='bx bx-arrow-back me-1'></i> Quay lại
                     </a>
                     <button class="btn btn-primary px-4" type="submit">
@@ -363,7 +365,7 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
             
             // Chỉ thực hiện kiểm tra khi thêm mới (không phải cập nhật)
             <?php if (!$isUpdate): ?>
-            fetch('<?= site_url('thamgiasukien/checkUserParticipation') ?>', {
+            fetch('<?= site_url($module_name . '/checkUserParticipation') ?>', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

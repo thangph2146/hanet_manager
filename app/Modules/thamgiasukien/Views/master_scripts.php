@@ -3,7 +3,8 @@
  * Master script file for ThamGiaSuKien module
  * Contains common CSS and JS for all views
  */
-
+$module_name = 'thamgiasukien';
+ 
 // CSS section
 function page_css($type = 'all') {
     ob_start();
@@ -174,6 +175,9 @@ function page_css($type = 'all') {
 
 // JS section
 function page_js($type = 'all') {
+    // Đảm bảo $module_name được định nghĩa
+    global $module_name;
+    
     ob_start();
     
     // DataTable scripts
@@ -246,7 +250,7 @@ function page_js($type = 'all') {
             });
 
             // Form validation
-            $('#form-thamgiasukien').validate({
+            $('#form-<?= $module_name ?>').validate({
                 rules: {
                     nguoi_dung_id: {
                         required: true,
@@ -353,6 +357,9 @@ function page_section_js($section) {
 
 // Thêm hàm đồng bộ JavaScript cho bảng ThamGiaSuKien
 function page_table_js() {
+    // Đảm bảo $module_name được định nghĩa
+    global $module_name;
+    
     ob_start();
     ?>
     <script>
@@ -419,9 +426,9 @@ function page_table_js() {
             
             // Kiểm tra xem đang ở trang listdeleted hay không
             if (isListDeletedPage) {
-                deleteUrl = '<?= site_url('thamgiasukien/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+                deleteUrl = '<?= site_url($module_name . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             } else {
-                deleteUrl = '<?= site_url('thamgiasukien/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+                deleteUrl = '<?= site_url($module_name . '/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             }
             
             $('#delete-form').attr('action', deleteUrl);
@@ -438,7 +445,7 @@ function page_table_js() {
             const pathAndQuery = window.location.pathname + window.location.search;
             
             // Tạo URL khôi phục với tham số truy vấn return_url
-            const restoreUrl = '<?= site_url('thamgiasukien/restore/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            const restoreUrl = '<?= site_url($module_name . '/restore/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             $('#restore-form').attr('action', restoreUrl);
             
             $('#restoreModal').modal('show');
@@ -454,7 +461,7 @@ function page_table_js() {
             const pathAndQuery = window.location.pathname + window.location.search;
             
             // Tạo URL xóa với tham số truy vấn return_url
-            const deleteUrl = '<?= site_url('thamgiasukien/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            const deleteUrl = '<?= site_url($module_name . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             $('#delete-form').attr('action', deleteUrl);
             
             $('#deleteModal').modal('show');
@@ -723,9 +730,9 @@ function page_table_js() {
             // Xác định loại export dựa trên URL hiện tại
             let exportUrl = '';
             if (isListDeletedPage) {
-                exportUrl = '<?= site_url("thamgiasukien/exportDeletedExcel") ?>';
+                exportUrl = '<?= site_url($module_name . "/exportDeletedExcel") ?>';
             } else {
-                exportUrl = '<?= site_url("thamgiasukien/exportExcel") ?>';
+                exportUrl = '<?= site_url($module_name . "/exportExcel") ?>';
             }
             
             const params = [];
@@ -761,9 +768,9 @@ function page_table_js() {
             // Xác định loại export dựa trên URL hiện tại
             let exportUrl = '';
             if (isListDeletedPage) {
-                exportUrl = '<?= site_url("thamgiasukien/exportDeletedPdf") ?>';
+                exportUrl = '<?= site_url($module_name . "/exportDeletedPdf") ?>';
             } else {
-                exportUrl = '<?= site_url("thamgiasukien/exportPdf") ?>';
+                exportUrl = '<?= site_url($module_name . "/exportPdf") ?>';
             }
             
             const params = [];
@@ -836,7 +843,7 @@ function page_table_js() {
 <link rel="stylesheet" href="<?= base_url('assets/vendor/libs/sweetalert2/sweetalert2.css') ?>" />
 
 <!-- Module CSS -->
-<link rel="stylesheet" href="<?= base_url('css/modules/thamgiasukien/style.css') ?>" />
+<link rel="stylesheet" href="<?= base_url('css/modules/' . $module_name . '/style.css') ?>" />
 
 <?php
 // Module JavaScript end

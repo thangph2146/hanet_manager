@@ -325,6 +325,7 @@ function page_section_css($section) {
 
 // Section JS function
 function page_section_js($section) {
+    global $module_name;
     ob_start();
 
     // Table specific additional JS
@@ -355,6 +356,8 @@ function page_section_js($section) {
 
 // Thêm hàm đồng bộ JavaScript cho bảng ThamGiaSuKien
 function page_table_js() {
+    global $module_name;
+
     ob_start();
     ?>
     <script>

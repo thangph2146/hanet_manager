@@ -1,3 +1,6 @@
+<?php
+$module_name = 'thamgiasukien';
+?>
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
@@ -8,9 +11,9 @@
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
 	'title' => 'Thêm mới Tham Gia Sự Kiện',
-	'dashboard_url' => site_url('thamgiasukien/dashboard'),
+	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Tham Gia Sự Kiện', 'url' => site_url('thamgiasukien')],
+		['title' => 'Quản lý Tham Gia Sự Kiện', 'url' => site_url($module_name)],
 		['title' => 'Thêm mới', 'active' => true]
 	]
 ]) ?>
@@ -19,7 +22,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
 	<div class="card-body">
-		<?= form_open(site_url('thamgiasukien/create'), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-thamgiasukien']) ?>
+		<?= form_open(site_url($module_name . '/create'), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
 			<?php
 			// Include form fields
 			include __DIR__ . '/form.php';
@@ -33,7 +36,7 @@
 <?= page_js('form') ?>
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
-		const form = document.getElementById('form-thamgiasukien');
+		const form = document.getElementById('form-<?= $module_name ?>');
 		
 		// Validate form khi submit
 		form.addEventListener('submit', function (event) {
