@@ -993,6 +993,7 @@ class ThamGiaSuKien extends BaseController
         if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
         if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
         if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
         $this->createExcelFile($data, $headers, $filters, 'danh_sach_tham_gia_su_kien');
     }
@@ -1020,6 +1021,7 @@ class ThamGiaSuKien extends BaseController
         if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
         if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
         if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
         $this->createPdfFile($data, $filters, 'DANH SÁCH THAM GIA SỰ KIỆN', 'danh_sach_tham_gia_su_kien');
     }
@@ -1047,6 +1049,7 @@ class ThamGiaSuKien extends BaseController
         if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
         if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
         if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
         $filters['Trạng thái'] = 'Đã xóa';
 
         $this->createPdfFile($data, $filters, 'DANH SÁCH THAM GIA SỰ KIỆN ĐÃ XÓA', 'danh_sach_tham_gia_su_kien_da_xoa', true);
@@ -1076,9 +1079,30 @@ class ThamGiaSuKien extends BaseController
         if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
         if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
         if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
         $filters['Trạng thái'] = 'Đã xóa';
 
         $this->createExcelFile($data, $headers, $filters, 'danh_sach_tham_gia_su_kien_da_xoa', true);
+    }
+
+    /**
+     * Lấy text cho sắp xếp
+     */
+    protected function getSortText($sort, $order)
+    {
+        $sortFields = [
+            'thoi_gian_diem_danh' => 'Thời gian điểm danh',
+            'created_at' => 'Ngày tạo',
+            'updated_at' => 'Ngày cập nhật',
+            'deleted_at' => 'Ngày xóa',
+            'tham_gia_su_kien_id' => 'ID',
+            'nguoi_dung_id' => 'Người dùng ID',
+            'su_kien_id' => 'Sự kiện ID',
+            'status' => 'Trạng thái'
+        ];
+
+        $field = $sortFields[$sort] ?? $sort;
+        return "$field (" . ($order === 'DESC' ? 'Giảm dần' : 'Tăng dần') . ")";
     }
 
     // Thêm vào phương thức này để hỗ trợ tìm kiếm các bản ghi đã xóa

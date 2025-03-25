@@ -52,6 +52,12 @@ trait ExportTrait
      */
     protected function prepareSearchOptions($sort, $order)
     {
+        // Nếu không có sort được chỉ định, mặc định là sắp xếp theo thời gian điểm danh giảm dần
+        if (empty($sort)) {
+            $sort = 'thoi_gian_diem_danh';
+            $order = 'DESC';
+        }
+
         return [
             'sort' => $sort,
             'order' => $order,
