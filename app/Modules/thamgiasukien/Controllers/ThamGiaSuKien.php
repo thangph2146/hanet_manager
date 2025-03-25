@@ -27,6 +27,7 @@ class ThamGiaSuKien extends BaseController
     protected $alert;
     protected $moduleUrl;
     protected $moduleName;
+    protected $module_name = 'thamgiasukien';
     protected $session;
     protected $data;
     protected $permission;
@@ -42,7 +43,7 @@ class ThamGiaSuKien extends BaseController
         $this->alert = new Alert();
         
         // Thông tin module
-        $this->moduleUrl = base_url('thamgiasukien');
+        $this->moduleUrl = base_url($this->module_name);
         $this->moduleName = 'Tham Gia Sự Kiện';
         
         // Khởi tạo data để truyền đến view
@@ -151,7 +152,7 @@ class ThamGiaSuKien extends BaseController
             // Tạo URL mới với trang cuối cùng
             $redirectParams = $_GET;
             $redirectParams['page'] = $pageCount;
-            $redirectUrl = site_url('thamgiasukien') . '?' . http_build_query($redirectParams);
+            $redirectUrl = site_url($this->module_name) . '?' . http_build_query($redirectParams);
             
             // Chuyển hướng đến trang cuối cùng
             return redirect()->to($redirectUrl);
@@ -160,7 +161,7 @@ class ThamGiaSuKien extends BaseController
         // Lấy pager từ model và thiết lập các tham số
         $pager = $this->model->getPager();
         if ($pager !== null) {
-            $pager->setPath('thamgiasukien');
+            $pager->setPath($this->module_name);
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
             $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'nguoi_dung_id', 'su_kien_id', 'phuong_thuc_diem_danh']);
             
@@ -212,7 +213,7 @@ class ThamGiaSuKien extends BaseController
         ]));
         
         // Hiển thị view
-        return view('App\Modules\thamgiasukien\Views\index', $this->data);
+        return view('App\Modules\\' . $this->module_name . '\Views\index', $this->data);
     }
     
     /**
@@ -232,7 +233,7 @@ class ThamGiaSuKien extends BaseController
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
         ];
         
-        return view('App\Modules\thamgiasukien\Views\new', $viewData);
+        return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
     }
     
     /**
@@ -316,7 +317,7 @@ class ThamGiaSuKien extends BaseController
             'moduleUrl' => $this->moduleUrl
         ];
         
-        return view('App\Modules\thamgiasukien\Views\view', $viewData);
+        return view('App\Modules\\' . $this->module_name . '\Views\view', $viewData);
     }
     
     /**
@@ -350,7 +351,7 @@ class ThamGiaSuKien extends BaseController
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
         ];
         
-        return view('App\Modules\thamgiasukien\Views\edit', $viewData);
+        return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
     }
     
     /**
@@ -527,7 +528,7 @@ class ThamGiaSuKien extends BaseController
             $pager->setSurroundCount(3);
         }
         
-        $pager->setPath('thamgiasukien/listdeleted');
+        $pager->setPath($this->module_name . '/listdeleted');
         // Không cần thiết lập segment vì chúng ta sử dụng query string
         $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'nguoi_dung_id', 'su_kien_id']);
         
@@ -551,7 +552,7 @@ class ThamGiaSuKien extends BaseController
         $this->data['su_kien_id'] = $suKienId;
         
         // Hiển thị view
-        return view('App\Modules\thamgiasukien\Views\listdeleted', $this->data);
+        return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $this->data);
     }
     
     /**
@@ -665,7 +666,7 @@ class ThamGiaSuKien extends BaseController
             'moduleUrl' => $this->moduleUrl
         ];
         
-        return view('App\Modules\thamgiasukien\Views\search', $viewData);
+        return view('App\Modules\\' . $this->module_name . '\Views\search', $viewData);
     }
     
     /**
@@ -1207,7 +1208,7 @@ class ThamGiaSuKien extends BaseController
         $options->set('isHtml5ParserEnabled', true);
         
         $dompdf = new Dompdf($options);
-        $dompdf->loadHtml(view('App\Modules\thamgiasukien\Views\export_pdf', $data));
+        $dompdf->loadHtml(view('App\Modules\\' . $this->module_name . '\Views\export_pdf', $data));
         $dompdf->setPaper('A4', 'landscape');
         $dompdf->render();
         
@@ -1279,7 +1280,7 @@ class ThamGiaSuKien extends BaseController
         $options->set('isHtml5ParserEnabled', true);
         
         $dompdf = new Dompdf($options);
-        $dompdf->loadHtml(view('App\Modules\thamgiasukien\Views\export_pdf', $data));
+        $dompdf->loadHtml(view('App\Modules\\' . $this->module_name . '\Views\export_pdf', $data));
         $dompdf->setPaper('A4', 'landscape');
         $dompdf->render();
         
