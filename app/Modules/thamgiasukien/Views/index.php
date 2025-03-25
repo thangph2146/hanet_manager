@@ -159,8 +159,26 @@ $module_name = 'thamgiasukien';
                                         </div>
                                     </td>
                                     <td><?= esc($item->tham_gia_su_kien_id) ?></td>
-                                    <td><?= esc($item->nguoi_dung_id) ?></td>
-                                    <td><?= esc($item->su_kien_id) ?></td>
+                                    <td>
+                                        <?php if (isset($item->nguoi_dung) && !empty($item->nguoi_dung)): ?>
+                                            <span class="d-block fw-medium"><?= esc($item->nguoi_dung->ho_ten ?? '(Không có tên)') ?></span>
+                                            <?php if (!empty($item->nguoi_dung->email)): ?>
+                                                <small class="text-muted"><?= esc($item->nguoi_dung->email) ?></small>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">ID: <?= esc($item->nguoi_dung_id) ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (isset($item->su_kien) && !empty($item->su_kien)): ?>
+                                            <span class="d-block fw-medium"><?= esc($item->su_kien->ten_su_kien ?? '(Không có tên)') ?></span>
+                                            <?php if (!empty($item->su_kien->mo_ta_su_kien)): ?>
+                                                <small class="text-muted text-truncate d-inline-block" style="max-width: 150px;"><?= esc($item->su_kien->mo_ta_su_kien) ?></small>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">ID: <?= esc($item->su_kien_id) ?></span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?= !empty($item->thoi_gian_diem_danh) ? date('d/m/Y H:i:s', strtotime($item->thoi_gian_diem_danh)) : 'Chưa điểm danh' ?></td>
                                     <td class="text-center">
                                         <?php if ($item->phuong_thuc_diem_danh == 'qr_code'): ?>

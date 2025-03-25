@@ -18,7 +18,7 @@ class SukienEntity extends Entity
         'deleted_at'
     ];
     protected $casts   = [
-        'id'                        => 'int',
+        'su_kien_id'              => 'int',
         'loai_su_kien_id'           => 'int',
         'nguoi_tao_id'              => 'int',
         'so_luong_tham_gia'         => 'int',

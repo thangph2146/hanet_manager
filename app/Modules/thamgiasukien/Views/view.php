@@ -55,12 +55,31 @@
                         <td><?= esc($thamGiaSuKien->tham_gia_su_kien_id) ?></td>
                     </tr>
                     <tr>
-                        <th>Người dùng ID</th>
-                        <td><?= esc($thamGiaSuKien->nguoi_dung_id) ?></td>
+                        <th>Người dùng</th>
+                        <td>
+                            <?php if (isset($thamGiaSuKien->nguoi_dung) && !empty($thamGiaSuKien->nguoi_dung)): ?>
+                                <?= esc($thamGiaSuKien->nguoi_dung->ho_ten) ?>
+                                <?php if (!empty($thamGiaSuKien->nguoi_dung->email)): ?>
+                                    (<?= esc($thamGiaSuKien->nguoi_dung->email) ?>)
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span class="text-muted">ID: <?= esc($thamGiaSuKien->nguoi_dung_id) ?></span>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                     <tr>
-                        <th>Sự kiện ID</th>
-                        <td><?= esc($thamGiaSuKien->su_kien_id) ?></td>
+                        <th>Sự kiện</th>
+                        <td>
+                            <?php if (isset($thamGiaSuKien->su_kien) && !empty($thamGiaSuKien->su_kien)): ?>
+                                <?= esc($thamGiaSuKien->su_kien->ten_su_kien) ?>
+                                <?php if (!empty($thamGiaSuKien->su_kien->mo_ta_su_kien)): ?>
+                                    <br>
+                                    <small class="text-muted"><?= esc($thamGiaSuKien->su_kien->mo_ta_su_kien) ?></small>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span class="text-muted">ID: <?= esc($thamGiaSuKien->su_kien_id) ?></span>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                     <tr>
                         <th>Thời gian điểm danh</th>

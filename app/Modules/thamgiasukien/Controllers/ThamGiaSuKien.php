@@ -18,11 +18,13 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 use CodeIgniter\I18n\Time;
 use App\Modules\thamgiasukien\Traits\ExportTrait;
+use App\Modules\thamgiasukien\Traits\RelationTrait;
 
 class ThamGiaSuKien extends BaseController
 {
     use ResponseTrait;
     use ExportTrait;
+    use RelationTrait;
     
     protected $model;
     protected $breadcrumb;
@@ -61,96 +63,34 @@ class ThamGiaSuKien extends BaseController
     }
     
     /**
-     * Hiển thị dashboard của module
+     * Hiển thị danh sách tham gia sự kiện
      */
     public function index()
     {
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Danh sách', current_url());
-        $this->data['breadcrumb'] = $this->breadcrumb->render();
-        $this->data['title'] = 'Danh sách ' . $this->moduleName;
         
-        // Lấy tham số từ URL
-        $page = (int)($this->request->getGet('page') ?? 1);
-        $perPage = (int)($this->request->getGet('perPage') ?? 10);
-        $sort = $this->request->getGet('sort') ?? 'created_at';
-        $order = $this->request->getGet('order') ?? 'DESC';
-        $keyword = $this->request->getGet('keyword') ?? '';
-        $status = $this->request->getGet('status');
-        $nguoiDungId = $this->request->getGet('nguoi_dung_id');
-        $suKienId = $this->request->getGet('su_kien_id');
-        $phuongThucDiemDanh = $this->request->getGet('phuong_thuc_diem_danh');
-        
-        // Kiểm tra các tham số không hợp lệ
-        if ($page < 1) $page = 1;
-        if ($perPage < 1) $perPage = 10;
-        
-        // Log chi tiết URL và tham số
-        log_message('debug', '[Controller] URL đầy đủ: ' . current_url() . '?' . http_build_query($_GET));
-        log_message('debug', '[Controller] Tham số request: ' . json_encode($_GET));
-        log_message('debug', '[Controller] Đã xử lý: page=' . $page . ', perPage=' . $perPage . ', sort=' . $sort . 
-            ', order=' . $order . ', keyword=' . $keyword . ', status=' . $status);
-        
-        // Đảm bảo status được xử lý đúng cách, kể cả khi status=0
-        // Lưu ý rằng status=0 là một giá trị hợp lệ (không hoạt động)
-        $statusFilter = null;
-        if ($status !== null && $status !== '') {
-            $statusFilter = (int)$status;
-            log_message('debug', '[Controller] Status từ request: ' . $status . ' sau khi ép kiểu: ' . $statusFilter);
-        }
-        
-        // Tính toán offset chính xác cho phân trang
-        $offset = ($page - 1) * $perPage;
-        log_message('debug', '[Controller] Đã tính toán: offset=' . $offset . ' (từ page=' . $page . ', perPage=' . $perPage . ')');
+        // Lấy và xử lý tham số tìm kiếm
+        $params = $this->prepareSearchParams($this->request);
+        $params = $this->processSearchParams($params);
         
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
         
-        // Xây dựng tham số tìm kiếm
-        $searchParams = [];
-        if (!empty($keyword)) {
-            $searchParams['keyword'] = $keyword;
-        }
-        
-        // Đặc biệt, chỉ thêm status vào nếu nó đã được chỉ định (bao gồm status=0)
-        if ($status !== null && $status !== '') {
-            $searchParams['status'] = $statusFilter;
-        }
-        
-        // Thêm các tham số tìm kiếm khác
-        if (!empty($nguoiDungId)) {
-            $searchParams['nguoi_dung_id'] = $nguoiDungId;
-        }
-        
-        if (!empty($suKienId)) {
-            $searchParams['su_kien_id'] = $suKienId;
-        }
-        
-        if (!empty($phuongThucDiemDanh)) {
-            $searchParams['phuong_thuc_diem_danh'] = $phuongThucDiemDanh;
-        }
-        
-        // Log tham số tìm kiếm cuối cùng
-        log_message('debug', '[Controller] Tham số tìm kiếm cuối cùng: ' . json_encode($searchParams));
+        // Xây dựng tiêu chí và tùy chọn tìm kiếm
+        $criteria = $this->buildSearchCriteria($params);
+        $options = $this->buildSearchOptions($params);
         
         // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
-        $thamGiaSuKiens = $this->model->search($searchParams, [
-            'limit' => $perPage,
-            'offset' => $offset,
-            'sort' => $sort,
-            'order' => $order
-        ]);
+        $thamGiaSuKiens = $this->model->search($criteria, $options);
         
         // Lấy tổng số kết quả
         $pager = $this->model->getPager();
-        $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($searchParams);
-        log_message('debug', '[Controller] Tổng số kết quả từ pager: ' . $total);
+        $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($criteria);
         
         // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
-        $pageCount = ceil($total / $perPage);
-        if ($total > 0 && $page > $pageCount) {
-            log_message('debug', '[Controller] Trang yêu cầu (' . $page . ') vượt quá tổng số trang (' . $pageCount . '), chuyển hướng về trang cuối.');
-            
+        $pageCount = ceil($total / $params['perPage']);
+        if ($total > 0 && $params['page'] > $pageCount) {
             // Tạo URL mới với trang cuối cùng
             $redirectParams = $_GET;
             $redirectParams['page'] = $pageCount;
@@ -168,54 +108,15 @@ class ThamGiaSuKien extends BaseController
             $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'nguoi_dung_id', 'su_kien_id', 'phuong_thuc_diem_danh']);
             
             // Đảm bảo perPage và currentPage được thiết lập đúng
-            $pager->setPerPage($perPage);
-            $pager->setCurrentPage($page);
-            
-            // Log thông tin pager cuối cùng
-            log_message('debug', '[Controller] Thông tin pager: ' . json_encode([
-                'total' => $pager->getTotal(),
-                'perPage' => $pager->getPerPage(),
-                'currentPage' => $pager->getCurrentPage(),
-                'pageCount' => $pager->getPageCount()
-            ]));
-        }
-        
-        // Kiểm tra số lượng bản ghi trả về
-        log_message('debug', '[Controller] Số lượng bản ghi trả về: ' . count($thamGiaSuKiens));
-        if (!empty($thamGiaSuKiens)) {
-            $firstItem = $thamGiaSuKiens[0];
-            log_message('debug', '[Controller] Bản ghi đầu tiên: ID=' . $firstItem->tham_gia_su_kien_id . 
-                ', Người dùng ID=' . $firstItem->nguoi_dung_id . 
-                ', Sự kiện ID=' . $firstItem->su_kien_id . 
-                ', Status=' . $firstItem->status);
+            $pager->setPerPage($params['perPage']);
+            $pager->setCurrentPage($params['page']);
         }
         
         // Chuẩn bị dữ liệu cho view
-        $this->data['thamGiaSuKiens'] = $thamGiaSuKiens;
-        $this->data['pager'] = $pager;
-        $this->data['currentPage'] = $page;
-        $this->data['perPage'] = $perPage;
-        $this->data['total'] = $total;
-        $this->data['sort'] = $sort;
-        $this->data['order'] = $order;
-        $this->data['keyword'] = $keyword;
-        $this->data['status'] = $status; // Giữ nguyên status gốc từ request
-        $this->data['nguoi_dung_id'] = $nguoiDungId;
-        $this->data['su_kien_id'] = $suKienId;
-        $this->data['phuong_thuc_diem_danh'] = $phuongThucDiemDanh;
-        
-        // Debug thông tin cuối cùng
-        log_message('debug', '[Controller] Dữ liệu gửi đến view: ' . json_encode([
-            'currentPage' => $page,
-            'perPage' => $perPage,
-            'total' => $total,
-            'pageCount' => $pager ? $pager->getPageCount() : 0,
-            'status' => $status,
-            'item_count' => count($thamGiaSuKiens)
-        ]));
+        $viewData = $this->prepareViewData($thamGiaSuKiens, $pager, array_merge($params, ['total' => $total]));
         
         // Hiển thị view
-        return view('App\Modules\\' . $this->module_name . '\Views\index', $this->data);
+        return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
     }
     
     /**
@@ -300,13 +201,20 @@ class ThamGiaSuKien extends BaseController
             return redirect()->to($this->moduleUrl);
         }
         
-        // Lấy thông tin với relationship
-        $thamGiaSuKien = $this->model->findWithRelations($id);
+        // Đảm bảo các model relationship được khởi tạo
+        $this->initializeRelationTrait();
+        
+        // Lấy thông tin dữ liệu cơ bản
+        $thamGiaSuKien = $this->model->find($id);
         
         if (empty($thamGiaSuKien)) {
             $this->alert->set('danger', 'Không tìm thấy dữ liệu tham gia sự kiện', true);
             return redirect()->to($this->moduleUrl);
         }
+        
+        // Xử lý dữ liệu và nạp các quan hệ
+        $processedData = $this->processData([$thamGiaSuKien]);
+        $thamGiaSuKien = $processedData[0] ?? $thamGiaSuKien;
         
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Chi tiết', current_url());
@@ -447,76 +355,43 @@ class ThamGiaSuKien extends BaseController
     {
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Lịch sử xóa', current_url());
-        $this->data['breadcrumb'] = $this->breadcrumb->render();
-        $this->data['title'] = 'Lịch sử xóa ' . $this->moduleName;
         
-        // Lấy tham số từ URL
-        $page = (int)($this->request->getGet('page') ?? 1);
-        $perPage = (int)($this->request->getGet('perPage') ?? 10);
-        $sort = $this->request->getGet('sort') ?? 'deleted_at';
-        $order = $this->request->getGet('order') ?? 'DESC';
-        $keyword = $this->request->getGet('keyword') ?? '';
-        $status = $this->request->getGet('status');
-        $nguoiDungId = $this->request->getGet('nguoi_dung_id');
-        $suKienId = $this->request->getGet('su_kien_id');
+        // Lấy và xử lý tham số tìm kiếm
+        $params = $this->prepareSearchParams($this->request);
+        $params = $this->processSearchParams($params);
         
-        // Kiểm tra các tham số không hợp lệ
-        if ($page < 1) $page = 1;
-        if ($perPage < 1) $perPage = 10;
+        // Ghi đè sort mặc định cho trang list deleted
+        $params['sort'] = $this->request->getGet('sort') ?? 'deleted_at';
+        $params['order'] = $this->request->getGet('order') ?? 'DESC';
         
         // Log chi tiết URL và tham số
         log_message('debug', '[Controller:listdeleted] URL đầy đủ: ' . current_url() . '?' . http_build_query($_GET));
         log_message('debug', '[Controller:listdeleted] Tham số request: ' . json_encode($_GET));
-        log_message('debug', '[Controller:listdeleted] Đã xử lý: page=' . $page . ', perPage=' . $perPage . ', sort=' . $sort . 
-            ', order=' . $order . ', keyword=' . $keyword . ', status=' . $status);
-        
-        // Đảm bảo status được xử lý đúng cách, kể cả khi status=0
-        // Lưu ý rằng status=0 là một giá trị hợp lệ (không hoạt động)
-        $statusFilter = null;
-        if ($status !== null && $status !== '') {
-            $statusFilter = (int)$status;
-            log_message('debug', '[Controller:listdeleted] Status từ request: ' . $status . ' sau khi ép kiểu: ' . $statusFilter);
-        }
+        log_message('debug', '[Controller:listdeleted] Đã xử lý: page=' . $params['page'] . ', perPage=' . $params['perPage'] . 
+            ', sort=' . $params['sort'] . ', order=' . $params['order'] . ', keyword=' . $params['keyword'] . 
+            ', status=' . $params['status']);
         
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
         
-        // Xây dựng tham số tìm kiếm
-        $searchParams = [
-            'sort' => $sort,
-            'order' => $order,
-            'deleted' => true  // Chỉ lấy các bản ghi đã xóa
-        ];
+        // Xây dựng tiêu chí và tùy chọn tìm kiếm
+        $criteria = $this->buildSearchCriteria($params);
+        $options = $this->buildSearchOptions($params);
         
-        // Thêm keyword nếu có
-        if (!empty($keyword)) {
-            $searchParams['keyword'] = $keyword;
-        }
+        // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
         
-        // Đặc biệt, chỉ thêm status vào nếu nó đã được chỉ định (bao gồm status=0)
-        if ($status !== null && $status !== '') {
-            $searchParams['status'] = $statusFilter;
-        }
+        // Đảm bảo withDeleted được thiết lập
+        $this->model->withDeleted();
         
-        // Thêm các tham số tìm kiếm khác
-        if (!empty($nguoiDungId)) {
-            $searchParams['nguoi_dung_id'] = $nguoiDungId;
-        }
+        // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
+        $thamGiaSuKiens = $this->model->search($criteria, $options);
         
-        if (!empty($suKienId)) {
-            $searchParams['su_kien_id'] = $suKienId;
-        }
+        // Xử lý dữ liệu và nạp các quan hệ
+        $thamGiaSuKiens = $this->processData($thamGiaSuKiens);
         
-        // Log tham số tìm kiếm cuối cùng
-        log_message('debug', '[Controller:listdeleted] Tham số tìm kiếm cuối cùng: ' . json_encode($searchParams));
-        
-        // Lấy dữ liệu đã xóa và thông tin phân trang
-        $items = $this->model->searchDeleted($searchParams, [
-            'limit' => $perPage,
-            'offset' => ($page - 1) * $perPage
-        ]);
-        
-        $total = $this->model->countDeletedResults($searchParams);
+        // Lấy tổng số kết quả
+        $total = $this->model->countSearchResults($criteria);
         
         // Lấy pager từ model và thiết lập các tham số
         $pager = $this->model->getPager();
@@ -524,37 +399,39 @@ class ThamGiaSuKien extends BaseController
             // Tạo pager mới nếu getPager() trả về null
             $pager = new \App\Modules\thamgiasukien\Libraries\Pager(
                 $total,
-                $perPage,
-                $page
+                $params['perPage'],
+                $params['page']
             );
             $pager->setSurroundCount(3);
         }
         
         $pager->setPath($this->module_name . '/listdeleted');
-        // Không cần thiết lập segment vì chúng ta sử dụng query string
-        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'nguoi_dung_id', 'su_kien_id']);
-        
-        // Đảm bảo perPage được thiết lập đúng trong pager
-        $pager->setPerPage($perPage);
-        
-        // Thiết lập trang hiện tại
-        $pager->setCurrentPage($page);
+        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'nguoi_dung_id', 'su_kien_id', 'phuong_thuc_diem_danh']);
+        $pager->setPerPage($params['perPage']);
+        $pager->setCurrentPage($params['page']);
         
         // Chuẩn bị dữ liệu cho view
-        $this->data['thamGiaSuKiens'] = $items;
-        $this->data['pager'] = $pager;
-        $this->data['currentPage'] = $page;
-        $this->data['perPage'] = $perPage;
-        $this->data['total'] = $total;
-        $this->data['sort'] = $sort;
-        $this->data['order'] = $order;
-        $this->data['keyword'] = $keyword;
-        $this->data['status'] = $status;
-        $this->data['nguoi_dung_id'] = $nguoiDungId;
-        $this->data['su_kien_id'] = $suKienId;
+        $viewData = [
+            'thamGiaSuKiens' => $thamGiaSuKiens,
+            'pager' => $pager,
+            'currentPage' => $params['page'],
+            'perPage' => $params['perPage'],
+            'total' => $total,
+            'sort' => $params['sort'],
+            'order' => $params['order'],
+            'keyword' => $params['keyword'],
+            'status' => $params['status'],
+            'nguoi_dung_id' => $params['nguoi_dung_id'],
+            'su_kien_id' => $params['su_kien_id'],
+            'phuong_thuc_diem_danh' => $params['phuong_thuc_diem_danh'],
+            'breadcrumb' => $this->breadcrumb->render(),
+            'title' => 'Lịch sử xóa ' . $this->moduleName,
+            'moduleUrl' => $this->moduleUrl,
+            'moduleName' => $this->moduleName
+        ];
         
         // Hiển thị view
-        return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $this->data);
+        return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);
     }
     
     /**

@@ -8,7 +8,7 @@ use App\Modules\nguoidung\Entities\NguoiDungEntity;
 class NguoiDungModel extends Model
 {
     protected $table = 'nguoi_dung';
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'nguoi_dung_id';
     protected $useAutoIncrement = true;
     protected $returnType = NguoiDungEntity::class;
     protected $useSoftDeletes = true;

@@ -59,7 +59,10 @@ class Autoload extends AutoloadConfig
         'App\Modules\camera' => APPPATH . 'Modules/camera',
         'App\Modules\template' => APPPATH . 'Modules/template',
         'App\Modules\diengia' => APPPATH . 'Modules/diengia',
+        'App\Modules\thamgiasukien' => APPPATH . 'Modules/thamgiasukien',
+        'App\Modules\sukien' => APPPATH . 'Modules/sukien',
     ];
+
 
     /**
      * -------------------------------------------------------------------

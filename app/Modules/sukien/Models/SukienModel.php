@@ -7,7 +7,7 @@ use CodeIgniter\Model;
 class SukienModel extends Model
 {
     protected $table            = 'su_kien';
-    protected $primaryKey       = 'id';
+    protected $primaryKey       = 'su_kien_id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = true;
