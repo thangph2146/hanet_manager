@@ -73,6 +73,7 @@ class ThamGiaSuKienSeeder extends Seeder
                     'deleted_at' => null
                 ];
             }
+            
 
             // Thêm dữ liệu vào bảng tham_gia_su_kien theo lô
             if (!empty($data)) {
