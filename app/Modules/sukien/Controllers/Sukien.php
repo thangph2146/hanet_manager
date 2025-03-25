@@ -231,7 +231,7 @@ class Sukien extends BaseController
         }
         
         // Kiểm tra xem URL hiện tại có khớp với slug không, nếu không thì redirect
-        $current_slug = $this->request->uri->getSegment(3);
+        $current_slug = $this->request->getUri()->getSegment(3);
         if ($current_slug !== $slug) {
             return redirect()->to('/su-kien/detail/' . $slug, 301);
         }
@@ -242,7 +242,7 @@ class Sukien extends BaseController
         // Lấy danh sách người đăng ký sự kiện
         $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
         
-        // Lấy số lượng người đăng ký
+        // Lấy số lượng người đăng ký   
         $registrationCount = count($registrations);
         
         // Lấy số lượng người đã tham gia
