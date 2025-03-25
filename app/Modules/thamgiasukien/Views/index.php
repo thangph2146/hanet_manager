@@ -52,7 +52,7 @@
                     </form>
                     <form id="form-status-multiple" action="<?= site_url('thamgiasukien/statusMultiple') ?>" method="post" class="d-inline">       
                         <?= csrf_field() ?>
-                        <button type="button" id="status-selected-multiple" class="btn btn-primary btn-sm" disabled>
+                        <button type="button" id="status-selected-multiple" class="btn btn-warning btn-sm" disabled>
                             <i class='bx bx-toggle-right'></i> Đổi trạng thái
                         </button>
                     </form>
