@@ -23,7 +23,7 @@ class ThamGiaSuKien extends Migration
                 'null' => false
             ],
             'thoi_gian_diem_danh' => [
-                'type' => 'TIMESTAMP',
+                'type' => 'DATETIME',
                 'null' => true
             ],
             'phuong_thuc_diem_danh' => [
@@ -42,15 +42,15 @@ class ThamGiaSuKien extends Migration
                 'default' => 1
             ],
             'created_at' => [
-                'type' => 'TIMESTAMP',
+                'type' => 'DATETIME',
                 'null' => false
             ],
             'updated_at' => [
-                'type' => 'TIMESTAMP',
+                'type' => 'DATETIME',
                 'null' => true,
             ],
             'deleted_at' => [
-                'type' => 'TIMESTAMP',
+                'type' => 'DATETIME',
                 'null' => true
             ]
         ]);

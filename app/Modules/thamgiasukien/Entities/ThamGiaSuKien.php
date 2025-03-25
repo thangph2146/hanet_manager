@@ -58,7 +58,7 @@ class ThamGiaSuKien extends BaseEntity
             'label' => 'ID sự kiện'
         ],
         'thoi_gian_diem_danh' => [
-            'rules' => 'permit_empty|valid_date[Y-m-d H:i:s]|valid_date[Y-m-d H:i]|valid_date[Y-m-d]',
+            'rules' => 'permit_empty|valid_date',
             'label' => 'Thời gian điểm danh'
         ],
         'phuong_thuc_diem_danh' => [
@@ -87,7 +87,7 @@ class ThamGiaSuKien extends BaseEntity
             'greater_than' => '{field} phải lớn hơn 0'
         ],
         'thoi_gian_diem_danh' => [
-            'valid_date' => '{field} không hợp lệ. Định dạng phải là: YYYY-MM-DD HH:mm:ss hoặc YYYY-MM-DD HH:mm hoặc YYYY-MM-DD'
+            'valid_date' => '{field} không hợp lệ.'
         ],
         'phuong_thuc_diem_danh' => [
             'required' => '{field} là bắt buộc',

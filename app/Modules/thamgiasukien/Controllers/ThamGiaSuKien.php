@@ -364,27 +364,26 @@ class ThamGiaSuKien extends BaseController
         
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
+        
         // Xử lý thời gian điểm danh
         if (!empty($data['thoi_gian_diem_danh'])) {
             try {
                 // Chuyển đổi từ định dạng Y-m-d\TH:i sang Y-m-d H:i:s
-                $time = Time::createFromFormat('Y-m-d\TH:i', $data['thoi_gian_diem_danh']);
-                if ($time === false) {
-                    throw new \Exception('Định dạng thời gian không hợp lệ');
-                }
-                $data['thoi_gian_diem_danh'] = $time->format('Y-m-d H:i:s');
+                $data['thoi_gian_diem_danh'] = date('Y-m-d H:i:s', strtotime($data['thoi_gian_diem_danh']));
+              
             } catch (\Exception $e) {
                 log_message('error', 'Lỗi xử lý thời gian điểm danh: ' . $e->getMessage());
                 $this->alert->set('danger', 'Định dạng thời gian điểm danh không hợp lệ', true);
                 return redirect()->back()->withInput();
             }
         }
-        
+    
         // Chuẩn bị quy tắc validation cho cập nhật
         $this->model->prepareValidationRules('update', ['tham_gia_su_kien_id' => $id]);
-        
         // Kiểm tra dữ liệu
         if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
+            echo print_r($this->validator->getErrors());
+            die();
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
