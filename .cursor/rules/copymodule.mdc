@@ -1,0 +1,44 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Copy Module
+- Bạn tuyệt đối không dùng Controller để truy cập trực tiếp database, mà phải truyền biến vào model để model trả về dữ liệu, nếu thiếu, bạn có thể viết thêm ở [BaseModel.php](mdc:app/Models/BaseModel.php)
+- Tôi sẽ cung cấp cho bạn thông tin table dưới đây.
+TABLE dien_gia (
+    dien_gia_id INT PRIMARY KEY AUTO_INCREMENT,
+    ten_dien_gia VARCHAR(255) NOT NULL,  
+    chuc_danh VARCHAR(255),  comment cho nhập tự do nhé bạn
+    to_chuc VARCHAR(255),
+    gioi_thieu TEXT,
+    avatar VARCHAR(255),
+    thu_tu INT DEFAULT 0,
+    bin TINYINT(1) DEFAULT 0,
+    created_at DATETIME,
+    updated_at DATETIME,
+    deleted_at DATETIME,
+);
+- Bạn giúp tôi, sửa lại nội dung file trong Migrations và Seeds cho đúng với cấu trúc table dien_gia.
+- Bạn sẽ cập nhật theo OOP file model [DienGiaModel.php](mdc:app/Modules/diengia/Models/DienGiaModel.php) thừa kế [BaseModel.php](mdc:app/Models/BaseModel.php) theo cấu trúc table dien_gia nếu thấy thiếu function truy xuất dữ liệu, bạn hãy dựa theo tài liệu được cung cấp, viết thêm cho [BaseModel.php](mdc:app/Models/BaseModel.php) , theo các link dưới đây
+https://codeigniter.com/user_guide/database/index.html
+https://codeigniter.com/user_guide/database/examples.html
+https://codeigniter.com/user_guide/database/configuration.html
+https://codeigniter.com/user_guide/database/connecting.html
+https://codeigniter.com/user_guide/database/queries.html
+https://codeigniter.com/user_guide/database/results.html
+https://codeigniter.com/user_guide/database/helpers.html
+https://codeigniter.com/user_guide/database/query_builder.html
+https://codeigniter.com/user_guide/database/transactions.html
+https://codeigniter.com/user_guide/database/metadata.html
+https://codeigniter.com/user_guide/database/call_function.html
+https://codeigniter.com/user_guide/database/events.html
+https://codeigniter.com/user_guide/database/utilities.html
+và xử dụng tối đa thư viện model đã được phát triển link dưới
+https://codeigniter.com/user_guide/models/model.html
+- Bạn sẽ cập nhật theo OOP file Entity [DienGia.php](mdc:app/Modules/diengia/Entities/DienGia.php) thừa kế [BaseEntity.php](mdc:app/Entities/BaseEntity.php) theo cấu trúc table dien_gia, bạn tham khảo link tài liệu của framework Codeigniter 4.6 dưới đây để viết cho chuẩn
+https://codeigniter.com/user_guide/models/entities.html
+- Bạn sẽ cập nhật theo OOP file Controller [DienGia.php](mdc:app/Modules/diengia/Controllers/DienGia.php) theo cấu trúc table dien_gia và nhớ là bạn không được đổi tên functions, bạn có thể viết thêm, bạn tuyệt đối không truy cập dữ liệu trực tiếp vào database, trong quá trình xử lý, nếu thấy trong file controller [DienGia.php](mdc:app/Modules/diengia/Controllers/DienGia.php) có truy cập trực tiếp database, thì bạn hãy sửa lại nhé. Bạn hãy tham khảo link dưới đây để hoàn thiện Controller, trong Controller chắc chắn có phân trang, cũng như phân trang kết quả tìm kiếm, bạn hãy áp dụng thư viện phân trang của framework CI 4.6 để tối ưu code nhé, đây là link phân trang
+https://codeigniter.com/user_guide/libraries/pagination.html
+Sau khi xử lý xong, mình sẽ có rule tiếp theo gửi bạn.

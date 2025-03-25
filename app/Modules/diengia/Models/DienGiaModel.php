@@ -2,147 +2,64 @@
 
 namespace App\Modules\diengia\Models;
 
+use App\Models\BaseModel;
 use App\Modules\diengia\Entities\DienGia;
-use \App\Models\BaseModel;
 
 class DienGiaModel extends BaseModel
 {
     protected $table = 'dien_gia';
     protected $primaryKey = 'dien_gia_id';
+    protected $returnType = 'App\Modules\diengia\Entities\DienGia';
+    protected $useSoftDeletes = true;
+    protected $useTimestamps = true;
+    
     protected $allowedFields = [
         'ten_dien_gia',
-        'chuc_danh', // Chuỗi tự nhập
+        'chuc_danh',
         'to_chuc',
         'gioi_thieu',
         'avatar',
         'thu_tu',
         'bin',
+        'created_at',
+        'updated_at',
+        'deleted_at'
     ];
-    protected $returnType = DienGia::class;
-
+    
+    // Timestamps
+    protected $createdField = 'created_at';
+    protected $updatedField = 'updated_at';
+    protected $deletedField = 'deleted_at';
+    
+    // Validation
+    protected $validationRules = [
+        'ten_dien_gia' => 'required',
+        'chuc_danh' => 'permit_empty',
+        'to_chuc' => 'permit_empty',
+        'gioi_thieu' => 'permit_empty',
+        'avatar' => 'permit_empty',
+        'thu_tu' => 'permit_empty|numeric',
+        'bin' => 'permit_empty|in_list[0,1]',
+    ];
+    
+    protected $validationMessages = [
+        'ten_dien_gia' => [
+            'required' => 'Tên diễn giả là bắt buộc',
+        ],
+    ];
+    
+    // Searchable fields
     protected $searchableFields = [
         'ten_dien_gia',
-        'to_chuc',
-        'gioi_thieu',
-    ];
-    protected $filterableFields = [
         'chuc_danh',
-        'bin',
-        'thu_tu',
+        'to_chuc'
     ];
-
-    /**
-     * Lấy danh sách diễn giả theo thứ tự
-     *
-     * @param int $limit Giới hạn số lượng
-     * @return array Danh sách diễn giả
-     */
-    public function getOrderedDiengias($limit = 0)
-    {
-        $builder = $this->where('bin', 0);
-        
-        if ($limit > 0) {
-            $builder->limit($limit);
-        }
-        
-        return $builder->orderBy('thu_tu', 'ASC')
-                      ->orderBy('ten_dien_gia', 'ASC')
-                      ->findAll();
-    }
-
-    /**
-     * Lấy diễn giả theo tên và tổ chức
-     *
-     * @param string $name Tên diễn giả
-     * @param string $organization Tổ chức
-     * @return array Danh sách diễn giả
-     */
-    public function findByNameAndOrganization($name, $organization = null)
-    {
-        $builder = $this->like('ten_dien_gia', $name)
-                       ->where('bin', 0);
-        
-        if ($organization) {
-            $builder->like('to_chuc', $organization);
-        }
-        
-        return $builder->findAll();
-    }
-
-    /**
-     * Kiểm tra xem tên diễn giả đã tồn tại hay chưa
-     *
-     * @param string $name Tên diễn giả
-     * @param int|null $id ID diễn giả để loại trừ khi kiểm tra (dùng cho cập nhật)
-     * @return bool True nếu tên đã tồn tại
-     */
-    public function isNameExists($name, $id = null)
-    {
-        $builder = $this->where('ten_dien_gia', $name)
-                       ->where('bin', 0);
-        
-        if ($id) {
-            $builder->where("{$this->primaryKey} !=", $id);
-        }
-        
-        return $builder->countAllResults() > 0;
-    }
-
-    /**
-     * Chuyển diễn giả vào thùng rác
-     *
-     * @param int $id ID diễn giả
-     * @return bool
-     */
-    public function moveToRecycleBin($id)
-    {
-        return $this->update($id, [
-            'bin' => 1,
-            'updated_at' => date('Y-m-d H:i:s')
-        ]);
-    }
-
-    /**
-     * Khôi phục diễn giả từ thùng rác
-     *
-     * @param int $id ID diễn giả
-     * @return bool
-     */
-    public function restoreFromRecycleBin($id)
-    {
-        return $this->update($id, [
-            'bin' => 0,
-            'updated_at' => date('Y-m-d H:i:s')
-        ]);
-    }
-
-    /**
-     * Lấy diễn giả theo chức danh
-     *
-     * @param string $chucDanh Chức danh
-     * @return array Danh sách diễn giả
-     */
-    public function findByChucDanh($chucDanh)
-    {
-        return $this->where('chuc_danh', $chucDanh)
-                   ->where('bin', 0)
-                   ->orderBy('thu_tu', 'ASC')
-                   ->orderBy('ten_dien_gia', 'ASC')
-                   ->findAll();
-    }
-
-    /**
-     * Cập nhật thứ tự cho diễn giả
-     *
-     * @param int $id ID diễn giả
-     * @param int $order Thứ tự mới
-     * @return bool
-     */
-    public function updateOrder($id, $order)
-    {
-        return $this->update($id, [
-            'thu_tu' => $order,
-            'updated_at' => date('Y-m-d H:i:s')
-        ]);
-    }
-}
+    
+    // Filterable fields
+    protected $filterableFields = [
+        'bin'
+    ];
+    
+    // Relations
+    // Define any necessary relations here
+} 

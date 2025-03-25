@@ -1,30 +1,28 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= diengia_css('table') ?>
-<?= diengia_section_css('modal') ?>
+<?= facenguoidung_css('table') ?>
+<?= facenguoidung_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>DANH SÁCH DIỄN GIẢ<?= $this->endSection() ?>
+<?= $this->section('title') ?>QUẢN LÝ KHUÔN MẶT NGƯỜI DÙNG<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Danh sách diễn giả',
-	'dashboard_url' => site_url('diengia/dashboard'),
+	'title' => 'Quản lý khuôn mặt người dùng',
+	'dashboard_url' => site_url('facenguoidung'),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Diễn giả', 'url' => site_url('diengia')],
-		['title' => 'Danh sách', 'active' => true]
+		['title' => 'Quản lý khuôn mặt người dùng', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/diengia/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
+		['url' => site_url('facenguoidung/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
 	]
 ]) ?>
 <?= $this->endSection() ?>  
 
 <?= $this->section('content') ?>
-
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách diễn giả</h5>
+        <h5 class="card-title mb-0">Danh sách khuôn mặt người dùng</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -34,8 +32,8 @@
                     <i class='bx bx-export'></i> Xuất
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= site_url('diengia/exportExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
-                    <li><a class="dropdown-item" href="#" id="export-pdf">PDF</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url('facenguoidung/exportExcel') . (!empty($_GET) ? '?' . http_build_query($_GET) : '') ?>">Excel</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url('facenguoidung/exportPdf') . (!empty($_GET) ? '?' . http_build_query($_GET) : '') ?>">PDF</a></li>
                 </ul>
             </div>
         </div>
@@ -44,85 +42,43 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <?= form_open("diengia/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("facenguoidung/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="delete-selected" class="btn btn-danger btn-sm me-2" disabled>
                         <i class='bx bx-trash'></i> Xóa mục đã chọn
                     </button>
                     <?= form_close() ?>
+                    
+                    <?= form_open("facenguoidung/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
+                    <button type="button" id="status-selected" class="btn btn-warning btn-sm" disabled>
+                        <i class='bx bx-refresh'></i> Đổi trạng thái
+                    </button>
+                    <?= form_close() ?>
                 </div>
                 <div class="col-12 col-md-6">
-                    <form action="<?= site_url('diengia') ?>" method="get" id="search-form">
-                        <input type="hidden" name="page" value="1">
-                        <input type="hidden" name="perPage" value="<?= $perPage ?>">
-                        <div class="input-group search-box">
-                            <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
-                            <button class="btn btn-outline-secondary btn-sm" type="submit">
-                                <i class='bx bx-search'></i>
-                            </button>
-                            <?php if (!empty($keyword)): ?>
-                            <a href="<?= site_url('diengia') ?>" class="btn btn-outline-danger btn-sm">
-                                <i class='bx bx-x'></i>
-                            </a>
-                            <?php endif; ?>
-                        </div>
-                    </form>
+                    <div class="input-group search-box">
+                        <input type="text" class="form-control form-control-sm" id="table-search" placeholder="Tìm kiếm...">
+                        <button class="btn btn-outline-secondary btn-sm" type="button" id="search-btn">
+                            <i class='bx bx-search'></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <?php if ($session->has('error')) : ?>
+        <?php if (session()->has('error')) : ?>
             <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
-                <?= $session->getFlashdata('error') ?>
+                <?= session('error') ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
 
-        <?php if ($session->has('success')) : ?>
+        <?php if (session()->has('message')) : ?>
             <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
-                <?= $session->getFlashdata('success') ?>
+                <?= session('message') ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
         
-        <?php if (!empty($keyword)): ?>
-            <div class="alert alert-info m-3">
-                <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
-                <div class="small">
-                    <?php if (!empty($keyword)): ?>
-                        <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
-                    <?php endif; ?>
-                    <a href="<?= site_url('diengia') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
-                </div>
-            </div>
-        <?php endif; ?>
-        
-    <!-- Phần debug info (chỉ hiển thị trong môi trường development) -->
-    <?php if (ENVIRONMENT === 'development'): ?>
-    <div class="card mt-3 mx-3">
-        <div class="card-header bg-info text-white">
-            <h5 class="card-title mb-0">Debug Info</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6>URL Parameters:</h6>
-                    <pre><?= json_encode($_GET, JSON_PRETTY_PRINT) ?></pre>
-                </div>
-                <div class="col-md-6">
-                    <h6>Pagination Info:</h6>
-                    <pre><?= json_encode([
-                        'current_page' => $currentPage,
-                        'per_page' => $perPage,
-                        'total_records' => $total,
-                        'total_pages' => $pager ? $pager->getPageCount() : 0,
-                        'keyword' => $keyword,
-                        'diengia_count' => count($dienGias)
-                    ], JSON_PRETTY_PRINT) ?></pre>
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php endif; ?>
         <div class="table-responsive">
             <div class="table-container">
                 <table id="dataTable" class="table table-striped table-hover m-0 w-100">
@@ -133,45 +89,66 @@
                                     <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
                                 </div>
                             </th>
-                            <th width="20%" class="align-middle">Tên diễn giả</th>
-                            <th width="15%" class="align-middle">Chức danh</th>
-                            <th width="20%" class="align-middle">Tổ chức</th>
-                            <th width="15%" class="align-middle">Thứ tự</th>
-                            <th width="10%" class="text-center align-middle">Hình ảnh</th>
+                            <th width="10%" class="align-middle">ID</th>
+                            <th width="35%" class="align-middle">Người dùng</th>
+                            <th width="15%" class="text-center align-middle">Ảnh</th>
+                            <th width="15%" class="align-middle">Ngày cập nhật</th>
+                            <th width="10%" class="text-center align-middle">Trạng thái</th>
                             <th width="15%" class="text-center align-middle">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($dienGias)) : ?>
-                            <?php foreach ($dienGias as $item) : ?>
+                        <?php if (!empty($items)) : ?>
+                            <?php foreach ($items as $item) : ?>
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
-                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->dien_gia_id ?>">
+                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->face_nguoi_dung_id ?>">
                                         </div>
                                     </td>
-                                    <td><?= esc($item->ten_dien_gia) ?></td>
-                                    <td><?= esc($item->chuc_danh) ?></td>
-                                    <td><?= esc($item->to_chuc) ?></td>
-                                    <td><?= $item->thu_tu ?></td>
-                                    <td class="text-center">
-                                        <?php if ($item->hasAvatar()): ?>
-                                            <img src="<?= $item->getAvatar('thumb') ?>" class="img-thumbnail" style="height: 50px; width: auto;">
+                                    <td><?= $item->face_nguoi_dung_id ?></td>
+                                    <td>
+                                        <?php if (isset($item->nguoi_dung) && !empty($item->nguoi_dung)): ?>
+                                            <div class="fw-bold"><?= esc($item->nguoi_dung->ho_ten) ?></div>
+                                            <?php if (!empty($item->nguoi_dung->email)): ?>
+                                                <div class="small text-muted"><?= esc($item->nguoi_dung->email) ?></div>
+                                            <?php endif; ?>
                                         <?php else: ?>
-                                            <span class="badge bg-secondary">Không có</span>
+                                            <span class="text-muted">Không có thông tin</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if (!empty($item->duong_dan_anh)): ?>
+                                            <img src="<?= base_url($item->duong_dan_anh) ?>" class="img-thumbnail" width="100" alt="Ảnh khuôn mặt">
+                                        <?php else: ?>
+                                            <span class="text-muted"><i class="bx bx-camera-off"></i> Không có ảnh</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($item->ngay_cap_nhat)): ?>
+                                            <?= date('d/m/Y H:i:s', strtotime($item->ngay_cap_nhat)) ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">Chưa cập nhật</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if (method_exists($item, 'getStatusLabel')): ?>
+                                            <?= $item->getStatusLabel() ?>
+                                        <?php else: ?>
+                                            <?= $item->status ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-danger">Không hoạt động</span>' ?>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <a href="<?= site_url("diengia/view/{$item->dien_gia_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                            <a href="<?= site_url("facenguoidung/view/{$item->face_nguoi_dung_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
                                                 <i class="bx bx-info-circle text-white"></i>
                                             </a>
-                                            <a href="<?= site_url("diengia/edit/{$item->dien_gia_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
+                                            <a href="<?= site_url("facenguoidung/edit/{$item->face_nguoi_dung_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
                                                 <i class="bx bx-edit"></i>
                                             </a>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
-                                                    data-id="<?= $item->dien_gia_id ?>" 
-                                                    data-name="<?= esc($item->ten_dien_gia) ?>"
+                                                    data-id="<?= $item->face_nguoi_dung_id ?>" 
+                                                    data-name="<?= isset($item->nguoi_dung) ? esc($item->nguoi_dung->ho_ten) : 'Khuôn mặt #' . $item->face_nguoi_dung_id ?>"
                                                     data-bs-toggle="tooltip" title="Xóa">
                                                 <i class="bx bx-trash"></i>
                                             </button>
@@ -193,32 +170,12 @@
                 </table>
             </div>
         </div>
-        <?php if (!empty($dienGias)): ?>
-            <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-2">
-                <div class="col-sm-12 col-md-5">
-                    <div class="dataTables_info">
-                        Hiển thị từ <?= (($pager->getCurrentPage() - 1) * $perPage + 1) ?> đến <?= min(($pager->getCurrentPage() - 1) * $perPage + $perPage, $total) ?> trong số <?= $total ?> bản ghi
-                    </div>
-                </div>
-                <div class="col-sm-12 col-md-7">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <div class="me-2">
-                            <select id="perPageSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
-                                <option value="5" <?= $perPage == 5 ? 'selected' : '' ?>>5</option>
-                                <option value="10" <?= $perPage == 10 ? 'selected' : '' ?>>10</option>
-                                <option value="15" <?= $perPage == 15 ? 'selected' : '' ?>>15</option>
-                                <option value="25" <?= $perPage == 25 ? 'selected' : '' ?>>25</option>
-                                <option value="50" <?= $perPage == 50 ? 'selected' : '' ?>>50</option>
-                            </select>
-                            <span class="ms-1">bản ghi/trang</span>
-                        </div>
-                        <div>
-                            <?php if (isset($pager) && $pager instanceof \App\Modules\diengia\Libraries\DienGiaPager): ?>
-                                <?= $pager->render() ?>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
+        <?php if (!empty($items)): ?>
+            <div class="card-footer d-flex justify-content-between align-items-center py-2">
+                <div class="text-muted small">Hiển thị <span id="total-records"><?= count($items) ?></span> bản ghi</div>
+                <a href="<?= site_url('facenguoidung/listdeleted') ?>" class="btn btn-sm btn-secondary">
+                    <i class="bx bx-trash-alt me-1"></i> Thùng rác
+                </a>
             </div>
         <?php endif; ?>
     </div>
@@ -236,7 +193,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa diễn giả:</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa khuôn mặt của:</p>
                 <p class="text-center fw-bold" id="delete-item-name"></p>
                 <div class="alert alert-warning mt-3">
                     <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
@@ -264,7 +221,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> diễn giả đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> khuôn mặt đã chọn?</p>
                 <div class="alert alert-warning mt-3">
                     <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
                 </div>
@@ -277,14 +234,36 @@
     </div>
 </div>
 
+<!-- Modal xác nhận đổi trạng thái nhiều -->
+<div class="modal fade" id="statusMultipleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận đổi trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center icon-wrapper mb-3">
+                    <i class="bx bx-toggle-right text-warning" style="font-size: 4rem;"></i>
+                </div>
+                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> khuôn mặt đã chọn?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="confirm-status-multiple" class="btn btn-warning">Đổi trạng thái</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     var base_url = '<?= site_url() ?>';
 </script>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= diengia_js('table') ?>
-<?= diengia_section_js('table') ?>
+<?= facenguoidung_js('table') ?>
+<?= facenguoidung_section_js('table') ?>
 
 <script>
     $(document).ready(function() {
@@ -305,31 +284,25 @@
                 ordering: true,
                 responsive: true,
                 columnDefs: [
-                    { orderable: false, targets: [0, 6] },
+                    { orderable: false, targets: [0, 5] },
                     { className: 'align-middle', targets: '_all' }
-                ],
-                searching: false, // Tắt tìm kiếm của DataTable vì đã có form tìm kiếm
-                paging: false, // Tắt phân trang của DataTable vì đã có phân trang CodeIgniter
-                info: false // Tắt thông tin của DataTable
+                ]
             });
             
-            // Xử lý form tìm kiếm
-            $('#search-form').on('submit', function() {
-                // Form sẽ gửi yêu cầu GET nên không cần xử lý gì thêm
-                return true;
+            // Tìm kiếm
+            $('#search-btn').on('click', function() {
+                dataTable.search($('#table-search').val()).draw();
             });
             
-            // Xử lý nhấn Enter trong ô tìm kiếm
             $('#table-search').on('keyup', function(e) {
                 if (e.key === 'Enter') {
-                    $('#search-form').submit();
+                    dataTable.search($(this).val()).draw();
                 }
             });
         }
         
         // Làm mới bảng
         $('#refresh-table').on('click', function() {
-            $('#loading-indicator').css('display', 'flex').fadeIn(100);
             location.reload();
         });
         
@@ -338,16 +311,7 @@
             const id = $(this).data('id');
             const name = $(this).data('name');
             $('#delete-item-name').text(name);
-            
-            // Lấy đường dẫn tương đối (path + query string)
-            const pathAndQuery = window.location.pathname + window.location.search;
-            
-            // Tạo URL xóa với tham số truy vấn return_url
-            const deleteUrl = '<?= site_url('diengia/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
-            $('#delete-form').attr('action', deleteUrl);
-            
-            console.log('URL xóa:', deleteUrl);
-            
+            $('#delete-form').attr('action', '<?= site_url('facenguoidung/delete/') ?>' + id);
             $('#deleteModal').modal('show');
         });
         
@@ -377,18 +341,22 @@
         function updateActionButtons() {
             const selectedCount = $('.checkbox-item:checked').length;
             if (selectedCount > 0) {
-                $('#delete-selected').prop('disabled', false);
+                $('#delete-selected, #status-selected').prop('disabled', false);
             } else {
-                $('#delete-selected').prop('disabled', true);
+                $('#delete-selected, #status-selected').prop('disabled', true);
             }
         }
         
         // Xử lý nút xóa nhiều
         $('#delete-selected').on('click', function() {
-            if ($('.checkbox-item:checked').length > 0) {
-                $('#selected-count').text($('.checkbox-item:checked').length);
-                $('#deleteMultipleModal').modal('show');
+            const checkedCount = $('.checkbox-item:checked').length;
+            if (checkedCount === 0) {
+                alert('Vui lòng chọn ít nhất một khuôn mặt để xóa!');
+                return;
             }
+            
+            $('#selected-count').text(checkedCount);
+            $('#deleteMultipleModal').modal('show');
         });
         
         // Xử lý xác nhận xóa nhiều
@@ -396,33 +364,17 @@
             // Tạo form tạm thời chứa các checkbox đã chọn
             const tempForm = $('#form-delete-multiple');
             
-            // Xóa các input cũ
+            // Xóa form cũ và tạo form mới
             tempForm.empty();
-            
-            // Lấy đường dẫn tương đối (path + query string) thay vì URL đầy đủ
-            const pathAndQuery = window.location.pathname + window.location.search;
-            
-            // Thêm URL hiện tại làm return_url
-            tempForm.append($('<input>').attr({
-                type: 'hidden',
-                name: 'return_url',
-                value: pathAndQuery
-            }));
             
             // Thêm các checkbox đã chọn vào form
             $('.checkbox-item:checked').each(function() {
                 const input = $('<input>').attr({
                     type: 'hidden',
-                    name: 'selected_ids[]',
+                    name: 'selected_ids[]', // Đảm bảo tên trường khớp với controller
                     value: $(this).val()
                 });
                 tempForm.append(input);
-            });
-            
-            console.log('Deleting multiple items with return URL path:', pathAndQuery);
-            console.log('Form data:', {
-                return_url: pathAndQuery,
-                selected_ids: $('.checkbox-item:checked').map(function() { return $(this).val(); }).get()
             });
             
             // Submit form
@@ -432,99 +384,70 @@
             $('#deleteMultipleModal').modal('hide');
         });
         
-        // Xuất dữ liệu
+        // Xử lý nút đổi trạng thái nhiều
+        $('#status-selected').on('click', function() {
+            const checkedCount = $('.checkbox-item:checked').length;
+            if (checkedCount === 0) {
+                alert('Vui lòng chọn ít nhất một khuôn mặt để đổi trạng thái!');
+                return;
+            }
+            
+            $('#status-count').text(checkedCount);
+            $('#statusMultipleModal').modal('show');
+        });
+        
+        // Xử lý xác nhận đổi trạng thái nhiều
+        $('#confirm-status-multiple').on('click', function() {
+            // Tạo form tạm thời chứa các checkbox đã chọn
+            const tempForm = $('#form-status-multiple');
+            
+            // Xóa form cũ và tạo form mới
+            tempForm.empty();
+            
+            // Thêm các checkbox đã chọn vào form
+            $('.checkbox-item:checked').each(function() {
+                const input = $('<input>').attr({
+                    type: 'hidden',
+                    name: 'selected_ids[]', // Đảm bảo tên trường khớp với controller
+                    value: $(this).val()
+                });
+                tempForm.append(input);
+            });
+            
+            // Thêm trường status
+            const statusInput = $('<input>').attr({
+                type: 'hidden',
+                name: 'status',
+                value: '1' // Mặc định là kích hoạt, sẽ được thay đổi khi nhấn btnSetInactive
+            });
+            tempForm.append(statusInput);
+            
+            // Submit form
+            tempForm.submit();
+            
+            // Đóng modal
+            $('#statusMultipleModal').modal('hide');
+        });
+        
+        // Đặt giá trị status cho form khi nhấn các nút tương ứng
+        $('#btnSetActive').on('click', function() {
+            $('#form-status-multiple').find('input[name="status"]').val('1');
+        });
+        
+        $('#btnSetInactive').on('click', function() {
+            $('#form-status-multiple').find('input[name="status"]').val('0');
+        });
+        
+        // Xuất Excel
         $('#export-excel').on('click', function(e) {
             e.preventDefault();
-            
-            // Lấy URL hiện tại và các tham số query string
-            const currentUrl = new URL(window.location.href);
-            const queryParams = currentUrl.searchParams;
-            
-            // Tạo URL xuất Excel với các tham số cần thiết
-            let exportUrl = '<?= site_url("diengia/exportExcel") ?>';
-            const params = [];
-            
-            // Thêm các tham số cần thiết
-            if (queryParams.has('keyword')) {
-                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
-            }
-            if (queryParams.has('sort')) {
-                params.push('sort=' + encodeURIComponent(queryParams.get('sort')));
-            }
-            if (queryParams.has('order')) {
-                params.push('order=' + encodeURIComponent(queryParams.get('order')));
-            }
-            
-            // Thêm các tham số vào URL
-            if (params.length > 0) {
-                exportUrl += '?' + params.join('&');
-            }
-            
-            console.log('Exporting diễn giả to Excel with URL:', exportUrl);
-            
-            // Chuyển hướng đến URL xuất Excel
-            window.location.href = exportUrl;
+            window.location.href = '<?= site_url("facenguoidung/exportExcel") ?>';
         });
         
         // Xuất PDF
         $('#export-pdf').on('click', function(e) {
             e.preventDefault();
-            
-            // Lấy URL hiện tại và các tham số query string
-            const currentUrl = new URL(window.location.href);
-            const queryParams = currentUrl.searchParams;
-            
-            // Tạo URL xuất PDF với các tham số cần thiết
-            let exportUrl = '<?= site_url("diengia/exportPdf") ?>';
-            const params = [];
-            
-            // Thêm các tham số cần thiết
-            if (queryParams.has('keyword')) {
-                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
-            }
-            if (queryParams.has('sort')) {
-                params.push('sort=' + encodeURIComponent(queryParams.get('sort')));
-            }
-            if (queryParams.has('order')) {
-                params.push('order=' + encodeURIComponent(queryParams.get('order')));
-            }
-            
-            // Thêm các tham số vào URL
-            if (params.length > 0) {
-                exportUrl += '?' + params.join('&');
-            }
-            
-            console.log('Exporting diễn giả to PDF with URL:', exportUrl);
-            
-            // Chuyển hướng đến URL xuất PDF
-            window.location.href = exportUrl;
-        });
-
-        // Xử lý khi thay đổi số lượng bản ghi trên mỗi trang
-        document.getElementById('perPageSelect').addEventListener('change', function() {
-            const perPage = this.value;
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            // Giữ lại tất cả các tham số cần thiết
-            const paramsToKeep = ['keyword', 'sort', 'order'];
-            
-            // Tạo URL mới với tham số perPage và reset về trang 1
-            const newParams = new URLSearchParams();
-            newParams.set('perPage', perPage);
-            newParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
-            
-            // Giữ lại các tham số quan trọng
-            paramsToKeep.forEach(param => {
-                if (urlParams.has(param)) {
-                    // Chỉ giữ lại tham số có giá trị
-                    if (urlParams.get(param)) {
-                        newParams.set(param, urlParams.get(param));
-                    }
-                }
-            });
-            
-            // Chuyển hướng đến URL mới
-            window.location.href = window.location.pathname + '?' + newParams.toString();
+            window.location.href = '<?= site_url("facenguoidung/exportPdf") ?>';
         });
     });
 </script>
