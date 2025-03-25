@@ -1,49 +1,51 @@
-<?= $this->extend('layouts/default') ?>
-<?= $this->section('linkHref') ?>
+<?php $this->extend('layouts/default') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= camera_css('form') ?>
+
+<?php $this->section('styles') ?>
+<?= facenguoidung_css('form') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>THÊM MỚI CAMERA<?= $this->endSection() ?>
+<?= $this->section('title') ?>THÊM MỚI KHUÔN MẶT NGƯỜI DÙNG<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thêm mới Camera',
-	'dashboard_url' => site_url('camera/dashboard'),
+	'title' => 'Thêm mới khuôn mặt người dùng',
+	'dashboard_url' => site_url('facenguoidung'),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Camera', 'url' => site_url('camera')],
-		['title' => 'Thêm mới Camera', 'active' => true]
+		['title' => 'Quản lý khuôn mặt người dùng', 'url' => site_url('facenguoidung')],
+		['title' => 'Thêm mới', 'active' => true]
+	],
+	'actions' => [
+		['url' => site_url('/facenguoidung'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<div class="card shadow-sm">
-	<div class="card-body">
-		<?= form_open(site_url('camera/create'), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-camera']) ?>
-			<?php
-			// Include form fields
-			include __DIR__ . '/form.php';
-			?>
-		<?= form_close() ?>
-	</div>
-</div>
+<?= $this->include('App\Modules\facenguoidung\Views\form', [
+	'action' => site_url('facenguoidung/create'),
+	'method' => 'POST',
+	'nguoidungs' => $nguoidungs ?? [],
+	'is_new' => true
+]) ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= camera_js('form') ?>
+<?= facenguoidung_js('form') ?>
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
-		const form = document.getElementById('form-camera');
+		const form = document.getElementById('faceForm');
 		
 		// Validate form khi submit
-		form.addEventListener('submit', function (event) {
-			if (!form.checkValidity()) {
-				event.preventDefault();
-				event.stopPropagation();
-			}
-			
-			form.classList.add('was-validated');
-		});
+		if (form) {
+			form.addEventListener('submit', function (event) {
+				if (!form.checkValidity()) {
+					event.preventDefault();
+					event.stopPropagation();
+				}
+				
+				form.classList.add('was-validated');
+			});
+		}
 	});
 </script>
 <?= $this->endSection() ?> 

@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title><?= $title ?></title>
+    <title>Danh sách khuôn mặt người dùng</title>
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -28,11 +28,6 @@
             text-align: right;
             margin-bottom: 20px;
             font-style: italic;
-        }
-        .filters {
-            margin-bottom: 15px;
-            font-style: italic;
-            color: #555;
         }
         table {
             width: 100%;
@@ -69,57 +64,66 @@
             color: red;
             font-weight: bold;
         }
+        .img-thumbnail {
+            max-width: 60px;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1><?= $title ?></h1>
+            <h1>DANH SÁCH KHUÔN MẶT NGƯỜI DÙNG</h1>
         </div>
         
         <div class="date">
-            Ngày xuất: <?= $date ?>
+            Ngày xuất: <?= isset($date) ? $date : date('d/m/Y H:i:s') ?>
         </div>
-        
-        <?php if (isset($filters) && !empty($filters)): ?>
-        <div class="filters">
-            <strong>Bộ lọc:</strong> <?= $filters ?>
-        </div>
-        <?php endif; ?>
         
         <table>
             <thead>
                 <tr>
                     <th width="5%">STT</th>
-                    <th width="10%">Mã camera</th>
-                    <th width="25%">Tên camera</th>
-                    <th width="15%">Địa chỉ IP</th>
-                    <th width="10%">Port</th>
-                    <th width="15%">Tài khoản</th>
+                    <th width="10%">ID</th>
+                    <th width="25%">Người dùng</th>
+                    <th width="15%">Hình ảnh</th>
+                    <th width="15%">Ngày cập nhật</th>
                     <th width="10%">Trạng thái</th>
-                    <?php if (isset($cameras) && isset($cameras[0]->deleted_at) && $cameras[0]->deleted_at): ?>
-                    <th width="10%">Ngày xóa</th>
+                    <?php if (isset($is_deleted) && $is_deleted): ?>
+                    <th width="15%">Ngày xóa</th>
                     <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
-                <?php 
-                $dataArray = isset($cameras) ? $cameras : (isset($camera) ? $camera : []);
-                $hasDeletedField = false;
-                if (!empty($dataArray) && isset($dataArray[0]->deleted_at) && $dataArray[0]->deleted_at) {
-                    $hasDeletedField = true;
-                }
-                ?>
-                
-                <?php if (!empty($dataArray)): ?>
-                    <?php $i = 1; foreach ($dataArray as $item): ?>
+                <?php if (!empty($items)): ?>
+                    <?php $i = 1; foreach ($items as $item): ?>
                         <tr>
                             <td class="text-center"><?= $i++ ?></td>
-                            <td><?= esc($item->ma_camera) ?></td>
-                            <td><?= esc($item->ten_camera) ?></td>
-                            <td><?= esc($item->ip_camera) ?></td>
-                            <td class="text-center"><?= esc($item->port) ?></td>
-                            <td><?= esc($item->username) ?></td>
+                            <td class="text-center"><?= $item->face_nguoi_dung_id ?></td>
+                            <td>
+                                <?php if (isset($item->nguoi_dung) && !empty($item->nguoi_dung)): ?>
+                                    <strong><?= esc($item->nguoi_dung->ho_ten) ?></strong>
+                                    <?php if (!empty($item->nguoi_dung->email)): ?>
+                                        <br><span style="font-size: 10px;"><?= esc($item->nguoi_dung->email) ?></span>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <span>Không có thông tin</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <?php if (!empty($item->duong_dan_anh)): ?>
+                                    <span>[Đã có ảnh]</span>
+                                <?php else: ?>
+                                    <span>Không có ảnh</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <?php if (!empty($item->ngay_cap_nhat)): ?>
+                                    <?= date('d/m/Y H:i', strtotime($item->ngay_cap_nhat)) ?>
+                                <?php else: ?>
+                                    <span>Chưa cập nhật</span>
+                                <?php endif; ?>
+                            </td>
                             <td class="text-center">
                                 <?php if ($item->status == 1): ?>
                                     <span class="status-active">Hoạt động</span>
@@ -127,7 +131,7 @@
                                     <span class="status-inactive">Không hoạt động</span>
                                 <?php endif; ?>
                             </td>
-                            <?php if ($hasDeletedField): ?>
+                            <?php if (isset($is_deleted) && $is_deleted): ?>
                             <td class="text-center">
                                 <?php if (!empty($item->deleted_at)): ?>
                                     <?= date('d/m/Y H:i', strtotime($item->deleted_at)) ?>
@@ -138,14 +142,14 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="<?= $hasDeletedField ? 8 : 7 ?>" class="text-center">Không có dữ liệu</td>
+                        <td colspan="<?= isset($is_deleted) && $is_deleted ? 7 : 6 ?>" class="text-center">Không có dữ liệu</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
         
         <div class="footer">
-            Tài liệu này được xuất tự động từ hệ thống quản lý camera - <?= date('Y') ?>
+            Tài liệu này được xuất tự động từ hệ thống quản lý khuôn mặt người dùng - <?= date('Y') ?>
         </div>
     </div>
 </body>
