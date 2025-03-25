@@ -77,24 +77,16 @@ class Manhinh extends BaseController
         // Kiểm tra các tham số không hợp lệ
         if ($page < 1) $page = 1;
         if ($perPage < 1) $perPage = 10;
-        
-        // Log chi tiết URL và tham số
-        log_message('debug', '[Controller] URL đầy đủ: ' . current_url() . '?' . http_build_query($_GET));
-        log_message('debug', '[Controller] Tham số request: ' . json_encode($_GET));
-        log_message('debug', '[Controller] Đã xử lý: page=' . $page . ', perPage=' . $perPage . ', sort=' . $sort . 
-            ', order=' . $order . ', keyword=' . $keyword . ', status=' . $status);
-        
+     
         // Đảm bảo status được xử lý đúng cách, kể cả khi status=0
         // Lưu ý rằng status=0 là một giá trị hợp lệ (không hoạt động)
         $statusFilter = null;
         if ($status !== null && $status !== '') {
             $statusFilter = (int)$status;
-            log_message('debug', '[Controller] Status từ request: ' . $status . ' sau khi ép kiểu: ' . $statusFilter);
         }
         
         // Tính toán offset chính xác cho phân trang
         $offset = ($page - 1) * $perPage;
-        log_message('debug', '[Controller] Đã tính toán: offset=' . $offset . ' (từ page=' . $page . ', perPage=' . $perPage . ')');
         
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
@@ -109,10 +101,7 @@ class Manhinh extends BaseController
         if ($status !== null && $status !== '') {
             $searchParams['status'] = $statusFilter;
         }
-        
-        // Log tham số tìm kiếm cuối cùng
-        log_message('debug', '[Controller] Tham số tìm kiếm cuối cùng: ' . json_encode($searchParams));
-        
+       
         // Lấy dữ liệu màn hình và thông tin phân trang
         $manhinhs = $this->model->search($searchParams, [
             'limit' => $perPage,
@@ -123,13 +112,10 @@ class Manhinh extends BaseController
         
         // Lấy tổng số kết quả
         $total = $this->model->getPager()->getTotal();
-        log_message('debug', '[Controller] Tổng số kết quả từ pager: ' . $total);
         
         // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
         $pageCount = ceil($total / $perPage);
         if ($total > 0 && $page > $pageCount) {
-            log_message('debug', '[Controller] Trang yêu cầu (' . $page . ') vượt quá tổng số trang (' . $pageCount . '), chuyển hướng về trang cuối.');
-            
             // Tạo URL mới với trang cuối cùng
             $redirectParams = $_GET;
             $redirectParams['page'] = $pageCount;
@@ -149,23 +135,6 @@ class Manhinh extends BaseController
             // Đảm bảo perPage và currentPage được thiết lập đúng
             $pager->setPerPage($perPage);
             $pager->setCurrentPage($page);
-            
-            // Log thông tin pager cuối cùng
-            log_message('debug', '[Controller] Thông tin pager: ' . json_encode([
-                'total' => $pager->getTotal(),
-                'perPage' => $pager->getPerPage(),
-                'currentPage' => $pager->getCurrentPage(),
-                'pageCount' => $pager->getPageCount()
-            ]));
-        }
-        
-        // Kiểm tra số lượng màn hình trả về
-        log_message('debug', '[Controller] Số lượng màn hình trả về: ' . count($manhinhs));
-        if (!empty($manhinhs)) {
-            $firstManhinh = $manhinhs[0];
-            log_message('debug', '[Controller] Màn hình đầu tiên: ID=' . $firstManhinh->man_hinh_id . 
-                ', Tên=' . $firstManhinh->ten_man_hinh . 
-                ', Status=' . $firstManhinh->status);
         }
         
         // Chuẩn bị dữ liệu cho view
@@ -178,16 +147,6 @@ class Manhinh extends BaseController
         $this->data['order'] = $order;
         $this->data['keyword'] = $keyword;
         $this->data['status'] = $status; // Giữ nguyên status gốc từ request
-        
-        // Debug thông tin cuối cùng
-        log_message('debug', '[Controller] Dữ liệu gửi đến view: ' . json_encode([
-            'currentPage' => $page,
-            'perPage' => $perPage,
-            'total' => $total,
-            'pageCount' => $pager ? $pager->getPageCount() : 0,
-            'status' => $status,
-            'manhinh_count' => count($manhinhs)
-        ]));
         
         // Hiển thị view
         return view('App\Modules\manhinh\Views\index', $this->data);

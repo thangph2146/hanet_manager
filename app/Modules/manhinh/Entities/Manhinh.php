@@ -173,10 +173,10 @@ class ManHinh extends BaseEntity
     public function getCameraInfo()
     {
         if (empty($this->attributes['ten_camera'])) {
-            return '<span class="text-muted">Chưa gán camera</span>';
+            return '<span class="text-muted"><i class="bx bx-camera-off me-1"></i>Chưa gắn camera</span>';
         }
         
-        return '<span class="badge bg-info">' . esc($this->attributes['ten_camera']) . '</span>';
+        return '<span class="badge bg-info"><i class="bx bx-camera me-1"></i>' . esc($this->attributes['ten_camera']) . '</span>';
     }
     
     /**
@@ -187,10 +187,10 @@ class ManHinh extends BaseEntity
     public function getTemplateInfo()
     {
         if (empty($this->attributes['ten_template'])) {
-            return '<span class="text-muted">Chưa gán template</span>';
+            return '<span class="text-muted"><i class="bx bx-layer me-1"></i>Chưa gắn template</span>';
         }
         
-        return '<span class="badge bg-secondary">' . esc($this->attributes['ten_template']) . '</span>';
+        return '<span class="badge bg-secondary"><i class="bx bx-layer me-1"></i>' . esc($this->attributes['ten_template']) . '</span>';
     }
     
     /**
