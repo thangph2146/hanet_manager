@@ -1,33 +1,38 @@
 <?php
 /**
- * Form component for creating and updating nganh
+ * Form component for creating and updating template
  * 
  * @var string $action Form submission URL
  * @var string $method Form method (POST or PUT)
- * @var array $nganh Nganh entity data for editing (optional)
- * @var array $phongkhoas Array of available phong_khoa options (optional)
+ * @var Template $template Template entity data for editing (optional)
  */
 
 // Set default values if editing
-$ten_nganh = isset($nganh) ? $nganh->ten_nganh : '';
-$ma_nganh = isset($nganh) ? $nganh->ma_nganh : '';
-$phong_khoa_id = isset($nganh) ? $nganh->phong_khoa_id : '';
-$status = isset($nganh) ? (string)$nganh->status : '1';
-$id = isset($nganh) ? $nganh->nganh_id : '';
+$ten_template = isset($template) ? $template->ten_template : '';
+$ma_template = isset($template) ? $template->ma_template : '';
+$status = isset($template) ? (string)$template->status : '1';
+$bin = isset($template) ? (string)$template->bin : '0';
+$id = isset($template) ? $template->template_id : '';
 
 // Set default values for form action and method
-$action = isset($action) ? $action : site_url('nganh/create');
+$action = isset($action) ? $action : site_url('template/create');
 $method = isset($method) ? $method : 'POST';
 
 // Xác định tiêu đề form dựa trên mode
-$formTitle = isset($is_new) && $is_new ? 'Thêm mới ngành' : 'Cập nhật ngành';
+$formTitle = isset($is_new) && $is_new ? 'Thêm mới template' : 'Cập nhật template';
+$isUpdate = isset($template) && isset($template->template_id);
 ?>
 
 <!-- Form chính -->
-<form action="<?= $action ?>" method="<?= $method ?>" id="nganhForm" class="needs-validation" novalidate>
-    <?php if (isset($nganh->nganh_id)): ?>
-        <input type="hidden" name="nganh_id" value="<?= $id ?>">
+<form action="<?= $action ?>" method="<?= $method ?>" id="templateForm" class="needs-validation" novalidate>
+    <?php if ($isUpdate): ?>
+        <input type="hidden" name="template_id" value="<?= $id ?>">
     <?php endif; ?>
+    
+    <!-- Trường bin ẩn -->
+    <input type="hidden" name="bin" value="<?= $bin ?>">
+
+    <h4 class="mb-3"><?= $formTitle ?></h4>
 
     <!-- Hiển thị thông báo lỗi nếu có -->
     <?php if (session('error')): ?>
@@ -74,89 +79,56 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới ngành' : 'Cập nhật ng
         
         <div class="card-body">
             <div class="row g-3">
-                <!-- ma_nganh -->
+                <!-- ma_template -->
                 <div class="col-md-6">
-                    <label for="ma_nganh" class="form-label fw-semibold">
-                        Mã ngành <span class="text-danger">*</span>
+                    <label for="ma_template" class="form-label fw-semibold">
+                        Mã template <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-hash'></i></span>
-                        <input type="text" class="form-control <?= session('errors.ma_nganh') ? 'is-invalid' : '' ?>" 
-                                id="ma_nganh" name="ma_nganh" 
-                                value="<?= old('ma_nganh', $ma_nganh) ?>" 
-                                placeholder="Nhập mã ngành"
+                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('ma_template') ? 'is-invalid' : '' ?>" 
+                                id="ma_template" name="ma_template" 
+                                value="<?= old('ma_template', $ma_template) ?>" 
+                                placeholder="Nhập mã template"
                                 required maxlength="20">
-                        <?php if (session('errors.ma_nganh')): ?>
+                        <?php if (isset($validation) && $validation->hasError('ma_template')): ?>
                             <div class="invalid-feedback">
-                                <?= session('errors.ma_nganh') ?>
+                                <?= $validation->getError('ma_template') ?>
                             </div>
                         <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng nhập mã ngành</div>
+                            <div class="invalid-feedback">Vui lòng nhập mã template</div>
                         <?php endif; ?>
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Mã ngành phải là duy nhất trong hệ thống, tối đa 20 ký tự
+                        Mã template phải là duy nhất trong hệ thống, tối đa 20 ký tự
                     </div>
                 </div>
 
-                <!-- ten_nganh -->
+                <!-- ten_template -->
                 <div class="col-md-6">
-                    <label for="ten_nganh" class="form-label fw-semibold">
-                        Tên ngành <span class="text-danger">*</span>
+                    <label for="ten_template" class="form-label fw-semibold">
+                        Tên template <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-book-alt'></i></span>
-                        <input type="text" class="form-control <?= session('errors.ten_nganh') ? 'is-invalid' : '' ?>" 
-                                id="ten_nganh" name="ten_nganh" 
-                                value="<?= old('ten_nganh', $ten_nganh) ?>" 
-                                placeholder="Nhập tên ngành"
-                                required minlength="3" maxlength="100">
-                        <?php if (session('errors.ten_nganh')): ?>
+                        <span class="input-group-text bg-light"><i class='bx bx-file'></i></span>
+                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('ten_template') ? 'is-invalid' : '' ?>" 
+                                id="ten_template" name="ten_template" 
+                                value="<?= old('ten_template', $ten_template) ?>" 
+                                placeholder="Nhập tên template"
+                                required minlength="3" maxlength="255" autocomplete="off"
+                                oninput="this.value = this.value.trim()">
+                        <?php if (isset($validation) && $validation->hasError('ten_template')): ?>
                             <div class="invalid-feedback">
-                                <?= session('errors.ten_nganh') ?>
+                                <?= $validation->getError('ten_template') ?>
                             </div>
                         <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng nhập tên ngành (tối thiểu 3 ký tự)</div>
+                            <div class="invalid-feedback">Vui lòng nhập tên template (tối thiểu 3 ký tự)</div>
                         <?php endif; ?>
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Tên ngành phải có ít nhất 3 ký tự và không trùng với các ngành khác
-                    </div>
-                </div>
-
-                <!-- phong_khoa_id -->
-                <div class="col-md-6">
-                    <label for="phong_khoa_id" class="form-label fw-semibold">
-                        Phòng/Khoa quản lý
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-building'></i></span>
-                        <select class="form-select select <?= session('errors.phong_khoa_id') ? 'is-invalid' : '' ?>" 
-                                id="phong_khoa_id" name="phong_khoa_id"
-                                data-placeholder="-- Chọn phòng/khoa --">
-                            <option value="">-- Chọn phòng/khoa --</option>
-                            <?php 
-                            $phongkhoaData = isset($phongkhoas) ? $phongkhoas : (isset($phong_khoa_list) ? $phong_khoa_list : []);
-                            if (!empty($phongkhoaData)): ?>
-                                <?php foreach ($phongkhoaData as $pk): ?>
-                                    <option value="<?= $pk->phong_khoa_id ?>" 
-                                        <?= old('phong_khoa_id', $phong_khoa_id) == $pk->phong_khoa_id ? 'selected' : '' ?>>
-                                        <?= esc($pk->ten_phong_khoa) ?> (<?= esc($pk->ma_phong_khoa) ?>)
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                        <?php if (session('errors.phong_khoa_id')): ?>
-                            <div class="invalid-feedback">
-                                <?= session('errors.phong_khoa_id') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Chọn phòng/khoa quản lý ngành này (không bắt buộc)
+                        Tên template phải có ít nhất 3 ký tự và không trùng với bất kỳ template nào trong hệ thống
                     </div>
                 </div>
 
@@ -165,14 +137,20 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới ngành' : 'Cập nhật ng
                     <label for="status" class="form-label fw-semibold">Trạng thái</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-toggle-left'></i></span>
-                        <select class="form-select" id="status" name="status">
+                        <select class="form-select <?= isset($validation) && $validation->hasError('status') ? 'is-invalid' : '' ?>" 
+                               id="status" name="status">
                             <option value="1" <?= old('status', $status) == '1' ? 'selected' : '' ?>>Hoạt động</option>
                             <option value="0" <?= old('status', $status) == '0' ? 'selected' : '' ?>>Không hoạt động</option>
                         </select>
+                        <?php if (isset($validation) && $validation->hasError('status')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('status') ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Ngành không hoạt động sẽ không hiển thị trong các danh sách chọn
+                        Template không hoạt động sẽ không hiển thị trong các danh sách chọn
                     </div>
                 </div>
             </div>
@@ -186,12 +164,12 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới ngành' : 'Cập nhật ng
                 </span>
                 
                 <div class="d-flex gap-2">
-                    <a href="<?= site_url('nganh') ?>" class="btn btn-light">
+                    <a href="<?= site_url('template') ?>" class="btn btn-light">
                         <i class='bx bx-arrow-back me-1'></i> Quay lại
                     </a>
                     <button class="btn btn-primary px-4" type="submit">
                         <i class='bx bx-save me-1'></i>
-                        <?= isset($nganh->nganh_id) && $nganh->nganh_id ? 'Cập nhật' : 'Thêm mới' ?>
+                        <?= $isUpdate ? 'Cập nhật' : 'Thêm mới' ?>
                     </button>
                 </div>
             </div>
@@ -201,14 +179,6 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới ngành' : 'Cập nhật ng
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Khởi tạo Select2
-        if ($.fn.select2) {
-            $('.select2').select2({
-                theme: 'bootstrap-5',
-                width: '100%'
-            });
-        }
-        
         // Form validation
         const forms = document.querySelectorAll('.needs-validation');
         Array.from(forms).forEach(form => {
@@ -222,6 +192,6 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới ngành' : 'Cập nhật ng
         });
         
         // Tự động focus vào trường đầu tiên
-        document.getElementById('ten_nganh').focus();
+        document.getElementById('ten_template').focus();
     });
 </script> 

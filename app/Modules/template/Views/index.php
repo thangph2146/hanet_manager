@@ -1,29 +1,30 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= nganh_css('table') ?>
-<?= nganh_section_css('modal') ?>
+<?= page_css('table') ?>
+<?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>DANH SÁCH NGÀNH<?= $this->endSection() ?>
+<?= $this->section('title') ?>DANH SÁCH TEMPLATE<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Danh sách ngành',
-	'dashboard_url' => site_url('nganh/dashboard'),
+	'title' => 'Danh sách template',
+	'dashboard_url' => site_url('template/dashboard'),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Ngành', 'url' => site_url('nganh')],
+		['title' => 'Quản lý Template', 'url' => site_url('template')],
 		['title' => 'Danh sách', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/nganh/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
+		['url' => site_url('/template/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
 	]
 ]) ?>
 <?= $this->endSection() ?>  
 
 <?= $this->section('content') ?>
+
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách ngành</h5>
+        <h5 class="card-title mb-0">Danh sách template</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -33,7 +34,7 @@
                     <i class='bx bx-export'></i> Xuất
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#" id="export-excel">Excel</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url('template/exportExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
                     <li><a class="dropdown-item" href="#" id="export-pdf">PDF</a></li>
                 </ul>
             </div>
@@ -43,25 +44,39 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <?= form_open("nganh/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("template/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="delete-selected" class="btn btn-danger btn-sm me-2" disabled>
                         <i class='bx bx-trash'></i> Xóa mục đã chọn
                     </button>
                     <?= form_close() ?>
                     
-                    <?= form_open("nganh/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
+                    <?= form_open("template/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
                     <button type="button" id="status-selected" class="btn btn-warning btn-sm" disabled>
                         <i class='bx bx-refresh'></i> Đổi trạng thái
                     </button>
                     <?= form_close() ?>
                 </div>
                 <div class="col-12 col-md-6">
-                    <div class="input-group search-box">
-                        <input type="text" class="form-control form-control-sm" id="table-search" placeholder="Tìm kiếm...">
-                        <button class="btn btn-outline-secondary btn-sm" type="button" id="search-btn">
-                            <i class='bx bx-search'></i>
-                        </button>
-                    </div>
+                    <form action="<?= site_url('template') ?>" method="get" id="search-form">
+                        <input type="hidden" name="page" value="1">
+                        <input type="hidden" name="perPage" value="<?= $perPage ?>">
+                        <div class="input-group search-box">
+                            <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
+                            <select name="status" class="form-select form-select-sm" style="max-width: 140px;">
+                                <option value="">-- Trạng thái --</option>
+                                <option value="1" <?= (isset($status) && $status == '1') ? 'selected' : '' ?>>Hoạt động</option>
+                                <option value="0" <?= (isset($status) && $status == '0') ? 'selected' : '' ?>>Không hoạt động</option>
+                            </select>
+                            <button class="btn btn-outline-secondary btn-sm" type="submit">
+                                <i class='bx bx-search'></i>
+                            </button>
+                            <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
+                            <a href="<?= site_url('template') ?>" class="btn btn-outline-danger btn-sm">
+                                <i class='bx bx-x'></i>
+                            </a>
+                            <?php endif; ?>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -80,6 +95,49 @@
             </div>
         <?php endif; ?>
         
+        <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
+            <div class="alert alert-info m-3">
+                <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
+                <div class="small">
+                    <?php if (!empty($keyword)): ?>
+                        <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
+                    <?php endif; ?>
+                    <?php if (isset($status) && $status !== ''): ?>
+                        <span class="badge bg-secondary me-2">Trạng thái: <?= $status == 1 ? 'Hoạt động' : 'Không hoạt động' ?></span>
+                    <?php endif; ?>
+                    <a href="<?= site_url('template') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
+                </div>
+            </div>
+        <?php endif; ?>
+        
+    <!-- Phần debug info (chỉ hiển thị trong môi trường development) -->
+    <?php if (ENVIRONMENT === 'development'): ?>
+    <div class="card mt-3 mx-3">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0">Debug Info</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>URL Parameters:</h6>
+                    <pre><?= json_encode($_GET, JSON_PRETTY_PRINT) ?></pre>
+                </div>
+                <div class="col-md-6">
+                    <h6>Pagination Info:</h6>
+                    <pre><?= json_encode([
+                        'current_page' => $currentPage,
+                        'per_page' => $perPage,
+                        'total_records' => $total,
+                        'total_pages' => $pager ? $pager->getPageCount() : 0,
+                        'status' => $status,
+                        'keyword' => $keyword,
+                        'template_count' => count($templates)
+                    ], JSON_PRETTY_PRINT) ?></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
         <div class="table-responsive">
             <div class="table-container">
                 <table id="dataTable" class="table table-striped table-hover m-0 w-100">
@@ -90,53 +148,37 @@
                                     <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
                                 </div>
                             </th>
-                            <th width="10%" class="align-middle">Mã</th>
-                            <th width="35%" class="align-middle">Tên ngành</th>
-                            <th width="25%" class="align-middle">Phòng/Khoa</th>
-                            <th width="10%" class="text-center align-middle">Trạng thái</th>
-                            <th width="15%" class="text-center align-middle">Thao tác</th>
+                            <th width="15%" class="align-middle">Mã template</th>
+                            <th width="40%" class="align-middle">Tên template</th>
+                            <th width="15%" class="text-center align-middle">Trạng thái</th>
+                            <th width="25%" class="text-center align-middle">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($nganh)) : ?>
-                            <?php foreach ($nganh as $item) : ?>
+                        <?php if (!empty($templates)) : ?>
+                            <?php foreach ($templates as $item) : ?>
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
-                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->nganh_id ?>">
+                                            <input class="form-check-input checkbox-item cursor-pointer" type="checkbox" name="selected_ids[]" value="<?= $item->template_id ?>">
                                         </div>
                                     </td>
-                                    <td><?= esc($item->ma_nganh) ?></td>
-                                    <td><?= esc($item->ten_nganh) ?></td>
-                                    <td>
-                                        <?php 
-                                        if (method_exists($item, 'getPhongKhoaInfo')):
-                                            echo $item->getPhongKhoaInfo();
-                                        elseif (isset($item->phong_khoa) && !empty($item->phong_khoa)):
-                                            echo esc($item->phong_khoa->ten_phong_khoa);
-                                        else:
-                                            echo '<span class="text-muted">Không có</span>';
-                                        endif;
-                                        ?>
-                                    </td>
+                                    <td><?= esc($item->ma_template) ?></td>
+                                    <td><?= esc($item->ten_template) ?></td>
                                     <td class="text-center">
-                                        <?php if (method_exists($item, 'getStatusLabel')): ?>
-                                            <?= $item->getStatusLabel() ?>
-                                        <?php else: ?>
-                                            <?= $item->status == 1 ? '<span class="badge bg-success">Hoạt động</span>' : '<span class="badge bg-danger">Không hoạt động</span>' ?>
-                                        <?php endif; ?>
+                                        <?= $item->getStatusLabel() ?>
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <a href="<?= site_url("nganh/view/{$item->nganh_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                            <a href="<?= site_url("template/view/{$item->template_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
                                                 <i class="bx bx-info-circle text-white"></i>
                                             </a>
-                                            <a href="<?= site_url("nganh/edit/{$item->nganh_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
+                                            <a href="<?= site_url("template/edit/{$item->template_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
                                                 <i class="bx bx-edit"></i>
                                             </a>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
-                                                    data-id="<?= $item->nganh_id ?>" 
-                                                    data-name="<?= esc($item->ten_nganh) ?>"
+                                                    data-id="<?= $item->template_id ?>" 
+                                                    data-name="<?= esc($item->ten_template) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa">
                                                 <i class="bx bx-trash"></i>
                                             </button>
@@ -146,7 +188,7 @@
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="6" class="text-center py-3">
+                                <td colspan="5" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class="bx bx-folder-open"></i>
                                         <p>Không có dữ liệu</p>
@@ -158,12 +200,32 @@
                 </table>
             </div>
         </div>
-        <?php if (!empty($nganh)): ?>
-            <div class="card-footer d-flex justify-content-between align-items-center py-2">
-                <div class="text-muted small">Hiển thị <span id="total-records"><?= count($nganh) ?></span> bản ghi</div>
-                <a href="<?= site_url('nganh/listdeleted') ?>" class="btn btn-sm btn-secondary">
-                    <i class="bx bx-trash-alt me-1"></i> Thùng rác
-                </a>
+        <?php if (!empty($templates)): ?>
+            <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-2">
+                <div class="col-sm-12 col-md-5">
+                    <div class="dataTables_info">
+                        Hiển thị từ <?= (($pager->getCurrentPage() - 1) * $perPage + 1) ?> đến <?= min(($pager->getCurrentPage() - 1) * $perPage + $perPage, $total) ?> trong số <?= $total ?> bản ghi
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-7">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <div class="me-2">
+                            <select id="perPageSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                                <option value="5" <?= $perPage == 5 ? 'selected' : '' ?>>5</option>
+                                <option value="10" <?= $perPage == 10 ? 'selected' : '' ?>>10</option>
+                                <option value="15" <?= $perPage == 15 ? 'selected' : '' ?>>15</option>
+                                <option value="25" <?= $perPage == 25 ? 'selected' : '' ?>>25</option>
+                                <option value="50" <?= $perPage == 50 ? 'selected' : '' ?>>50</option>
+                            </select>
+                            <span class="ms-1">bản ghi/trang</span>
+                        </div>
+                        <div>
+                            <?php if (isset($pager) && $pager instanceof \App\Modules\template\Libraries\Pager): ?>
+                                <?= $pager->render() ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
             </div>
         <?php endif; ?>
     </div>
@@ -181,7 +243,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa ngành:</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa template:</p>
                 <p class="text-center fw-bold" id="delete-item-name"></p>
                 <div class="alert alert-warning mt-3">
                     <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
@@ -209,7 +271,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> ngành đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> template đã chọn?</p>
                 <div class="alert alert-warning mt-3">
                     <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
                 </div>
@@ -234,7 +296,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-toggle-right text-warning" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> ngành đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> template đã chọn?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -244,14 +306,15 @@
     </div>
 </div>
 
+
 <script>
     var base_url = '<?= site_url() ?>';
 </script>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= nganh_js('table') ?>
-<?= nganh_section_js('table') ?>
+<?= page_js('table') ?>
+<?= page_section_js('table') ?>
 
 <script>
     $(document).ready(function() {
@@ -272,25 +335,31 @@
                 ordering: true,
                 responsive: true,
                 columnDefs: [
-                    { orderable: false, targets: [0, 5] },
+                    { orderable: false, targets: [0, 4] },
                     { className: 'align-middle', targets: '_all' }
-                ]
+                ],
+                searching: false, // Tắt tìm kiếm của DataTable vì đã có form tìm kiếm
+                paging: false, // Tắt phân trang của DataTable vì đã có phân trang CodeIgniter
+                info: false // Tắt thông tin của DataTable
             });
             
-            // Tìm kiếm
-            $('#search-btn').on('click', function() {
-                dataTable.search($('#table-search').val()).draw();
+            // Xử lý form tìm kiếm
+            $('#search-form').on('submit', function() {
+                // Form sẽ gửi yêu cầu GET nên không cần xử lý gì thêm
+                return true;
             });
             
+            // Xử lý nhấn Enter trong ô tìm kiếm
             $('#table-search').on('keyup', function(e) {
                 if (e.key === 'Enter') {
-                    dataTable.search($(this).val()).draw();
+                    $('#search-form').submit();
                 }
             });
         }
         
         // Làm mới bảng
         $('#refresh-table').on('click', function() {
+            $('#loading-indicator').css('display', 'flex').fadeIn(100);
             location.reload();
         });
         
@@ -299,7 +368,16 @@
             const id = $(this).data('id');
             const name = $(this).data('name');
             $('#delete-item-name').text(name);
-            $('#delete-form').attr('action', '<?= site_url('nganh/delete/') ?>' + id);
+            
+            // Lấy đường dẫn tương đối (path + query string)
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Tạo URL xóa với tham số truy vấn return_url
+            const deleteUrl = '<?= site_url('template/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            $('#delete-form').attr('action', deleteUrl);
+            
+            console.log('URL xóa:', deleteUrl);
+            
             $('#deleteModal').modal('show');
         });
         
@@ -348,8 +426,18 @@
             // Tạo form tạm thời chứa các checkbox đã chọn
             const tempForm = $('#form-delete-multiple');
             
-            // Xóa form cũ và tạo form mới
+            // Xóa các input cũ
             tempForm.empty();
+            
+            // Lấy đường dẫn tương đối (path + query string) thay vì URL đầy đủ
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Thêm URL hiện tại làm return_url
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }));
             
             // Thêm các checkbox đã chọn vào form
             $('.checkbox-item:checked').each(function() {
@@ -359,6 +447,12 @@
                     value: $(this).val()
                 });
                 tempForm.append(input);
+            });
+            
+            console.log('Deleting multiple items with return URL path:', pathAndQuery);
+            console.log('Form data:', {
+                return_url: pathAndQuery,
+                selected_ids: $('.checkbox-item:checked').map(function() { return $(this).val(); }).get()
             });
             
             // Submit form
@@ -401,16 +495,109 @@
             $('#statusMultipleModal').modal('hide');
         });
         
-        // Xuất Excel
+        // Xuất dữ liệu
         $('#export-excel').on('click', function(e) {
             e.preventDefault();
-            window.location.href = '<?= site_url("nganh/exportExcel") ?>';
+            
+            // Lấy URL hiện tại và các tham số query string
+            const currentUrl = new URL(window.location.href);
+            const queryParams = currentUrl.searchParams;
+            
+            // Tạo URL xuất Excel với các tham số cần thiết
+            let exportUrl = '<?= site_url("template/exportExcel") ?>';
+            const params = [];
+            
+            // Thêm các tham số cần thiết
+            if (queryParams.has('keyword')) {
+                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
+            }
+            if (queryParams.has('status')) {
+                params.push('status=' + encodeURIComponent(queryParams.get('status')));
+            }
+            if (queryParams.has('sort')) {
+                params.push('sort=' + encodeURIComponent(queryParams.get('sort')));
+            }
+            if (queryParams.has('order')) {
+                params.push('order=' + encodeURIComponent(queryParams.get('order')));
+            }
+            
+            // Thêm các tham số vào URL
+            if (params.length > 0) {
+                exportUrl += '?' + params.join('&');
+            }
+            
+            console.log('Exporting templates to Excel with URL:', exportUrl);
+            
+            // Chuyển hướng đến URL xuất Excel
+            window.location.href = exportUrl;
         });
         
         // Xuất PDF
         $('#export-pdf').on('click', function(e) {
             e.preventDefault();
-            window.location.href = '<?= site_url("nganh/exportPdf") ?>';
+            
+            // Lấy URL hiện tại và các tham số query string
+            const currentUrl = new URL(window.location.href);
+            const queryParams = currentUrl.searchParams;
+            
+            // Tạo URL xuất PDF với các tham số cần thiết
+            let exportUrl = '<?= site_url("template/exportPdf") ?>';
+            const params = [];
+            
+            // Thêm các tham số cần thiết
+            if (queryParams.has('keyword')) {
+                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
+            }
+            if (queryParams.has('status')) {
+                params.push('status=' + encodeURIComponent(queryParams.get('status')));
+            }
+            if (queryParams.has('sort')) {
+                params.push('sort=' + encodeURIComponent(queryParams.get('sort')));
+            }
+            if (queryParams.has('order')) {
+                params.push('order=' + encodeURIComponent(queryParams.get('order')));
+            }
+            
+            // Thêm các tham số vào URL
+            if (params.length > 0) {
+                exportUrl += '?' + params.join('&');
+            }
+            
+            console.log('Exporting templates to PDF with URL:', exportUrl);
+            
+            // Chuyển hướng đến URL xuất PDF
+            window.location.href = exportUrl;
+        });
+
+        // Xử lý khi thay đổi số lượng bản ghi trên mỗi trang
+        document.getElementById('perPageSelect').addEventListener('change', function() {
+            const perPage = this.value;
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Giữ lại tất cả các tham số cần thiết
+            const paramsToKeep = ['keyword', 'status', 'sort', 'order'];
+            
+            // Tạo URL mới với tham số perPage và reset về trang 1
+            const newParams = new URLSearchParams();
+            newParams.set('perPage', perPage);
+            newParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
+            
+            // Giữ lại các tham số quan trọng
+            paramsToKeep.forEach(param => {
+                if (urlParams.has(param)) {
+                    // Đặc biệt xử lý status=0
+                    if (param === 'status' && urlParams.get(param) === '0') {
+                        newParams.set(param, '0');
+                    } 
+                    // Chỉ giữ lại tham số có giá trị
+                    else if (urlParams.get(param)) {
+                        newParams.set(param, urlParams.get(param));
+                    }
+                }
+            });
+            
+            // Chuyển hướng đến URL mới
+            window.location.href = window.location.pathname + '?' + newParams.toString();
         });
     });
 </script>

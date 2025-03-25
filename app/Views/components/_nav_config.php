@@ -317,6 +317,24 @@ function nav_config() {
                 ]
             ],
             [
+                'title' => 'Quản lý Tham Gia Sự Kiện',
+                'icon' => 'bx bx-calendar-event',
+                'submenu' => [
+                    [
+                        'title' => 'Danh Sách Tham Gia Sự Kiện',
+                        'url' => site_url('thamgiasukien')
+                    ],
+                    [
+                        'title' => 'Danh sách Tham Gia Sự Kiện bị xóa',
+                        'url' => site_url('thamgiasukien/listdeleted')
+                    ],
+                    [
+                        'title' => 'Thêm Tham Gia Sự Kiện mới',
+                        'url' => site_url('thamgiasukien/new')
+                    ]
+                ]
+            ],
+            [
                 'type' => 'label',
                 'title' => 'Quản lý Thiết Bị'
             ],

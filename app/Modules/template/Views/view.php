@@ -1,20 +1,20 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= nganh_css('view') ?>
+<?= page_css('view') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CHI TIẾT NGÀNH<?= $this->endSection() ?>
+<?= $this->section('title') ?>CHI TIẾT TEMPLATE<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Chi tiết ngành',
-    'dashboard_url' => site_url('nganh/dashboard'),
+    'title' => 'Chi tiết template',
+    'dashboard_url' => site_url('template/dashboard'),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Ngành', 'url' => site_url('nganh')],
+        ['title' => 'Quản lý Template', 'url' => site_url('template')],
         ['title' => 'Chi tiết', 'active' => true]
     ],
     'actions' => [
-        ['url' => site_url('/nganh'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+        ['url' => site_url('/template'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
     ]
 ]) ?>
 <?= $this->endSection() ?>
@@ -22,9 +22,9 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Chi tiết ngành <?= esc($nganh->ten_nganh) ?></h5>
+        <h5 class="card-title mb-0">Chi tiết template <?= esc($template->ten_template) ?></h5>
         <div class="d-flex gap-2">
-            <a href="<?= site_url("nganh/edit/{$nganh->nganh_id}") ?>" class="btn btn-sm btn-primary">
+            <a href="<?= site_url("template/edit/{$template->template_id}") ?>" class="btn btn-sm btn-primary">
                 <i class="bx bx-edit me-1"></i> Chỉnh sửa
             </a>
             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
@@ -51,46 +51,26 @@
             <table class="table table-bordered">
                 <tbody>
                     <tr>
-                        <th style="width: 200px;">Mã ngành</th>
-                        <td><?= esc($nganh->ma_nganh) ?></td>
+                        <th style="width: 200px;">Mã template</th>
+                        <td><?= esc($template->ma_template) ?></td>
                     </tr>
                     <tr>
-                        <th>Tên ngành</th>
-                        <td><?= esc($nganh->ten_nganh) ?></td>
-                    </tr>
-                    <tr>
-                        <th>Phòng/Khoa</th>
-                        <td>
-                            <?php if (isset($nganh->phong_khoa) && !empty($nganh->phong_khoa)) : ?>
-                                <?= esc($nganh->phong_khoa->ten_phong_khoa) ?>
-                            <?php else : ?>
-                                <span class="text-muted">Chưa có thông tin</span>
-                            <?php endif; ?>
-                        </td>
+                        <th>Tên template</th>
+                        <td><?= esc($template->ten_template) ?></td>
                     </tr>
                     <tr>
                         <th>Trạng thái</th>
                         <td>
-                            <?php if ($nganh->status == 1) : ?>
-                                <span class="badge bg-success">Hoạt động</span>
-                            <?php else : ?>
-                                <span class="badge bg-danger">Không hoạt động</span>
-                            <?php endif; ?>
+                            <?= $template->getStatusLabel() ?>
                         </td>
                     </tr>
                     <tr>
                         <th>Ngày tạo</th>
-                        <td><?= date('d/m/Y H:i:s', strtotime($nganh->created_at)) ?></td>
+                        <td><?= $template->getCreatedAtFormatted() ?></td>
                     </tr>
                     <tr>
                         <th>Cập nhật lần cuối</th>
-                        <td>
-                            <?php if (!empty($nganh->updated_at)) : ?>
-                                <?= date('d/m/Y H:i:s', strtotime($nganh->updated_at)) ?>
-                            <?php else : ?>
-                                <span class="text-muted">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
+                        <td><?= $template->getUpdatedAtFormatted() ?></td>
                     </tr>
                 </tbody>
             </table>
@@ -107,11 +87,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn xóa ngành <strong><?= esc($nganh->ten_nganh) ?></strong> không?
+                Bạn có chắc chắn muốn xóa template <strong><?= esc($template->ten_template) ?></strong> không?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <a href="<?= site_url("nganh/delete/{$nganh->nganh_id}") ?>" class="btn btn-danger">Xóa</a>
+                <a href="<?= site_url("template/delete/{$template->template_id}") ?>" class="btn btn-danger">Xóa</a>
             </div>
         </div>
     </div>
@@ -119,5 +99,5 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script_ext') ?>
-<?= nganh_js('view') ?>
+<?= page_js('view') ?>
 <?= $this->endSection() ?>
