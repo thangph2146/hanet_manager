@@ -1,11 +1,11 @@
 <?php
 /**
- * Master script file for Facenguoidung module
+ * Master script file for ThamGiaSuKien module
  * Contains common CSS and JS for all views
  */
 
 // CSS section
-function facenguoidung_css($type = 'all') {
+function page_css($type = 'all') {
     ob_start();
     
     // Common CSS for DataTables
@@ -48,6 +48,103 @@ function facenguoidung_css($type = 'all') {
         .btn i {
             margin-right: 0;
         }
+        
+        /* Cải thiện hiển thị phân trang */
+        .pagination {
+            gap: 3px;
+            margin-bottom: 0;
+        }
+        
+        .pagination .page-item .page-link {
+            color: #435ebe;
+            padding: 0.375rem 0.75rem;
+            border-color: #dee2e6;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 32px;
+            transition: all 0.3s ease;
+            border-radius: 0.25rem;
+            margin: 0 1px;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: #435ebe;
+            border-color: #435ebe;
+            color: #fff;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(67, 94, 190, 0.3);
+            z-index: 3;
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            pointer-events: none;
+        }
+        
+        .pagination .page-item .page-link:hover:not(.disabled) {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #435ebe;
+            z-index: 2;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .pagination .page-item .page-link:focus {
+            box-shadow: 0 0 0 0.15rem rgba(67, 94, 190, 0.25);
+            z-index: 3;
+        }
+        
+        .pagination-container {
+            margin-bottom: 1rem;
+        }
+        
+        /* Nút select số bản ghi */
+        #perPage {
+            min-width: 70px;
+            cursor: pointer;
+            border-color: #ced4da;
+            background-color: #fff;
+            transition: all 0.2s;
+        }
+        
+        #perPage:hover, #perPage:focus {
+            border-color: #435ebe;
+        }
+        
+        /* Thêm hiệu ứng cho nút phân trang */
+        .pagination .page-link {
+            border-radius: 0.25rem;
+            margin: 0 2px;
+        }
+        
+        /* Hiệu ứng shadow khi hover */
+        .pagination .page-item:not(.disabled) .page-link:hover {
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        /* Cải thiện text align cho active page */
+        .pagination .page-item.active .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
     </style>
     <?php
     endif;
@@ -76,7 +173,7 @@ function facenguoidung_css($type = 'all') {
 }
 
 // JS section
-function facenguoidung_js($type = 'all') {
+function page_js($type = 'all') {
     ob_start();
     
     // DataTable scripts
@@ -90,6 +187,28 @@ function facenguoidung_js($type = 'all') {
     
     <script>
         $(document).ready(function() {
+            // Xử lý thay đổi số lượng bản ghi trên mỗi trang
+            function changePerPage(perPage) {
+                // Lấy URL hiện tại
+                let url = new URL(window.location.href);
+                let params = new URLSearchParams(url.search);
+                
+                // Cập nhật tham số perPage
+                params.set('perPage', perPage);
+                
+                // Quay về trang 1 khi thay đổi số lượng bản ghi
+                params.set('page', '1');
+                
+                // Cập nhật URL và chuyển hướng
+                url.search = params.toString();
+                window.location.href = url.toString();
+            }
+            
+            // Xử lý sự kiện change cho select perPage
+            $('#perPage').on('change', function() {
+                changePerPage($(this).val());
+            });
+            
             // Hiển thị thông báo thành công/lỗi với SweetAlert2
             <?php if (session()->getFlashdata('success')): ?>
                 Swal.fire({
@@ -127,21 +246,31 @@ function facenguoidung_js($type = 'all') {
             });
 
             // Form validation
-            $('#form-facenguoidung').validate({
+            $('#form-thamgiasukien').validate({
                 rules: {
                     nguoi_dung_id: {
-                        required: true
+                        required: true,
+                        number: true
                     },
-                    duong_dan_anh: {
+                    su_kien_id: {
+                        required: true,
+                        number: true
+                    },
+                    phuong_thuc_diem_danh: {
                         required: true
                     }
                 },
                 messages: {
                     nguoi_dung_id: {
-                        required: "Vui lòng chọn người dùng"
+                        required: "Vui lòng nhập ID người dùng",
+                        number: "ID người dùng phải là số"
                     },
-                    duong_dan_anh: {
-                        required: "Vui lòng tải lên ảnh khuôn mặt"
+                    su_kien_id: {
+                        required: "Vui lòng nhập ID sự kiện",
+                        number: "ID sự kiện phải là số"
+                    },
+                    phuong_thuc_diem_danh: {
+                        required: "Vui lòng chọn phương thức điểm danh"
                     }
                 },
                 errorElement: 'span',
@@ -165,7 +294,7 @@ function facenguoidung_js($type = 'all') {
 }
 
 // Section CSS function
-function facenguoidung_section_css($section) {
+function page_section_css($section) {
     ob_start();
 
     // Modal CSS
@@ -193,7 +322,7 @@ function facenguoidung_section_css($section) {
 }
 
 // Section JS function
-function facenguoidung_section_js($section) {
+function page_section_js($section) {
     ob_start();
 
     // Table specific additional JS
@@ -206,6 +335,13 @@ function facenguoidung_section_js($section) {
                 $(this).addClass('highlight-row');
             }).on('mouseleave', 'table tbody tr', function() {
                 $(this).removeClass('highlight-row');
+            });
+            
+            // Thêm hiệu ứng cho các nút phân trang
+            $('.pagination .page-link').hover(function() {
+                $(this).parent().addClass('hover-effect');
+            }, function() {
+                $(this).parent().removeClass('hover-effect');
             });
         });
     </script>
@@ -227,74 +363,4 @@ function facenguoidung_section_js($section) {
 <link rel="stylesheet" href="<?= base_url('assets/vendor/libs/sweetalert2/sweetalert2.css') ?>" />
 
 <!-- Module CSS -->
-<link rel="stylesheet" href="<?= base_url('css/modules/nganh/style.css') ?>" />
-
-<script>
-// Hàm xem trước ảnh trước khi upload
-function setupImagePreview() {
-    const imageInput = document.getElementById('duong_dan_anh');
-    const previewContainer = document.getElementById('image-preview-container');
-    
-    if (!imageInput || !previewContainer) return;
-    
-    imageInput.addEventListener('change', function() {
-        // Xóa preview cũ nếu có
-        while (previewContainer.firstChild) {
-            previewContainer.removeChild(previewContainer.firstChild);
-        }
-        
-        const file = this.files[0];
-        if (!file) return;
-        
-        // Kiểm tra loại file
-        if (!file.type.match('image.*')) {
-            const errorMsg = document.createElement('p');
-            errorMsg.textContent = 'Vui lòng chọn file hình ảnh';
-            errorMsg.className = 'text-danger mt-2';
-            previewContainer.appendChild(errorMsg);
-            return;
-        }
-        
-        // Tạo preview
-        const img = document.createElement('img');
-        img.className = 'img-thumbnail mt-2';
-        img.style.maxWidth = '200px';
-        img.style.maxHeight = '200px';
-        
-        // Tạo reader để đọc file
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-        
-        // Tạo container cho preview
-        const previewBox = document.createElement('div');
-        previewBox.className = 'mt-2';
-        
-        // Tạo caption
-        const caption = document.createElement('p');
-        caption.className = 'small text-muted';
-        caption.textContent = 'Kích thước: ' + formatFileSize(file.size);
-        
-        // Thêm vào container
-        previewBox.appendChild(img);
-        previewBox.appendChild(caption);
-        previewContainer.appendChild(previewBox);
-    });
-}
-
-// Hàm định dạng kích thước file
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-// Khởi tạo xem trước ảnh
-document.addEventListener('DOMContentLoaded', function() {
-    setupImagePreview();
-});
-</script>
+<link rel="stylesheet" href="<?= base_url('css/modules/thamgiasukien/style.css') ?>" />
