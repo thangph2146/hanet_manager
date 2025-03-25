@@ -7,6 +7,7 @@ $module_name = 'thamgiasukien';
  
 // CSS section
 function page_css($type = 'all') {
+    global $module_name;
     ob_start();
     
     // Common CSS for DataTables
@@ -175,7 +176,6 @@ function page_css($type = 'all') {
 
 // JS section
 function page_js($type = 'all') {
-    // Đảm bảo $module_name được định nghĩa
     global $module_name;
     
     ob_start();
@@ -299,6 +299,7 @@ function page_js($type = 'all') {
 
 // Section CSS function
 function page_section_css($section) {
+    global $module_name;
     ob_start();
 
     // Modal CSS
@@ -327,6 +328,7 @@ function page_section_css($section) {
 
 // Section JS function
 function page_section_js($section) {
+    global $module_name;
     ob_start();
 
     // Table specific additional JS
@@ -357,7 +359,6 @@ function page_section_js($section) {
 
 // Thêm hàm đồng bộ JavaScript cho bảng ThamGiaSuKien
 function page_table_js() {
-    // Đảm bảo $module_name được định nghĩa
     global $module_name;
     
     ob_start();

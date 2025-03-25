@@ -8,6 +8,7 @@ $module_name = 'sukiendiengia';
 
 // CSS section
 function page_css($type = 'all') {
+    global $module_name;
     ob_start();
     
     // Common CSS for DataTables
@@ -176,6 +177,7 @@ function page_css($type = 'all') {
 
 // JS section
 function page_js($type = 'all') {
+    global $module_name;
     ob_start();
     
     // DataTable scripts
@@ -297,6 +299,7 @@ function page_js($type = 'all') {
 
 // Section CSS function
 function page_section_css($section) {
+    global $module_name;
     ob_start();
 
     // Modal CSS

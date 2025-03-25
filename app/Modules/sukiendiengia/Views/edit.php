@@ -26,7 +26,10 @@ $module_name = 'sukiendiengia';
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-body">
-        <?= form_open(site_url($module_name . '/update/' . $suKienDienGia->su_kien_dien_gia_id), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-sukiendiengia']) ?>
+        <?= form_open(site_url($module_name . '/update/' . $suKienDienGia->su_kien_dien_gia_id), 
+        ['class' => 'row g-3 needs-validation', 
+        'novalidate' => true, 
+        'id' => 'form-' . $module_name]) ?>
             <?php
             // Include form fields
             include __DIR__ . '/form.php';
