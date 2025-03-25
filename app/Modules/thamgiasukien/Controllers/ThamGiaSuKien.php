@@ -1011,7 +1011,7 @@ class ThamGiaSuKien extends BaseController
         ];
         
         // Lấy dữ liệu tham gia sự kiện
-        $thamGiaSuKiens = $this->model->search($searchCriteria, $searchOptions);
+        $data = $this->model->search($searchCriteria, $searchOptions);
         
         // Tạo file Excel
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
@@ -1035,7 +1035,7 @@ class ThamGiaSuKien extends BaseController
         
         // Điền dữ liệu
         $row = 2;
-        foreach ($thamGiaSuKiens as $i => $item) {
+        foreach ($data as $i => $item) {
             $sheet->setCellValue('A' . $row, $i + 1);
             $sheet->setCellValue('B' . $row, $item->tham_gia_su_kien_id);
             $sheet->setCellValue('C' . $row, $item->nguoi_dung_id);
@@ -1128,7 +1128,7 @@ class ThamGiaSuKien extends BaseController
         
         $row++;
         $sheet->setCellValue('A' . $row, 'Tổng số bản ghi:');
-        $sheet->setCellValue('B' . $row, count($thamGiaSuKiens));
+        $sheet->setCellValue('B' . $row, count($data));
         $row++;
         
         $sheet->setCellValue('A' . $row, 'Ngày xuất:');
@@ -1189,14 +1189,14 @@ class ThamGiaSuKien extends BaseController
         ];
         
         // Lấy dữ liệu tham gia sự kiện
-        $thamGiaSuKiens = $this->model->search($searchCriteria, $searchOptions);
+        $data = $this->model->search($searchCriteria, $searchOptions);
         
         // Chuẩn bị dữ liệu cho view
         $filters = $this->getFilterDescription($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id);
         $data = [
             'title' => 'DANH SÁCH THAM GIA SỰ KIỆN',
             'date' => date('d/m/Y H:i:s'),
-            'thamGiaSuKiens' => $thamGiaSuKiens,
+            'data' => $data,
             'filters' => $filters,
             'deleted' => false
         ];
@@ -1261,14 +1261,14 @@ class ThamGiaSuKien extends BaseController
         ];
         
         // Lấy dữ liệu tham gia sự kiện đã xóa
-        $thamGiaSuKiens = $this->model->search($searchCriteria, $searchOptions);
+        $data = $this->model->search($searchCriteria, $searchOptions);
         
         // Chuẩn bị dữ liệu cho view
         $filters = $this->getFilterDescription($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id);
         $data = [
             'title' => 'DANH SÁCH THAM GIA SỰ KIỆN ĐÃ XÓA',
             'date' => date('d/m/Y H:i:s'),
-            'thamGiaSuKiens' => $thamGiaSuKiens,
+            'data' => $data,
             'filters' => $filters,
             'deleted' => true
         ];
@@ -1333,7 +1333,7 @@ class ThamGiaSuKien extends BaseController
         ];
         
         // Lấy dữ liệu tham gia sự kiện đã xóa
-        $thamGiaSuKiens = $this->model->search($searchCriteria, $searchOptions);
+        $data = $this->model->search($searchCriteria, $searchOptions);
         
         // Tạo file Excel
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
@@ -1346,19 +1346,22 @@ class ThamGiaSuKien extends BaseController
         $sheet->getStyle('A1:I1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         
         // Thiết lập tiêu đề
-        $sheet->setCellValue('A1', 'STT');
-        $sheet->setCellValue('B1', 'ID');
-        $sheet->setCellValue('C1', 'Người dùng ID');
-        $sheet->setCellValue('D1', 'Sự kiện ID');
-        $sheet->setCellValue('E1', 'Thời gian điểm danh');
-        $sheet->setCellValue('F1', 'Phương thức điểm danh');
-        $sheet->setCellValue('G1', 'Ghi chú');
-        $sheet->setCellValue('H1', 'Trạng thái');
-        $sheet->setCellValue('I1', 'Ngày xóa');
+        $tieu_de = ['A1'=>'STT', 
+                    'B1'=>'ID', 
+                    'C1'=>'Người dùng ID', 
+                    'D1'=>'Sự kiện ID', 
+                    'E1'=>'Thời gian điểm danh', 
+                    'F1'=>'Phương thức điểm danh', 
+                    'G1'=>'Ghi chú', 
+                    'H1'=>'Trạng thái', 
+                    'I1'=>'Ngày xóa'];
+        foreach ($tieu_de as $key => $value) {
+            $sheet->setCellValue($key, $value);
+        }
         
         // Điền dữ liệu
         $row = 2;
-        foreach ($thamGiaSuKiens as $i => $item) {
+        foreach ($data as $i => $item) {
             $sheet->setCellValue('A' . $row, $i + 1);
             $sheet->setCellValue('B' . $row, $item->tham_gia_su_kien_id);
             $sheet->setCellValue('C' . $row, $item->nguoi_dung_id);
@@ -1459,7 +1462,7 @@ class ThamGiaSuKien extends BaseController
         
         $row++;
         $sheet->setCellValue('A' . $row, 'Tổng số bản ghi:');
-        $sheet->setCellValue('B' . $row, count($thamGiaSuKiens));
+        $sheet->setCellValue('B' . $row, count($data));
         $row++;
         
         $sheet->setCellValue('A' . $row, 'Ngày xuất:');
