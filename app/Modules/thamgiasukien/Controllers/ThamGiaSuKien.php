@@ -16,6 +16,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use CodeIgniter\I18n\Time;
 
 class ThamGiaSuKien extends BaseController
 {
@@ -215,108 +216,65 @@ class ThamGiaSuKien extends BaseController
     }
     
     /**
-     * Hiển thị form tạo mới
+     * Hiển thị form thêm mới
      */
     public function new()
     {
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Thêm mới', current_url());
         
-        // Chuẩn bị dữ liệu mặc định cho entity mới
-        $thamGiaSuKien = new \App\Modules\thamgiasukien\Entities\ThamGiaSuKien([
-            'status' => 1,
-        ]);
-        
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Thêm ' . $this->moduleName,
+            'title' => 'Thêm mới ' . $this->moduleName,
             'validation' => $this->validator,
             'moduleUrl' => $this->moduleUrl,
-            'thamGiaSuKien' => $thamGiaSuKien,
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
-            'is_new' => true
         ];
         
-        return view('App\Modules\thamgiasukien\Views\new', $viewData);
+        return view('App\Modules\thamgiasukien\Views\form', $viewData);
     }
     
     /**
-     * Xử lý lưu dữ liệu mới
+     * Xử lý thêm mới dữ liệu
      */
     public function create()
     {
-        $request = $this->request;
-
-        // Validate dữ liệu đầu vào
-        if (!$this->validate($this->model->validationRules)) {
+        // Xác thực dữ liệu gửi lên
+        $data = $this->request->getPost();
+        
+        // Chuẩn bị quy tắc validation cho thêm mới
+        $this->model->prepareValidationRules('insert');
+        
+        // Kiểm tra dữ liệu
+        if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
-
-        // Lấy dữ liệu từ request
-        $data = [
-            'nguoi_dung_id' => (int)trim($request->getPost('nguoi_dung_id')),
-            'su_kien_id' => (int)trim($request->getPost('su_kien_id')),
-            'phuong_thuc_diem_danh' => trim($request->getPost('phuong_thuc_diem_danh')),
-            'thoi_gian_diem_danh' => $request->getPost('thoi_gian_diem_danh'),
-            'ghi_chu' => trim($request->getPost('ghi_chu')),
-            'status' => $request->getPost('status') ?? 1
-        ];
-
-        // Xử lý thời gian điểm danh từ datetime-local
-        if (!empty($data['thoi_gian_diem_danh'])) {
-            // Chuyển định dạng datetime-local (2025-03-18T12:35) sang định dạng MySQL (Y-m-d H:i:s)
-            try {
-                $datetime = new \DateTime($data['thoi_gian_diem_danh']);
-                $data['thoi_gian_diem_danh'] = $datetime->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {
-                log_message('error', 'Lỗi chuyển đổi thời gian: ' . $e->getMessage());
-                $data['thoi_gian_diem_danh'] = null;
-            }
-        } else {
-            $data['thoi_gian_diem_danh'] = null;
+        
+        // Kiểm tra xem người dùng đã tham gia sự kiện chưa
+        $entity = new ThamGiaSuKien();
+        if ($entity->isUserJoinedEvent($data['nguoi_dung_id'], $data['su_kien_id'])) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Người dùng này đã tham gia sự kiện được chọn.');
         }
-
-        // Kiểm tra xem người dùng đã tham gia sự kiện này chưa
-        if (!empty($data['nguoi_dung_id']) && !empty($data['su_kien_id'])) {
-            $existingRecord = $this->model->builder()
-                ->where('nguoi_dung_id', $data['nguoi_dung_id'])
-                ->where('su_kien_id', $data['su_kien_id'])
-                ->get()
-                ->getRow();
-                
-            if ($existingRecord) {
-                $this->alert->set('danger', 'Người dùng này đã tham gia sự kiện, vui lòng kiểm tra lại', true);
-                return redirect()->back()->withInput();
-            }
-        }
-
-        // Lưu dữ liệu vào database
+        
         try {
-            if ($this->model->insert($data)) {
-                $this->alert->set('success', 'Thêm dữ liệu tham gia sự kiện thành công', true);
+            // Tạo entity mới
+            $entity = new ThamGiaSuKien($data);
+            
+            // Lưu dữ liệu
+            if ($this->model->insert($entity)) {
+                $this->alert->set('success', 'Thêm mới ' . $this->moduleName . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
-                $errors = $this->model->errors();
-                if (!empty($errors)) {
-                    return redirect()->back()->withInput()->with('errors', $errors);
-                }
-                
-                $this->alert->set('danger', 'Có lỗi xảy ra khi thêm dữ liệu', true);
-                return redirect()->back()->withInput();
+                throw new \RuntimeException('Không thể thêm mới ' . $this->moduleName);
             }
         } catch (\Exception $e) {
-            // Log lỗi
-            log_message('error', 'Lỗi khi thêm dữ liệu tham gia sự kiện: ' . $e->getMessage());
-            
-            // Kiểm tra nếu là lỗi duplicate key
-            if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
-                $this->alert->set('danger', 'Người dùng đã tham gia sự kiện này, vui lòng kiểm tra lại', true);
-            } else {
-                $this->alert->set('danger', 'Có lỗi xảy ra khi thêm dữ liệu: ' . $e->getMessage(), true);
-            }
-            
-            return redirect()->back()->withInput();
+            log_message('error', '[ThamGiaSuKien::create] ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->moduleName);
         }
     }
     
@@ -406,63 +364,46 @@ class ThamGiaSuKien extends BaseController
         
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
-        
-        // Chuẩn bị quy tắc validation cho cập nhật - cần truyền mảng có chứa tham_gia_su_kien_id
-        $this->model->prepareValidationRules('update', ['tham_gia_su_kien_id' => $id]);
-        
-        // Xử lý validation với quy tắc đã được điều chỉnh
-        if (!$this->validate($this->model->getValidationRules())) {
-            // Nếu validation thất bại, quay lại form với lỗi
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-        
-        // Chuẩn bị dữ liệu để cập nhật
-        $updateData = [
-            'nguoi_dung_id' => (int)$data['nguoi_dung_id'],
-            'su_kien_id' => (int)$data['su_kien_id'],
-            'thoi_gian_diem_danh' => $data['thoi_gian_diem_danh'] ?? null,
-            'phuong_thuc_diem_danh' => $data['phuong_thuc_diem_danh'],
-            'ghi_chu' => $data['ghi_chu'] ?? null,
-            'status' => $data['status'] ?? 0
-        ];
-        
-        // Xử lý nếu trường thoi_gian_diem_danh rỗng
-        if (empty($updateData['thoi_gian_diem_danh'])) {
-            $updateData['thoi_gian_diem_danh'] = null;
-        }
-        // Xử lý thời gian điểm danh từ datetime-local nếu không rỗng
-        else {
-            // Chuyển định dạng datetime-local (2025-03-18T12:35) sang định dạng MySQL (Y-m-d H:i:s)
+        // Xử lý thời gian điểm danh
+        if (!empty($data['thoi_gian_diem_danh'])) {
             try {
-                $datetime = new \DateTime($updateData['thoi_gian_diem_danh']);
-                $updateData['thoi_gian_diem_danh'] = $datetime->format('Y-m-d H:i:s');
+                // Chuyển đổi từ định dạng Y-m-d\TH:i sang Y-m-d H:i:s
+                $time = Time::createFromFormat('Y-m-d\TH:i', $data['thoi_gian_diem_danh']);
+                if ($time === false) {
+                    throw new \Exception('Định dạng thời gian không hợp lệ');
+                }
+                $data['thoi_gian_diem_danh'] = $time->format('Y-m-d H:i:s');
             } catch (\Exception $e) {
-                log_message('error', 'Lỗi chuyển đổi thời gian: ' . $e->getMessage());
-                $updateData['thoi_gian_diem_danh'] = null;
+                log_message('error', 'Lỗi xử lý thời gian điểm danh: ' . $e->getMessage());
+                $this->alert->set('danger', 'Định dạng thời gian điểm danh không hợp lệ', true);
+                return redirect()->back()->withInput();
             }
         }
         
-        // Giữ lại các trường thời gian từ dữ liệu hiện có
-        $updateData['created_at'] = $existingRecord->created_at;
+        // Chuẩn bị quy tắc validation cho cập nhật
+        $this->model->prepareValidationRules('update', ['tham_gia_su_kien_id' => $id]);
         
-        // Kiểm tra xem nguoi_dung_id và su_kien_id mới đã có trong hệ thống chưa
-        if (($existingRecord->nguoi_dung_id != $updateData['nguoi_dung_id'] || 
-             $existingRecord->su_kien_id != $updateData['su_kien_id']) &&
-            $this->model->where('nguoi_dung_id', $updateData['nguoi_dung_id'])
-                         ->where('su_kien_id', $updateData['su_kien_id'])
-                         ->where('tham_gia_su_kien_id !=', $id)
-                         ->countAllResults() > 0) {
-            $this->alert->set('danger', 'Người dùng này đã tham gia sự kiện này, vui lòng kiểm tra lại', true);
-            return redirect()->back()->withInput();
+        // Kiểm tra dữ liệu
+        if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
-        // Cập nhật dữ liệu vào database
-        if ($this->model->update($id, $updateData)) {
-            $this->alert->set('success', 'Cập nhật dữ liệu tham gia sự kiện thành công', true);
-            return redirect()->to($this->moduleUrl);
-        } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật dữ liệu: ' . implode(', ', $this->model->errors()), true);
-            return redirect()->back()->withInput();
+        try {
+            // Cập nhật entity
+            $entity = new \App\Modules\thamgiasukien\Entities\ThamGiaSuKien($data);
+            
+            // Lưu dữ liệu
+            if ($this->model->update($id, $entity)) {
+                $this->alert->set('success', 'Cập nhật ' . $this->moduleName . ' thành công', true);
+                return redirect()->to($this->moduleUrl);
+            } else {
+                throw new \RuntimeException('Không thể cập nhật ' . $this->moduleName);
+            }
+        } catch (\Exception $e) {
+            log_message('error', '[ThamGiaSuKien::update] ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->moduleName);
         }
     }
     

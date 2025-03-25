@@ -5,6 +5,7 @@ namespace App\Modules\thamgiasukien\Models;
 use App\Models\BaseModel;
 use App\Modules\thamgiasukien\Entities\ThamGiaSuKien;
 use App\Modules\thamgiasukien\Libraries\Pager;
+use CodeIgniter\I18n\Time;
 
 class ThamGiaSuKienModel extends BaseModel
 {
@@ -96,8 +97,8 @@ class ThamGiaSuKienModel extends BaseModel
         return $result ?: [];
     }
     
-     /**
-     * Lấy tất cả bản ghi tham gia sự kiện
+    /**
+     * Lấy tất cả bản ghi tham gia sự kiện đã xóa
      *
      * @param int $limit Số lượng bản ghi trên mỗi trang
      * @param int $offset Vị trí bắt đầu lấy dữ liệu
@@ -105,7 +106,7 @@ class ThamGiaSuKienModel extends BaseModel
      * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAllDeleted($limit = 10, $offset = 0, $sort = 'created_at', $order = 'DESC')
+    public function getAllDeleted($limit = 10, $offset = 0, $sort = 'deleted_at', $order = 'DESC')
     {
         $this->builder = $this->db->table($this->table);
         $this->builder->select('*');
@@ -153,7 +154,7 @@ class ThamGiaSuKienModel extends BaseModel
     }
     
     /**
-     * Đếm tổng số bản ghi tham gia sự kiện
+     * Đếm tổng số bản ghi tham gia sự kiện đã xóa
      *
      * @param array $conditions Điều kiện bổ sung
      * @return int
@@ -171,6 +172,7 @@ class ThamGiaSuKienModel extends BaseModel
         
         return $builder->countAllResults();
     }
+    
     /**
      * Lấy tất cả bản ghi đang hoạt động
      *
@@ -394,20 +396,6 @@ class ThamGiaSuKienModel extends BaseModel
                     $rules = str_replace('{tham_gia_su_kien_id}', $data['tham_gia_su_kien_id'], $rules);
                 }
             }
-        } elseif ($scenario === 'insert') {
-            foreach ($this->validationRules as $field => &$rules) {
-                // Kiểm tra nếu $rules là một mảng
-                if (is_array($rules) && isset($rules['rules'])) {
-                    // Kiểm tra nếu chuỗi quy tắc chứa is_unique
-                    if (strpos($rules['rules'], 'is_unique') !== false) {
-                        $rules['rules'] = str_replace(',tham_gia_su_kien_id,{tham_gia_su_kien_id}', '', $rules['rules']);
-                    }
-                }
-                // Nếu $rules là một chuỗi
-                else if (is_string($rules) && strpos($rules, 'is_unique') !== false) {
-                    $rules = str_replace(',tham_gia_su_kien_id,{tham_gia_su_kien_id}', '', $rules);
-                }
-            }
         }
     }
     
@@ -486,5 +474,71 @@ class ThamGiaSuKienModel extends BaseModel
         
         // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
         return $this->countSearchResults($criteria);
+    }
+    
+    /**
+     * Xử lý dữ liệu trước khi lưu vào database
+     *
+     * @param array $data Dữ liệu cần xử lý
+     * @return array Dữ liệu đã xử lý
+     */
+    protected function beforeInsert(array $data): array
+    {
+        $data = parent::beforeInsert($data);
+        
+        // Xử lý thời gian điểm danh
+        if (isset($data['data']['thoi_gian_diem_danh'])) {
+            $data['data']['thoi_gian_diem_danh'] = $this->formatDateTime($data['data']['thoi_gian_diem_danh']);
+        }
+        
+        return $data;
+    }
+    
+    /**
+     * Xử lý dữ liệu trước khi cập nhật vào database
+     *
+     * @param array $data Dữ liệu cần xử lý
+     * @return array Dữ liệu đã xử lý
+     */
+    protected function beforeUpdate(array $data): array
+    {
+        $data = parent::beforeUpdate($data);
+        
+        // Xử lý thời gian điểm danh
+        if (isset($data['data']['thoi_gian_diem_danh'])) {
+            $data['data']['thoi_gian_diem_danh'] = $this->formatDateTime($data['data']['thoi_gian_diem_danh']);
+        }
+        
+        return $data;
+    }
+    
+    /**
+     * Định dạng thời gian
+     *
+     * @param string|null $datetime Chuỗi thời gian cần định dạng
+     * @return string|null Thời gian đã định dạng
+     */
+    protected function formatDateTime(?string $datetime): ?string
+    {
+        if (empty($datetime)) {
+            return null;
+        }
+        
+        try {
+            // Thử parse thời gian
+            $time = Time::parse($datetime);
+            
+            // Kiểm tra xem thời gian có hợp lệ không
+            if ($time === false) {
+                log_message('error', 'Thời gian không hợp lệ: ' . $datetime);
+                return null;
+            }
+            
+            // Format lại thời gian theo định dạng chuẩn
+            return $time->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi định dạng thời gian: ' . $e->getMessage() . ' - Input: ' . $datetime);
+            return null;
+        }
     }
 } 

@@ -43,16 +43,14 @@ class ThamGiaSuKien extends Migration
             ],
             'created_at' => [
                 'type' => 'TIMESTAMP',
-                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP'),
                 'null' => false
             ],
             'updated_at' => [
                 'type' => 'TIMESTAMP',
                 'null' => true,
-                'on update' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
             ],
             'deleted_at' => [
-                'type' => 'DATETIME',
+                'type' => 'TIMESTAMP',
                 'null' => true
             ]
         ]);

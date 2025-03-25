@@ -10,49 +10,42 @@
  */
 
 // Set default values if editing
-$nguoi_dung_id = isset($thamGiaSuKien) ? $thamGiaSuKien->nguoi_dung_id : '';
-$su_kien_id = isset($thamGiaSuKien) ? $thamGiaSuKien->su_kien_id : '';
-$thoi_gian_diem_danh = isset($thamGiaSuKien) ? $thamGiaSuKien->thoi_gian_diem_danh : '';
-$phuong_thuc_diem_danh = isset($thamGiaSuKien) ? $thamGiaSuKien->phuong_thuc_diem_danh : 'manual';
-$ghi_chu = isset($thamGiaSuKien) ? $thamGiaSuKien->ghi_chu : '';
-$status = isset($thamGiaSuKien) ? (string)$thamGiaSuKien->status : '1';
-$id = isset($thamGiaSuKien) ? $thamGiaSuKien->tham_gia_su_kien_id : '';
+$nguoi_dung_id = isset($thamGiaSuKien) ? $thamGiaSuKien->getNguoiDungId() : '';
+$su_kien_id = isset($thamGiaSuKien) ? $thamGiaSuKien->getSuKienId() : '';
+$thoi_gian_diem_danh = isset($thamGiaSuKien) ? $thamGiaSuKien->getThoiGianDiemDanh() : '';
+$phuong_thuc_diem_danh = isset($thamGiaSuKien) ? $thamGiaSuKien->getPhuongThucDiemDanh() : 'manual';
+$ghi_chu = isset($thamGiaSuKien) ? $thamGiaSuKien->getGhiChu() : '';
+$status = isset($thamGiaSuKien) ? (string)$thamGiaSuKien->isActive() : '1';
+$id = isset($thamGiaSuKien) ? $thamGiaSuKien->getId() : '';
 
 // Set default values for form action and method
 $action = isset($action) ? $action : site_url('thamgiasukien/create');
 $method = isset($method) ? $method : 'POST';
 
 // Xác định tiêu đề form dựa trên mode
-$isUpdate = isset($thamGiaSuKien) && isset($thamGiaSuKien->tham_gia_su_kien_id);
+$isUpdate = isset($thamGiaSuKien) && $thamGiaSuKien->getId() > 0;
 
-// Format thời gian điểm danh cho input datetime-local nếu có
+// Format thời gian điểm danh cho input datetime-local
 if (!empty($thoi_gian_diem_danh)) {
     try {
-        // Đảm bảo thời gian điểm danh có định dạng Y-m-d\TH:i
         if ($thoi_gian_diem_danh instanceof \CodeIgniter\I18n\Time) {
-            $thoi_gian_diem_danh = $thoi_gian_diem_danh->format('Y-m-d\TH:i');
+            $thoi_gian_diem_danh = $thoi_gian_diem_danh->format('Y-m-d\TH:i:s');
         } else {
-            // Xử lý nhiều định dạng có thể có
-            $date = date_create($thoi_gian_diem_danh);
-            if ($date) {
-                $thoi_gian_diem_danh = date_format($date, 'Y-m-d\TH:i');
-            } else {
-                // Nếu không thể parse, để trống để người dùng nhập lại
-                $thoi_gian_diem_danh = '';
-            }
+            $date = new \DateTime($thoi_gian_diem_danh);
+            $thoi_gian_diem_danh = $date->format('Y-m-d\TH:i:s');
         }
     } catch (\Exception $e) {
-        // Nếu có lỗi xử lý thời gian, để trống
-        $thoi_gian_diem_danh = '';
         log_message('error', 'Lỗi định dạng thời gian điểm danh: ' . $e->getMessage());
+        $thoi_gian_diem_danh = '';
     }
+} else {
+    // Nếu không có giá trị, đặt giá trị mặc định là thời gian hiện tại
+    $now = new \DateTime();
+    $thoi_gian_diem_danh = $now->format('Y-m-d\TH:i:s');
 }
 
-// Nếu không có giá trị, đặt giá trị mặc định là thời gian hiện tại
-if (empty($thoi_gian_diem_danh)) {
-    $now = new \DateTime();
-    $thoi_gian_diem_danh = $now->format('Y-m-d\TH:i');
-}
+// Lấy giá trị từ old() nếu có
+$thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
 ?>
 
 <!-- Form chính -->
@@ -206,20 +199,21 @@ if (empty($thoi_gian_diem_danh)) {
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-time'></i></span>
-                        <input type="datetime-local" class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_diem_danh') ? 'is-invalid' : '' ?>" 
-                                id="thoi_gian_diem_danh" name="thoi_gian_diem_danh" 
-                                value="<?= old('thoi_gian_diem_danh', $thoi_gian_diem_danh) ?>">
+                        <input type="datetime-local" 
+                               class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_diem_danh') ? 'is-invalid' : '' ?>" 
+                               id="thoi_gian_diem_danh" 
+                               name="thoi_gian_diem_danh" 
+                               value="<?= $thoi_gian_diem_danh ?>"
+                               step="1">
                         <?php if (isset($validation) && $validation->hasError('thoi_gian_diem_danh')): ?>
                             <div class="invalid-feedback">
                                 <?= $validation->getError('thoi_gian_diem_danh') ?>
                             </div>
-                        <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng nhập đúng định dạng ngày giờ</div>
                         <?php endif; ?>
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Định dạng: YYYY-MM-DD HH:MM (ví dụ: <?= date('Y-m-d H:i') ?>)
+                        Để trống nếu chưa điểm danh. Định dạng: YYYY-MM-DD HH:mm:ss
                     </div>
                 </div>
 
@@ -393,6 +387,27 @@ if (empty($thoi_gian_diem_danh)) {
         if (nguoiDungInput && suKienInput) {
             nguoiDungInput.addEventListener('change', checkUserEventParticipation);
             suKienInput.addEventListener('change', checkUserEventParticipation);
+        }
+
+        // Xử lý thời gian điểm danh
+        const thoiGianInput = document.getElementById('thoi_gian_diem_danh');
+        if (thoiGianInput) {
+            // Đặt giá trị mặc định là thời gian hiện tại nếu trống
+            if (!thoiGianInput.value) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                thoiGianInput.value = now.toISOString().slice(0, 19);
+            }
+            
+            // Xử lý khi thay đổi giá trị
+            thoiGianInput.addEventListener('change', function(e) {
+                if (e.target.value) {
+                    // Chuyển đổi sang định dạng YYYY-MM-DD HH:mm:ss
+                    const date = new Date(e.target.value);
+                    const formattedDate = date.toISOString().slice(0, 19).replace('T', ' ');
+                    e.target.value = formattedDate;
+                }
+            });
         }
     });
 </script> 

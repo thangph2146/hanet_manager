@@ -21,7 +21,11 @@ class ThamGiaSuKien extends BaseEntity
         'tham_gia_su_kien_id' => 'int',
         'nguoi_dung_id' => 'int',
         'su_kien_id' => 'int',
-        'status' => 'int'
+        'status' => 'int',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+        'deleted_at' => 'timestamp',
+        'thoi_gian_diem_danh' => 'timestamp'
     ];
     
     // Định nghĩa các trường là khóa ngoại
@@ -54,7 +58,7 @@ class ThamGiaSuKien extends BaseEntity
             'label' => 'ID sự kiện'
         ],
         'thoi_gian_diem_danh' => [
-            'rules' => 'permit_empty',
+            'rules' => 'permit_empty|valid_date[Y-m-d H:i:s]|valid_date[Y-m-d H:i]|valid_date[Y-m-d]',
             'label' => 'Thời gian điểm danh'
         ],
         'phuong_thuc_diem_danh' => [
@@ -83,6 +87,7 @@ class ThamGiaSuKien extends BaseEntity
             'greater_than' => '{field} phải lớn hơn 0'
         ],
         'thoi_gian_diem_danh' => [
+            'valid_date' => '{field} không hợp lệ. Định dạng phải là: YYYY-MM-DD HH:mm:ss hoặc YYYY-MM-DD HH:mm hoặc YYYY-MM-DD'
         ],
         'phuong_thuc_diem_danh' => [
             'required' => '{field} là bắt buộc',
@@ -125,21 +130,96 @@ class ThamGiaSuKien extends BaseEntity
     }
     
     /**
-     * Lấy thời gian điểm danh đã định dạng
+     * Lấy thời gian điểm danh
      *
-     * @return string
+     * @return string|null
      */
-    public function getThoiGianDiemDanhFormatted(): string
+    public function getThoiGianDiemDanh(): ?string
     {
         if (empty($this->attributes['thoi_gian_diem_danh'])) {
-            return '<span class="text-muted fst-italic">Chưa điểm danh</span>';
+            return null;
         }
         
-        $time = $this->attributes['thoi_gian_diem_danh'] instanceof Time 
-            ? $this->attributes['thoi_gian_diem_danh'] 
-            : new Time($this->attributes['thoi_gian_diem_danh']);
-            
-        return $time->format('d/m/Y H:i:s');
+        try {
+            $time = $this->attributes['thoi_gian_diem_danh'] instanceof Time 
+                ? $this->attributes['thoi_gian_diem_danh'] 
+                : new Time($this->attributes['thoi_gian_diem_danh']);
+                
+            return $time->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi format thời gian điểm danh: ' . $e->getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Đặt thời gian điểm danh
+     *
+     * @param string|Time|null $time Thời gian điểm danh
+     * @return $this
+     */
+    public function setThoiGianDiemDanh($time = null)
+    {
+        if ($time === null) {
+            $this->attributes['thoi_gian_diem_danh'] = null;
+            return $this;
+        }
+
+        try {
+            if ($time instanceof Time) {
+                $this->attributes['thoi_gian_diem_danh'] = $time;
+                return $this;
+            }
+
+            // Nếu là chuỗi, thử parse theo các định dạng cụ thể
+            if (is_string($time)) {
+                // Thử các định dạng được chấp nhận
+                $formats = [
+                    'Y-m-d H:i:s',
+                    'Y-m-d H:i',
+                    'Y-m-d'
+                ];
+
+                foreach ($formats as $format) {
+                    $parsedTime = Time::createFromFormat($format, $time);
+                    if ($parsedTime !== false) {
+                        // Chuyển đổi sang định dạng TIMESTAMP chuẩn
+                        $this->attributes['thoi_gian_diem_danh'] = $parsedTime;
+                        return $this;
+                    }
+                }
+
+                throw new \InvalidArgumentException('Định dạng thời gian không hợp lệ. Vui lòng sử dụng định dạng: YYYY-MM-DD HH:mm:ss hoặc YYYY-MM-DD HH:mm hoặc YYYY-MM-DD');
+            }
+
+            throw new \InvalidArgumentException('Kiểu dữ liệu không hợp lệ cho thời gian điểm danh');
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi khi set thời gian điểm danh: ' . $e->getMessage() . ' Input: ' . print_r($time, true));
+            $this->attributes['thoi_gian_diem_danh'] = null;
+        }
+
+        return $this;
+    }
+    
+    /**
+     * Lấy thời gian điểm danh dưới dạng Time object
+     *
+     * @return Time|null
+     */
+    public function getThoiGianDiemDanhTime(): ?Time
+    {
+        if (empty($this->attributes['thoi_gian_diem_danh'])) {
+            return null;
+        }
+
+        try {
+            return $this->attributes['thoi_gian_diem_danh'] instanceof Time 
+                ? $this->attributes['thoi_gian_diem_danh'] 
+                : new Time($this->attributes['thoi_gian_diem_danh']);
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi khi chuyển đổi thời gian điểm danh: ' . $e->getMessage());
+            return null;
+        }
     }
     
     /**
@@ -240,7 +320,7 @@ class ThamGiaSuKien extends BaseEntity
             ? $this->attributes['created_at'] 
             : new Time($this->attributes['created_at']);
             
-        return $time->format('d/m/Y H:i:s');
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
@@ -258,7 +338,7 @@ class ThamGiaSuKien extends BaseEntity
             ? $this->attributes['updated_at'] 
             : new Time($this->attributes['updated_at']);
             
-        return $time->format('d/m/Y H:i:s');
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
@@ -276,7 +356,7 @@ class ThamGiaSuKien extends BaseEntity
             ? $this->attributes['deleted_at'] 
             : new Time($this->attributes['deleted_at']);
             
-        return $time->format('d/m/Y H:i:s');
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
