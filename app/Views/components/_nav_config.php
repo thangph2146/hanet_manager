@@ -281,6 +281,24 @@ function nav_config() {
                 ]
             ],
             [
+                'title' => 'Quản lý Diễn giả',
+                'icon' => 'bx bx-calendar-event',
+                'submenu' => [
+                    [
+                        'title' => 'Danh Sách Diễn giả',
+                        'url' => site_url('diengia')
+                    ],
+                    [
+                        'title' => 'Danh sách Diễn giả bị xóa',
+                        'url' => site_url('diengia/listdeleted')
+                    ],
+                    [
+                        'title' => 'Thêm Diễn giả mới',
+                        'url' => site_url('diengia/new')
+                    ]
+                ]
+            ],
+            [
                 'title' => 'Quản lý Template',
                 'icon' => 'bx bx-calendar-event',
                 'submenu' => [

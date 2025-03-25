@@ -1,51 +1,55 @@
-<?php $this->extend('layouts/default') ?>
+<?= $this->extend('layouts/default') ?>
+<?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-
-<?php $this->section('styles') ?>
-<?= facenguoidung_css('form') ?>
+<?= page_css('form') ?>
+<?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>THÊM MỚI KHUÔN MẶT NGƯỜI DÙNG<?= $this->endSection() ?>
+<?= $this->section('title') ?>THÊM MỚI DIỄN GIẢ<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thêm mới khuôn mặt người dùng',
-	'dashboard_url' => site_url('facenguoidung'),
+	'title' => 'Thêm mới diễn giả',
+	'dashboard_url' => site_url('diengia/dashboard'),
 	'breadcrumbs' => [
-		['title' => 'Quản lý khuôn mặt người dùng', 'url' => site_url('facenguoidung')],
+		['title' => 'Quản lý Diễn giả', 'url' => site_url('diengia')],
 		['title' => 'Thêm mới', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/facenguoidung'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+		['url' => site_url('/diengia'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<?= $this->include('App\Modules\facenguoidung\Views\form', [
-	'action' => site_url('facenguoidung/create'),
-	'method' => 'POST',
-	'nguoidungs' => $nguoidungs ?? [],
-	'is_new' => true
-]) ?>
+<div class="card shadow-sm">
+	<div class="card-body">
+		<?= form_open_multipart(site_url('diengia/create'), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-diengia']) ?>
+			<?php
+			// Xác định rõ là form thêm mới, không cần dien_gia_id
+			$is_new = true;
+			// Include form fields
+			include __DIR__ . '/form.php';
+			?>
+		<?= form_close() ?>
+	</div>
+</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= facenguoidung_js('form') ?>
+<?= page_js('form') ?>
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
-		const form = document.getElementById('faceForm');
+		const form = document.getElementById('form-diengia');
 		
 		// Validate form khi submit
-		if (form) {
-			form.addEventListener('submit', function (event) {
-				if (!form.checkValidity()) {
-					event.preventDefault();
-					event.stopPropagation();
-				}
-				
-				form.classList.add('was-validated');
-			});
-		}
+		form.addEventListener('submit', function (event) {
+			if (!form.checkValidity()) {
+				event.preventDefault();
+				event.stopPropagation();
+			}
+			
+			form.classList.add('was-validated');
+		});
 	});
 </script>
 <?= $this->endSection() ?> 

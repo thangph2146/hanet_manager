@@ -23,6 +23,7 @@ class ManhinhModel extends BaseModel
         'ma_man_hinh',
         'camera_id',
         'template_id',
+        'dien_gia_id',
         'status',
         'bin',
         'created_at',

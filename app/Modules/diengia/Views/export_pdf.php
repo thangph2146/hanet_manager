@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sách khuôn mặt người dùng</title>
+    <title><?= $title ?></title>
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -28,6 +28,11 @@
             text-align: right;
             margin-bottom: 20px;
             font-style: italic;
+        }
+        .filters {
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #555;
         }
         table {
             width: 100%;
@@ -64,66 +69,55 @@
             color: red;
             font-weight: bold;
         }
-        .img-thumbnail {
-            max-width: 60px;
-            border: 1px solid #ddd;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>DANH SÁCH KHUÔN MẶT NGƯỜI DÙNG</h1>
+            <h1><?= $title ?></h1>
         </div>
         
         <div class="date">
-            Ngày xuất: <?= isset($date) ? $date : date('d/m/Y H:i:s') ?>
+            Ngày xuất: <?= $date ?>
         </div>
+        
+        <?php if (isset($filters) && !empty($filters)): ?>
+        <div class="filters">
+            <strong>Bộ lọc:</strong> <?= $filters ?>
+        </div>
+        <?php endif; ?>
         
         <table>
             <thead>
                 <tr>
                     <th width="5%">STT</th>
-                    <th width="10%">ID</th>
-                    <th width="25%">Người dùng</th>
-                    <th width="15%">Hình ảnh</th>
-                    <th width="15%">Ngày cập nhật</th>
+                    <th width="10%">Tên Diễn giả</th>
+                    <th width="25%">Chức danh</th>
+                    <th width="15%">Tổ chức</th>
+                    <th width="10%">Giới thiệu</th>
                     <th width="10%">Trạng thái</th>
-                    <?php if (isset($is_deleted) && $is_deleted): ?>
-                    <th width="15%">Ngày xóa</th>
+                    <?php if (isset($diengias) && isset($diengias[0]->deleted_at) && $diengias[0]->deleted_at): ?>
+                    <th width="10%">Ngày xóa</th>
                     <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
-                <?php if (!empty($items)): ?>
-                    <?php $i = 1; foreach ($items as $item): ?>
+                <?php 
+                $dataArray = isset($diengias) ? $diengias : (isset($diengias) ? $diengias : []);
+                $hasDeletedField = false;
+                if (!empty($dataArray) && isset($dataArray[0]->deleted_at) && $dataArray[0]->deleted_at) {
+                    $hasDeletedField = true;
+                }
+                ?>
+                
+                <?php if (!empty($dataArray)): ?>
+                    <?php $i = 1; foreach ($dataArray as $item): ?>
                         <tr>
                             <td class="text-center"><?= $i++ ?></td>
-                            <td class="text-center"><?= $item->face_nguoi_dung_id ?></td>
-                            <td>
-                                <?php if (isset($item->nguoi_dung) && !empty($item->nguoi_dung)): ?>
-                                    <strong><?= esc($item->nguoi_dung->ho_ten) ?></strong>
-                                    <?php if (!empty($item->nguoi_dung->email)): ?>
-                                        <br><span style="font-size: 10px;"><?= esc($item->nguoi_dung->email) ?></span>
-                                    <?php endif; ?>
-                                <?php else: ?>
-                                    <span>Không có thông tin</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="text-center">
-                                <?php if (!empty($item->duong_dan_anh)): ?>
-                                    <span>[Đã có ảnh]</span>
-                                <?php else: ?>
-                                    <span>Không có ảnh</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="text-center">
-                                <?php if (!empty($item->ngay_cap_nhat)): ?>
-                                    <?= date('d/m/Y H:i', strtotime($item->ngay_cap_nhat)) ?>
-                                <?php else: ?>
-                                    <span>Chưa cập nhật</span>
-                                <?php endif; ?>
-                            </td>
+                            <td><?= esc($item->ten_dien_gia) ?></td>
+                            <td><?= esc($item->chuc_danh) ?></td>
+                            <td><?= esc($item->to_chuc) ?></td>
+                            <td><?= esc($item->gioi_thieu) ?></td>
                             <td class="text-center">
                                 <?php if ($item->status == 1): ?>
                                     <span class="status-active">Hoạt động</span>
@@ -131,7 +125,7 @@
                                     <span class="status-inactive">Không hoạt động</span>
                                 <?php endif; ?>
                             </td>
-                            <?php if (isset($is_deleted) && $is_deleted): ?>
+                            <?php if ($hasDeletedField): ?>
                             <td class="text-center">
                                 <?php if (!empty($item->deleted_at)): ?>
                                     <?= date('d/m/Y H:i', strtotime($item->deleted_at)) ?>
@@ -142,14 +136,14 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="<?= isset($is_deleted) && $is_deleted ? 7 : 6 ?>" class="text-center">Không có dữ liệu</td>
+                        <td colspan="<?= $hasDeletedField ? 8 : 7 ?>" class="text-center">Không có dữ liệu</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
         
         <div class="footer">
-            Tài liệu này được xuất tự động từ hệ thống quản lý khuôn mặt người dùng - <?= date('Y') ?>
+            Tài liệu này được xuất tự động từ hệ thống quản lý diễn giả - <?= date('Y') ?>
         </div>
     </div>
 </body>

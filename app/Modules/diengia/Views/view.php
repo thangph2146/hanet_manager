@@ -1,32 +1,30 @@
-<?php $this->extend('layouts/default') ?>
+<?= $this->extend('layouts/default') ?>
+<?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
+<?= page_css('view') ?>
+<?= $this->endSection() ?>
+<?= $this->section('title') ?>CHI TIẾT DIỄN GIẢ<?= $this->endSection() ?>
 
-<?php $this->section('styles') ?>
-<?= nganh_css('view') ?>
-<?php $this->endSection() ?>
-
-<?php $this->section('title') ?>CHI TIẾT KHUÔN MẶT NGƯỜI DÙNG<?php $this->endSection() ?>
-
-<?php $this->section('bread_cum_link') ?>
+<?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Chi tiết khuôn mặt người dùng',
-    'dashboard_url' => site_url('facenguoidung'),
+    'title' => 'Chi tiết diễn giả',
+    'dashboard_url' => site_url('diengia/dashboard'),
     'breadcrumbs' => [
-        ['title' => 'Quản lý khuôn mặt người dùng', 'url' => site_url('facenguoidung')],
+        ['title' => 'Quản lý Diễn giả', 'url' => site_url('diengia')],
         ['title' => 'Chi tiết', 'active' => true]
     ],
     'actions' => [
-        ['url' => site_url('/facenguoidung'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+        ['url' => site_url('/diengia'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
     ]
 ]) ?>
-<?php $this->endSection() ?>
+<?= $this->endSection() ?>
 
-<?php $this->section("content") ?>
+<?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Chi tiết khuôn mặt người dùng</h5>
+        <h5 class="card-title mb-0">Chi tiết diễn giả <?= esc($diengia->ten_dien_gia) ?></h5>
         <div class="d-flex gap-2">
-            <a href="<?= site_url("facenguoidung/edit/{$item->face_nguoi_dung_id}") ?>" class="btn btn-sm btn-primary">
+            <a href="<?= site_url("diengia/edit/{$diengia->dien_gia_id}") ?>" class="btn btn-sm btn-primary">
                 <i class="bx bx-edit me-1"></i> Chỉnh sửa
             </a>
             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
@@ -49,83 +47,58 @@
             </div>
         <?php endif; ?>
         
-        <div class="row">
-            <div class="col-md-6">
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <th style="width: 200px;">ID</th>
-                                <td><?= esc($item->face_nguoi_dung_id) ?></td>
-                            </tr>
-                            <tr>
-                                <th>Người dùng</th>
-                                <td>
-                                    <?php if (isset($item->nguoi_dung) && !empty($item->nguoi_dung)) : ?>
-                                        <?= esc($item->nguoi_dung->ho_ten) ?> 
-                                        <?php if (!empty($item->nguoi_dung->email)) : ?>
-                                            (<?= esc($item->nguoi_dung->email) ?>)
-                                        <?php endif; ?>
-                                    <?php else : ?>
-                                        <span class="text-muted">Không tìm thấy thông tin người dùng</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Ngày cập nhật ảnh</th>
-                                <td>
-                                    <?php if (!empty($item->ngay_cap_nhat)) : ?>
-                                        <?= date('d/m/Y H:i:s', strtotime($item->ngay_cap_nhat)) ?>
-                                    <?php else : ?>
-                                        <span class="text-muted">Chưa có thông tin</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Trạng thái</th>
-                                <td>
-                                    <?php if ($item->status == 1) : ?>
-                                        <span class="badge bg-success">Hoạt động</span>
-                                    <?php else : ?>
-                                        <span class="badge bg-danger">Không hoạt động</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Ngày tạo</th>
-                                <td><?= date('d/m/Y H:i:s', strtotime($item->created_at)) ?></td>
-                            </tr>
-                            <tr>
-                                <th>Cập nhật lần cuối</th>
-                                <td>
-                                    <?php if (!empty($item->updated_at)) : ?>
-                                        <?= date('d/m/Y H:i:s', strtotime($item->updated_at)) ?>
-                                    <?php else : ?>
-                                        <span class="text-muted">Chưa cập nhật</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="card-title mb-0">Ảnh khuôn mặt</h6>
-                    </div>
-                    <div class="card-body text-center">
-                        <?php if (!empty($item->duong_dan_anh)) : ?>
-                            <img src="<?= base_url($item->duong_dan_anh) ?>" alt="Ảnh khuôn mặt" class="img-fluid img-thumbnail" style="max-height: 300px;">
-                            <p class="mt-2 mb-0 text-muted small">Đường dẫn: <?= esc($item->duong_dan_anh) ?></p>
-                        <?php else : ?>
-                            <div class="alert alert-info mb-0">
-                                <i class="bx bx-info-circle me-1"></i> Không có ảnh khuôn mặt
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <tbody>
+                    <?php if (!empty($diengia->avatar)) : ?>
+                    <tr>
+                        <th style="width: 200px;">Ảnh đại diện</th>
+                        <td>
+                            <img src="<?= $diengia->getAvatarUrl() ?>" alt="<?= esc($diengia->ten_dien_gia) ?>" 
+                                 class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                    <tr>
+                        <th style="width: 200px;">ID diễn giả</th>
+                        <td><?= esc($diengia->dien_gia_id) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Tên diễn giả</th>
+                        <td><?= esc($diengia->ten_dien_gia) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Chức danh</th>
+                        <td><?= esc($diengia->chuc_danh) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Tổ chức</th>
+                        <td><?= esc($diengia->to_chuc) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Giới thiệu</th>
+                        <td><?= nl2br(esc($diengia->gioi_thieu)) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Thứ tự hiển thị</th>
+                        <td><?= esc($diengia->thu_tu) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Ngày tạo</th>
+                        <td><?= date('d/m/Y H:i:s', strtotime($diengia->created_at)) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Cập nhật lần cuối</th>
+                        <td>
+                            <?php if (!empty($diengia->updated_at)) : ?>
+                                <?= date('d/m/Y H:i:s', strtotime($diengia->updated_at)) ?>
+                            <?php else : ?>
+                                <span class="text-muted">Chưa cập nhật</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -139,28 +112,17 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn xóa khuôn mặt của 
-                <?php if (isset($item->nguoi_dung) && !empty($item->nguoi_dung->ho_ten)) : ?>
-                    <strong><?= esc($item->nguoi_dung->ho_ten) ?></strong>
-                <?php else : ?>
-                    <strong>người dùng này</strong>
-                <?php endif; ?> 
-                không?
+                Bạn có chắc chắn muốn xóa diễn giả <strong><?= esc($diengia->ten_dien_gia) ?></strong> không?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <a href="<?= site_url("facenguoidung/delete/{$item->face_nguoi_dung_id}") ?>" class="btn btn-danger">Xóa</a>
+                <a href="<?= site_url("diengia/delete/{$diengia->dien_gia_id}") ?>" class="btn btn-danger">Xóa</a>
             </div>
         </div>
     </div>
 </div>
-<?php $this->endSection() ?>
+<?= $this->endSection() ?>
 
-<?php $this->section('script_ext') ?>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Xử lý form và tương tác
-        console.log('Trang chi tiết khuôn mặt người dùng đã được tải');
-    });
-</script>
-<?php $this->endSection() ?>
+<?= $this->section('script_ext') ?>
+<?= page_js('view') ?>
+<?= $this->endSection() ?>
