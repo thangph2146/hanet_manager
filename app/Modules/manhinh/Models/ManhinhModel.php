@@ -79,9 +79,23 @@ class ManhinhModel extends BaseModel
     {
         // Reset query builder để đảm bảo không có điều kiện nào từ trước
         $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        $this->builder->where('deleted_at', null);
-        $this->builder->where('bin', 0);
+        
+        // Select các trường từ bảng man_hinh và các trường cần thiết từ bảng camera và template
+        $this->builder->select([
+            $this->table . '.*',
+            'camera.ten_camera',
+            'template.ten_template'
+        ]);
+        
+        // Join với bảng camera
+        $this->builder->join('camera', 'camera.camera_id = ' . $this->table . '.camera_id', 'left');
+        
+        // Join với bảng template
+        $this->builder->join('template', 'template.template_id = ' . $this->table . '.template_id', 'left');
+        
+        // Điều kiện lọc
+        $this->builder->where($this->table . '.deleted_at', null);
+        $this->builder->where($this->table . '.bin', 0);
         
         if ($sort && $order) {
             $this->builder->orderBy($sort, $order);
@@ -340,6 +354,7 @@ class ManhinhModel extends BaseModel
         
         // Điều kiện lọc
         $this->builder->where($this->table . '.bin', 1);
+        $this->builder->where($this->table . '.deleted_at IS NOT NULL');
         
         // Thiết lập sắp xếp
         if ($sort && $order) {
@@ -363,6 +378,21 @@ class ManhinhModel extends BaseModel
         
         // Lấy dữ liệu với phân trang
         $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        
+        // Load các quan hệ cho mỗi kết quả
+        foreach ($result as $manhinh) {
+            // Load camera
+            if (isset($manhinh->camera_id)) {
+                $cameraModel = model('App\Modules\camera\Models\CameraModel');
+                $manhinh->camera = $cameraModel->find($manhinh->camera_id);
+            }
+            
+            // Load template
+            if (isset($manhinh->template_id)) {
+                $templateModel = model('App\Modules\template\Models\TemplateModel');
+                $manhinh->template = $templateModel->find($manhinh->template_id);
+            }
+        }
         
         // Đảm bảo kết quả được trả về dù không có dữ liệu
         return $result ?: [];
