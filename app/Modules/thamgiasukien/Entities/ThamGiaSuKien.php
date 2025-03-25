@@ -130,96 +130,16 @@ class ThamGiaSuKien extends BaseEntity
     }
     
     /**
-     * Lấy thời gian điểm danh
+     * Lấy ngày kết thúc dưới dạng chuỗi với định dạng cụ thể
      *
-     * @return string|null
+     * @param string $format
+     * @return string
      */
-    public function getThoiGianDiemDanh(): ?string
+    public function getThoiGianDiemDanhFormatted(string $format = 'd/m/Y H:i:s'): string
     {
-        if (empty($this->attributes['thoi_gian_diem_danh'])) {
-            return null;
-        }
-        
-        try {
-            $time = $this->attributes['thoi_gian_diem_danh'] instanceof Time 
-                ? $this->attributes['thoi_gian_diem_danh'] 
-                : new Time($this->attributes['thoi_gian_diem_danh']);
-                
-            return $time->format('Y-m-d H:i:s');
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi format thời gian điểm danh: ' . $e->getMessage());
-            return null;
-        }
-    }
-    
-    /**
-     * Đặt thời gian điểm danh
-     *
-     * @param string|Time|null $time Thời gian điểm danh
-     * @return $this
-     */
-    public function setThoiGianDiemDanh($time = null)
-    {
-        if ($time === null) {
-            $this->attributes['thoi_gian_diem_danh'] = null;
-            return $this;
-        }
-
-        try {
-            if ($time instanceof Time) {
-                $this->attributes['thoi_gian_diem_danh'] = $time;
-                return $this;
-            }
-
-            // Nếu là chuỗi, thử parse theo các định dạng cụ thể
-            if (is_string($time)) {
-                // Thử các định dạng được chấp nhận
-                $formats = [
-                    'Y-m-d H:i:s',
-                    'Y-m-d H:i',
-                    'Y-m-d'
-                ];
-
-                foreach ($formats as $format) {
-                    $parsedTime = Time::createFromFormat($format, $time);
-                    if ($parsedTime !== false) {
-                        // Chuyển đổi sang định dạng TIMESTAMP chuẩn
-                        $this->attributes['thoi_gian_diem_danh'] = $parsedTime;
-                        return $this;
-                    }
-                }
-
-                throw new \InvalidArgumentException('Định dạng thời gian không hợp lệ. Vui lòng sử dụng định dạng: YYYY-MM-DD HH:mm:ss hoặc YYYY-MM-DD HH:mm hoặc YYYY-MM-DD');
-            }
-
-            throw new \InvalidArgumentException('Kiểu dữ liệu không hợp lệ cho thời gian điểm danh');
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi khi set thời gian điểm danh: ' . $e->getMessage() . ' Input: ' . print_r($time, true));
-            $this->attributes['thoi_gian_diem_danh'] = null;
-        }
-
-        return $this;
-    }
-    
-    /**
-     * Lấy thời gian điểm danh dưới dạng Time object
-     *
-     * @return Time|null
-     */
-    public function getThoiGianDiemDanhTime(): ?Time
-    {
-        if (empty($this->attributes['thoi_gian_diem_danh'])) {
-            return null;
-        }
-
-        try {
-            return $this->attributes['thoi_gian_diem_danh'] instanceof Time 
-                ? $this->attributes['thoi_gian_diem_danh'] 
-                : new Time($this->attributes['thoi_gian_diem_danh']);
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi khi chuyển đổi thời gian điểm danh: ' . $e->getMessage());
-            return null;
-        }
+        return $this->thoi_gian_diem_danh instanceof Time 
+            ? $this->thoi_gian_diem_danh->format($format) 
+            : '';
     }
     
     /**

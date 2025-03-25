@@ -222,7 +222,7 @@ class ThamGiaSuKien extends BaseController
     {
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Thêm mới', current_url());
-         
+        
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
@@ -243,6 +243,18 @@ class ThamGiaSuKien extends BaseController
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
         
+        // Xử lý thoi_gian_diem_danh nếu có giá trị
+        if (!empty($data['thoi_gian_diem_danh'])) {
+            try {
+                $time = Time::parse($data['thoi_gian_diem_danh']);
+                $data['thoi_gian_diem_danh'] = $time->format('Y-m-d H:i:s');
+            } catch (\Exception $e) {
+                log_message('error', 'Lỗi parse thời gian điểm danh: ' . $e->getMessage());
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Thời gian điểm danh không hợp lệ');
+            }
+        }
         // Chuẩn bị quy tắc validation cho thêm mới
         $this->model->prepareValidationRules('insert');
         

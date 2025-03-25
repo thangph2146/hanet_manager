@@ -29,10 +29,10 @@ $isUpdate = isset($thamGiaSuKien) && $thamGiaSuKien->getId() > 0;
 if (!empty($thoi_gian_diem_danh)) {
     try {
         if ($thoi_gian_diem_danh instanceof \CodeIgniter\I18n\Time) {
-            $thoi_gian_diem_danh = $thoi_gian_diem_danh->format('Y-m-d\TH:i:s');
+            $thoi_gian_diem_danh = $thoi_gian_diem_danh->format('Y-m-d H:i:s');
         } else {
             $date = new \DateTime($thoi_gian_diem_danh);
-            $thoi_gian_diem_danh = $date->format('Y-m-d\TH:i:s');
+            $thoi_gian_diem_danh = $date->format('Y-m-d H:i:s');
         }
     } catch (\Exception $e) {
         log_message('error', 'Lỗi định dạng thời gian điểm danh: ' . $e->getMessage());
@@ -41,7 +41,7 @@ if (!empty($thoi_gian_diem_danh)) {
 } else {
     // Nếu không có giá trị, đặt giá trị mặc định là thời gian hiện tại
     $now = new \DateTime();
-    $thoi_gian_diem_danh = $now->format('Y-m-d\TH:i:s');
+    $thoi_gian_diem_danh = $now->format('Y-m-d H:i:s');
 }
 
 // Lấy giá trị từ old() nếu có
@@ -194,17 +194,19 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
 
                 <!-- thoi_gian_diem_danh -->
                 <div class="col-md-6">
-                    <label for="thoi_gian_diem_danh" class="form-label fw-semibold">
+                    <label for="thoi_gian_diem_danh_display" class="form-label fw-semibold">
                         Thời gian điểm danh
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-time'></i></span>
-                        <input type="datetime-local" 
-                               class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_diem_danh') ? 'is-invalid' : '' ?>" 
-                               id="thoi_gian_diem_danh" 
-                               name="thoi_gian_diem_danh" 
-                               value="<?= $thoi_gian_diem_danh ?>"
-                               step="1">
+                        <input type="text" 
+                               class="form-control datetimepicker <?= isset($validation) && $validation->hasError('thoi_gian_diem_danh') ? 'is-invalid' : '' ?>" 
+                               id="thoi_gian_diem_danh_display" 
+                               placeholder="DD/MM/YYYY HH:mm:ss"
+                               value="<?= old('thoi_gian_diem_danh', $thoi_gian_diem_danh) ?>"
+                               autocomplete="off">
+                        <input type="hidden" name="thoi_gian_diem_danh" id="thoi_gian_diem_danh" 
+                               value="<?= old('thoi_gian_diem_danh', $thoi_gian_diem_danh) ?>">
                         <?php if (isset($validation) && $validation->hasError('thoi_gian_diem_danh')): ?>
                             <div class="invalid-feedback">
                                 <?= $validation->getError('thoi_gian_diem_danh') ?>
@@ -213,7 +215,7 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Để trống nếu chưa điểm danh. Định dạng: YYYY-MM-DD HH:mm:ss
+                        Để trống nếu chưa điểm danh. Định dạng: DD/MM/YYYY HH:mm:ss
                     </div>
                 </div>
 
@@ -311,6 +313,25 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
     </div>
 </form>
 
+<!-- Thêm CSS của flatpickr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    /* Tùy chỉnh vị trí của calendar */
+    .flatpickr-calendar {
+        width: 100% !important;
+        max-width: 307px;
+    }
+    
+    /* Đảm bảo calendar hiển thị phía dưới input */
+    .flatpickr-calendar.open {
+        z-index: 1000;
+    }
+</style>
+
+<!-- Thêm thư viện flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Form validation
@@ -389,25 +410,37 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
             suKienInput.addEventListener('change', checkUserEventParticipation);
         }
 
-        // Xử lý thời gian điểm danh
-        const thoiGianInput = document.getElementById('thoi_gian_diem_danh');
-        if (thoiGianInput) {
-            // Đặt giá trị mặc định là thời gian hiện tại nếu trống
-            if (!thoiGianInput.value) {
-                const now = new Date();
-                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                thoiGianInput.value = now.toISOString().slice(0, 19);
-            }
-            
-            // Xử lý khi thay đổi giá trị
-            thoiGianInput.addEventListener('change', function(e) {
-                if (e.target.value) {
-                    // Chuyển đổi sang định dạng YYYY-MM-DD HH:mm:ss
-                    const date = new Date(e.target.value);
-                    const formattedDate = date.toISOString().slice(0, 19).replace('T', ' ');
-                    e.target.value = formattedDate;
+        // Xử lý thời gian điểm danh với flatpickr
+        const configDateTimePicker = {
+            dateFormat: "d/m/Y H:i:s",
+            locale: "vn",
+            allowInput: true,
+            enableTime: true,
+            time_24hr: true,
+            position: "below",
+            static: true,
+            defaultDate: "today",
+            defaultHour: new Date().getHours(),
+            defaultMinute: new Date().getMinutes(),
+            defaultSeconds: new Date().getSeconds(),
+            onChange: function(selectedDates, dateStr, instance) {
+                const hiddenInput = document.getElementById('thoi_gian_diem_danh');
+                if (selectedDates.length > 0) {
+                    const date = selectedDates[0];
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                    hiddenInput.value = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                } else {
+                    hiddenInput.value = '';
                 }
-            });
-        }
+            }
+        };
+        
+        // Áp dụng flatpickr cho trường thời gian điểm danh
+        flatpickr("#thoi_gian_diem_danh_display", configDateTimePicker);
     });
 </script> 
