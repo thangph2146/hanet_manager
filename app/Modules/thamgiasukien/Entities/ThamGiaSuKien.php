@@ -143,6 +143,24 @@ class ThamGiaSuKien extends BaseEntity
     }
     
     /**
+     * Lấy thời gian điểm danh
+     *
+     * @return Time|null
+     */
+    public function getThoiGianDiemDanh(): ?Time
+    {
+        if (empty($this->attributes['thoi_gian_diem_danh'])) {
+            return null;
+        }
+
+        if ($this->attributes['thoi_gian_diem_danh'] instanceof Time) {
+            return $this->attributes['thoi_gian_diem_danh'];
+        }
+
+        return new Time($this->attributes['thoi_gian_diem_danh']);
+    }
+    
+    /**
      * Lấy phương thức điểm danh
      *
      * @return string
