@@ -222,7 +222,7 @@ class ThamGiaSuKien extends BaseController
     {
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Thêm mới', current_url());
-        
+         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
@@ -232,7 +232,7 @@ class ThamGiaSuKien extends BaseController
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
         ];
         
-        return view('App\Modules\thamgiasukien\Views\form', $viewData);
+        return view('App\Modules\thamgiasukien\Views\new', $viewData);
     }
     
     /**
