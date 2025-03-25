@@ -17,10 +17,12 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use CodeIgniter\I18n\Time;
+use App\Modules\thamgiasukien\Traits\ExportTrait;
 
 class ThamGiaSuKien extends BaseController
 {
     use ResponseTrait;
+    use ExportTrait;
     
     protected $model;
     protected $breadcrumb;
@@ -972,257 +974,61 @@ class ThamGiaSuKien extends BaseController
      */
     public function exportExcel()
     {
-        // Lấy tất cả tham số từ URL
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
         $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
         $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
         $su_kien_id = $this->request->getGet('su_kien_id');
-        $sort = $this->request->getGet('sort') ?? 'tham_gia_su_kien_id';
-        $order = $this->request->getGet('order') ?? 'ASC';
-        
-        // Chuẩn bị điều kiện tìm kiếm
-        $searchCriteria = [
-            'keyword' => $keyword,
-            'deleted' => false // Chỉ lấy các bản ghi chưa xóa
-        ];
-        
-        // Thêm điều kiện tìm kiếm nếu có giá trị
-        if ($status !== null && $status !== '') {
-            $searchCriteria['status'] = $status;
-        }
-        
-        if ($phuong_thuc_diem_danh !== null && $phuong_thuc_diem_danh !== '') {
-            $searchCriteria['phuong_thuc_diem_danh'] = $phuong_thuc_diem_danh;
-        }
-        
-        if ($nguoi_dung_id !== null && $nguoi_dung_id !== '') {
-            $searchCriteria['nguoi_dung_id'] = $nguoi_dung_id;
-        }
-        
-        if ($su_kien_id !== null && $su_kien_id !== '') {
-            $searchCriteria['su_kien_id'] = $su_kien_id;
-        }
-        
-        $searchOptions = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả bản ghi
-        ];
-        
-        // Lấy dữ liệu tham gia sự kiện
-        $data = $this->model->search($searchCriteria, $searchOptions);
-        
-        // Tạo file Excel
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        
-        // Thiết lập font chữ và style
-        $sheet->getStyle('A1:H1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:H1')->getFont()->setSize(12);
-        $sheet->getStyle('A1:H1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F5F5F5');
-        $sheet->getStyle('A1:H1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        
-        // Thiết lập tiêu đề
-        $sheet->setCellValue('A1', 'STT');
-        $sheet->setCellValue('B1', 'ID');
-        $sheet->setCellValue('C1', 'Người dùng ID');
-        $sheet->setCellValue('D1', 'Sự kiện ID');
-        $sheet->setCellValue('E1', 'Thời gian điểm danh');
-        $sheet->setCellValue('F1', 'Phương thức điểm danh');
-        $sheet->setCellValue('G1', 'Ghi chú');
-        $sheet->setCellValue('H1', 'Trạng thái');
-        
-        // Điền dữ liệu
-        $row = 2;
-        foreach ($data as $i => $item) {
-            $sheet->setCellValue('A' . $row, $i + 1);
-            $sheet->setCellValue('B' . $row, $item->tham_gia_su_kien_id);
-            $sheet->setCellValue('C' . $row, $item->nguoi_dung_id);
-            $sheet->setCellValue('D' . $row, $item->su_kien_id);
-            
-            // Thời gian điểm danh
-            if (!empty($item->thoi_gian_diem_danh)) {
-                $thoi_gian = $item->thoi_gian_diem_danh instanceof \CodeIgniter\I18n\Time
-                    ? $item->thoi_gian_diem_danh->format('d/m/Y H:i:s')
-                    : date('d/m/Y H:i:s', strtotime($item->thoi_gian_diem_danh));
-                $sheet->setCellValue('E' . $row, $thoi_gian);
-            } else {
-                $sheet->setCellValue('E' . $row, 'Chưa điểm danh');
-            }
-            
-            // Phương thức điểm danh
-            $phuongThuc = 'Thủ công';
-            if ($item->phuong_thuc_diem_danh == 'qr_code') {
-                $phuongThuc = 'QR Code';
-            } elseif ($item->phuong_thuc_diem_danh == 'face_id') {
-                $phuongThuc = 'Face ID';
-            }
-            $sheet->setCellValue('F' . $row, $phuongThuc);
-            
-            // Ghi chú
-            $sheet->setCellValue('G' . $row, $item->ghi_chu ?? '');
-            
-            // Trạng thái
-            $sheet->setCellValue('H' . $row, $item->status == 1 ? 'Hoạt động' : 'Không hoạt động');
-            
-            // Căn giữa các cột
-            $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('F' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            
-            $row++;
-        }
-        
-        // Tự động điều chỉnh độ rộng cột
-        foreach (range('A', 'H') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-        
-        // Thêm border cho toàn bộ bảng
-        $lastRow = $row - 1;
-        $sheet->getStyle('A1:H' . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        
-        // Tạo thông tin bộ lọc
-        $row = $lastRow + 2;
-        $sheet->setCellValue('A' . $row, 'Thông tin bộ lọc:');
-        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
-        $row++;
-        
-        if (!empty($keyword)) {
-            $sheet->setCellValue('A' . $row, 'Từ khóa:');
-            $sheet->setCellValue('B' . $row, $keyword);
-            $row++;
-        }
-        
-        if ($status !== null && $status !== '') {
-            $sheet->setCellValue('A' . $row, 'Trạng thái:');
-            $sheet->setCellValue('B' . $row, $status == 1 ? 'Hoạt động' : 'Không hoạt động');
-            $row++;
-        }
-        
-        if ($phuong_thuc_diem_danh !== null && $phuong_thuc_diem_danh !== '') {
-            $sheet->setCellValue('A' . $row, 'Phương thức điểm danh:');
-            $phuongThucText = 'Thủ công';
-            if ($phuong_thuc_diem_danh == 'qr_code') {
-                $phuongThucText = 'QR Code';
-            } elseif ($phuong_thuc_diem_danh == 'face_id') {
-                $phuongThucText = 'Face ID';
-            }
-            $sheet->setCellValue('B' . $row, $phuongThucText);
-            $row++;
-        }
-        
-        if ($nguoi_dung_id !== null && $nguoi_dung_id !== '') {
-            $sheet->setCellValue('A' . $row, 'Người dùng ID:');
-            $sheet->setCellValue('B' . $row, $nguoi_dung_id);
-            $row++;
-        }
-        
-        if ($su_kien_id !== null && $su_kien_id !== '') {
-            $sheet->setCellValue('A' . $row, 'Sự kiện ID:');
-            $sheet->setCellValue('B' . $row, $su_kien_id);
-            $row++;
-        }
-        
-        $row++;
-        $sheet->setCellValue('A' . $row, 'Tổng số bản ghi:');
-        $sheet->setCellValue('B' . $row, count($data));
-        $row++;
-        
-        $sheet->setCellValue('A' . $row, 'Ngày xuất:');
-        $sheet->setCellValue('B' . $row, date('d/m/Y H:i:s'));
-        
-        // Thiết lập header để tải xuống
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="danh_sach_tham_gia_su_kien.xlsx"');
-        header('Cache-Control: max-age=0');
-        
-        // Tạo file Excel và xuất file
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $writer->save('php://output');
-        exit();
+        $sort = $this->request->getGet('sort') ?? 'thoi_gian_diem_danh';
+        $order = $this->request->getGet('order') ?? 'DESC';
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+        $headers = $this->prepareExcelHeaders();
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
+        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
+        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
+        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_tham_gia_su_kien');
     }
-    
+
     /**
      * Xuất danh sách tham gia sự kiện ra file PDF
      */
     public function exportPdf()
     {
-        // Lấy tất cả tham số từ URL
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
         $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
         $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
         $su_kien_id = $this->request->getGet('su_kien_id');
-        $sort = $this->request->getGet('sort') ?? 'tham_gia_su_kien_id';
-        $order = $this->request->getGet('order') ?? 'ASC';
-        
-        // Chuẩn bị điều kiện tìm kiếm
-        $searchCriteria = [
-            'keyword' => $keyword,
-            'deleted' => false // Chỉ lấy các bản ghi chưa xóa
-        ];
-        
-        // Thêm điều kiện tìm kiếm nếu có giá trị
-        if ($status !== null && $status !== '') {
-            $searchCriteria['status'] = $status;
-        }
-        
-        if ($phuong_thuc_diem_danh !== null && $phuong_thuc_diem_danh !== '') {
-            $searchCriteria['phuong_thuc_diem_danh'] = $phuong_thuc_diem_danh;
-        }
-        
-        if ($nguoi_dung_id !== null && $nguoi_dung_id !== '') {
-            $searchCriteria['nguoi_dung_id'] = $nguoi_dung_id;
-        }
-        
-        if ($su_kien_id !== null && $su_kien_id !== '') {
-            $searchCriteria['su_kien_id'] = $su_kien_id;
-        }
-        
-        $searchOptions = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả bản ghi
-        ];
-        
-        // Lấy dữ liệu tham gia sự kiện
-        $data = $this->model->search($searchCriteria, $searchOptions);
-        
-        // Chuẩn bị dữ liệu cho view
-        $filters = $this->getFilterDescription($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id);
-        $data = [
-            'title' => 'DANH SÁCH THAM GIA SỰ KIỆN',
-            'date' => date('d/m/Y H:i:s'),
-            'data' => $data,
-            'filters' => $filters,
-            'deleted' => false
-        ];
-        
-        // Tạo file PDF với các tùy chọn
-        $options = new Options();
-        $options->set('defaultFont', 'DejaVu Sans');
-        $options->set('isRemoteEnabled', true);
-        $options->set('isHtml5ParserEnabled', true);
-        
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml(view('App\Modules\\' . $this->module_name . '\Views\export_pdf', $data));
-        $dompdf->setPaper('A4', 'landscape');
-        $dompdf->render();
-        
-        // Xuất file
-        $dompdf->stream('danh_sach_tham_gia_su_kien.pdf', ['Attachment' => true]);
-        exit();
+        $sort = $this->request->getGet('sort') ?? 'thoi_gian_diem_danh';
+        $order = $this->request->getGet('order') ?? 'DESC';
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
+        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
+        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
+        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+
+        $this->createPdfFile($data, $filters, 'DANH SÁCH THAM GIA SỰ KIỆN', 'danh_sach_tham_gia_su_kien');
     }
-    
+
     /**
      * Xuất danh sách tham gia sự kiện đã xóa ra file PDF
      */
     public function exportDeletedPdf()
     {
-        // Lấy tất cả tham số từ URL
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
         $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
@@ -1230,71 +1036,27 @@ class ThamGiaSuKien extends BaseController
         $su_kien_id = $this->request->getGet('su_kien_id');
         $sort = $this->request->getGet('sort') ?? 'deleted_at';
         $order = $this->request->getGet('order') ?? 'DESC';
-        
-        // Chuẩn bị điều kiện tìm kiếm
-        $searchCriteria = [
-            'keyword' => $keyword,
-            'deleted' => true // Chỉ lấy các bản ghi đã xóa
-        ];
-        
-        // Thêm điều kiện tìm kiếm nếu có giá trị
-        if ($status !== null && $status !== '') {
-            $searchCriteria['status'] = $status;
-        }
-        
-        if ($phuong_thuc_diem_danh !== null && $phuong_thuc_diem_danh !== '') {
-            $searchCriteria['phuong_thuc_diem_danh'] = $phuong_thuc_diem_danh;
-        }
-        
-        if ($nguoi_dung_id !== null && $nguoi_dung_id !== '') {
-            $searchCriteria['nguoi_dung_id'] = $nguoi_dung_id;
-        }
-        
-        if ($su_kien_id !== null && $su_kien_id !== '') {
-            $searchCriteria['su_kien_id'] = $su_kien_id;
-        }
-        
-        $searchOptions = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả bản ghi
-        ];
-        
-        // Lấy dữ liệu tham gia sự kiện đã xóa
-        $data = $this->model->search($searchCriteria, $searchOptions);
-        
-        // Chuẩn bị dữ liệu cho view
-        $filters = $this->getFilterDescription($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id);
-        $data = [
-            'title' => 'DANH SÁCH THAM GIA SỰ KIỆN ĐÃ XÓA',
-            'date' => date('d/m/Y H:i:s'),
-            'data' => $data,
-            'filters' => $filters,
-            'deleted' => true
-        ];
-        
-        // Tạo file PDF với các tùy chọn
-        $options = new Options();
-        $options->set('defaultFont', 'DejaVu Sans');
-        $options->set('isRemoteEnabled', true);
-        $options->set('isHtml5ParserEnabled', true);
-        
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml(view('App\Modules\\' . $this->module_name . '\Views\export_pdf', $data));
-        $dompdf->setPaper('A4', 'landscape');
-        $dompdf->render();
-        
-        // Xuất file
-        $dompdf->stream('danh_sach_tham_gia_su_kien_da_xoa.pdf', ['Attachment' => true]);
-        exit();
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id, true);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
+        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
+        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
+        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        $filters['Trạng thái'] = 'Đã xóa';
+
+        $this->createPdfFile($data, $filters, 'DANH SÁCH THAM GIA SỰ KIỆN ĐÃ XÓA', 'danh_sach_tham_gia_su_kien_da_xoa', true);
     }
-    
+
     /**
      * Xuất danh sách tham gia sự kiện đã xóa ra file Excel
      */
     public function exportDeletedExcel()
     {
-        // Lấy tất cả tham số từ URL
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
         $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
@@ -1302,224 +1064,21 @@ class ThamGiaSuKien extends BaseController
         $su_kien_id = $this->request->getGet('su_kien_id');
         $sort = $this->request->getGet('sort') ?? 'deleted_at';
         $order = $this->request->getGet('order') ?? 'DESC';
-        
-        // Chuẩn bị điều kiện tìm kiếm
-        $searchCriteria = [
-            'keyword' => $keyword,
-            'deleted' => true // Chỉ lấy các bản ghi đã xóa
-        ];
-        
-        // Thêm điều kiện tìm kiếm nếu có giá trị
-        if ($status !== null && $status !== '') {
-            $searchCriteria['status'] = $status;
-        }
-        
-        if ($phuong_thuc_diem_danh !== null && $phuong_thuc_diem_danh !== '') {
-            $searchCriteria['phuong_thuc_diem_danh'] = $phuong_thuc_diem_danh;
-        }
-        
-        if ($nguoi_dung_id !== null && $nguoi_dung_id !== '') {
-            $searchCriteria['nguoi_dung_id'] = $nguoi_dung_id;
-        }
-        
-        if ($su_kien_id !== null && $su_kien_id !== '') {
-            $searchCriteria['su_kien_id'] = $su_kien_id;
-        }
-        
-        $searchOptions = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả bản ghi
-        ];
-        
-        // Lấy dữ liệu tham gia sự kiện đã xóa
-        $data = $this->model->search($searchCriteria, $searchOptions);
-        
-        // Tạo file Excel
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        
-        // Thiết lập font chữ và style
-        $sheet->getStyle('A1:I1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:I1')->getFont()->setSize(12);
-        $sheet->getStyle('A1:I1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F5F5F5');
-        $sheet->getStyle('A1:I1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        
-        // Thiết lập tiêu đề
-        $tieu_de = ['A1'=>'STT', 
-                    'B1'=>'ID', 
-                    'C1'=>'Người dùng ID', 
-                    'D1'=>'Sự kiện ID', 
-                    'E1'=>'Thời gian điểm danh', 
-                    'F1'=>'Phương thức điểm danh', 
-                    'G1'=>'Ghi chú', 
-                    'H1'=>'Trạng thái', 
-                    'I1'=>'Ngày xóa'];
-        foreach ($tieu_de as $key => $value) {
-            $sheet->setCellValue($key, $value);
-        }
-        
-        // Điền dữ liệu
-        $row = 2;
-        foreach ($data as $i => $item) {
-            $sheet->setCellValue('A' . $row, $i + 1);
-            $sheet->setCellValue('B' . $row, $item->tham_gia_su_kien_id);
-            $sheet->setCellValue('C' . $row, $item->nguoi_dung_id);
-            $sheet->setCellValue('D' . $row, $item->su_kien_id);
-            
-            // Thời gian điểm danh
-            if (!empty($item->thoi_gian_diem_danh)) {
-                $thoi_gian = $item->thoi_gian_diem_danh instanceof \CodeIgniter\I18n\Time
-                    ? $item->thoi_gian_diem_danh->format('d/m/Y H:i:s')
-                    : date('d/m/Y H:i:s', strtotime($item->thoi_gian_diem_danh));
-                $sheet->setCellValue('E' . $row, $thoi_gian);
-            } else {
-                $sheet->setCellValue('E' . $row, 'Chưa điểm danh');
-            }
-            
-            // Phương thức điểm danh
-            $phuongThuc = 'Thủ công';
-            if ($item->phuong_thuc_diem_danh == 'qr_code') {
-                $phuongThuc = 'QR Code';
-            } elseif ($item->phuong_thuc_diem_danh == 'face_id') {
-                $phuongThuc = 'Face ID';
-            }
-            $sheet->setCellValue('F' . $row, $phuongThuc);
-            
-            // Ghi chú
-            $sheet->setCellValue('G' . $row, $item->ghi_chu ?? '');
-            
-            // Trạng thái
-            $sheet->setCellValue('H' . $row, $item->status == 1 ? 'Hoạt động' : 'Không hoạt động');
-            
-            // Ngày xóa
-            $deleted_at = !empty($item->deleted_at) 
-                ? ($item->deleted_at instanceof \CodeIgniter\I18n\Time 
-                    ? $item->deleted_at->format('d/m/Y H:i:s') 
-                    : date('d/m/Y H:i:s', strtotime($item->deleted_at)))
-                : '';
-            $sheet->setCellValue('I' . $row, $deleted_at);
-            
-            // Căn giữa các cột
-            $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('F' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            
-            $row++;
-        }
-        
-        // Tự động điều chỉnh độ rộng cột
-        foreach (range('A', 'I') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-        
-        // Thêm border cho toàn bộ bảng
-        $lastRow = $row - 1;
-        $sheet->getStyle('A1:I' . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        
-        // Tạo thông tin bộ lọc
-        $row = $lastRow + 2;
-        $sheet->setCellValue('A' . $row, 'Thông tin bộ lọc:');
-        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
-        $row++;
-        
-        if (!empty($keyword)) {
-            $sheet->setCellValue('A' . $row, 'Từ khóa:');
-            $sheet->setCellValue('B' . $row, $keyword);
-            $row++;
-        }
-        
-        if ($status !== null && $status !== '') {
-            $sheet->setCellValue('A' . $row, 'Trạng thái:');
-            $sheet->setCellValue('B' . $row, $status == 1 ? 'Hoạt động' : 'Không hoạt động');
-            $row++;
-        }
-        
-        if ($phuong_thuc_diem_danh !== null && $phuong_thuc_diem_danh !== '') {
-            $sheet->setCellValue('A' . $row, 'Phương thức điểm danh:');
-            $phuongThucText = 'Thủ công';
-            if ($phuong_thuc_diem_danh == 'qr_code') {
-                $phuongThucText = 'QR Code';
-            } elseif ($phuong_thuc_diem_danh == 'face_id') {
-                $phuongThucText = 'Face ID';
-            }
-            $sheet->setCellValue('B' . $row, $phuongThucText);
-            $row++;
-        }
-        
-        if ($nguoi_dung_id !== null && $nguoi_dung_id !== '') {
-            $sheet->setCellValue('A' . $row, 'Người dùng ID:');
-            $sheet->setCellValue('B' . $row, $nguoi_dung_id);
-            $row++;
-        }
-        
-        if ($su_kien_id !== null && $su_kien_id !== '') {
-            $sheet->setCellValue('A' . $row, 'Sự kiện ID:');
-            $sheet->setCellValue('B' . $row, $su_kien_id);
-            $row++;
-        }
-        
-        $row++;
-        $sheet->setCellValue('A' . $row, 'Tổng số bản ghi:');
-        $sheet->setCellValue('B' . $row, count($data));
-        $row++;
-        
-        $sheet->setCellValue('A' . $row, 'Ngày xuất:');
-        $sheet->setCellValue('B' . $row, date('d/m/Y H:i:s'));
-        
-        // Thiết lập header để tải xuống
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="danh_sach_tham_gia_su_kien_da_xoa.xlsx"');
-        header('Cache-Control: max-age=0');
-        
-        // Tạo file Excel và xuất file
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $writer->save('php://output');
-        exit();
-    }
-    
-    /**
-     * Tạo mô tả bộ lọc
-     *
-     * @param string|null $keyword Từ khóa tìm kiếm
-     * @param string|null $status Trạng thái
-     * @param string|null $phuong_thuc_diem_danh Phương thức điểm danh
-     * @param string|null $nguoi_dung_id ID người dùng
-     * @param string|null $su_kien_id ID sự kiện
-     * @return string
-     */
-    private function getFilterDescription($keyword = null, $status = null, $phuong_thuc_diem_danh = null, $nguoi_dung_id = null, $su_kien_id = null)
-    {
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id, true);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+        $headers = $this->prepareExcelHeaders(true);
+
         $filters = [];
-        
-        if (!empty($keyword)) {
-            $filters[] = "Từ khóa: " . $keyword;
-        }
-        
-        if (isset($status) && $status !== '') {
-            $filters[] = "Trạng thái: " . ($status == 1 ? 'Hoạt động' : 'Không hoạt động');
-        }
-        
-        if (isset($phuong_thuc_diem_danh) && $phuong_thuc_diem_danh !== '') {
-            $phuongThucText = 'Thủ công';
-            if ($phuong_thuc_diem_danh == 'qr_code') {
-                $phuongThucText = 'QR Code';
-            } elseif ($phuong_thuc_diem_danh == 'face_id') {
-                $phuongThucText = 'Face ID';
-            }
-            $filters[] = "Phương thức điểm danh: " . $phuongThucText;
-        }
-        
-        if (isset($nguoi_dung_id) && $nguoi_dung_id !== '') {
-            $filters[] = "Người dùng ID: " . $nguoi_dung_id;
-        }
-        
-        if (isset($su_kien_id) && $su_kien_id !== '') {
-            $filters[] = "Sự kiện ID: " . $su_kien_id;
-        }
-        
-        return implode(', ', $filters);
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
+        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
+        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
+        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        $filters['Trạng thái'] = 'Đã xóa';
+
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_tham_gia_su_kien_da_xoa', true);
     }
 
     // Thêm vào phương thức này để hỗ trợ tìm kiếm các bản ghi đã xóa
