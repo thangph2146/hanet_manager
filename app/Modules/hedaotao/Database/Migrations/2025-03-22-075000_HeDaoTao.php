@@ -28,42 +28,36 @@ class HeDaoTao extends Migration
                 'constraint' => 1,
                 'default' => 1
             ],
-            'bin' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'default' => 0
-            ],
             'created_at' => [
-                'type' => 'TIMESTAMP',
-                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
+                'type' => 'DATETIME',
+                'null' => true
             ],
             'updated_at' => [
-                'type' => 'TIMESTAMP',
-                'null' => true,
-                'on update' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
+                'type' => 'DATETIME',
+                'null' => true
             ],
             'deleted_at' => [
-                'type' => 'TIMESTAMP',
+                'type' => 'DATETIME',
                 'null' => true
             ]
         ]);
 
-        // Add primary key
+        // Thêm khóa chính
         $this->forge->addKey('he_dao_tao_id', true);
         
-        // Add index for ten_he_dao_tao
+        // Thêm chỉ mục cho ten_he_dao_tao
         $this->forge->addKey('ten_he_dao_tao', false, false, 'idx_ten_he_dao_tao');
         
-        // Add unique constraint for ten_he_dao_tao
-        $this->forge->addKey('ten_he_dao_tao', false, true, 'uk_ten_he_dao_tao');
+        // Thêm unique key cho ten_he_dao_tao
+        $this->forge->addUniqueKey('ten_he_dao_tao', 'uk_ten_he_dao_tao');
 
-        // Create the table
+        // Tạo bảng
         $this->forge->createTable('he_dao_tao');
     }
 
     public function down()
     {
-        // Drop the table
+        // Xóa bảng
         $this->forge->dropTable('he_dao_tao');
     }
-}
+} 

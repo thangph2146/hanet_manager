@@ -1,25 +1,26 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= hedaotao_css('table') ?>
+<?= page_css('table') ?>
+<?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>QUẢN LÝ HỆ ĐÀO TẠO<?= $this->endSection() ?>
+<?= $this->section('title') ?>DANH SÁCH HỆ ĐÀO TẠO<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Quản lý Hệ Đào Tạo',
-	'dashboard_url' => site_url('hedaotao/dashboard'),
+	'title' => 'Danh sách hệ đào tạo',
+	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Hệ Đào Tạo', 'active' => true]
+		['title' => 'Quản lý Hệ đào tạo', 'url' => site_url($module_name)],
+		['title' => 'Danh sách', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/hedaotao/new'), 'title' => 'Tạo Hệ Đào Tạo Mới', 'icon' => 'bx bx-plus'],
-		['url' => site_url('/hedaotao/listdeleted'), 'title' => 'Danh sách đã xóa', 'icon' => 'bx bx-trash']
+		['url' => site_url('/' . $module_name . '/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
 	]
 ]) ?>
-<?= $this->endSection() ?>
+<?= $this->endSection() ?>  
 
-<?= $this->section("content") ?>
+<?= $this->section('content') ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">Danh sách hệ đào tạo</h5>
@@ -32,7 +33,7 @@
                     <i class='bx bx-export'></i> Xuất
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#" id="export-excel">Excel</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url($module_name . '/exportExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
                     <li><a class="dropdown-item" href="#" id="export-pdf">PDF</a></li>
                 </ul>
             </div>
@@ -42,31 +43,78 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <?= form_open("hedaotao/deleteMultiple", ['id' => 'form-delete-multiple', 'class' => 'd-inline']) ?>
-                    <button type="button" id="delete-selected" class="btn btn-danger btn-sm me-2" disabled>
-                        <i class='bx bx-trash'></i> Xóa mục đã chọn
-                    </button>
-                    <?= form_close() ?>
-                    
-                    <?= form_open("hedaotao/statusMultiple", ['id' => 'form-status-multiple', 'class' => 'd-inline']) ?>
-                    <button type="button" id="status-selected" class="btn btn-warning btn-sm" disabled>
-                        <i class='bx bx-refresh'></i> Đổi trạng thái
-                    </button>
-                    <?= form_close() ?>
+                    <form id="form-delete-multiple" action="<?= site_url($module_name . '/deleteMultiple') ?>" method="post" class="d-inline">
+                        <?= csrf_field() ?>
+                        <button type="button" id="delete-selected-multiple" class="btn btn-danger btn-sm me-2" disabled>
+                            <i class='bx bx-trash'></i> Xóa mục đã chọn
+                        </button>
+                    </form>
+                    <form id="form-status-multiple" action="<?= site_url($module_name . '/statusMultiple') ?>" method="post" class="d-inline">       
+                        <?= csrf_field() ?>
+                        <button type="button" id="status-selected-multiple" class="btn btn-warning btn-sm" disabled>
+                            <i class='bx bx-toggle-right'></i> Đổi trạng thái
+                        </button>
+                    </form>
+                    <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
+                        <i class='bx bx-trash'></i> Danh sách đã xóa
+                    </a>
                 </div>
                 <div class="col-12 col-md-6">
-                    <div class="input-group">
-                        <input type="text" class="form-control form-control-sm" id="table-search" placeholder="Tìm kiếm...">
-                        <button class="btn btn-outline-secondary btn-sm" type="button" id="search-btn">
-                            <i class='bx bx-search'></i>
-                        </button>
-                    </div>
+                    <form action="<?= site_url($module_name) ?>" method="get" id="search-form">
+                        <input type="hidden" name="page" value="1">
+                        <input type="hidden" name="perPage" value="<?= $perPage ?>">
+                        <div class="input-group search-box">
+                            <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
+                            <select name="status" class="form-select form-select-sm" style="max-width: 140px;">
+                                <option value="">-- Trạng thái --</option>
+                                <option value="1" <?= (isset($status) && $status == '1') ? 'selected' : '' ?>>Hoạt động</option>
+                                <option value="0" <?= (isset($status) && $status == '0') ? 'selected' : '' ?>>Không hoạt động</option>
+                            </select>
+                            <button class="btn btn-outline-secondary btn-sm" type="submit">
+                                <i class='bx bx-search'></i>
+                            </button>
+                            <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
+                            <a href="<?= site_url($module_name) ?>" class="btn btn-outline-danger btn-sm">
+                                <i class='bx bx-x'></i>
+                            </a>
+                            <?php endif; ?>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
+        
+        <?php if (session()->has('error')) : ?>
+            <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                <?= session('error') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (session()->has('success')) : ?>
+            <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+                <?= session('success') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
+            <div class="alert alert-info m-3">
+                <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
+                <div class="small">
+                    <?php if (!empty($keyword)): ?>
+                        <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
+                    <?php endif; ?>
+                    <?php if (isset($status) && $status !== ''): ?>
+                        <span class="badge bg-secondary me-2">Trạng thái: <?= $status == 1 ? 'Hoạt động' : 'Không hoạt động' ?></span>
+                    <?php endif; ?>
+                    <a href="<?= site_url($module_name) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
+                </div>
+            </div>
+        <?php endif; ?>
         <div class="table-responsive">
             <div class="table-container">
-                <table id="dataTable" class="table table-striped table-bordered table-hover m-0 w-100">
+                <table id="dataTable" class="table table-striped table-hover m-0 w-100">
                     <thead class="table-light">
                         <tr>
                             <th width="5%" class="text-center align-middle">
@@ -74,50 +122,64 @@
                                     <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
                                 </div>
                             </th>
-                            <th width="30%" class="align-middle">Tên hệ đào tạo</th>
+                            <th width="5%" class="align-middle">ID</th>
+                            <th width="20%" class="align-middle">Hệ đào tạo</th>
                             <th width="20%" class="align-middle">Mã hệ đào tạo</th>
-                            <th width="15%" class="align-middle">Trạng thái</th>
-                            <th width="15%" class="align-middle">Ngày tạo</th>
-                            <th width="15%" class="text-center align-middle">Hành động</th>
+                            <th width="10%" class="align-middle">Trạng thái</th>
+                            <th width="20%" class="text-center align-middle">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($he_dao_tao)): ?>
-                            <?php foreach ($he_dao_tao as $hdt): ?>
+                        <?php if (!empty($processedData)) : ?>
+                            <?php foreach ($processedData as $item) : ?>
                                 <tr>
-                                    <td class="text-center py-2">
+                                    <td class="text-center">
                                         <div class="form-check">
-                                            <input type="checkbox" name="selected_ids[]" value="<?= $hdt['id'] ?>" class="form-check-input checkbox-item cursor-pointer">
+                                            <input class="form-check-input checkbox-item cursor-pointer" 
+                                            type="checkbox" name="selected_items[]" 
+                                            value="<?= $item->he_dao_tao_id ?>">
                                         </div>
                                     </td>
-                                    <td class="py-2"><?= $hdt['ten_he_dao_tao'] ?></td>
-                                    <td class="py-2"><?= $hdt['ma_he_dao_tao'] ?: '<span class="text-muted fst-italic">Chưa có</span>' ?></td>
-                                    <td class="py-2"><?= $hdt['status'] ?></td>
-                                    <td class="py-2"><?= (new DateTime($hdt['created_at']))->format('d/m/Y H:i') ?></td>
-                                    <td class="text-center py-2">
-                                        <div class="d-flex justify-content-center gap-1">
-                                            <a href="<?= site_url('hedaotao/edit/' . $hdt['id']) ?>" class="btn btn-primary btn-sm" title="Sửa" data-bs-toggle="tooltip">
+                                    <td><?= esc($item->he_dao_tao_id) ?></td>  
+                                    <td><?= esc($item->ten_he_dao_tao) ?></td> 
+                                    <td><?= esc($item->ma_he_dao_tao) ?></td>
+                                    <td>
+                                        <form action="<?= site_url($module_name . '/statusMultiple') ?>" 
+                                            method="post" class="d-inline">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="selected_ids[]" value="<?= $item->he_dao_tao_id ?>">
+                                            <input type="hidden" name="return_url" value="<?= current_url() ?>">
+                                            <button type="submit" class="btn btn-sm <?= $item->status == 1 ? 'btn-success' : 'btn-danger' ?> status-toggle" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="<?= $item->status == 1 ? 'Đang hoạt động - Click để tắt' : 'Đang tắt - Click để bật' ?>">
+                                                <?= $item->status == 1 ? 'Hoạt động' : 'Không hoạt động' ?>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-1 action-btn-group">
+                                            <a href="<?= site_url($module_name . "/view/{$item->he_dao_tao_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                                <i class="bx bx-info-circle text-white"></i>
+                                            </a>
+                                            <a href="<?= site_url($module_name . "/edit/{$item->he_dao_tao_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
                                                 <i class="bx bx-edit"></i>
                                             </a>
-                                            <form action="<?= site_url('hedaotao/status/' . $hdt['id']) ?>" method="post" style="display:inline;">
-                                                <button type="submit" class="btn btn-warning btn-sm" title="Đổi trạng thái" data-bs-toggle="tooltip">
-                                                    <i class="bx bx-refresh"></i>
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm btn-delete" 
-                                            data-id="<?= $hdt['id'] ?>" data-name="<?= $hdt['ten_he_dao_tao'] ?>" title="Xóa" data-bs-toggle="tooltip">
+                                            <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
+                                                    data-id="<?= $item->he_dao_tao_id ?>" 
+                                                    data-name="ID: <?= esc($item->he_dao_tao_id) ?>"
+                                                    data-bs-toggle="tooltip" title="Xóa">
                                                 <i class="bx bx-trash"></i>
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
-                        <?php else: ?>
+                        <?php else : ?>
                             <tr>
-                                <td colspan="6" class="text-center py-3">
-                                    <div class="d-flex flex-column align-items-center py-3">
-                                        <i class='bx bx-info-circle text-secondary mb-2' style="font-size: 2rem;"></i>
-                                        <p class="mb-0">Không có dữ liệu</p>
+                                <td colspan="8" class="text-center py-3">
+                                    <div class="empty-state">
+                                        <i class="bx bx-folder-open"></i>
+                                        <p>Không có dữ liệu</p>
                                     </div>
                                 </td>
                             </tr>
@@ -126,15 +188,36 @@
                 </table>
             </div>
         </div>
-        <?php if (!empty($he_dao_tao)): ?>
-            <div class="card-footer d-flex justify-content-between align-items-center py-2">
-                <div class="text-muted small">Hiển thị <span id="total-records"><?= count($he_dao_tao) ?></span> bản ghi</div>
+        <?php if (!empty($processedData)): ?>
+            <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-2">
+                <div class="col-sm-12 col-md-5">
+                    <div class="dataTables_info">
+                        Hiển thị từ <?= (($pager->getCurrentPage() - 1) * $perPage + 1) ?> đến <?= min(($pager->getCurrentPage() - 1) * $perPage + $perPage, $total) ?> trong số <?= $total ?> bản ghi
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-7">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <div class="me-2">
+                            <select id="perPageSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                                <option value="5" <?= $perPage == 5 ? 'selected' : '' ?>>5</option>
+                                <option value="10" <?= $perPage == 10 ? 'selected' : '' ?>>10</option>
+                                <option value="15" <?= $perPage == 15 ? 'selected' : '' ?>>15</option>
+                                <option value="25" <?= $perPage == 25 ? 'selected' : '' ?>>25</option>
+                                <option value="50" <?= $perPage == 50 ? 'selected' : '' ?>>50</option>
+                            </select>
+                            <span class="ms-1">bản ghi/trang</span>
+                        </div>
+                        <div>
+                            <?= $pager->render() ?>
+                        </div>
+                    </div>
+                </div>
             </div>
         <?php endif; ?>
     </div>
 </div>
 
-<!-- Modal Xác nhận xóa -->
+<!-- Modal xác nhận xóa -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -143,35 +226,41 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center mb-3">
-                    <i class='bx bx-error-circle text-danger' style="font-size: 4rem;"></i>
+                <div class="text-center icon-wrapper mb-3">
+                    <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa hệ đào tạo:</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa bản ghi tham gia sự kiện:</p>
                 <p class="text-center fw-bold" id="delete-item-name"></p>
+                <div class="alert alert-warning mt-3">
+                    <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <form id="delete-form" method="post" style="display: inline;">
-                    <button type="submit" id="btn-confirm-delete" class="btn btn-danger">Xóa</button>
-                </form>
+                <?= form_open('', ['id' => 'delete-form']) ?>
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                <?= form_close() ?>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Xác nhận xóa nhiều -->
+<!-- Modal xác nhận xóa nhiều -->
 <div class="modal fade" id="deleteMultipleModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa nhiều mục</h5>
+                <h5 class="modal-title">Xác nhận xóa nhiều</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center mb-3">
-                    <i class='bx bx-error-circle text-danger' style="font-size: 4rem;"></i>
+                <div class="text-center icon-wrapper mb-3">
+                    <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> hệ đào tạo đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> bản ghi đã chọn?</p>
+                <div class="alert alert-warning mt-3">
+                    <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -181,7 +270,7 @@
     </div>
 </div>
 
-<!-- Modal Xác nhận đổi trạng thái nhiều -->
+<!-- Modal xác nhận đổi trạng thái nhiều -->
 <div class="modal fade" id="statusMultipleModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -190,10 +279,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center mb-3">
-                    <i class='bx bx-question-mark text-warning' style="font-size: 4rem;"></i>
+                <div class="text-center icon-wrapper mb-3">
+                    <i class="bx bx-toggle-right text-warning" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn đổi trạng thái <span id="status-count" class="fw-bold"></span> hệ đào tạo đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> bản ghi đã chọn?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -202,180 +291,15 @@
         </div>
     </div>
 </div>
+
+
+<script>
+    var base_url = '<?= site_url() ?>';
+</script>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= hedaotao_js('table') ?>
-
-<script>
-    $(document).ready(function() {
-        // Kiểm tra xem bảng đã được khởi tạo thành DataTable chưa
-        if (!$.fn.DataTable.isDataTable('#dataTable')) {
-            // Khởi tạo tooltips
-            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            [...tooltips].map(t => new bootstrap.Tooltip(t));
-            
-            // Khởi tạo DataTable với cấu hình tiếng Việt
-            const dataTable = $('#dataTable').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json',
-                },
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                dom: '<"row mx-0"<"col-sm-12 px-0"tr>><"row mx-0 mt-2"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
-                ordering: true,
-                responsive: false,
-                scrollX: false,
-                columnDefs: [
-                    { orderable: false, targets: [0, 5] },
-                    { className: 'align-middle', targets: '_all' }
-                ]
-            });
-            
-            // Tìm kiếm
-            $('#search-btn').on('click', function() {
-                dataTable.search($('#table-search').val()).draw();
-            });
-            
-            $('#table-search').on('keyup', function(e) {
-                if (e.key === 'Enter') {
-                    dataTable.search($(this).val()).draw();
-                }
-            });
-
-            // Cập nhật tổng số bản ghi
-            dataTable.on('draw', function() {
-                $('#total-records').text(dataTable.page.info().recordsTotal);
-            });
-        } else {
-            // Nếu bảng đã được khởi tạo, lấy instance hiện tại
-            const dataTable = $('#dataTable').DataTable();
-            
-            // Cập nhật lại dữ liệu
-            dataTable.draw();
-        }
-        
-        // Làm mới bảng
-        $('#refresh-table').on('click', function() {
-            location.reload();
-        });
-        
-        // Chọn tất cả
-        $('#select-all').on('change', function() {
-            const isChecked = $(this).prop('checked');
-            $('.checkbox-item').prop('checked', isChecked);
-            updateActionButtons();
-        });
-        
-        // Cập nhật trạng thái nút hành động khi checkbox thay đổi
-        $(document).on('change', '.checkbox-item', function() {
-            updateActionButtons();
-            
-            // Nếu bỏ chọn một item, bỏ chọn select-all
-            if (!$(this).prop('checked')) {
-                $('#select-all').prop('checked', false);
-            }
-            
-            // Nếu chọn tất cả items, chọn select-all
-            if ($('.checkbox-item:checked').length === $('.checkbox-item').length) {
-                $('#select-all').prop('checked', true);
-            }
-        });
-        
-        // Function cập nhật trạng thái của các nút hành động
-        function updateActionButtons() {
-            const selectedCount = $('.checkbox-item:checked').length;
-            if (selectedCount > 0) {
-                $('#delete-selected, #status-selected').prop('disabled', false);
-            } else {
-                $('#delete-selected, #status-selected').prop('disabled', true);
-            }
-        }
-        
-        // Xử lý xóa một mục
-        $('.btn-delete').on('click', function() {
-            const id = $(this).data('id');
-            const name = $(this).data('name');
-            $('#delete-item-name').text(name);
-            $('#delete-form').attr('action', '<?= site_url('hedaotao/delete/') ?>' + id);
-            $('#deleteModal').modal('show');
-        });
-        
-        // Xử lý xóa nhiều mục
-        $('#delete-selected').on('click', function() {
-            if ($('.checkbox-item:checked').length > 0) {
-                $('#selected-count').text($('.checkbox-item:checked').length);
-                $('#deleteMultipleModal').modal('show');
-            }
-        });
-        
-        $('#confirm-delete-multiple').on('click', function() {
-            // Tạo form tạm thời chứa các checkbox đã chọn
-            const tempForm = $('#form-delete-multiple');
-            
-            // Xóa form cũ và tạo form mới
-            tempForm.empty();
-            
-            // Thêm các checkbox đã chọn vào form
-            $('.checkbox-item:checked').each(function() {
-                const input = $('<input>').attr({
-                    type: 'hidden',
-                    name: 'selected_ids[]',
-                    value: $(this).val()
-                });
-                tempForm.append(input);
-            });
-            
-            // Cập nhật action và submit form
-            tempForm.attr('action', '<?= site_url('hedaotao/deleteMultiple') ?>');
-            tempForm.submit();
-            
-            // Đóng modal
-            $('#deleteMultipleModal').modal('hide');
-        });
-        
-        // Xử lý đổi trạng thái nhiều mục
-        $('#status-selected').on('click', function() {
-            if ($('.checkbox-item:checked').length > 0) {
-                $('#status-count').text($('.checkbox-item:checked').length);
-                $('#statusMultipleModal').modal('show');
-            }
-        });
-        
-        $('#confirm-status-multiple').on('click', function() {
-            // Tạo form tạm thời chứa các checkbox đã chọn
-            const tempForm = $('#form-status-multiple');
-            
-            // Xóa form cũ và tạo form mới
-            tempForm.empty();
-            
-            // Thêm các checkbox đã chọn vào form
-            $('.checkbox-item:checked').each(function() {
-                const input = $('<input>').attr({
-                    type: 'hidden',
-                    name: 'selected_ids[]',
-                    value: $(this).val()
-                });
-                tempForm.append(input);
-            });
-            
-            // Submit form
-            tempForm.submit();
-            
-            // Đóng modal
-            $('#statusMultipleModal').modal('hide');
-        });
-        
-        // Xuất dữ liệu
-        $('#export-excel').on('click', function(e) {
-            e.preventDefault();
-            alert('Chức năng xuất Excel đang được phát triển');
-        });
-        
-        $('#export-pdf').on('click', function(e) {
-            e.preventDefault();
-            alert('Chức năng xuất PDF đang được phát triển');
-        });
-    });
-</script>
+<?= page_js('table', $module_name) ?>
+<?= page_section_js('table', $module_name) ?>
+<?= page_table_js($module_name) ?>
 <?= $this->endSection() ?> 

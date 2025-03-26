@@ -1,28 +1,40 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= hedaotao_css('form') ?>
+<?= page_css('form') ?>
+<?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CHỈNH SỬA HỆ ĐÀO TẠO<?= $this->endSection() ?>
+<?= $this->section('title') ?>CẬP NHẬT HỆ ĐÀO TẠO<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Chỉnh sửa Hệ Đào Tạo',
-	'dashboard_url' => site_url('hedaotao/dashboard'),
-	'breadcrumbs' => [
-		['title' => 'Quản lý Hệ Đào Tạo', 'url' => site_url('hedaotao')],
-		['title' => 'Chỉnh sửa Hệ Đào Tạo', 'active' => true]
+    'title' => 'Cập nhật hệ đào tạo',
+    'dashboard_url' => site_url($module_name),
+    'breadcrumbs' => [
+        ['title' => 'Quản lý Hệ Đào Tạo', 'url' => site_url($module_name)],
+        ['title' => 'Cập nhật', 'active' => true]
+    ],
+    'actions' => [
+		['url' => site_url($module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<?= view('App\Modules\hedaotao\Views\form', [
-            'action' => site_url('hedaotao/update/' . $he_dao_tao->getId()),
-            'he_dao_tao' => $he_dao_tao
-        ]) ?>
-<?= $this->endSection() ?>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <?= form_open(site_url($module_name . '/update/' . $data->he_dao_tao_id), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+            <?php
+            // Include form fields with namHoc data
+            $action = site_url($module_name . '/update/' . $data->he_dao_tao_id);
+            $method = 'POST';
+            include __DIR__ . '/form.php';
+            ?>
+        <?= form_close() ?>
+    </div>
+</div>
+<?= $this->endSection() ?>  
 
 <?= $this->section('script') ?>
-<?= hedaotao_js('form') ?>
+<?= page_js('form', $module_name) ?>
 <?= $this->endSection() ?> 

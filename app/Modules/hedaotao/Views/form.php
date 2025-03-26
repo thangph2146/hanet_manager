@@ -1,129 +1,217 @@
 <?php
 /**
- * Form component for creating and updating he_dao_tao
+ * Form component for creating and updating bậc học
  * 
  * @var string $action Form submission URL
  * @var string $method Form method (POST or PUT)
- * @var array $he_dao_tao HeDaoTao entity data for editing (optional)
+ * @var Bachoc $data Bachoc entity data for editing (optional)
  */
 
 // Set default values if editing
-$ten_he_dao_tao = isset($he_dao_tao) ? $he_dao_tao->getTenHeDaoTao() : '';
-$ma_he_dao_tao = isset($he_dao_tao) ? $he_dao_tao->getMaHeDaoTao() : '';
-$status = isset($he_dao_tao) ? $he_dao_tao->isActive() : 1;
-$id = isset($he_dao_tao) ? $he_dao_tao->getId() : '';
+$ten_he_dao_tao = isset($data) ? $data->ten_he_dao_tao : '';
+$ma_he_dao_tao = isset($data) ? $data->ma_he_dao_tao : '';
+$status = isset($data) ? (string)$data->status : '1';
+$id = isset($data) ? $data->he_dao_tao_id : '';
 
 // Set default values for form action and method
-$action = isset($action) ? $action : site_url('hedaotao/create');
+$action = isset($action) ? $action : site_url($module_name . '/create');
 $method = isset($method) ? $method : 'POST';
+
+// Xác định tiêu đề form dựa trên mode
+$isUpdate = isset($data) && $data->he_dao_tao_id > 0;
+
+// Lấy giá trị từ old() nếu có
+$ten_he_dao_tao = old('ten_he_dao_tao', $ten_he_dao_tao);
+$ma_he_dao_tao = old('ma_he_dao_tao', $ma_he_dao_tao);
+$status = old('status', $status);
 ?>
 
-<div class="card shadow-sm">
-    <div class="card-header py-3">
-        <h5 class="card-title mb-0">
-            <?= isset($he_dao_tao) ? 'Cập nhật hệ đào tạo' : 'Thêm mới hệ đào tạo' ?>
-        </h5>
-    </div>
-    <div class="card-body">
-        <?= form_open($action, ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-he-dao-tao']) ?>
-            <?php if (isset($he_dao_tao)): ?>
-                <input type="hidden" name="he_dao_tao_id" value="<?= $id ?>">
-            <?php endif; ?>
-            
-            <!-- Hiển thị thông báo lỗi nếu có -->
-            <?php if (session('error')): ?>
-                <div class="col-12">
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class='bx bx-error-circle me-1'></i> <?= session('error') ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- Form chính -->
+<form action="<?= $action ?>" method="<?= $method ?>" id="form-<?= $module_name ?>" class="needs-validation" novalidate>
+    <?= csrf_field() ?>
+    
+    <?php if ($id): ?>
+        <input type="hidden" name="he_dao_tao_id" value="<?= $id ?>">
+    <?php else: ?>
+        <input type="hidden" name="he_dao_tao_id" value="0">
+    <?php endif; ?>
+    
+    <!-- Hiển thị thông báo lỗi nếu có -->
+    <?php if (session('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class='bx bx-error-circle fs-3'></i>
+                </div>
+                <div>
+                    <strong>Lỗi!</strong> <?= session('error') ?>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
+    <!-- Hiển thị lỗi validation -->
+    <?php if (isset($errors) && (is_array($errors) || is_object($errors)) && count($errors) > 0): ?>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class='bx bx-error-circle fs-3'></i>
+                </div>
+                <div>
+                    <strong>Lỗi nhập liệu:</strong>
+                    <ul class="mb-0 ps-3 mt-1">
+                        <?php foreach ($errors as $field => $error): ?>
+                            <li><?= is_array($error) ? implode(', ', $error) : $error ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
+    <!-- Hiển thị thông báo thành công -->
+    <?php if (session('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-start border-success border-4" role="alert">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class='bx bx-check-circle fs-3'></i>
+                </div>
+                <div>
+                    <strong>Thành công!</strong> <?= session('success') ?>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="card-title mb-0">
+                <i class='bx bx-book-open text-primary me-2'></i>
+                Thông tin bậc học
+            </h5>
+        </div>
+        
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- ten_bac_hoc -->
+                <div class="col-md-12">
+                    <label for="ten_bac_hoc" class="form-label fw-semibold">
+                        Tên bậc học <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-book'></i></span>
+                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('ten_he_dao_tao') ? 'is-invalid' : '' ?>" 
+                            id="ten_he_dao_tao" name="ten_he_dao_tao" 
+                            value="<?= esc($ten_he_dao_tao) ?>" 
+                            placeholder="Nhập tên bậc học"
+                            required maxlength="100">
+                        <?php if (isset($validation) && $validation->hasError('ten_bac_hoc')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('ten_he_dao_tao') ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng nhập tên hệ đào tạo</div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Tên hệ đào tạo là duy nhất, tối đa 100 ký tự
                     </div>
                 </div>
-            <?php endif; ?>
-            
-            <!-- ten_he_dao_tao -->
-            <div class="col-md-12 mb-2">
-                <label for="ten_he_dao_tao" class="form-label fw-semibold">
-                    Tên hệ đào tạo <span class="text-danger">*</span>
-                </label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class='bx bx-book-alt'></i></span>
-                    <input type="text" class="form-control <?= session('errors.ten_he_dao_tao') ? 'is-invalid' : '' ?>" 
-                            id="ten_he_dao_tao" name="ten_he_dao_tao" 
-                            value="<?= old('ten_he_dao_tao', $ten_he_dao_tao) ?>" 
-                            placeholder="Nhập tên hệ đào tạo"
-                            required minlength="3" maxlength="100">
-                    <?php if (session('errors.ten_he_dao_tao')): ?>
-                        <div class="invalid-feedback">
-                            <?= session('errors.ten_he_dao_tao') ?>
-                        </div>
-                    <?php else: ?>
-                        <div class="invalid-feedback">Vui lòng nhập tên hệ đào tạo (tối thiểu 3 ký tự)</div>
-                    <?php endif; ?>
-                </div>
-                <div class="form-text">Tên hệ đào tạo không được trùng với các hệ đào tạo khác</div>
-            </div>
 
-            <!-- ma_he_dao_tao -->
-            <div class="col-md-12 mb-2">
-                <label for="ma_he_dao_tao" class="form-label fw-semibold">Mã hệ đào tạo</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class='bx bx-hash'></i></span>
-                    <input type="text" class="form-control <?= session('errors.ma_he_dao_tao') ? 'is-invalid' : '' ?>" 
-                            id="ma_he_dao_tao" name="ma_he_dao_tao" 
-                            value="<?= old('ma_he_dao_tao', $ma_he_dao_tao) ?>" 
-                            placeholder="Nhập mã hệ đào tạo (không bắt buộc)"
-                            maxlength="20">
-                    <?php if (session('errors.ma_he_dao_tao')): ?>
-                        <div class="invalid-feedback">
-                            <?= session('errors.ma_he_dao_tao') ?>
-                        </div>
-                    <?php endif; ?>
+                <!-- ma_bac_hoc -->
+                <div class="col-md-12">
+                    <label for="ma_he_dao_tao" class="form-label fw-semibold">
+                        Mã hệ đào tạo
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-hash'></i></span>
+                        <input type="text" 
+                               class="form-control <?= isset($validation) && $validation->hasError('ma_bac_hoc') ? 'is-invalid' : '' ?>" 
+                               id="ma_he_dao_tao" name="ma_he_dao_tao"
+                               value="<?= esc($ma_he_dao_tao) ?>"
+                               placeholder="Nhập mã hệ đào tạo"
+                               maxlength="20">
+                        <?php if (isset($validation) && $validation->hasError('ma_he_dao_tao')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('ma_he_dao_tao') ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Mã hệ đào tạo tối đa 20 ký tự (không bắt buộc)
+                    </div>
                 </div>
-                <div class="form-text">Mã hệ đào tạo là tùy chọn, tối đa 20 ký tự</div>
-            </div>
 
-            <!-- Status -->
-            <div class="col-md-12 mb-2">
-                <label for="status" class="form-label fw-semibold">Trạng thái</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class='bx bx-toggle-left'></i></span>
-                    <select class="form-select" id="status" name="status">
-                        <option value="1" <?= old('status', $status) == '1' ? 'selected' : '' ?>>Hoạt động</option>
-                        <option value="0" <?= old('status', $status) == '0' ? 'selected' : '' ?>>Không hoạt động</option>
-                    </select>
+                <!-- Status -->
+                <div class="col-md-12">
+                    <label for="status" class="form-label fw-semibold">
+                        Trạng thái <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-toggle-left'></i></span>
+                        <select class="form-select <?= isset($validation) && $validation->hasError('status') ? 'is-invalid' : '' ?>" 
+                               id="status" name="status" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="1" <?= $status == '1' ? 'selected' : '' ?>>Hoạt động</option>
+                            <option value="0" <?= $status == '0' ? 'selected' : '' ?>>Không hoạt động</option>
+                        </select>
+                        <?php if (isset($validation) && $validation->hasError('status')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('status') ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng chọn trạng thái</div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Trạng thái hệ đào tạo trong hệ thống
+                    </div>
                 </div>
             </div>
-
-            <div class="col-12 mt-4">
+        </div>
+        
+        <div class="card-footer bg-light py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">
+                    <i class='bx bx-info-circle me-1'></i>
+                    Các trường có dấu <span class="text-danger">*</span> là bắt buộc
+                </span>
+                
                 <div class="d-flex gap-2">
-                    <button class="btn btn-primary" type="submit">
-                        <i class='bx bx-save me-1'></i>
-                        <?= isset($he_dao_tao) ? 'Cập nhật' : 'Lưu' ?>
-                    </button>
-                    <a href="<?= site_url('hedaotao') ?>" class="btn btn-secondary">
-                        <i class='bx bx-x me-1'></i> Hủy
+                    <a href="<?= site_url($module_name) ?>" class="btn btn-light">
+                        <i class='bx bx-arrow-back me-1'></i> Quay lại
                     </a>
+                    <button class="btn btn-primary px-4" type="submit">
+                        <i class='bx bx-save me-1'></i>
+                        <?= $isUpdate ? 'Cập nhật' : 'Thêm mới' ?>
+                    </button>
                 </div>
             </div>
-        <?= form_close() ?>
+        </div>
     </div>
-</div>
+</form>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('form-he-dao-tao');
-        
-        // Validate form khi submit
-        form.addEventListener('submit', function (event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            
-            form.classList.add('was-validated');
+        // Form validation
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
         });
         
         // Tự động focus vào trường đầu tiên
-        document.getElementById('ten_he_dao_tao').focus();
+        document.getElementById('ten_bac_hoc').focus();
     });
 </script> 

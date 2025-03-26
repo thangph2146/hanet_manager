@@ -8,43 +8,61 @@ use CodeIgniter\I18n\Time;
 class HeDaoTao extends BaseEntity
 {
     protected $tableName = 'he_dao_tao';
+    protected $primaryKey = 'he_dao_tao_id';
+    
     protected $dates = [
         'created_at',
         'updated_at',
-        'deleted_at',
+        'deleted_at'
     ];
     
     protected $casts = [
         'he_dao_tao_id' => 'int',
         'status' => 'int',
-        'bin' => 'int',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+        'deleted_at' => 'timestamp'
     ];
     
-    protected $datamap = [];
+    // Định nghĩa các chỉ mục
+    protected $indexes = [
+        'idx_ten_he_dao_tao' => ['ten_he_dao_tao']
+    ];
     
-    protected $jsonFields = [];
-    
-    protected $hiddenFields = [
-        'deleted_at',
+    // Định nghĩa các ràng buộc unique
+    protected $uniqueKeys = [
+        'uk_ten_he_dao_tao' => ['ten_he_dao_tao']
     ];
     
     // Các quy tắc xác thực cụ thể cho HeDaoTao
     protected $validationRules = [
-        'ten_he_dao_tao' => 'required|min_length[3]|max_length[100]',
-        'ma_he_dao_tao' => 'permit_empty|max_length[20]',
-        'status' => 'permit_empty|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
+        'ten_he_dao_tao' => [
+            'rules' => 'required|max_length[100]|is_unique[he_dao_tao.ten_he_dao_tao,he_dao_tao_id,{he_dao_tao_id}]',
+            'label' => 'Tên hệ đào tạo'
+        ],
+        'ma_he_dao_tao' => [
+            'rules' => 'permit_empty|max_length[20]',
+            'label' => 'Mã hệ đào tạo'
+        ],
+        'status' => [
+            'rules' => 'required|in_list[0,1]',
+            'label' => 'Trạng thái'
+        ]
     ];
     
     protected $validationMessages = [
         'ten_he_dao_tao' => [
-            'required' => 'Tên hệ đào tạo là bắt buộc',
-            'min_length' => 'Tên hệ đào tạo phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên hệ đào tạo không được vượt quá {param} ký tự',
+            'required' => '{field} là bắt buộc',
+            'max_length' => '{field} không được vượt quá 100 ký tự',
+            'is_unique' => '{field} đã tồn tại trong hệ thống'
         ],
         'ma_he_dao_tao' => [
-            'max_length' => 'Mã hệ đào tạo không được vượt quá {param} ký tự',
+            'max_length' => '{field} không được vượt quá 20 ký tự'
         ],
+        'status' => [
+            'required' => '{field} không được để trống',
+            'in_list' => '{field} không hợp lệ'
+        ]
     ];
     
     /**
@@ -54,7 +72,7 @@ class HeDaoTao extends BaseEntity
      */
     public function getId(): int
     {
-        return (int)$this->attributes['he_dao_tao_id'] ?? 0;
+        return (int)($this->attributes[$this->primaryKey] ?? 0);
     }
     
     /**
@@ -68,18 +86,6 @@ class HeDaoTao extends BaseEntity
     }
     
     /**
-     * Cập nhật tên hệ đào tạo
-     *
-     * @param string $tenHeDaoTao
-     * @return $this
-     */
-    public function setTenHeDaoTao(string $tenHeDaoTao)
-    {
-        $this->attributes['ten_he_dao_tao'] = $tenHeDaoTao;
-        return $this;
-    }
-    
-    /**
      * Lấy mã hệ đào tạo
      *
      * @return string|null
@@ -90,29 +96,17 @@ class HeDaoTao extends BaseEntity
     }
     
     /**
-     * Cập nhật mã hệ đào tạo
-     *
-     * @param string|null $maHeDaoTao
-     * @return $this
-     */
-    public function setMaHeDaoTao(?string $maHeDaoTao)
-    {
-        $this->attributes['ma_he_dao_tao'] = $maHeDaoTao;
-        return $this;
-    }
-    
-    /**
-     * Kiểm tra hệ đào tạo có đang hoạt động không
+     * Kiểm tra trạng thái hoạt động
      *
      * @return bool
      */
     public function isActive(): bool
     {
-        return (bool)($this->attributes['status'] ?? false);
+        return (bool)($this->attributes['status'] ?? true);
     }
     
     /**
-     * Đặt trạng thái hoạt động cho hệ đào tạo
+     * Đặt trạng thái hoạt động
      *
      * @param bool $status
      * @return $this
@@ -124,50 +118,100 @@ class HeDaoTao extends BaseEntity
     }
     
     /**
-     * Kiểm tra hệ đào tạo có đang trong thùng rác không
+     * Kiểm tra xem bản ghi đã bị xóa chưa
      *
      * @return bool
      */
-    public function isInBin(): bool
+    public function isDeleted(): bool
     {
-        return (bool)($this->attributes['bin'] ?? false);
+        return !empty($this->attributes['deleted_at']);
     }
     
     /**
-     * Đặt trạng thái thùng rác
+     * Lấy nhãn trạng thái hiển thị
      *
-     * @param bool $binStatus
-     * @return $this
+     * @return string HTML với badge status
      */
-    public function setBinStatus(bool $binStatus)
+    public function getStatusLabel(): string
     {
-        $this->attributes['bin'] = (int)$binStatus;
-        return $this;
+        if ($this->status == 1) {
+            return '<span class="badge bg-success">Hoạt động</span>';
+        } else {
+            return '<span class="badge bg-danger">Không hoạt động</span>';
+        }
     }
     
     /**
-     * Lấy ngày tạo dưới dạng chuỗi với định dạng cụ thể
-     *
-     * @param string $format
+     * Lấy ngày tạo đã định dạng
+     * 
      * @return string
      */
-    public function getCreatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    public function getCreatedAtFormatted(): string
     {
-        return $this->created_at instanceof Time 
-            ? $this->created_at->format($format) 
-            : '';
+        if (empty($this->attributes['created_at'])) {
+            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
+        }
+        
+        $time = $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
-     * Lấy ngày cập nhật dưới dạng chuỗi với định dạng cụ thể
-     *
-     * @param string $format
+     * Lấy ngày cập nhật đã định dạng
+     * 
      * @return string
      */
-    public function getUpdatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    public function getUpdatedAtFormatted(): string
     {
-        return $this->updated_at instanceof Time 
-            ? $this->updated_at->format($format) 
-            : '';
+        if (empty($this->attributes['updated_at'])) {
+            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
+        }
+        
+        $time = $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+            
+        return $time->format('Y-m-d H:i:s');
+    }
+    
+    /**
+     * Lấy ngày xóa đã định dạng
+     * 
+     * @return string
+     */
+    public function getDeletedAtFormatted(): string
+    {
+        if (empty($this->attributes['deleted_at'])) {
+            return '<span class="text-muted fst-italic">Chưa xóa</span>';
+        }
+        
+        $time = $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
+            
+        return $time->format('Y-m-d H:i:s');
+    }
+    
+    /**
+     * Lấy các quy tắc xác thực
+     *
+     * @return array
+     */
+    public function getValidationRules(): array
+    {
+        return $this->validationRules;
+    }
+    
+    /**
+     * Lấy các thông báo xác thực
+     *
+     * @return array
+     */
+    public function getValidationMessages(): array
+    {
+        return $this->validationMessages;
     }
 } 
