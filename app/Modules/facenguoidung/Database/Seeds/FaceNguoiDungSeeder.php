@@ -9,34 +9,32 @@ class FaceNguoiDungSeeder extends Seeder
 {
     public function run()
     {
+        // Dữ liệu mẫu cho khuôn mặt người dùng
         $data = [
             [
-                'nguoi_dung_id'  => 1,
-                'duong_dan_anh'  => 'public/data/images/2025/03/22/user1.jpg',
-                'ngay_cap_nhat'  => Time::now(),
-                'status'         => 1,
-                'bin'            => 0,
-                'created_at'     => Time::now()
+                'nguoi_dung_id' => 1,
+                'duong_dan_anh' => 'faces/user1.jpg',
+                'status' => 1,
+                'created_at' => Time::now()->toDateTimeString(),
+                'updated_at' => Time::now()->toDateTimeString(),
+                'deleted_at' => null
             ],
             [
-                'nguoi_dung_id'  => 2,
-                'duong_dan_anh'  => 'public/data/images/2025/03/22/user2.jpg',
-                'ngay_cap_nhat'  => Time::now(),
-                'status'         => 1,
-                'bin'            => 0,
-                'created_at'     => Time::now()
-            ],
-            [
-                'nguoi_dung_id'  => 3,
-                'duong_dan_anh'  => 'public/data/images/2025/03/22/user3.jpg',
-                'ngay_cap_nhat'  => Time::now(),
-                'status'         => 1,
-                'bin'            => 0,
-                'created_at'     => Time::now()
-            ],
+                'nguoi_dung_id' => 2,
+                'duong_dan_anh' => 'faces/user2.jpg',
+                'status' => 1,
+                'created_at' => Time::now()->toDateTimeString(),
+                'updated_at' => Time::now()->toDateTimeString(),
+                'deleted_at' => null
+            ]
         ];
-
-        // Insert data to table
-        $this->db->table('face_nguoi_dung')->insertBatch($data);
+        
+        // Thêm dữ liệu vào bảng face_nguoi_dung
+        if (!empty($data)) {
+            $this->db->table('face_nguoi_dung')->insertBatch($data);
+            echo "Đã tạo " . count($data) . " bản ghi khuôn mặt người dùng.\n";
+        }
+        
+        echo "Seeder FaceNguoiDungSeeder đã được chạy thành công! Đã tạo dữ liệu mẫu cho khuôn mặt người dùng.\n";
     }
 } 

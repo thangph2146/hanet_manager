@@ -224,7 +224,8 @@ class NguoiDungModel extends BaseModel
             return $result ?: [];
         }
         
-        return $this->findAll();
+        // Thay vì sử dụng findAll(), sử dụng builder để đảm bảo điều kiện deleted_at IS NULL
+        return $this->builder->get()->getResult($this->returnType);
     }
     
     /**

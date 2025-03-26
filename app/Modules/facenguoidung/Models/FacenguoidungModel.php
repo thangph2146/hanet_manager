@@ -3,255 +3,476 @@
 namespace App\Modules\facenguoidung\Models;
 
 use App\Models\BaseModel;
-use App\Modules\facenguoidung\Entities\FacenguoidungEntity;
+use App\Modules\facenguoidung\Entities\FaceNguoiDung;
+use App\Modules\facenguoidung\Libraries\Pager;
+use CodeIgniter\I18n\Time;
 
-class FacenguoidungModel extends BaseModel
+class FaceNguoiDungModel extends BaseModel
 {
     protected $table = 'face_nguoi_dung';
     protected $primaryKey = 'face_nguoi_dung_id';
-    protected $returnType = 'App\Modules\facenguoidung\Entities\Facenguoidung';
+    protected $useAutoIncrement = true;
+    
     protected $useSoftDeletes = true;
     protected $useTimestamps = true;
+    protected $createdField = 'created_at';
+    protected $updatedField = 'updated_at';
+    protected $deletedField = 'deleted_at';
+    
+    // Số lượng liên kết trang hiển thị xung quanh trang hiện tại   
+    protected $surroundCount = 2;
     
     protected $allowedFields = [
         'nguoi_dung_id',
         'duong_dan_anh',
-        'ngay_cap_nhat',
         'status',
-        'bin',
         'created_at',
         'updated_at',
         'deleted_at'
     ];
     
-    // Timestamps
-    protected $createdField = 'created_at';
-    protected $updatedField = 'updated_at';
-    protected $deletedField = 'deleted_at';
+    protected $returnType = FaceNguoiDung::class;
     
-    // Validation
-    protected $validationRules = [
-        'nguoi_dung_id' => 'required|numeric',
-        'duong_dan_anh' => 'required',
-    ];
-    
-    protected $validationMessages = [
-        'nguoi_dung_id' => [
-            'required' => 'Người dùng là bắt buộc',
-            'numeric' => 'ID người dùng phải là số',
-        ],
-        'duong_dan_anh' => [
-            'required' => 'Đường dẫn ảnh là bắt buộc',
-        ],
-    ];
-    
-    // Searchable fields
+    // Trường có thể tìm kiếm
     protected $searchableFields = [
-        'nguoi_dung_id',
         'duong_dan_anh'
     ];
     
-    // Filterable fields
+    // Trường có thể lọc
     protected $filterableFields = [
         'nguoi_dung_id',
-        'status',
-        'bin'
+        'status'
     ];
     
-    // Relations
-    protected $relations = [
-        'nguoi_dung' => [
-            'type' => 'n-1', // Mối quan hệ nhiều khuôn mặt thuộc về một người dùng
-            'table' => 'nguoi_dung', // Bảng nguoi_dung
-            'foreignKey' => 'nguoi_dung_id', // Khóa ngoại trong bảng face_nguoi_dung
-            'foreignPrimaryKey' => 'nguoi_dung_id', // Khóa chính trong bảng nguoi_dung
-            'select' => 'nguoi_dung.nguoi_dung_id, nguoi_dung.FullName as ho_ten, nguoi_dung.Email as email, nguoi_dung.MobilePhone as mobile_phone, nguoi_dung.status',
-            'entity' => 'App\Modules\nguoidung\Entities\NguoiDungEntity',
-            'conditions' => [
-                [
-                    'field' => 'nguoi_dung.bin',
-                    'value' => 0,
-                    'operator' => '='
-                ]
-            ]
-        ]
-    ];
+    // Các quy tắc xác thực
+    protected $validationRules = [];
+    protected $validationMessages = [];
+    protected $skipValidation = false;
+    
+    // Template pager
+    public $pager = null;
     
     /**
-     * Find all active face recognition records
+     * Lấy tất cả bản ghi khuôn mặt người dùng
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
      */
-    public function getAllActive()
+    public function getAll($limit = 10, $offset = 0, $sort = 'created_at', $order = 'DESC')
     {
-        return $this->where('status', 1)
-                    ->where('bin', 0)
-                    ->findAll();
-    }
-    
-    /**
-     * Find all deleted face recognition records
-     */
-    public function getAllDeleted()
-    {
-        return $this->where('bin', 1)
-                    ->findAll();
-    }
-    
-    /**
-     * Find face records by nguoi_dung_id
-     */
-    public function findByNguoiDungId($nguoiDungId)
-    {
-        return $this->where('nguoi_dung_id', $nguoiDungId)
-                    ->where('status', 1)
-                    ->where('bin', 0)
-                    ->findAll();
-    }
-    
-    /**
-     * Upload and save face image with compression
-     */
-    public function uploadAndSaveFace($nguoiDungId, $imageFile)
-    {
-        // Get instance of upload service
-        $upload = \Config\Services::upload();
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
         
-        // Set upload configurations
-        $uploadPath = 'public/data/images/' . date('Y') . '/' . date('m') . '/' . date('d');
-        $config = [
-            'upload_path' => './' . $uploadPath,
-            'allowed_types' => 'jpg|jpeg|png',
-            'max_size' => 5120, // 5MB max before compression
-            'encrypt_name' => true,
-        ];
+        // Chỉ lấy bản ghi chưa xóa
+        $this->builder->where('deleted_at IS NULL');
         
-        // Create directory if not exists
-        if (!is_dir($config['upload_path'])) {
-            mkdir($config['upload_path'], 0777, true);
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
         }
         
-        // Initialize upload
-        $upload->initialize($config);
+        $total = $this->countAll();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
         
-        // Perform upload
-        if ($upload->do_upload($imageFile)) {
-            $uploadData = $upload->data();
-            $originalPath = $uploadData['full_path'];
-            
-            // Compress the image
-            $this->compressImage($originalPath, $originalPath, 75); // Compress with quality 75%
-            
-            $imagePath = $uploadPath . '/' . $uploadData['file_name'];
-            
-            // Save to database
-            $data = [
-                'nguoi_dung_id' => $nguoiDungId,
-                'duong_dan_anh' => $imagePath,
-                'ngay_cap_nhat' => date('Y-m-d H:i:s'),
-                'status' => 1,
-                'bin' => 0,
-            ];
-            
-            $this->insert($data);
-            return true;
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Compress image to reduce file size
-     * 
-     * @param string $source Source image path
-     * @param string $destination Destination image path
-     * @param int $quality Compression quality (0-100)
-     * @param int $maxWidth Maximum width (optional)
-     * @param int $maxHeight Maximum height (optional)
-     * @return bool Success or failure
-     */
-    private function compressImage($source, $destination, $quality = 75, $maxWidth = 1200, $maxHeight = 1200)
-    {
-        // Get image info
-        $info = getimagesize($source);
-        if (!$info) {
-            return false;
-        }
-        
-        // Check if resize is needed
-        $width = $info[0];
-        $height = $info[1];
-        $resizeNeeded = ($width > $maxWidth || $height > $maxHeight);
-        
-        // Calculate new dimensions if resize is needed
-        if ($resizeNeeded) {
-            if ($width > $height) {
-                $newWidth = $maxWidth;
-                $newHeight = ($height / $width) * $maxWidth;
-            } else {
-                $newHeight = $maxHeight;
-                $newWidth = ($width / $height) * $maxHeight;
-            }
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
         } else {
-            $newWidth = $width;
-            $newHeight = $height;
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
         }
         
-        // Create image based on file type
-        switch ($info['mime']) {
-            case 'image/jpeg':
-                $image = imagecreatefromjpeg($source);
-                break;
-            case 'image/png':
-                $image = imagecreatefrompng($source);
-                // Handle transparency for PNG
-                imagealphablending($image, false);
-                imagesavealpha($image, true);
-                break;
-            case 'image/gif':
-                $image = imagecreatefromgif($source);
-                break;
-            default:
-                return false;
+        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        return $result ?: [];
+    }
+    
+    /**
+     * Lấy tất cả bản ghi khuôn mặt người dùng đã xóa
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
+     */
+    public function getAllDeleted($limit = 10, $offset = 0, $sort = 'deleted_at', $order = 'DESC')
+    {
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        
+        // Chỉ lấy bản ghi đã xóa
+        $this->builder->where('deleted_at IS NOT NULL');
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
         }
         
-        // Resize if needed
-        if ($resizeNeeded) {
-            $newImage = imagecreatetruecolor($newWidth, $newHeight);
+        $total = $this->countAllDeleted();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        return $result ?: [];
+    }
+
+    /**
+     * Đếm tổng số bản ghi khuôn mặt người dùng
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAll($conditions = [])
+    {
+        $builder = $this->builder();
+        
+        // Mặc định chỉ đếm bản ghi chưa xóa
+        $builder->where('deleted_at IS NULL');
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Đếm tổng số bản ghi khuôn mặt người dùng đã xóa
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAllDeleted($conditions = [])
+    {
+        $builder = $this->builder();
+        
+        // Mặc định chỉ đếm bản ghi đã xóa
+        $builder->where('deleted_at IS NOT NULL');
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Lấy tất cả bản ghi đang hoạt động
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
+     */
+    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'created_at', string $order = 'DESC')
+    {
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        $this->builder->where('status', 1);
+        $this->builder->where('deleted_at IS NULL');
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
+        }
+        
+        $total = $this->countAllActive();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        if ($limit > 0) {
+            $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+            return $result ?: [];
+        }
+        
+        return $this->findAll();
+    }
+    
+    /**
+     * Đếm tổng số bản ghi đang hoạt động
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAllActive($conditions = [])
+    {
+        $builder = $this->builder();
+        $builder->where('status', 1);
+        $builder->where('deleted_at IS NULL');
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Tìm kiếm khuôn mặt người dùng dựa vào các tiêu chí
+     *
+     * @param array $criteria Các tiêu chí tìm kiếm
+     * @param array $options Tùy chọn phân trang và sắp xếp
+     * @return array
+     */
+    public function search(array $criteria = [], array $options = [])
+    {
+        $builder = $this->builder();
+        
+        // Join với bảng người dùng
+        $builder->join('nguoi_dung', 'nguoi_dung.nguoi_dung_id = ' . $this->table . '.nguoi_dung_id', 'left');
+        
+        // Xử lý withDeleted nếu cần
+        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+            $builder->where($this->table . '.deleted_at IS NOT NULL');
+        } else {
+            // Mặc định chỉ lấy dữ liệu chưa xóa
+            $builder->where($this->table . '.deleted_at IS NULL');
+        }
+        
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
             
-            // Preserve transparency for PNG
-            if ($info['mime'] == 'image/png') {
-                imagealphablending($newImage, false);
-                imagesavealpha($newImage, true);
-                $transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
-                imagefilledrectangle($newImage, 0, 0, $newWidth, $newHeight, $transparent);
+            $builder->groupStart();
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($field, $keyword);
+                } else {
+                    $builder->orLike($field, $keyword);
+                }
             }
+            $builder->groupEnd();
+        }
+        
+        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
+            $status = (int)$criteria['status'];
+            $builder->where($this->table . '.status', $status);
+        }
+        
+        // Lọc theo người dùng
+        if (!empty($criteria['nguoi_dung_id'])) {
+            $builder->where($this->table . '.nguoi_dung_id', $criteria['nguoi_dung_id']);
+        }
+        
+        // Xác định trường sắp xếp và thứ tự sắp xếp
+        $sort = $options['sort'] ?? 'created_at';
+        $order = $options['order'] ?? 'DESC';
+        
+        // Xử lý giới hạn và phân trang
+        $limit = $options['limit'] ?? 10;
+        $offset = $options['offset'] ?? 0;
+        
+        // Thực hiện truy vấn với phân trang
+        if ($limit > 0) {
+            $builder->limit($limit, $offset);
+        }
+        
+        // Sắp xếp kết quả - chỉ định rõ bảng
+        if (strpos($sort, '.') === false) {
+            $sort = $this->table . '.' . $sort;
+        }
+        $builder->orderBy($sort, $order);
+        
+        // Thực hiện truy vấn
+        $result = $builder->get()->getResult($this->returnType);
+        
+        // Thiết lập pager nếu cần
+        if ($limit > 0) {
+            $totalRows = $this->countSearchResults($criteria);
+            $this->pager = new Pager(
+                $totalRows,
+                $limit,
+                floor($offset / $limit) + 1
+            );
+            $this->pager->setSurroundCount($this->surroundCount ?? 2);
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Đếm tổng số kết quả tìm kiếm
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @return int
+     */
+    public function countSearchResults(array $criteria = [])
+    {
+        $builder = $this->builder();
+        
+        // Join với bảng người dùng
+        $builder->join('nguoi_dung', 'nguoi_dung.nguoi_dung_id = ' . $this->table . '.nguoi_dung_id', 'left');
+        
+        // Xử lý withDeleted nếu cần
+        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+            $builder->where($this->table . '.deleted_at IS NOT NULL');
+        } else {
+            // Mặc định chỉ lấy dữ liệu chưa xóa
+            $builder->where($this->table . '.deleted_at IS NULL');
+        }
+        
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
             
-            imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-            $image = $newImage;
+            $builder->groupStart();
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($field, $keyword);
+                } else {
+                    $builder->orLike($field, $keyword);
+                }
+            }
+            $builder->groupEnd();
         }
         
-        // Save compressed image
-        switch ($info['mime']) {
-            case 'image/jpeg':
-                imagejpeg($image, $destination, $quality);
-                break;
-            case 'image/png':
-                // Convert quality scale from 0-100 to 0-9 for PNG
-                $pngQuality = 9 - round(($quality / 100) * 9);
-                imagepng($image, $destination, $pngQuality);
-                break;
-            case 'image/gif':
-                imagegif($image, $destination);
-                break;
-            default:
-                return false;
+        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
+            $status = (int)$criteria['status'];
+            $builder->where($this->table . '.status', $status);
         }
         
-        // Free memory
-        imagedestroy($image);
-        if (isset($newImage)) {
-            imagedestroy($newImage);
+        // Lọc theo người dùng
+        if (!empty($criteria['nguoi_dung_id'])) {
+            $builder->where($this->table . '.nguoi_dung_id', $criteria['nguoi_dung_id']);
         }
         
-        return true;
+        // Đếm số lượng bản ghi từ bảng chính
+        return $builder->countAllResults($this->table);
+    }
+    
+    /**
+     * Chuẩn bị các quy tắc xác thực dựa trên tình huống
+     * 
+     * @param string $scenario Tình huống xác thực ('insert' hoặc 'update')
+     * @param array $data Dữ liệu cần xác thực
+     */
+    public function prepareValidationRules(string $scenario = 'insert', array $data = [])
+    {
+        $entity = new FaceNguoiDung();
+        $this->validationRules = $entity->getValidationRules();
+        $this->validationMessages = $entity->getValidationMessages();
+        
+        // Loại trừ các trường timestamp và primary key khi thêm mới
+        unset($this->validationRules['created_at']);
+        unset($this->validationRules['updated_at']);
+        unset($this->validationRules['deleted_at']);
+        // Loại bỏ validation cho face_nguoi_dung_id trong mọi trường hợp
+        unset($this->validationRules['face_nguoi_dung_id']);
+        
+        // Loại bỏ các validation không cần thiết
+        unset($this->validationRules['ngay_cap_nhat']);
+        unset($this->validationRules['bin']);
+    }
+    
+    /**
+     * Thiết lập số lượng liên kết trang hiển thị xung quanh trang hiện tại
+     * 
+     * @param int $count Số lượng liên kết trang hiển thị (mỗi bên)
+     * @return $this
+     */
+    public function setSurroundCount(int $count)
+    {
+        if ($this->pager !== null) {
+            $this->pager->setSurroundCount($count);
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Lấy đối tượng phân trang 
+     * 
+     * @return Pager|null
+     */
+    public function getPager()
+    {
+        return $this->pager;
+    }
+    
+    /**
+     * Tìm bản ghi với các quan hệ
+     *
+     * @param int $id ID bản ghi cần tìm
+     * @param array $relations Các quan hệ cần lấy theo
+     * @param bool $validate Có kiểm tra dữ liệu trước khi trả về không
+     * @return object|null Đối tượng tìm thấy hoặc null nếu không tìm thấy
+     */
+    public function findWithRelations($id, $relations = [], $validate = false)
+    {
+        // Trong trường hợp đơn giản, chúng ta chỉ gọi phương thức find
+        // Nhưng trong thực tế, có thể cần xử lý thêm các quan hệ
+        return $this->find($id);
+    }
+    
+    /**
+     * Tìm kiếm các bản ghi đã xóa
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @param array $options Tùy chọn tìm kiếm (limit, offset, sort, order)
+     * @return array
+     */
+    public function searchDeleted(array $criteria = [], array $options = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
+        // Đặt điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
+        return $this->search($criteria, $options);
+    }
+    
+    /**
+     * Đếm số lượng bản ghi đã xóa theo tiêu chí tìm kiếm
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @return int
+     */
+    public function countDeletedResults(array $criteria = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
+        // Đặt điều kiện để chỉ đếm các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
+        return $this->countSearchResults($criteria);
+    }
+    
+    /**
+     * Lấy danh sách khuôn mặt theo người dùng
+     *
+     * @param int $nguoiDungId ID của người dùng
+     * @param bool $onlyActive Chỉ lấy các khuôn mặt đang hoạt động
+     * @return array
+     */
+    public function getByNguoiDung(int $nguoiDungId, bool $onlyActive = true)
+    {
+        $builder = $this->builder();
+        $builder->where('nguoi_dung_id', $nguoiDungId);
+        $builder->where('deleted_at IS NULL');
+        
+        if ($onlyActive) {
+            $builder->where('status', 1);
+        }
+        
+        $builder->orderBy('created_at', 'DESC');
+        
+        return $builder->get()->getResult($this->returnType);
     }
 } 

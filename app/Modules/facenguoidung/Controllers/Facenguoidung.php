@@ -3,569 +3,954 @@
 namespace App\Modules\facenguoidung\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\facenguoidung\Models\FacenguoidungModel;
+use App\Modules\facenguoidung\Models\FaceNguoiDungModel;
+use App\Libraries\Alert;
+use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\HTTP\ResponseInterface;
+use CodeIgniter\API\ResponseTrait;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use CodeIgniter\I18n\Time;
+use App\Modules\facenguoidung\Traits\ExportTrait;
+use App\Modules\facenguoidung\Traits\RelationTrait;
 
-class Facenguoidung extends BaseController
+class FaceNguoiDung extends BaseController
 {
+    use ResponseTrait;
+    use ExportTrait;
+    use RelationTrait;
+    
     protected $model;
-    protected $validation;
-    protected $nguoidungModel;
-
+    protected $alert;
+    protected $moduleUrl;
+    protected $title;
+    protected $module_name = 'facenguoidung';
+    protected $controller_name = 'FaceNguoiDung';
+    
     public function __construct()
     {
-        $this->model = new FacenguoidungModel();
-        $this->validation = \Config\Services::validation();
-        
-        // Không cần khởi tạo trực tiếp model người dùng khi đã sử dụng relation
-        $this->nguoidungModel = new \App\Modules\nguoidung\Models\NguoidungModel();
-    }
+        // Khởi tạo session sớm
+        $this->session = service('session');
 
+        // Khởi tạo các thành phần cần thiết
+        $this->model = new FaceNguoiDungModel();
+        $this->alert = new Alert();
+        
+        // Thông tin module
+        $this->moduleUrl = base_url($this->module_name);
+        $this->title = 'Khuôn mặt người dùng';
+        
+        // Khởi tạo các model quan hệ
+        $this->initializeRelationTrait();
+    }
+    
     /**
-     * Display list of face recognition records
+     * Hiển thị danh sách tham gia sự kiện
      */
     public function index()
     {
-        // Lấy tham số tìm kiếm/lọc từ request
-        $search = $this->request->getGet('search');
-        $status = $this->request->getGet('status');
-        $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
+        // Lấy và xử lý tham số tìm kiếm
+        $params = $this->prepareSearchParams($this->request);
+        $params = $this->processSearchParams($params);
         
-        // Thiết lập các điều kiện tìm kiếm
-        $this->model->where('bin', 0);
+        // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
+        $this->model->setSurroundCount(3);
         
-        if (!empty($search)) {
-            $this->model->groupStart();
-            foreach ($this->model->searchableFields as $field) {
-                $this->model->orLike($field, $search);
-            }
-            $this->model->groupEnd();
+        // Xây dựng tiêu chí và tùy chọn tìm kiếm
+        $criteria = $this->buildSearchCriteria($params);
+        $options = $this->buildSearchOptions($params);
+        
+        // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
+        $pageData = $this->model->search($criteria, $options);
+        // Lấy tổng số kết quả
+        $pager = $this->model->getPager();
+        $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($criteria);
+        
+        // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
+        $pageCount = ceil($total / $params['perPage']);
+        if ($total > 0 && $params['page'] > $pageCount) {
+            // Tạo URL mới với trang cuối cùng
+            $redirectParams = $_GET;
+            $redirectParams['page'] = $pageCount;
+            $redirectUrl = site_url($this->module_name) . '?' . http_build_query($redirectParams);
+            
+            // Chuyển hướng đến trang cuối cùng
+            return redirect()->to($redirectUrl);
         }
         
-        if (isset($status) && $status !== '') {
-            $this->model->where('status', $status);
+        // Lấy pager từ model và thiết lập các tham số
+        $pager = $this->model->getPager();
+        if ($pager !== null) {
+            $pager->setPath($this->module_name);
+            // Thêm tất cả các tham số cần giữ lại khi chuyển trang
+            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'face_nguoi_dung_id']);
+            
+            // Đảm bảo perPage và currentPage được thiết lập đúng
+            $pager->setPerPage($params['perPage']);
+            $pager->setCurrentPage($params['page']);
         }
         
-        if (!empty($nguoi_dung_id)) {
-            $this->model->where('nguoi_dung_id', $nguoi_dung_id);
-        }
-        
-        // Lấy danh sách người dùng cho dropdown filter
-        $nguoidungs = $this->nguoidungModel->where('status', 1)
-                                          ->where('bin', 0)
-                                          ->findAll();
-        
-        // Lấy dữ liệu với phân trang
-        $perPage = 10; // Số bản ghi trên mỗi trang
-        $items = $this->model->paginate($perPage);
-        
-        // Lấy dữ liệu quan hệ nguoi_dung cho mỗi item
-        foreach ($items as $key => $item) {
-            $items[$key] = $this->model->findWithRelations($item->face_nguoi_dung_id, ['nguoi_dung']);
-        }
-        
-        $pager = $this->model->pager;
-        
-        return view('App\Modules\facenguoidung\Views\index', [
-            'items' => $items,
-            'pager' => $pager,
-            'search' => $search,
-            'status' => $status,
-            'nguoi_dung_id' => $nguoi_dung_id,
-            'nguoidungs' => $nguoidungs
-        ]);
+        // Chuẩn bị dữ liệu cho view
+        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
+        // Hiển thị view
+        return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
     }
     
     /**
-     * Display form to create new face recognition record
+     * Hiển thị form thêm mới
      */
     public function new()
     {
-        // Sử dụng model người dùng để lấy danh sách người dùng active
-        $nguoidungs = $this->nguoidungModel->where('status', 1)
-                                          ->where('bin', 0)
-                                          ->findAll();
+        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
+        $viewData = $this->prepareFormData($this->module_name);
         
-        return view('App\Modules\facenguoidung\Views\new', [
-            'nguoidungs' => $nguoidungs,
-            'is_new' => true
-        ]);
+        // Thêm dữ liệu cho view
+        $viewData['title'] = 'Thêm mới ' . $this->title;
+        $viewData['validation'] = $this->validator;
+        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
+        $viewData['action'] = site_url($this->module_name . '/create');
+        $viewData['method'] = 'POST';
+        
+        return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
     }
     
     /**
-     * Process creation of new face recognition record
+     * Xử lý upload ảnh
+     * 
+     * @param \CodeIgniter\HTTP\Files\UploadedFile $image File ảnh được upload
+     * @param string|null $oldImagePath Đường dẫn ảnh cũ (nếu có)
+     * @return string|null Đường dẫn ảnh mới hoặc null nếu không có ảnh
+     */
+    private function uploadImage($image, $oldImagePath = null)
+    {
+        if (!$image || !$image->isValid() || $image->hasMoved()) {
+            return null;
+        }
+
+        try {
+            // Xóa ảnh cũ nếu có
+            if ($oldImagePath) {
+                $oldImagePath = FCPATH . $oldImagePath;
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            // Tạo tên file mới với timestamp và random string
+            $newName = time() . '_' . $image->getRandomName();
+            
+            // Tạo đường dẫn thư mục theo năm/tháng/ngày
+            $year = date('Y');
+            $month = date('m');
+            $day = date('d');
+            $uploadPath = "data/images/{$year}/{$month}/{$day}";
+            
+            // Tạo thư mục nếu chưa tồn tại
+            if (!is_dir(FCPATH . $uploadPath)) {
+                mkdir(FCPATH . $uploadPath, 0777, true);
+            }
+            
+            // Di chuyển file vào thư mục
+            $image->move(FCPATH . $uploadPath, $newName);
+            
+            // Trả về đường dẫn tương đối theo định dạng yêu cầu
+            return $uploadPath . '/' . $newName;
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi upload ảnh: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Xử lý thêm mới dữ liệu
      */
     public function create()
     {
+        // Lấy dữ liệu từ form
         $data = $this->request->getPost();
         
-        // Debug: Nhật ký dữ liệu gửi lên
-        log_message('debug', 'POST data: ' . json_encode($data));
-        log_message('debug', 'FILE data: ' . json_encode($_FILES));
+        $this->model->prepareValidationRules('insert');
         
-        // Kiểm tra trường người dùng
-        if (empty($data['nguoi_dung_id'])) {
-            return redirect()->back()->withInput()->with('error', 'Vui lòng chọn người dùng');
+        // Kiểm tra dữ liệu
+        if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
-        // Handle file upload
-        $file = $this->request->getFile('duong_dan_anh');
+        try {
+            // Xử lý upload ảnh
+            $image = $this->request->getFile('duong_dan_anh');
+            $data['duong_dan_anh'] = $this->uploadImage($image);
+            
+            // Lưu dữ liệu
+            if ($this->model->insert($data)) {
+                $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
+                return redirect()->to($this->moduleUrl);
+            } else {
+                throw new \RuntimeException('Không thể thêm mới ' . $this->title);
+            }
+        } catch (\Exception $e) {
+            log_message('error', '[' . $this->controller_name . '::create] ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title);
+        }
+    }
+    
+    /**
+     * Hiển thị chi tiết
+     */
+    public function view($id = null)
+    {
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID không hợp lệ', true);
+            return redirect()->to($this->moduleUrl);
+        }
         
-        // Debug: Kiểm tra file
-        if ($file) {
-            log_message('debug', 'File name: ' . $file->getName());
-            log_message('debug', 'File is valid: ' . ($file->isValid() ? 'Yes' : 'No'));
+        // Đảm bảo các model relationship được khởi tạo
+        $this->initializeRelationTrait();
+        
+        // Lấy thông tin dữ liệu cơ bản
+        $data = $this->model->find($id);
+        
+        if (empty($data)) {
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu năm học', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Xử lý dữ liệu và nạp các quan hệ
+        $processedData = $this->processData([$data]);
+        $data = $processedData[0] ?? $data;
+        
+        // Chuẩn bị dữ liệu cho view
+        $viewData = [
+            'title' => 'Chi tiết ' . $this->title,
+            'data' => $data,
+            'moduleUrl' => $this->moduleUrl,
+            'module_name' => $this->module_name
+        ];
+        
+        return view('App\Modules\\' . $this->module_name . '\Views\view', $viewData);
+    }
+    
+    /**
+     * Hiển thị form chỉnh sửa
+     */
+    public function edit($id = null)
+    {
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID không hợp lệ', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Sử dụng phương thức findWithRelations từ model
+        $data = $this->model->findWithRelations($id);
+        
+        if (empty($data)) {
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
+        $viewData = $this->prepareFormData($this->module_name, $data);
+        
+        // Thêm dữ liệu cho view
+        $viewData['title'] = 'Chỉnh sửa ' . $this->title;
+        $viewData['validation'] = $this->validator;
+        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
+        $viewData['action'] = site_url($this->module_name . '/update/' . $id);
+        $viewData['method'] = 'POST';
+        
+        return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
+    }
+    
+    /**
+     * Xử lý cập nhật dữ liệu
+     */
+    public function update($id = null)
+    {
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID không hợp lệ', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        try {
+            // Lấy dữ liệu từ form
+            $data = $this->request->getPost();
+            
+            // Lấy thông tin bản ghi hiện tại
+            $existingRecord = $this->model->find($id);
+            if (!$existingRecord) {
+                throw new \RuntimeException('Không tìm thấy bản ghi cần cập nhật');
+            }
+            
+            // Xử lý upload ảnh mới nếu có
+            $image = $this->request->getFile('duong_dan_anh');
+            $newImagePath = $this->uploadImage($image, $existingRecord->duong_dan_anh);
+            
+            // Cập nhật đường dẫn ảnh nếu có ảnh mới
+            if ($newImagePath) {
+                $data['duong_dan_anh'] = $newImagePath;
+            } else {
+                // Giữ nguyên đường dẫn ảnh cũ nếu không có ảnh mới
+                $data['duong_dan_anh'] = $existingRecord->duong_dan_anh;
+            }
+            
+            // Lưu dữ liệu
+            if ($this->model->update($id, $data)) {
+                $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
+                return redirect()->to($this->moduleUrl);
+            } else {
+                throw new \RuntimeException('Không thể cập nhật ' . $this->title);
+            }
+        } catch (\Exception $e) {
+            log_message('error', '[' . $this->controller_name . '::update] ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title);
+        }
+    }
+    
+    /**
+     * Xóa mềm (chuyển vào thùng rác)
+     */
+    public function delete($id = null, $backToUrl = null)
+    {
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID không hợp lệ', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        if ($this->model->delete($id)) {
+            $this->alert->set('success', 'Đã xóa dữ liệu thành công', true);
         } else {
-            log_message('debug', 'No file uploaded');
-            return redirect()->back()->withInput()->with('error', 'Vui lòng chọn ảnh khuôn mặt');
+            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
         }
         
-        if (!$file->isValid()) {
-            return redirect()->back()->withInput()->with('error', 'File không hợp lệ: ' . $file->getErrorString());
-        }
+        // Lấy URL trả về từ tham số truy vấn hoặc từ tham số đường dẫn
+        $returnUrl = $this->request->getGet('return_url') ?? $backToUrl;
         
-        if ($file->hasMoved()) {
-            return redirect()->back()->withInput()->with('error', 'File đã được di chuyển');
-        }
+        // Xử lý URL chuyển hướng
+        $redirectUrl = $this->processReturnUrl($returnUrl);
         
-        // Di chuyển file
-        try {
-            // Define upload path
-            $uploadPath = 'data/images/' . date('Y') . '/' . date('m') . '/' . date('d');
-            
-            // Create directory if not exists
-            if (!is_dir($uploadPath)) {
-                mkdir($uploadPath, 0777, true);
-            }
-            
-            // Move uploaded file
-            $newName = $file->getRandomName();
-            $file->move($uploadPath, $newName);
-            
-            // Set path in data
-            $data['duong_dan_anh'] = $uploadPath . '/' . $newName;
-            $data['ngay_cap_nhat'] = Time::now()->toDateTimeString();
-            
-            log_message('debug', 'File uploaded successfully: ' . $data['duong_dan_anh']);
-        } catch (\Exception $e) {
-            log_message('error', 'File upload error: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Lỗi khi tải lên ảnh: ' . $e->getMessage());
-        }
-        
-        // Set default values if not provided
-        if (!isset($data['status'])) {
-            $data['status'] = 1;
-        }
-        if (!isset($data['bin'])) {
-            $data['bin'] = 0;
-        }
-        
-        // Debug: Final data for insertion
-        log_message('debug', 'Data to insert: ' . json_encode($data));
-        
-        try {
-            // Thực hiện insert dữ liệu
-            $result = $this->model->insert($data);
-            log_message('debug', 'Insert result: ' . json_encode($result));
-            
-            if (!$result) {
-                log_message('error', 'Insert failed: ' . json_encode($this->model->errors()));
-                return redirect()->back()->withInput()->with('error', 'Lỗi khi thêm dữ liệu: ' . json_encode($this->model->errors()));
-            }
-            
-            return redirect()->to('facenguoidung')->with('message', 'Thêm mới thành công');
-        } catch (\Exception $e) {
-            log_message('error', 'Error during insert: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Lỗi khi thêm mới dữ liệu: ' . $e->getMessage());
-        }
+        return redirect()->to($redirectUrl);
     }
     
     /**
-     * Display form to edit face recognition record
-     */
-    public function edit($id)
-    {
-        // Sử dụng findWithRelations để lấy dữ liệu khuôn mặt với relation nguoi_dung
-        $item = $this->model->findWithRelations($id, ['nguoi_dung']);
-        
-        if (!$item) {
-            return redirect()->to('facenguoidung')->with('error', 'Không tìm thấy bản ghi');
-        }
-        
-        // Sử dụng model người dùng để lấy danh sách người dùng active
-        $nguoidungs = $this->nguoidungModel->where('status', 1)
-                                          ->where('bin', 0)
-                                          ->findAll();
-        
-        return view('App\Modules\facenguoidung\Views\edit', [
-            'item' => $item,
-            'nguoidungs' => $nguoidungs,
-            'is_new' => false
-        ]);
-    }
-    
-    /**
-     * Process update of face recognition record
-     */
-    public function update($id)
-    {
-        $data = $this->request->getPost();
-        $item = $this->model->find($id);
-        
-        if (!$item) {
-            return redirect()->to('facenguoidung')->with('error', 'Không tìm thấy bản ghi');
-        }
-        
-        // Handle file upload
-        $file = $this->request->getFile('duong_dan_anh');
-        if ($file && $file->isValid() && !$file->hasMoved()) {
-            // Define upload path
-            $uploadPath = 'public/data/images/' . date('Y') . '/' . date('m') . '/' . date('d');
-            
-            // Create directory if not exists
-            if (!is_dir($uploadPath)) {
-                mkdir($uploadPath, 0777, true);
-            }
-            
-            // Delete old file if exists
-            if (!empty($item->duong_dan_anh) && file_exists($item->duong_dan_anh)) {
-                unlink($item->duong_dan_anh);
-            }
-            
-            // Move uploaded file
-            $newName = $file->getRandomName();
-            $file->move($uploadPath, $newName);
-            
-            // Set path in data
-            $data['duong_dan_anh'] = $uploadPath . '/' . $newName;
-            $data['ngay_cap_nhat'] = Time::now()->toDateTimeString();
-        }
-        
-        $this->model->update($id, $data);
-        
-        return redirect()->to('facenguoidung')->with('message', 'Cập nhật thành công');
-    }
-    
-    /**
-     * Soft delete a face recognition record
-     */
-    public function delete($id)
-    {
-        $this->model->update($id, ['bin' => 1]);
-        
-        return redirect()->to('facenguoidung')->with('message', 'Xóa thành công');
-    }
-    
-    /**
-     * Display list of deleted face recognition records
+     * Hiển thị danh sách tham gia sự kiện đã xóa
      */
     public function listdeleted()
     {
-        // Lấy tham số tìm kiếm từ request
-        $search = $this->request->getGet('search');
+        // Lấy và xử lý tham số tìm kiếm
+        $params = $this->prepareSearchParams($this->request);
+        $params = $this->processSearchParams($params);
         
-        // Thiết lập điều kiện tìm kiếm
-        $this->model->where('bin', 1);
+        // Ghi đè sort mặc định cho trang list deleted
+        $params['sort'] = $this->request->getGet('sort') ?? 'deleted_at';
+        $params['order'] = $this->request->getGet('order') ?? 'DESC';
         
-        if (!empty($search)) {
-            $this->model->groupStart();
-            foreach ($this->model->searchableFields as $field) {
-                $this->model->orLike($field, $search);
-            }
-            $this->model->groupEnd();
+        // Log chi tiết URL và tham số
+        log_message('debug', '[Controller:listdeleted] URL đầy đủ: ' . current_url() . '?' . http_build_query($_GET));
+        log_message('debug', '[Controller:listdeleted] Tham số request: ' . json_encode($_GET));
+        log_message('debug', '[Controller:listdeleted] Đã xử lý: page=' . $params['page'] . ', perPage=' . $params['perPage'] . 
+            ', sort=' . $params['sort'] . ', order=' . $params['order'] . ', keyword=' . $params['keyword'] . 
+            ', status=' . $params['status']);
+        
+        // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
+        $this->model->setSurroundCount(3);
+        
+        // Xây dựng tiêu chí và tùy chọn tìm kiếm
+        $criteria = $this->buildSearchCriteria($params);
+        $options = $this->buildSearchOptions($params);
+        
+        // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Đảm bảo withDeleted được thiết lập
+        $this->model->withDeleted();
+        
+        // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
+        $pageData = $this->model->search($criteria, $options);
+        
+        // Xử lý dữ liệu và nạp các quan hệ
+        $pageData = $this->processData($pageData);
+        
+        // Lấy tổng số kết quả
+        $total = $this->model->countSearchResults($criteria);
+        
+        // Lấy pager từ model và thiết lập các tham số
+        $pager = $this->model->getPager();
+        if ($pager === null) {
+            // Tạo pager mới nếu getPager() trả về null
+            $pager = new \App\Modules\namhoc\Libraries\Pager(
+                $total,
+                $params['perPage'],
+                $params['page']
+            );
+            $pager->setSurroundCount(3);
         }
         
-        // Lấy danh sách người dùng cho dropdown filter
-        $nguoidungs = $this->nguoidungModel->where('status', 1)
-                                          ->findAll();
+        $pager->setPath($this->module_name . '/listdeleted');
+        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'nguoi_dung_id', 'su_kien_id', 'phuong_thuc_diem_danh']);
+        $pager->setPerPage($params['perPage']);
+        $pager->setCurrentPage($params['page']);
         
-        // Lấy dữ liệu với phân trang
-        $perPage = 10; // Số bản ghi trên mỗi trang
-        $items = $this->model->paginate($perPage);
+        // Chuẩn bị dữ liệu cho view
+        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
         
-        // Lấy dữ liệu quan hệ nguoi_dung cho mỗi item
-        foreach ($items as $key => $item) {
-            $items[$key] = $this->model->findWithRelations($item->face_nguoi_dung_id, ['nguoi_dung']);
-        }
-        
-        $pager = $this->model->pager;
-        
-        return view('App\Modules\facenguoidung\Views\listdeleted', [
-            'items' => $items,
-            'pager' => $pager,
-            'search' => $search,
-            'nguoidungs' => $nguoidungs
-        ]);
+        // Hiển thị view
+        return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);
     }
     
     /**
-     * Restore a deleted face recognition record
+     * Khôi phục từ thùng rác
      */
-    public function restore($id)
+    public function restore($id = null)
     {
-        $this->model->update($id, ['bin' => 0]);
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID không hợp lệ', true);
+            return redirect()->to($this->moduleUrl . '/listdeleted');
+        }
         
-        return redirect()->to('facenguoidung/listdeleted')->with('message', 'Khôi phục thành công');
+        // Lấy URL trả về từ form hoặc từ HTTP_REFERER
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
+        log_message('debug', 'Restore - Return URL: ' . ($returnUrl ?? 'None'));
+        
+        // Khôi phục bản ghi bằng cách đặt deleted_at thành NULL
+        if ($this->model->update($id, ['deleted_at' => null])) {
+            $this->alert->set('success', 'Đã khôi phục dữ liệu từ thùng rác', true);
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra khi khôi phục dữ liệu', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
     }
     
     /**
-     * Permanently delete a face recognition record
+     * Xóa vĩnh viễn một bản ghi
      */
     public function permanentDelete($id = null)
     {
         if (empty($id)) {
-            return redirect()->back()->with('error', 'ID không hợp lệ');
+            $this->alert->set('danger', 'ID không hợp lệ', true);
+            return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
-        // Tìm item để lấy thông tin file ảnh
-        $item = $this->model->find($id);
+        // Lấy URL trả về từ form hoặc từ HTTP_REFERER
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
+        log_message('debug', 'PermanentDelete - Return URL: ' . ($returnUrl ?? 'None'));
         
-        if ($item) {
-            // Xóa file ảnh nếu tồn tại
-            if (!empty($item->duong_dan_anh)) {
-                $filePath = FCPATH . $item->duong_dan_anh;
-                if (file_exists($filePath)) {
-                    unlink($filePath);
-                }
-            }
-            
-            // Xóa vĩnh viễn bản ghi
-            if ($this->model->delete($id, true)) {
-                return redirect()->to('facenguoidung/listdeleted')->with('success', 'Đã xóa vĩnh viễn khuôn mặt thành công');
-            } else {
-                return redirect()->back()->with('error', 'Có lỗi xảy ra khi xóa vĩnh viễn khuôn mặt');
-            }
+        if ($this->model->delete($id, true)) { // true = xóa vĩnh viễn
+            $this->alert->set('success', 'Đã xóa vĩnh viễn dữ liệu', true);
         } else {
-            return redirect()->back()->with('error', 'Không tìm thấy bản ghi để xóa');
+            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
         }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
     }
     
     /**
-     * Update status of a face recognition record
+     * Tìm kiếm template
      */
-    public function status($id)
+    public function search()
     {
-        $item = $this->model->find($id);
+        // Lấy dữ liệu từ request
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
         
-        if (!$item) {
-            return redirect()->to('facenguoidung')->with('error', 'Không tìm thấy bản ghi');
+        // Chuẩn bị tiêu chí tìm kiếm
+        $criteria = [
+            'keyword' => $keyword
+        ];
+        
+        // Thêm bộ lọc nếu có
+        $filters = [];
+        if ($status !== null && $status !== '') {
+            $filters['status'] = (int)$status;
         }
         
-        $newStatus = $item->status == 1 ? 0 : 1;
-        $this->model->update($id, ['status' => $newStatus]);
+        // Chỉ thêm vào criteria nếu có bộ lọc
+        if (!empty($filters)) {
+            $criteria['filters'] = $filters;
+        }
         
-        return redirect()->to('facenguoidung')->with('message', 'Cập nhật trạng thái thành công');
+        // Thiết lập tùy chọn
+        $options = [
+            'sort_field' => $this->request->getGet('sort') ?? 'updated_at',
+            'sort_direction' => $this->request->getGet('order') ?? 'DESC',
+            'limit' => (int)($this->request->getGet('length') ?? 10),
+            'offset' => (int)($this->request->getGet('start') ?? 0)
+        ];
+        
+        // Thực hiện tìm kiếm
+        $results = $this->model->search($criteria, $options);
+        
+        // Tổng số kết quả
+        $totalRecords = $this->model->countSearchResults($criteria);
+        
+        // Nếu yêu cầu là AJAX (từ DataTables)
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'draw' => $this->request->getGet('draw'),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalRecords,
+                'data' => $results
+            ]);
+        }
+        
+        // Nếu không phải AJAX, hiển thị trang tìm kiếm
+        $viewData = [
+            'title' => 'Tìm kiếm ' . $this->title,
+            'data' => $results,
+            'pager' => $this->model->pager,
+            'keyword' => $keyword,
+            'filters' => $filters,
+            'moduleUrl' => $this->moduleUrl
+        ];
+        
+        return view('App\Modules\\' . $this->module_name . '\Views\search', $viewData);
     }
     
     /**
-     * Delete multiple face recognition records
+     * Xóa nhiều template (chuyển vào thùng rác)
      */
     public function deleteMultiple()
     {
-        $selectedIds = $this->request->getPost('selected_ids');
+        // Lấy các ID được chọn và URL trả về
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url');
         
-        if (empty($selectedIds)) {
-            return redirect()->to('facenguoidung')->with('error', 'Không có bản ghi nào được chọn');
-        }
-        
-        foreach ($selectedIds as $id) {
-            $this->model->update($id, ['bin' => 1]);
-        }
-        
-        return redirect()->to('facenguoidung')->with('message', 'Xóa thành công ' . count($selectedIds) . ' bản ghi');
-    }
-    
-    /**
-     * Restore multiple deleted face recognition records
-     */
-    public function restoreMultiple()
-    {
-        $selectedIds = $this->request->getPost('selected_ids');
-        
-        if (empty($selectedIds)) {
-            return redirect()->to('facenguoidung/listdeleted')->with('error', 'Không có bản ghi nào được chọn');
-        }
-        
-        foreach ($selectedIds as $id) {
-            $this->model->update($id, ['bin' => 0]);
-        }
-        
-        return redirect()->to('facenguoidung/listdeleted')->with('message', 'Khôi phục thành công ' . count($selectedIds) . ' bản ghi');
-    }
-    
-    /**
-     * Permanently delete multiple face recognition records
-     */
-    public function permanentDeleteMultiple()
-    {
-        $selectedIds = $this->request->getPost('selected_ids');
-        
-        if (empty($selectedIds)) {
-            return redirect()->back()->with('error', 'Không có mục nào được chọn để xóa vĩnh viễn');
-        }
-        
-        $countSuccess = 0;
-        
-        foreach ($selectedIds as $id) {
-            // Tìm item để lấy thông tin file ảnh
-            $item = $this->model->find($id);
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để xóa', true);
             
-            if ($item) {
-                // Xóa file ảnh nếu tồn tại
-                if (!empty($item->duong_dan_anh)) {
-                    $filePath = FCPATH . $item->duong_dan_anh;
-                    if (file_exists($filePath)) {
-                        unlink($filePath);
-                    }
-                }
-                
-                // Xóa vĩnh viễn bản ghi
-                if ($this->model->delete($id, true)) {
-                    $countSuccess++;
-                }
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl);
+        }
+        
+        // Log để debug
+        log_message('debug', 'DeleteMultiple - POST data: ' . json_encode($_POST));
+        log_message('debug', 'DeleteMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', 'DeleteMultiple - Return URL: ' . ($returnUrl ?? 'None'));
+        
+        $successCount = 0;
+        
+        // Đảm bảo $selectedItems là mảng
+        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
+        
+        foreach ($idArray as $id) {
+            if ($this->model->delete($id)) {
+                $successCount++;
             }
         }
         
-        if ($countSuccess > 0) {
-            return redirect()->to('facenguoidung/listdeleted')->with('success', "Đã xóa vĩnh viễn {$countSuccess} khuôn mặt thành công");
+        if ($successCount > 0) {
+            $this->alert->set('success', "Đã chuyển $successCount dữ liệu vào thùng rác", true);
         } else {
-            return redirect()->back()->with('error', 'Có lỗi xảy ra khi xóa vĩnh viễn các mục đã chọn');
+            $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa dữ liệu', true);
         }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl);
     }
     
     /**
-     * Update status of multiple face recognition records
+     * Xử lý URL trả về, loại bỏ domain nếu cần
+     * 
+     * @param string|null $returnUrl URL trả về
+     * @return string URL đích đã được xử lý
+     */
+    private function processReturnUrl($returnUrl)
+    {
+        // Mặc định là URL module
+        $redirectUrl = $this->moduleUrl . '/listdeleted';
+        
+        if (!empty($returnUrl)) {
+            // Giải mã URL
+            $decodedUrl = urldecode($returnUrl);
+            log_message('debug', 'Return URL sau khi giải mã: ' . $decodedUrl);
+            
+            // Kiểm tra nếu URL chứa domain, chỉ lấy phần path và query
+            if (strpos($decodedUrl, 'http') === 0) {
+                $urlParts = parse_url($decodedUrl);
+                $path = $urlParts['path'] ?? '';
+                $query = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
+                $decodedUrl = $path . $query;
+            }
+            
+            // Xử lý đường dẫn tương đối
+            if (strpos($decodedUrl, '/') === 0) {
+                $decodedUrl = substr($decodedUrl, 1);
+            }
+            
+            // Log cho debug
+            log_message('debug', 'URL sau khi xử lý: ' . $decodedUrl);
+            
+            // Cập nhật URL đích
+            $redirectUrl = $decodedUrl;
+        }
+        
+        return $redirectUrl;
+    }
+    
+    /**
+     * Thay đổi trạng thái nhiều template
      */
     public function statusMultiple()
     {
-        $selectedIds = $this->request->getPost('selected_ids');
-        $status = $this->request->getPost('status');
+        // Lấy dữ liệu từ POST request
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
         
-        if (empty($selectedIds)) {
-            return redirect()->to('facenguoidung')->with('error', 'Không có bản ghi nào được chọn');
+        // Log thông tin chi tiết để debug
+        log_message('debug', '[statusMultiple] - Request Method: ' . $this->request->getMethod());
+        log_message('debug', '[statusMultiple] - POST data: ' . json_encode($_POST));
+        log_message('debug', '[statusMultiple] - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', '[statusMultiple] - Return URL: ' . ($returnUrl ?? 'None'));
+        log_message('debug', '[statusMultiple] - CSRF: ' . json_encode($this->request->getPost(csrf_token()))); 
+        log_message('debug', '[statusMultiple] - Server variables: ' . json_encode($_SERVER));
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để thay đổi trạng thái', true);
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl);
         }
         
-        if (!isset($status) || $status === '') {
-            return redirect()->to('facenguoidung')->with('error', 'Trạng thái không hợp lệ');
+        // Khởi tạo biến đếm kết quả
+        $successCount = 0;
+        $errorCount = 0;
+        $errors = [];
+        
+        // Xử lý từng ID được chọn
+        foreach ($selectedItems as $id) {
+            try {
+                // Lấy thông tin hiện tại của bản ghi
+                $currentRecord = $this->model->find($id);
+                
+                if (!$currentRecord) {
+                    $errorCount++;
+                    $errors[] = "Không tìm thấy bản ghi với ID: $id";
+                    continue;
+                }
+                
+                // Đổi trạng thái ngược lại (0 -> 1 hoặc 1 -> 0)
+                $newStatus = $currentRecord->status == '1' ? '0' : '1';
+                
+                // Cập nhật trạng thái
+                $updateResult = $this->model->update($id, ['status' => $newStatus]);
+                
+                if ($updateResult) {
+                    $successCount++;
+                    log_message('debug', "[statusMultiple] - Successfully updated status for ID: $id to: $newStatus");
+                } else {
+                    $errorCount++;
+                    $errors[] = "Lỗi khi cập nhật trạng thái cho ID: $id";
+                    log_message('error', "[statusMultiple] - Failed to update status for ID: $id");
+                }
+            } catch (\Exception $e) {
+                $errorCount++;
+                $errors[] = "Lỗi khi xử lý ID: $id - " . $e->getMessage();
+                log_message('error', "[statusMultiple] - Error processing ID: $id - " . $e->getMessage());
+            }
         }
         
-        foreach ($selectedIds as $id) {
-            $this->model->update($id, ['status' => $status]);
+        // Log kết quả cuối cùng
+        log_message('debug', "[statusMultiple] - Final Results - Success: $successCount, Errors: $errorCount");
+        if (!empty($errors)) {
+            log_message('error', "[statusMultiple] - Error Details: " . json_encode($errors));
         }
         
-        $statusText = $status == 1 ? 'hoạt động' : 'không hoạt động';
-        return redirect()->to('facenguoidung')->with('message', 'Đã cập nhật ' . count($selectedIds) . ' bản ghi thành ' . $statusText);
+        // Thiết lập thông báo kết quả
+        if ($successCount > 0) {
+            $message = "Đã cập nhật thành công trạng thái cho $successCount mục";
+            if ($errorCount > 0) {
+                $message .= " (có $errorCount mục lỗi)";
+            }
+            $this->alert->set('success', $message, true);
+        } else {
+            $this->alert->set('error', 'Không thể cập nhật trạng thái cho bất kỳ mục nào', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        log_message('debug', "[statusMultiple] - Redirecting to: " . ($redirectUrl ?: $this->moduleUrl));
+        
+        return redirect()->to($redirectUrl ?: $this->moduleUrl);
     }
     
     /**
-     * View details of a face recognition record
+     * Khôi phục nhiều bản ghi từ thùng rác
      */
-    public function view($id)
+    public function restoreMultiple()
     {
-        $item = $this->model->find($id);
+        // Lấy các ID được chọn từ form và URL trả về
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
         
-        if (!$item) {
-            return redirect()->to('facenguoidung')->with('error', 'Không tìm thấy bản ghi');
+        // Log thông tin để debug
+        log_message('debug', 'RestoreMultiple - POST data: ' . json_encode($_POST));
+        log_message('debug', 'RestoreMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', 'RestoreMultiple - Return URL: ' . ($returnUrl ?? 'None'));
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để khôi phục', true);
+            
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
         }
         
-        return view('App\Modules\facenguoidung\Views\view', [
-            'item' => $item
-        ]);
-    }
-    
-    /**
-     * Export list to PDF
-     */
-    public function exportPdf()
-    {
-        $items = $this->model->getAllActive();
+        $successCount = 0;
+        $failCount = 0;
+        $errorMessages = [];
         
-        return view('App\Modules\facenguoidung\Views\export_pdf', [
-            'items' => $items
-        ]);
+        // Đảm bảo $selectedItems là mảng
+        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
+        
+        // Log thông tin mảng ID để debug
+        log_message('debug', 'RestoreMultiple - ID Array: ' . json_encode($idArray));
+        log_message('debug', 'RestoreMultiple - Số lượng ID cần khôi phục: ' . count($idArray));
+        
+        foreach ($idArray as $id) {
+            log_message('debug', 'RestoreMultiple - Đang khôi phục ID: ' . $id);
+            
+            try {
+                // Khôi phục bằng cách đặt deleted_at thành NULL
+                if ($this->model->update($id, ['deleted_at' => null])) {
+                    $successCount++;
+                    log_message('debug', 'RestoreMultiple - Khôi phục thành công ID: ' . $id);
+                } else {
+                    $failCount++;
+                    $errors = $this->model->errors() ? json_encode($this->model->errors()) : 'Unknown error';
+                    log_message('error', 'RestoreMultiple - Lỗi khôi phục dữ liệu ID: ' . $id . ', Errors: ' . $errors);
+                    $errorMessages[] = "Lỗi khôi phục dữ liệu ID: {$id}";
+                }
+            } catch (\Exception $e) {
+                $failCount++;
+                log_message('error', 'RestoreMultiple - Ngoại lệ khi khôi phục ID: ' . $id . ', Error: ' . $e->getMessage());
+                $errorMessages[] = "Lỗi khôi phục ID: {$id} - " . $e->getMessage();
+            }
+        }
+        
+        // Tổng kết kết quả
+        log_message('info', "RestoreMultiple - Kết quả: Thành công: {$successCount}, Thất bại: {$failCount}");
+        
+        if ($successCount > 0) {
+            if ($failCount > 0) {
+                $this->alert->set('warning', "Đã khôi phục {$successCount} dữ liệu, nhưng có {$failCount} dữ liệu không thể khôi phục", true);
+            } else {
+                $this->alert->set('success', "Đã khôi phục {$successCount} dữ liệu từ thùng rác", true);
+            }
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra, không thể khôi phục dữ liệu nào', true);
+            // Log chi tiết lỗi
+            if (!empty($errorMessages)) {
+                log_message('error', 'RestoreMultiple - Chi tiết lỗi: ' . json_encode($errorMessages));
+            }
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
     }
     
     /**
-     * Export list to Excel
+     * Xóa vĩnh viễn nhiều bản ghi
+     */
+    public function permanentDeleteMultiple()
+    {
+        // Lấy các ID được chọn từ form và URL trả về
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
+        
+        // Log thông tin để debug
+        log_message('debug', 'PermanentDeleteMultiple - POST data: ' . json_encode($_POST));
+        log_message('debug', 'PermanentDeleteMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', 'PermanentDeleteMultiple - Return URL: ' . ($returnUrl ?? 'None'));
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để xóa vĩnh viễn', true);
+            
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+        }
+        
+        $successCount = 0;
+        
+        // Đảm bảo $selectedItems là mảng
+        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
+        
+        // Log thông tin mảng ID để debug
+        log_message('debug', 'PermanentDeleteMultiple - ID Array: ' . json_encode($idArray));
+        log_message('debug', 'PermanentDeleteMultiple - Số lượng ID cần xóa vĩnh viễn: ' . count($idArray));
+        
+        foreach ($idArray as $id) {
+            log_message('debug', 'PermanentDeleteMultiple - Đang xóa vĩnh viễn ID: ' . $id);
+            
+            if ($this->model->delete($id, true)) { // true = xóa vĩnh viễn
+                $successCount++;
+                log_message('debug', 'PermanentDeleteMultiple - Xóa vĩnh viễn thành công ID: ' . $id);
+            } else {
+                log_message('error', 'PermanentDeleteMultiple - Lỗi xóa vĩnh viễn ID: ' . $id);
+            }
+        }
+        
+        if ($successCount > 0) {
+            $this->alert->set('success', "Đã xóa vĩnh viễn $successCount dữ liệu", true);
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa dữ liệu', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+    }
+    
+    /**
+     * Xuất danh sách tham gia sự kiện ra file Excel
      */
     public function exportExcel()
     {
-        $items = $this->model->getAllActive();
-        
-        // Create Excel file
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        
-        // Set headers
-        $sheet->setCellValue('A1', 'ID');
-        $sheet->setCellValue('B1', 'Người dùng ID');
-        $sheet->setCellValue('C1', 'Đường dẫn ảnh');
-        $sheet->setCellValue('D1', 'Ngày cập nhật');
-        $sheet->setCellValue('E1', 'Trạng thái');
-        
-        // Set data
-        $row = 2;
-        foreach ($items as $item) {
-            $sheet->setCellValue('A' . $row, $item->face_nguoi_dung_id);
-            $sheet->setCellValue('B' . $row, $item->nguoi_dung_id);
-            $sheet->setCellValue('C' . $row, $item->duong_dan_anh);
-            $sheet->setCellValue('D' . $row, $item->ngay_cap_nhat);
-            $sheet->setCellValue('E' . $row, $item->status ? 'Hoạt động' : 'Không hoạt động');
-            $row++;
-        }
-        
-        // Set headers for download
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="face_nguoi_dung.xlsx"');
-        header('Cache-Control: max-age=0');
-        
-        // Write to output
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $writer->save('php://output');
-        exit;
-    }
-    
-    /**
-     * Statistics method for dashboard
-     */
-    public function statistics()
-    {
-        $totalRecords = $this->model->countAll();
-        $activeRecords = $this->model->where('status', 1)->where('bin', 0)->countAllResults();
-        $inactiveRecords = $this->model->where('status', 0)->where('bin', 0)->countAllResults();
-        $deletedRecords = $this->model->where('bin', 1)->countAllResults();
-        
-        $data = [
-            'total' => $totalRecords,
-            'active' => $activeRecords,
-            'inactive' => $inactiveRecords,
-            'deleted' => $deletedRecords
-        ];
-        
-        return $this->response->setJSON($data);
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'face_nguoi_dung_id';
+        $order = $this->request->getGet('order') ?? 'ASC';
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+        $headers = $this->prepareExcelHeaders();
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
+
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_khuon_mat_nguoi_dung');
     }
 
     /**
-     * Permanently delete all face recognition records from trash
+     * Xuất danh sách tham gia sự kiện ra file PDF
      */
-    public function permanentDeleteAll()
+    public function exportPdf()
     {
-        // Lấy tất cả các bản ghi trong thùng rác
-        $items = $this->model->where('bin', 1)->findAll();
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'face_nguoi_dung_id';
+        $order = $this->request->getGet('order') ?? 'ASC';
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
+
+        $this->createPdfFile($data, $filters, 'DANH SÁCH KHUÔN MẶT NGƯỜI DÙNG', 'danh_sach_khuon_mat_nguoi_dung');
+    }
+
+    /**
+     * Xuất danh sách tham gia sự kiện đã xóa ra file PDF
+     */
+    public function exportDeletedPdf()
+    {
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'deleted_at';
+        $order = $this->request->getGet('order') ?? 'ASC';
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status, true);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
+        $filters['Trạng thái'] = 'Đã xóa';
+
+        $this->createPdfFile($data, $filters, 'DANH SÁCH KHUÔN MẶT NGƯỜI DÙNG ĐÃ XÓA', 'danh_sach_khuon_mat_nguoi_dung_da_xoa', true);
+    }
+
+    /**
+     * Xuất danh sách tham gia sự kiện đã xóa ra file Excel
+     */
+    public function exportDeletedExcel()
+    {
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'deleted_at';
+        $order = $this->request->getGet('order') ?? 'DESC';
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status, true);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+        $headers = $this->prepareExcelHeaders(true);
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
+        $filters['Trạng thái'] = 'Đã xóa';
+
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_khuon_mat_nguoi_dung_da_xoa', true);
+    }
+
+    /**
+     * Lấy text cho sắp xếp
+     */
+    protected function getSortText($sort, $order)
+    {
+        $sortFields = [
+            'face_nguoi_dung_id' => 'ID',
+            'nguoi_dung_id' => 'Người dùng',
+            'duong_dan_anh' => 'Đường dẫn ảnh',
+            'status' => 'Trạng thái',
+            'created_at' => 'Ngày tạo',
+            'updated_at' => 'Ngày cập nhật',
+            'deleted_at' => 'Ngày xóa',
+        ];
+
+        $field = $sortFields[$sort] ?? $sort;
+        return "$field (" . ($order === 'DESC' ? 'Giảm dần' : 'Tăng dần') . ")";
+    }
+
+    // Thêm vào phương thức này để hỗ trợ tìm kiếm các bản ghi đã xóa
+    public function searchDeleted(array $criteria = [], array $options = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->model->withDeleted();
         
-        $count = 0;
-        foreach ($items as $item) {
-            // Xóa file ảnh nếu tồn tại
-            if (!empty($item->duong_dan_anh) && file_exists(FCPATH . $item->duong_dan_anh)) {
-                unlink(FCPATH . $item->duong_dan_anh);
-            }
-            
-            // Xóa bản ghi
-            $this->model->delete($item->face_nguoi_dung_id, true);
-            $count++;
-        }
+        // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
         
-        return redirect()->to('facenguoidung/listdeleted')->with('message', 'Đã xóa vĩnh viễn ' . $count . ' bản ghi');
+        // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
+        return $this->model->search($criteria, $options);
+    }
+    
+    // Đếm số lượng bản ghi đã xóa theo tiêu chí tìm kiếm
+    public function countDeletedResults(array $criteria = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->model->withDeleted();
+        
+        // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
+        return $this->model->countSearchResults($criteria);
     }
 } 

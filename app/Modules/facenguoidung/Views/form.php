@@ -1,33 +1,42 @@
 <?php
 /**
- * Form component for creating and updating face recognition data
+ * Form component for creating and updating khuôn mặt người dùng
  * 
  * @var string $action Form submission URL
  * @var string $method Form method (POST or PUT)
- * @var object $item Face data entity for editing (optional)
- * @var array $nguoidungs Array of available nguoi_dung options (optional)
+ * @var FaceNguoiDung $data FaceNguoiDung entity data for editing (optional)
+ * @var array $nguoiDungList Danh sách người dùng
  */
 
 // Set default values if editing
-$face_nguoi_dung_id = isset($item) ? $item->face_nguoi_dung_id : '';
-$nguoi_dung_id = isset($item) ? $item->nguoi_dung_id : '';
-$duong_dan_anh = isset($item) ? $item->duong_dan_anh : '';
-$status = isset($item) ? (string)$item->status : '1';
+$nguoi_dung_id = isset($data) ? $data->getNguoiDungId() : '';
+$duong_dan_anh = isset($data) ? $data->getDuongDanAnh() : '';
+$status = isset($data) ? (string)$data->isActive() : '1';
+$id = isset($data) ? $data->getId() : '';
 
 // Set default values for form action and method
-$action = isset($action) ? $action : site_url('facenguoidung/create');
+$action = isset($action) ? $action : site_url($module_name . '/create');
 $method = isset($method) ? $method : 'POST';
 
 // Xác định tiêu đề form dựa trên mode
-$formTitle = isset($is_new) && $is_new ? 'Thêm mới khuôn mặt người dùng' : 'Cập nhật khuôn mặt người dùng';
+$isUpdate = isset($data) && $data->getId() > 0;
+
+// Lấy giá trị từ old() nếu có
+$nguoi_dung_id = old('nguoi_dung_id', $nguoi_dung_id);
+$duong_dan_anh = old('duong_dan_anh', $duong_dan_anh);
+$status = old('status', $status);
 ?>
 
 <!-- Form chính -->
-<form action="<?= $action ?>" method="<?= $method ?>" id="faceForm" class="needs-validation" enctype="multipart/form-data" novalidate>
-    <?php if (isset($item->face_nguoi_dung_id)): ?>
-        <input type="hidden" name="face_nguoi_dung_id" value="<?= $face_nguoi_dung_id ?>">
+<form action="<?= $action ?>" method="<?= $method ?>" id="form-<?= $module_name ?>" class="needs-validation" novalidate enctype="multipart/form-data">
+    <?= csrf_field() ?>
+    
+    <?php if ($id): ?>
+        <input type="hidden" name="face_nguoi_dung_id" value="<?= $id ?>">
+    <?php else: ?>
+        <input type="hidden" name="face_nguoi_dung_id" value="0">
     <?php endif; ?>
-
+    
     <!-- Hiển thị thông báo lỗi nếu có -->
     <?php if (session('error')): ?>
         <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
@@ -63,11 +72,26 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới khuôn mặt người dùn
         </div>
     <?php endif; ?>
 
+    <!-- Hiển thị thông báo thành công -->
+    <?php if (session('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-start border-success border-4" role="alert">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class='bx bx-check-circle fs-3'></i>
+                </div>
+                <div>
+                    <strong>Thành công!</strong> <?= session('success') ?>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="card-title mb-0">
-                <i class='bx bx-face text-primary me-2'></i>
-                Thông tin khuôn mặt
+                <i class='bx bx-user-circle text-primary me-2'></i>
+                Thông tin khuôn mặt người dùng
             </h5>
         </div>
         
@@ -80,25 +104,23 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới khuôn mặt người dùn
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
-                        <select class="form-select select2 <?= session('errors.nguoi_dung_id') ? 'is-invalid' : '' ?>" 
-                                id="nguoi_dung_id" name="nguoi_dung_id"
-                                data-placeholder="-- Chọn người dùng --"
-                                required>
+                        <select class="form-select <?= isset($validation) && $validation->hasError('nguoi_dung_id') ? 'is-invalid' : '' ?>" 
+                               id="nguoi_dung_id" name="nguoi_dung_id" required>
                             <option value="">-- Chọn người dùng --</option>
-                            <?php 
-                            $nguoidungData = isset($nguoidungs) ? $nguoidungs : [];
-                            if (!empty($nguoidungData)): ?>
-                                <?php foreach ($nguoidungData as $nd): ?>
-                                    <option value="<?= isset($nd->id) ? $nd->id : $nd->nguoi_dung_id ?>" 
-                                        <?= old('nguoi_dung_id', $nguoi_dung_id) == (isset($nd->id) ? $nd->id : $nd->nguoi_dung_id) ? 'selected' : '' ?>>
-                                        <?= esc($nd->FullName ?? $nd->ho_ten) ?> (<?= esc($nd->Email ?? $nd->email) ?>)
+                            <?php if (isset($nguoiDungList) && is_array($nguoiDungList)): ?>
+                                <?php foreach ($nguoiDungList as $nd): ?>
+                                    <option value="<?= $nd->getId() ?>" <?= $nguoi_dung_id == $nd->getId() ? 'selected' : '' ?>>
+                                        <?= esc($nd->getFullName()) ?>
+                                        <?php if (!empty($nd->getEmail())): ?>
+                                            (<?= esc($nd->getEmail()) ?>)
+                                        <?php endif; ?>
                                     </option>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </select>
-                        <?php if (session('errors.nguoi_dung_id')): ?>
+                        <?php if (isset($validation) && $validation->hasError('nguoi_dung_id')): ?>
                             <div class="invalid-feedback">
-                                <?= session('errors.nguoi_dung_id') ?>
+                                <?= $validation->getError('nguoi_dung_id') ?>
                             </div>
                         <?php else: ?>
                             <div class="invalid-feedback">Vui lòng chọn người dùng</div>
@@ -110,66 +132,81 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới khuôn mặt người dùn
                     </div>
                 </div>
 
-                <!-- Status -->
-                <div class="col-md-6">
-                    <label for="status" class="form-label fw-semibold">Trạng thái</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-toggle-left'></i></span>
-                        <select class="form-select" id="status" name="status">
-                            <option value="1" <?= old('status', $status) == '1' ? 'selected' : '' ?>>Hoạt động</option>
-                            <option value="0" <?= old('status', $status) == '0' ? 'selected' : '' ?>>Không hoạt động</option>
-                        </select>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Khuôn mặt không hoạt động sẽ không sử dụng trong hệ thống nhận diện
-                    </div>
-                </div>
-
                 <!-- duong_dan_anh -->
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <label for="duong_dan_anh" class="form-label fw-semibold">
                         Ảnh khuôn mặt <span class="text-danger">*</span>
                     </label>
-                    
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class='bx bx-image'></i></span>
-                                <input type="file" class="form-control <?= session('errors.duong_dan_anh') ? 'is-invalid' : '' ?>" 
-                                        id="duong_dan_anh" name="duong_dan_anh" 
-                                        accept="image/jpeg,image/png,image/jpg"
-                                        <?= isset($item) ? '' : 'required' ?>>
-                                <?php if (session('errors.duong_dan_anh')): ?>
-                                    <div class="invalid-feedback">
-                                        <?= session('errors.duong_dan_anh') ?>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="invalid-feedback">Vui lòng chọn ảnh khuôn mặt</div>
-                                <?php endif; ?>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-image'></i></span>
+                        <input type="file" class="form-control <?= isset($validation) && $validation->hasError('duong_dan_anh') ? 'is-invalid' : '' ?>" 
+                            id="duong_dan_anh" name="duong_dan_anh" 
+                            accept="image/*"
+                            <?= !$isUpdate ? 'required' : '' ?>>
+                        <?php if (isset($validation) && $validation->hasError('duong_dan_anh')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('duong_dan_anh') ?>
                             </div>
-                            <div class="form-text text-muted">
-                                <i class='bx bx-info-circle me-1'></i>
-                                Chấp nhận các định dạng: JPG, JPEG, PNG. Kích thước tối đa: 5MB. Ảnh sẽ được tự động nén trước khi lưu.
-                            </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng chọn ảnh khuôn mặt</div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Chọn ảnh khuôn mặt người dùng (jpg, jpeg, png)
+                    </div>
+                    <!-- Thêm div để hiển thị ảnh xem trước -->
+                    <div id="imagePreview" class="mt-2" style="display: none;">
+                        <div class="border rounded p-2 bg-light">
+                            <img id="previewImage" src="" alt="Ảnh xem trước" class="img-thumbnail" style="max-width: 200px; max-height: 200px; object-fit: cover;">
                         </div>
-                        
-                        <div class="col-md-4">
-                            <!-- Container cho preview ảnh -->
-                            <div id="image-preview-container">
-                                <?php if (isset($item) && !empty($item->duong_dan_anh)): ?>
-                                <div class="mt-2">
-                                    <img src="<?= base_url($item->duong_dan_anh) ?>" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
-                                    <p class="small text-muted mt-1">Ảnh hiện tại</p>
-                                </div>
-                                <?php else: ?>
-                                <div class="text-center p-3 border rounded bg-light">
-                                    <i class='bx bx-camera fs-2 text-muted'></i>
-                                    <p class="text-muted mb-0">Xem trước ảnh</p>
-                                </div>
-                                <?php endif; ?>
+                    </div>
+                    <?php if ($isUpdate && !empty($duong_dan_anh)): ?>
+                        <div class="mt-2">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="text-muted small">
+                                    <i class='bx bx-link-alt me-1'></i>
+                                    Đường dẫn hiện tại:
+                                </span>
+                                <span class="text-primary small">
+                                    <?= esc($duong_dan_anh) ?>
+                                </span>
                             </div>
+                            <div class="border rounded p-2 bg-light">
+                                <img src="<?= base_url($duong_dan_anh) ?>" 
+                                     alt="Ảnh khuôn mặt hiện tại" 
+                                     class="img-thumbnail"
+                                     style="max-width: 200px; max-height: 200px; object-fit: cover;">
+                            </div>
+                            <input type="hidden" name="duong_dan_anh" value="<?= esc($duong_dan_anh) ?>">
                         </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Status -->
+                <div class="col-md-6">
+                    <label for="status" class="form-label fw-semibold">
+                        Trạng thái <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-toggle-left'></i></span>
+                        <select class="form-select <?= isset($validation) && $validation->hasError('status') ? 'is-invalid' : '' ?>" 
+                               id="status" name="status" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="1" <?= $status == '1' ? 'selected' : '' ?>>Hoạt động</option>
+                            <option value="0" <?= $status == '0' ? 'selected' : '' ?>>Không hoạt động</option>
+                        </select>
+                        <?php if (isset($validation) && $validation->hasError('status')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('status') ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng chọn trạng thái</div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Trạng thái khuôn mặt người dùng trong hệ thống
                     </div>
                 </div>
             </div>
@@ -183,12 +220,12 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới khuôn mặt người dùn
                 </span>
                 
                 <div class="d-flex gap-2">
-                    <a href="<?= site_url('facenguoidung') ?>" class="btn btn-light">
+                    <a href="<?= site_url($module_name) ?>" class="btn btn-light">
                         <i class='bx bx-arrow-back me-1'></i> Quay lại
                     </a>
                     <button class="btn btn-primary px-4" type="submit">
                         <i class='bx bx-save me-1'></i>
-                        <?= isset($item->face_nguoi_dung_id) && $item->face_nguoi_dung_id ? 'Cập nhật' : 'Thêm mới' ?>
+                        <?= $isUpdate ? 'Cập nhật' : 'Thêm mới' ?>
                     </button>
                 </div>
             </div>
@@ -198,81 +235,40 @@ $formTitle = isset($is_new) && $is_new ? 'Thêm mới khuôn mặt người dùn
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Khởi tạo Select2
-        if ($.fn.select2) {
-            $('.select2').select2({
-                theme: 'bootstrap-5',
-                width: '100%'
-            });
-        }
-        
-        // Preview ảnh khi chọn file
-        const fileInput = document.getElementById('duong_dan_anh');
-        const previewContainer = document.getElementById('image-preview-container');
-        
-        if (fileInput && previewContainer) {
-            fileInput.addEventListener('change', function() {
-                // Xóa preview cũ
-                previewContainer.innerHTML = '';
-                
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        previewContainer.innerHTML = `
-                            <div class="mt-2">
-                                <img src="${e.target.result}" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
-                                <p class="small text-muted mt-1">Ảnh đã chọn</p>
-                            </div>
-                        `;
-                    }
-                    
-                    reader.readAsDataURL(this.files[0]);
-                } else {
-                    previewContainer.innerHTML = `
-                        <div class="text-center p-3 border rounded bg-light">
-                            <i class='bx bx-camera fs-2 text-muted'></i>
-                            <p class="text-muted mb-0">Xem trước ảnh</p>
-                        </div>
-                    `;
-                }
-            });
-        }
-        
         // Form validation
-        const form = document.getElementById('faceForm');
-        if (form) {
-            form.addEventListener('submit', function(event) {
-                // Kiểm tra người dùng đã chọn chưa
-                const nguoiDungSelect = document.getElementById('nguoi_dung_id');
-                if (nguoiDungSelect && !nguoiDungSelect.value) {
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
                     event.preventDefault();
-                    alert('Vui lòng chọn người dùng');
-                    nguoiDungSelect.focus();
-                    return false;
+                    event.stopPropagation();
                 }
-                
-                // Kiểm tra file đã chọn chưa (chỉ khi thêm mới)
-                const isNewForm = <?= isset($is_new) && $is_new ? 'true' : 'false' ?>;
-                if (isNewForm) {
-                    const fileInput = document.getElementById('duong_dan_anh');
-                    if (fileInput && (!fileInput.files || fileInput.files.length === 0)) {
-                        event.preventDefault();
-                        alert('Vui lòng chọn ảnh khuôn mặt');
-                        fileInput.focus();
-                        return false;
-                    }
-                }
-                
-                // Thêm class was-validated để hiển thị feedback
                 form.classList.add('was-validated');
-            });
-        }
+            }, false);
+        });
         
         // Tự động focus vào trường đầu tiên
-        setTimeout(() => {
-            const firstField = document.getElementById('nguoi_dung_id');
-            if (firstField) firstField.focus();
-        }, 100);
+        document.getElementById('nguoi_dung_id').focus();
+
+        // Xử lý hiển thị ảnh xem trước
+        const imageInput = document.getElementById('duong_dan_anh');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+
+        if (imageInput) {
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.style.display = 'none';
+                }
+            });
+        }
     });
 </script> 

@@ -1,52 +1,40 @@
-<?php $this->extend('layouts/default') ?>
+<?= $this->extend('layouts/default') ?>
+<?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
+<?= page_css('form') ?>
+<?= page_section_css('modal') ?>
+<?= $this->endSection() ?>
+<?= $this->section('title') ?>CẬP NHẬT NGƯỜI DÙNG<?= $this->endSection() ?>
 
-<?php $this->section('styles') ?>
-<?= facenguoidung_css('form') ?>
-<?= facenguoidung_section_css('modal') ?>
-<?php $this->endSection() ?>
-
-<?php $this->section('title') ?>CẬP NHẬT KHUÔN MẶT NGƯỜI DÙNG<?php $this->endSection() ?>
-
-<?php $this->section('bread_cum_link') ?>
+<?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Cập nhật khuôn mặt người dùng',
-    'dashboard_url' => site_url('facenguoidung'),
+    'title' => 'Cập nhật người dùng',
+    'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý khuôn mặt người dùng', 'url' => site_url('facenguoidung')],
+        ['title' => 'Quản lý Người dùng', 'url' => site_url($module_name)],
         ['title' => 'Cập nhật', 'active' => true]
     ],
     'actions' => [
-        ['url' => site_url('/facenguoidung'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
-    ]
+		['url' => site_url($module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+	]
 ]) ?>
-<?php $this->endSection() ?>
+<?= $this->endSection() ?>
 
-<?php $this->section('content') ?>
-<?= $this->include('App\Modules\facenguoidung\Views\form', [
-    'action' => site_url('facenguoidung/update/' . $item->face_nguoi_dung_id),
-    'method' => 'POST',
-    'item' => $item,
-    'nguoidungs' => $nguoidungs ?? [],
-    'is_new' => false
-]) ?>
-<?php $this->endSection() ?>  
+<?= $this->section("content") ?>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <?= form_open(site_url($module_name . '/update/' . $data->face_nguoi_dung_id), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+            <?php
+            // Include form fields with namHoc data
+            $action = site_url($module_name . '/update/' . $data->face_nguoi_dung_id);
+            $method = 'POST';
+            include __DIR__ . '/form.php';
+            ?>
+        <?= form_close() ?>
+    </div>
+</div>
+<?= $this->endSection() ?>  
 
-<?php $this->section('scripts') ?>
-<?= facenguoidung_js('form') ?>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('form-facenguoidung');
-        
-        // Validate form khi submit
-        form.addEventListener('submit', function (event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            
-            form.classList.add('was-validated');
-        });
-    });
-</script>
-<?php $this->endSection() ?> 
+<?= $this->section('script') ?>
+<?= page_js('form', $module_name) ?>
+<?= $this->endSection() ?> 

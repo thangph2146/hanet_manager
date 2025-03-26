@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\facenguoidung\Database\Migrations;
+namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
@@ -10,62 +10,52 @@ class FaceNguoiDung extends Migration
     {
         $this->forge->addField([
             'face_nguoi_dung_id' => [
-                'type'           => 'INT',
-                'constraint'     => 11,
-                'unsigned'       => true,
-                'auto_increment' => true,
+                'type' => 'INT',
+                'auto_increment' => true
             ],
             'nguoi_dung_id' => [
-                'type'       => 'INT',
-                'constraint' => 11,
-                'unsigned'   => true,
-                'null'       => false,
+                'type' => 'INT',
+                'constraint' => 10,
+                'unsigned' => true,
+                'null' => false
             ],
             'duong_dan_anh' => [
-                'type'       => 'VARCHAR',
+                'type' => 'VARCHAR',
                 'constraint' => 255,
-                'null'       => false,
-            ],
-            'ngay_cap_nhat' => [
-                'type'       => 'TIMESTAMP',
-                'null'       => true,
-                'default'    => null,
+                'null' => false
             ],
             'status' => [
-                'type'       => 'TINYINT',
+                'type' => 'TINYINT',
                 'constraint' => 1,
-                'default'    => 1,
-            ],
-            'bin' => [
-                'type'       => 'TINYINT',
-                'constraint' => 1,
-                'default'    => 0,
+                'default' => 1
             ],
             'created_at' => [
-                'type'       => 'TIMESTAMP',
-                'null'       => true,
-                'default'    => null,
+                'type' => 'DATETIME',
+                'null' => true
             ],
             'updated_at' => [
-                'type'       => 'TIMESTAMP',
-                'null'       => true,
-                'default'    => null,
-                'on update'  => 'CURRENT_TIMESTAMP',
+                'type' => 'DATETIME',
+                'null' => true
             ],
             'deleted_at' => [
-                'type'       => 'TIMESTAMP',
-                'null'       => true,
-                'default'    => null,
-            ],
+                'type' => 'DATETIME',
+                'null' => true
+            ]
         ]);
-        
+
+        // Thêm khóa chính
         $this->forge->addKey('face_nguoi_dung_id', true);
+        
+        // Thêm chỉ mục cho nguoi_dung_id
         $this->forge->addKey('nguoi_dung_id', false, false, 'idx_nguoi_dung_id');
+
+        // Tạo bảng
         $this->forge->createTable('face_nguoi_dung');
     }
 
     public function down()
     {
+        // Xóa bảng
         $this->forge->dropTable('face_nguoi_dung');
     }
 } 

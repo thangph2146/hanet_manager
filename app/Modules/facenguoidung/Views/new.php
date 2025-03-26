@@ -1,51 +1,36 @@
-<?php $this->extend('layouts/default') ?>
+<?= $this->extend('layouts/default') ?>
+<?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-
-<?php $this->section('styles') ?>
-<?= facenguoidung_css('form') ?>
+<?= page_css('form') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>THÊM MỚI KHUÔN MẶT NGƯỜI DÙNG<?= $this->endSection() ?>
+<?= $this->section('title') ?>THÊM MỚI NGƯỜI DÙNG<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thêm mới khuôn mặt người dùng',
-	'dashboard_url' => site_url('facenguoidung'),
+	'title' => 'Thêm mới Người dùng',
+	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý khuôn mặt người dùng', 'url' => site_url('facenguoidung')],
+		['title' => 'Quản lý Người dùng', 'url' => site_url($module_name)],
 		['title' => 'Thêm mới', 'active' => true]
-	],
-	'actions' => [
-		['url' => site_url('/facenguoidung'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<?= $this->include('App\Modules\facenguoidung\Views\form', [
-	'action' => site_url('facenguoidung/create'),
-	'method' => 'POST',
-	'nguoidungs' => $nguoidungs ?? [],
-	'is_new' => true
-]) ?>
+<div class="card shadow-sm">
+	<div class="card-body">
+		<?= form_open(site_url($module_name . '/create'), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+			<?php
+			// Include form fields
+			$action = site_url($module_name . '/create');
+			$method = 'POST';
+			include __DIR__ . '/form.php';
+			?>
+		<?= form_close() ?>
+	</div>
+</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= facenguoidung_js('form') ?>
-<script>
-	document.addEventListener('DOMContentLoaded', function () {
-		const form = document.getElementById('faceForm');
-		
-		// Validate form khi submit
-		if (form) {
-			form.addEventListener('submit', function (event) {
-				if (!form.checkValidity()) {
-					event.preventDefault();
-					event.stopPropagation();
-				}
-				
-				form.classList.add('was-validated');
-			});
-		}
-	});
-</script>
+<?= page_js('form', $module_name) ?>
 <?= $this->endSection() ?> 
