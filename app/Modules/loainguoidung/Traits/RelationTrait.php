@@ -37,7 +37,6 @@ trait RelationTrait
             'order' => $params['order'],
             'keyword' => $params['keyword'],
             'status' => $params['status'],
-            'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Danh sách ' . $this->title,
             'moduleUrl' => $this->moduleUrl,
             'title' => $this->title,
