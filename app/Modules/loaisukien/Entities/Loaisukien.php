@@ -5,7 +5,7 @@ namespace App\Modules\loaisukien\Entities;
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
 
-class Loaisukien extends BaseEntity
+class LoaiSuKien extends BaseEntity
 {
     protected $tableName = 'loai_su_kien';
     protected $primaryKey = 'loai_su_kien_id';
@@ -13,62 +13,72 @@ class Loaisukien extends BaseEntity
     protected $dates = [
         'created_at',
         'updated_at',
-        'deleted_at',
+        'deleted_at'
     ];
     
     protected $casts = [
         'loai_su_kien_id' => 'int',
         'status' => 'int',
-        'bin' => 'int',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+        'deleted_at' => 'timestamp'
     ];
     
-    protected $jsonFields = [];
-    
-    protected $hiddenFields = [
-        'deleted_at',
+    // Định nghĩa các chỉ mục
+    protected $indexes = [
+        'idx_ten_loai_su_kien' => ['ten_loai_su_kien']
     ];
     
-    // Trường duy nhất cần kiểm tra
-    protected $uniqueFields = [
-        'ma_loai_su_kien' => 'Mã loại sự kiện',
-        'ten_loai_su_kien' => 'Tên loại sự kiện'
+    // Định nghĩa các ràng buộc unique
+    protected $uniqueKeys = [
+        'uk_ten_loai_su_kien' => ['ten_loai_su_kien']
     ];
     
-    // Các quy tắc xác thực cụ thể cho Loaisukien
+    // Các quy tắc xác thực cụ thể cho LoaiSuKien
     protected $validationRules = [
-        'ten_loai_su_kien' => 'required|min_length[3]|max_length[100]',
-        'ma_loai_su_kien' => 'permit_empty|max_length[20]',
-        'status' => 'permit_empty|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
+        'ten_loai_su_kien' => [
+            'rules' => 'required|max_length[100]|is_unique[loai_su_kien.ten_loai_su_kien,loai_su_kien_id,{loai_su_kien_id}]',
+            'label' => 'Tên loại sự kiện'
+        ],
+        'ma_loai_su_kien' => [
+            'rules' => 'permit_empty|max_length[20]',
+            'label' => 'Mã loại sự kiện'
+        ],
+        'status' => [
+            'rules' => 'required|in_list[0,1]',
+            'label' => 'Trạng thái'
+        ]
     ];
     
     protected $validationMessages = [
         'ten_loai_su_kien' => [
-            'required' => 'Tên loại sự kiện là bắt buộc',
-            'min_length' => 'Tên loại sự kiện phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên loại sự kiện không được vượt quá {param} ký tự',
+            'required' => '{field} là bắt buộc',
+            'max_length' => '{field} không được vượt quá 100 ký tự',
+            'is_unique' => '{field} đã tồn tại trong hệ thống'
         ],
         'ma_loai_su_kien' => [
-            'max_length' => 'Mã loại sự kiện không được vượt quá {param} ký tự',
+            'max_length' => '{field} không được vượt quá 20 ký tự'
         ],
         'status' => [
-            'in_list' => 'Trạng thái không hợp lệ',
-        ],
-        'bin' => [
-            'in_list' => 'Trạng thái thùng rác không hợp lệ',
-        ],
+            'required' => '{field} không được để trống',
+            'in_list' => '{field} không hợp lệ'
+        ]
     ];
     
     /**
-     * Lấy ID
+     * Lấy ID của loại sự kiện
+     *
+     * @return int
      */
     public function getId(): int
     {
-        return (int)$this->attributes[$this->primaryKey];
+        return (int)($this->attributes[$this->primaryKey] ?? 0);
     }
     
     /**
      * Lấy tên loại sự kiện
+     *
+     * @return string
      */
     public function getTenLoaiSuKien(): string
     {
@@ -77,6 +87,8 @@ class Loaisukien extends BaseEntity
     
     /**
      * Lấy mã loại sự kiện
+     *
+     * @return string|null
      */
     public function getMaLoaiSuKien(): ?string
     {
@@ -84,47 +96,45 @@ class Loaisukien extends BaseEntity
     }
     
     /**
-     * Kiểm tra xem loại sự kiện có đang hoạt động hay không
+     * Kiểm tra trạng thái hoạt động
+     *
+     * @return bool
      */
     public function isActive(): bool
     {
-        return (bool)($this->attributes['status'] ?? false);
+        return (bool)($this->attributes['status'] ?? true);
     }
     
     /**
-     * Thiết lập trạng thái hoạt động
+     * Đặt trạng thái hoạt động
+     *
+     * @param bool $status
+     * @return $this
      */
     public function setStatus(bool $status)
     {
-        $this->attributes['status'] = $status ? 1 : 0;
+        $this->attributes['status'] = (int)$status;
         return $this;
     }
     
     /**
-     * Kiểm tra xem loại sự kiện có đang trong thùng rác hay không
+     * Kiểm tra xem bản ghi đã bị xóa chưa
+     *
+     * @return bool
      */
-    public function isInBin(): bool
+    public function isDeleted(): bool
     {
-        return (bool)($this->attributes['bin'] ?? false);
+        return !empty($this->attributes['deleted_at']);
     }
     
     /**
-     * Thiết lập trạng thái thùng rác
+     * Lấy nhãn trạng thái hiển thị
+     *
+     * @return string HTML với badge status
      */
-    public function setBinStatus(bool $binStatus)
+    public function getStatusLabel(): string
     {
-        $this->attributes['bin'] = $binStatus ? 1 : 0;
-        return $this;
-    }
-    
-    /**
-     * Lấy nhãn trạng thái
-     */
-    public function getStatusLabel()
-    {
-        $status = $this->isActive();
-        
-        if ($status) {
+        if ($this->status == 1) {
             return '<span class="badge bg-success">Hoạt động</span>';
         } else {
             return '<span class="badge bg-danger">Không hoạt động</span>';
@@ -132,94 +142,76 @@ class Loaisukien extends BaseEntity
     }
     
     /**
-     * Lấy thời gian tạo đã được định dạng
+     * Lấy ngày tạo đã định dạng
+     * 
+     * @return string
      */
-    public function getCreatedAtFormatted()
+    public function getCreatedAtFormatted(): string
     {
-        if (isset($this->attributes['created_at'])) {
-            if ($this->attributes['created_at'] instanceof Time) {
-                return $this->attributes['created_at']->format('d/m/Y H:i:s');
-            } else {
-                return (new Time($this->attributes['created_at']))->format('d/m/Y H:i:s');
-            }
+        if (empty($this->attributes['created_at'])) {
+            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
         }
         
-        return '';
+        $time = $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
-     * Lấy thời gian cập nhật đã được định dạng
+     * Lấy ngày cập nhật đã định dạng
+     * 
+     * @return string
      */
-    public function getUpdatedAtFormatted()
+    public function getUpdatedAtFormatted(): string
     {
-        if (isset($this->attributes['updated_at']) && $this->attributes['updated_at']) {
-            if ($this->attributes['updated_at'] instanceof Time) {
-                return $this->attributes['updated_at']->format('d/m/Y H:i:s');
-            } else {
-                return (new Time($this->attributes['updated_at']))->format('d/m/Y H:i:s');
-            }
+        if (empty($this->attributes['updated_at'])) {
+            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
         }
         
-        return '';
+        $time = $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
-     * Lấy thời gian xóa đã được định dạng
+     * Lấy ngày xóa đã định dạng
+     * 
+     * @return string
      */
-    public function getDeletedAtFormatted()
+    public function getDeletedAtFormatted(): string
     {
-        if (isset($this->attributes['deleted_at']) && $this->attributes['deleted_at']) {
-            if ($this->attributes['deleted_at'] instanceof Time) {
-                return $this->attributes['deleted_at']->format('d/m/Y H:i:s');
-            } else {
-                return (new Time($this->attributes['deleted_at']))->format('d/m/Y H:i:s');
-            }
+        if (empty($this->attributes['deleted_at'])) {
+            return '<span class="text-muted fst-italic">Chưa xóa</span>';
         }
         
-        return '';
+        $time = $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
-     * Kiểm tra mã là duy nhất
+     * Lấy các quy tắc xác thực
+     *
+     * @return array
      */
-    public function isUniqueCode(string $code, ?int $excludeId = null): bool
+    public function getValidationRules(): array
     {
-        if (empty($code)) {
-            return true;
-        }
-        
-        return $this->validateUniqueField('ma_loai_su_kien', $code, $excludeId);
+        return $this->validationRules;
     }
     
     /**
-     * Kiểm tra tên là duy nhất
+     * Lấy các thông báo xác thực
+     *
+     * @return array
      */
-    public function isUniqueName(string $name, ?int $excludeId = null): bool
+    public function getValidationMessages(): array
     {
-        if (empty($name)) {
-            return true;
-        }
-        
-        return $this->validateUniqueField('ten_loai_su_kien', $name, $excludeId);
-    }
-    
-    /**
-     * Xác thực một trường là duy nhất
-     */
-    protected function validateUniqueField(string $field, $value, ?int $exceptId = null): bool
-    {
-        $db = \Config\Database::connect();
-        $builder = $db->table($this->tableName);
-        
-        $builder->where($field, $value);
-        $builder->where('bin', 0);
-        
-        if ($exceptId !== null) {
-            $builder->where("{$this->primaryKey} !=", $exceptId);
-        }
-        
-        $count = $builder->countAllResults();
-        
-        return $count === 0;
+        return $this->validationMessages;
     }
 } 

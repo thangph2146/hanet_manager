@@ -1,30 +1,29 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= loaisukien_css('form') ?>
+<?= page_css('form') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>THÊM MỚI LOẠI SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thêm mới Loại Sự Kiện',
-	'dashboard_url' => site_url('loaisukien/dashboard'),
+	'title' => 'Thêm mới Loại sự kiện',
+	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Loại Sự Kiện', 'url' => site_url('loaisukien')],
-		['title' => 'Thêm mới Loại Sự Kiện', 'active' => true]
+		['title' => 'Quản lý Loại sự kiện', 'url' => site_url($module_name)],
+		['title' => 'Thêm mới', 'active' => true]
 	]
 ]) ?>
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
-	<div class="card-header py-3">
-		<h5 class="card-title mb-0">Thêm mới loại sự kiện</h5>
-	</div>
 	<div class="card-body">
-		<?= form_open(site_url('loaisukien/create'), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-loaisukien']) ?>
+		<?= form_open(site_url($module_name . '/create'), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
 			<?php
 			// Include form fields
+			$action = site_url($module_name . '/create');
+			$method = 'POST';
 			include __DIR__ . '/form.php';
 			?>
 		<?= form_close() ?>
@@ -33,20 +32,5 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= loaisukien_js('form') ?>
-<script>
-	document.addEventListener('DOMContentLoaded', function () {
-		const form = document.getElementById('form-loaisukien');
-		
-		// Validate form khi submit
-		form.addEventListener('submit', function (event) {
-			if (!form.checkValidity()) {
-				event.preventDefault();
-				event.stopPropagation();
-			}
-			
-			form.classList.add('was-validated');
-		});
-	});
-</script>
+<?= page_js('form', $module_name) ?>
 <?= $this->endSection() ?> 

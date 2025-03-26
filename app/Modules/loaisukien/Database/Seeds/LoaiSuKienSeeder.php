@@ -1,70 +1,64 @@
 <?php
 
-namespace App\Modules\nganh\Database\Seeds;
+namespace App\Modules\loaisukien\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
 use CodeIgniter\I18n\Time;
 
-class NganhSeeder extends Seeder
+class LoaiSuKienSeeder extends Seeder
 {
     public function run()
     {
+        // Dữ liệu mẫu cho bảng loại sự kiện
         $data = [
             [
-                'ma_nganh' => 'CNTT',
-                'ten_nganh' => 'Công nghệ thông tin',
-                'phong_khoa_id' => null,
+                'ten_loai_su_kien' => 'Hội thảo',
+                'ma_loai_su_kien' => 'HT',
                 'status' => 1,
-                'bin' => 0,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
             ],
             [
-                'ma_nganh' => 'MARKETING',
-                'ten_nganh' => 'Marketing',
-                'phong_khoa_id' => null,
+                'ten_loai_su_kien' => 'Hội nghị',
+                'ma_loai_su_kien' => 'HN',
                 'status' => 1,
-                'bin' => 0,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
             ],
             [
-                'ma_nganh' => 'QTKINHDOANH',
-                'ten_nganh' => 'Quản trị kinh doanh',
-                'phong_khoa_id' => null,
+                'ten_loai_su_kien' => 'Workshop',
+                'ma_loai_su_kien' => 'WS',
                 'status' => 1,
-                'bin' => 0,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
             ],
             [
-                'ma_nganh' => 'KINHTE',
-                'ten_nganh' => 'Kinh tế',
-                'phong_khoa_id' => null,
+                'ten_loai_su_kien' => 'Seminar',
+                'ma_loai_su_kien' => 'SM',
                 'status' => 1,
-                'bin' => 0,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
             ],
             [
-                'ma_nganh' => 'KTOAN',
-                'ten_nganh' => 'Kế toán',
-                'phong_khoa_id' => null,
+                'ten_loai_su_kien' => 'Tọa đàm',
+                'ma_loai_su_kien' => 'TD',
                 'status' => 1,
-                'bin' => 0,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
-            ],
+            ]
         ];
-
-        // Thêm dữ liệu vào bảng nganh
-        $this->db->table('nganh')->insertBatch($data);
         
-        echo "Seeder NganhSeeder đã được chạy thành công!\n";
+        // Thêm dữ liệu vào bảng loai_su_kien
+        if (!empty($data)) {
+            $this->db->table('loai_su_kien')->insertBatch($data);
+            echo "Đã tạo " . count($data) . " bản ghi loại sự kiện.\n";
+        }
+        
+        echo "Seeder LoaiSuKienSeeder đã được chạy thành công! Đã tạo dữ liệu mẫu cho loại sự kiện.\n";
     }
 } 
