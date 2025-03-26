@@ -4,26 +4,26 @@
  * 
  * @var string $action Form submission URL
  * @var string $method Form method (POST or PUT)
- * @var ThamGiaSuKien $thamGiaSuKien ThamGiaSuKien entity data for editing (optional)
+ * @var ThamGiaSuKien $data ThamGiaSuKien entity data for editing (optional)
  * @var array $nguoiDungList Danh sách người dùng (nếu có)
  * @var array $suKienList Danh sách sự kiện (nếu có)
  */
 
 // Set default values if editing
-$nguoi_dung_id = isset($thamGiaSuKien) ? $thamGiaSuKien->getNguoiDungId() : '';
-$su_kien_id = isset($thamGiaSuKien) ? $thamGiaSuKien->getSuKienId() : '';
-$thoi_gian_diem_danh = isset($thamGiaSuKien) ? $thamGiaSuKien->getThoiGianDiemDanh() : '';
-$phuong_thuc_diem_danh = isset($thamGiaSuKien) ? $thamGiaSuKien->getPhuongThucDiemDanh() : 'manual';
-$ghi_chu = isset($thamGiaSuKien) ? $thamGiaSuKien->getGhiChu() : '';
-$status = isset($thamGiaSuKien) ? (string)$thamGiaSuKien->isActive() : '1';
-$id = isset($thamGiaSuKien) ? $thamGiaSuKien->getId() : '';
+$nguoi_dung_id = isset($data) ? $data->getNguoiDungId() : '';
+$su_kien_id = isset($data) ? $data->getSuKienId() : '';
+$thoi_gian_diem_danh = isset($data) ? $data->getThoiGianDiemDanh() : '';
+$phuong_thuc_diem_danh = isset($data) ? $data->getPhuongThucDiemDanh() : 'manual';
+$ghi_chu = isset($data) ? $data->getGhiChu() : '';
+$status = isset($data) ? (string)$data->isActive() : '1';
+$id = isset($data) ? $data->getId() : '';
 
 // Set default values for form action and method
 $action = isset($action) ? $action : site_url($module_name . '/create');
 $method = isset($method) ? $method : 'POST';
 
 // Xác định tiêu đề form dựa trên mode
-$isUpdate = isset($thamGiaSuKien) && $thamGiaSuKien->getId() > 0;
+$isUpdate = isset($data) && $data->getId() > 0;
 
 // Format thời gian điểm danh cho input datetime-local
 if (!empty($thoi_gian_diem_danh)) {

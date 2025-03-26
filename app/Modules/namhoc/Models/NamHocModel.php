@@ -3,346 +3,592 @@
 namespace App\Modules\namhoc\Models;
 
 use App\Models\BaseModel;
+use App\Modules\namhoc\Entities\NamHoc;
+use App\Modules\namhoc\Libraries\Pager;
+use CodeIgniter\I18n\Time;
 
 class NamHocModel extends BaseModel
 {
     protected $table = 'nam_hoc';
     protected $primaryKey = 'nam_hoc_id';
-    protected $returnType = 'App\Modules\namhoc\Entities\NamHoc';
+    protected $useAutoIncrement = true;
+    
     protected $useSoftDeletes = true;
     protected $useTimestamps = true;
+    protected $createdField = 'created_at';
+    protected $updatedField = 'updated_at';
+    protected $deletedField = 'deleted_at';
+    
+    // Số lượng liên kết trang hiển thị xung quanh trang hiện tại   
+    protected $surroundCount = 2;
     
     protected $allowedFields = [
         'ten_nam_hoc',
         'ngay_bat_dau',
         'ngay_ket_thuc',
         'status',
-        'bin',
         'created_at',
         'updated_at',
         'deleted_at'
     ];
     
-    // Các trường liên quan đến timestamp
-    protected $createdField = 'created_at';
-    protected $updatedField = 'updated_at';
-    protected $deletedField = 'deleted_at';
+    protected $returnType = NamHoc::class;
     
-    // Các trường có thể tìm kiếm
+    // Trường có thể tìm kiếm
     protected $searchableFields = [
-        'ten_nam_hoc'
+        'ten_nam_hoc',
+        'ngay_bat_dau',
+        'ngay_ket_thuc'
     ];
     
-    // Các trường có thể lọc
+    // Trường có thể lọc
     protected $filterableFields = [
-        'status',
-        'bin'
+        'status'
     ];
     
-    // Các trường cần loại bỏ khoảng trắng thừa
-    protected $beforeSpaceRemoval = [
-        'ten_nam_hoc'
-    ];
+    // Các quy tắc xác thực
+    protected $validationRules = [];
+    protected $validationMessages = [];
+    protected $skipValidation = false;
     
-    // Định nghĩa các mối quan hệ - không sử dụng
-    protected $relations = [];
+    // Template pager
+    public $pager = null;
     
     /**
-     * Validation rules
-     * 
-     * @var array
+     * Lấy tất cả bản ghi năm học
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
      */
-    protected $validationRules = [
-        'ten_nam_hoc' => 'required|min_length[3]|max_length[100]',
-        'ngay_bat_dau' => 'required|valid_date',
-        'ngay_ket_thuc' => 'required|valid_date|validateDates[ngay_bat_dau]'
-    ];
+    public function getAll($limit = 10, $offset = 0, $sort = 'created_at', $order = 'DESC')
+    {
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        
+        // Chỉ lấy bản ghi chưa xóa
+        $this->builder->where('deleted_at IS NULL');
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
+        }
+        
+        $total = $this->countAll();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        return $result ?: [];
+    }
+    
+    /**
+     * Lấy tất cả bản ghi năm học đã xóa
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
+     */
+    public function getAllDeleted($limit = 10, $offset = 0, $sort = 'deleted_at', $order = 'DESC')
+    {
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        
+        // Chỉ lấy bản ghi đã xóa
+        $this->builder->where('deleted_at IS NOT NULL');
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
+        }
+        
+        $total = $this->countAllDeleted();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        return $result ?: [];
+    }
 
     /**
-     * Validation messages
-     * 
-     * @var array
-     */
-    protected $validationMessages = [
-        'ten_nam_hoc' => [
-            'required' => 'Tên năm học không được để trống',
-            'min_length' => 'Tên năm học phải có ít nhất 3 ký tự',
-            'max_length' => 'Tên năm học không được vượt quá 100 ký tự'
-        ],
-        'ngay_bat_dau' => [
-            'required' => 'Ngày bắt đầu không được để trống',
-            'valid_date' => 'Ngày bắt đầu không hợp lệ'
-        ],
-        'ngay_ket_thuc' => [
-            'required' => 'Ngày kết thúc không được để trống',
-            'valid_date' => 'Ngày kết thúc không hợp lệ',
-            'validateDates' => 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu'
-        ]
-    ];
-    
-    // Thêm log để theo dõi lúc khởi tạo model
-    public function __construct()
-    {
-        parent::__construct();
-        log_message('debug', 'NamHocModel initialized with table: ' . $this->table);
-    }
-    
-    // Các phương thức tùy chỉnh cho NamHocModel
-    
-    /**
-     * Lấy danh sách tất cả năm học đang hoạt động và không bị xóa
+     * Đếm tổng số bản ghi năm học
      *
-     * @return array
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
      */
-    public function getAllActive()
+    public function countAll($conditions = [])
     {
-        // Ghi log để debug
-        log_message('debug', 'Đang lấy danh sách năm học đang hoạt động');
+        $builder = $this->builder();
         
-        // Đảm bảo loại bỏ những bản ghi đã bị xóa mềm
-        return $this->where('deleted_at IS NULL')
-                    ->orderBy('ten_nam_hoc', 'ASC')
-                    ->findAll();
-    }
-    
-    /**
-     * Lấy danh sách tất cả năm học đã bị xóa tạm thời
-     *
-     * @return array
-     */
-    public function getAllDeleted()
-    {
-        return $this->onlyDeleted()
-                    ->where('deleted_at IS NOT NULL')
-                    ->orderBy('deleted_at', 'DESC')
-                    ->findAll();
-    }
-    
-    /**
-     * Lấy danh sách năm học đang hoạt động
-     *
-     * @return array
-     */
-    public function getActive()
-    {
-        return $this->where('status', 1)
-                    ->where('bin', 0)
-                    ->orderBy('ten_nam_hoc', 'ASC')
-                    ->findAll();
-    }
-    
-    /**
-     * Kiểm tra tên năm học đã tồn tại chưa
-     *
-     * @param string $tenNamHoc
-     * @param int|null $exceptId ID năm học cần loại trừ khi kiểm tra
-     * @return bool
-     */
-    public function isNameExists(string $tenNamHoc, int $exceptId = null)
-    {
-        $builder = $this->where('ten_nam_hoc', $tenNamHoc);
+        // Mặc định chỉ đếm bản ghi chưa xóa
+        $builder->where('deleted_at IS NULL');
         
-        if ($exceptId !== null) {
-            $builder->where('nam_hoc_id !=', $exceptId);
+        if (!empty($conditions)) {
+            $builder->where($conditions);
         }
         
-        return $builder->countAllResults() > 0;
+        return $builder->countAllResults();
     }
     
     /**
-     * Đưa một bản ghi vào thùng rác
+     * Đếm tổng số bản ghi năm học đã xóa
      *
-     * @param int $id ID của năm học cần đưa vào thùng rác
-     * @return bool Kết quả thao tác
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
      */
-    public function moveToBin($id)
+    public function countAllDeleted($conditions = [])
     {
-        log_message('debug', "NamHocModel::moveToBin - Moving ID $id to bin");
+        $builder = $this->builder();
         
-        // Tìm bản ghi theo ID
-        $namHoc = $this->find($id);
+        // Mặc định chỉ đếm bản ghi đã xóa
+        $builder->where('deleted_at IS NOT NULL');
         
-        // Kiểm tra xem bản ghi có tồn tại không
-        if (!$namHoc) {
-            log_message('debug', "NamHocModel::moveToBin - ID $id not found");
-            return false;
+        if (!empty($conditions)) {
+            $builder->where($conditions);
         }
         
-        // Kiểm tra xem bản ghi đã ở trong thùng rác chưa
-        if ($namHoc->is_deleted) {
-            log_message('debug', "NamHocModel::moveToBin - ID $id already in bin (is_deleted = {$namHoc->is_deleted})");
-            return true; // Đã ở trong thùng rác, coi như thành công
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Lấy tất cả bản ghi đang hoạt động
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
+     */
+    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'created_at', string $order = 'DESC')
+    {
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        $this->builder->where('status', 1);
+        $this->builder->where('deleted_at IS NULL');
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
         }
         
-        // Đưa vào thùng rác
-        $namHoc->is_deleted = 1;
-        $namHoc->deleted_at = date('Y-m-d H:i:s');
+        $total = $this->countAllActive();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
         
-        // Lưu thay đổi
-        $result = $this->save($namHoc);
-        
-        if ($result) {
-            log_message('debug', "NamHocModel::moveToBin - Successfully moved ID $id to bin");
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
         } else {
-            log_message('debug', "NamHocModel::moveToBin - Failed to move ID $id to bin. Errors: " . print_r($this->errors(), true));
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        if ($limit > 0) {
+            $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+            return $result ?: [];
+        }
+        
+        return $this->findAll();
+    }
+    
+    /**
+     * Đếm tổng số bản ghi đang hoạt động
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAllActive($conditions = [])
+    {
+        $builder = $this->builder();
+        $builder->where('status', 1);
+        $builder->where('deleted_at IS NULL');
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Tìm kiếm năm học dựa vào các tiêu chí
+     *
+     * @param array $criteria Các tiêu chí tìm kiếm
+     * @param array $options Tùy chọn phân trang và sắp xếp
+     * @return array
+     */
+    public function search(array $criteria = [], array $options = [])
+    {
+        $builder = $this->builder();
+        
+        // Xử lý withDeleted nếu cần
+        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+            $builder->where($this->table . '.deleted_at IS NOT NULL');
+        } else {
+            // Mặc định chỉ lấy dữ liệu chưa xóa
+            $builder->where($this->table . '.deleted_at IS NULL');
+        }
+        
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
+            
+            $builder->groupStart();
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($field, $keyword);
+                } else {
+                    $builder->orLike($field, $keyword);
+                }
+            }
+            $builder->groupEnd();
+        }
+        
+        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
+            $status = (int)$criteria['status'];
+            $builder->where($this->table . '.status', $status);
+        }
+        
+        // Xử lý lọc theo ngày
+        if (!empty($criteria['ngay_bat_dau_from'])) {
+            $builder->where('ngay_bat_dau >=', $criteria['ngay_bat_dau_from']);
+        }
+        
+        if (!empty($criteria['ngay_bat_dau_to'])) {
+            $builder->where('ngay_bat_dau <=', $criteria['ngay_bat_dau_to']);
+        }
+        
+        if (!empty($criteria['ngay_ket_thuc_from'])) {
+            $builder->where('ngay_ket_thuc >=', $criteria['ngay_ket_thuc_from']);
+        }
+        
+        if (!empty($criteria['ngay_ket_thuc_to'])) {
+            $builder->where('ngay_ket_thuc <=', $criteria['ngay_ket_thuc_to']);
+        }
+        
+        // Xác định trường sắp xếp và thứ tự sắp xếp
+        $sort = $options['sort'] ?? 'created_at';
+        $order = $options['order'] ?? 'DESC';
+        
+        // Xử lý giới hạn và phân trang
+        $limit = $options['limit'] ?? 10;
+        $offset = $options['offset'] ?? 0;
+        
+        // Thực hiện truy vấn với phân trang
+        if ($limit > 0) {
+            $builder->limit($limit, $offset);
+        }
+        
+        // Sắp xếp kết quả
+        $builder->orderBy($sort, $order);
+        
+        // Thực hiện truy vấn
+        $result = $builder->get()->getResult($this->returnType);
+        
+        // Thiết lập pager nếu cần
+        if ($limit > 0) {
+            $totalRows = $this->countSearchResults($criteria);
+            $this->pager = new Pager(
+                $totalRows,
+                $limit,
+                floor($offset / $limit) + 1
+            );
+            $this->pager->setSurroundCount($this->surroundCount ?? 2);
         }
         
         return $result;
     }
     
     /**
-     * Khôi phục năm học từ thùng rác
+     * Đếm tổng số kết quả tìm kiếm
      *
-     * @param int $id
-     * @return bool
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @return int
      */
-    public function restoreFromBin(int $id)
+    public function countSearchResults(array $criteria = [])
     {
-        return $this->update($id, ['bin' => 0]);
-    }
-    
-    /**
-     * Lấy danh sách năm học trong thùng rác
-     *
-     * @return array
-     */
-    public function getBinnedItems()
-    {
-        return $this->where('bin', 1)
-                    ->orderBy('updated_at', 'DESC')
-                    ->findAll();
-    }
-    
-    /**
-     * Xóa tạm thời năm học (soft delete)
-     *
-     * @param int $id
-     * @return bool
-     */
-    public function softDelete(int $id)
-    {
-        return $this->delete($id);
-    }
-    
-    /**
-     * Xóa tạm thời nhiều năm học
-     *
-     * @param array $ids Mảng các ID cần xóa
-     * @return bool
-     */
-    public function softDeleteMultiple(array $ids)
-    {
-        return $this->delete($ids);
-    }
-    
-    /**
-     * Khôi phục năm học đã xóa tạm thời
-     *
-     * @param int $id
-     * @return bool
-     */
-    public function restoreDeleted(int $id)
-    {
-        return $this->restore($id);
-    }
-    
-    /**
-     * Khôi phục nhiều năm học đã xóa tạm thời
-     *
-     * @param array $ids Mảng các ID cần khôi phục
-     * @return bool
-     */
-    public function restoreMultiple(array $ids)
-    {
-        $success = true;
-        foreach ($ids as $id) {
-            if (!$this->restore($id)) {
-                $success = false;
-            }
-        }
-        return $success;
-    }
-    
-    /**
-     * Lấy danh sách năm học đã xóa tạm thời
-     *
-     * @return array
-     */
-    public function getSoftDeleted()
-    {
-        return $this->onlyDeleted()->findAll();
-    }
-    
-    /**
-     * Xóa vĩnh viễn năm học
-     *
-     * @param int $id
-     * @return bool
-     */
-    public function permanentDelete(int $id)
-    {
-        return $this->delete($id, true);
-    }
-    
-    /**
-     * Xóa vĩnh viễn nhiều năm học
-     *
-     * @param array $ids Mảng các ID cần xóa vĩnh viễn
-     * @return bool
-     */
-    public function permanentDeleteMultiple(array $ids)
-    {
-        $success = true;
-        foreach ($ids as $id) {
-            if (!$this->delete($id, true)) {
-                $success = false;
-            }
-        }
-        return $success;
-    }
-    
-    /**
-     * Khôi phục một năm học đã xóa
-     * 
-     * @param int $id ID năm học cần khôi phục
-     * @return bool Kết quả khôi phục
-     */
-    public function restore($id)
-    {
-        return $this->db->table($this->table)
-            ->where($this->primaryKey, $id)
-            ->update([$this->deletedField => null]);
-    }
-    
-    /**
-     * Override validate method to add custom validation
-     * 
-     * @param array $data
-     * @param string $action
-     * @return bool
-     */
-    public function validate($data = null, string $action = null): bool
-    {
-        // Chạy validation cơ bản trước
-        $valid = parent::validate($data, $action);
+        $builder = $this->builder();
         
-        // Nếu validation cơ bản thất bại hoặc không có dữ liệu thì trả về kết quả
-        if (!$valid || empty($data)) {
-            return $valid;
+        // Xử lý withDeleted nếu cần
+        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+            $builder->where($this->table . '.deleted_at IS NOT NULL');
+        } else {
+            // Mặc định chỉ lấy dữ liệu chưa xóa
+            $builder->where($this->table . '.deleted_at IS NULL');
         }
         
-        // Validation kiểm tra ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc
-        if (isset($data['ngay_bat_dau']) && isset($data['ngay_ket_thuc'])) {
-            $startDate = strtotime($data['ngay_bat_dau']);
-            $endDate = strtotime($data['ngay_ket_thuc']);
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
             
-            if ($startDate > $endDate) {
-                $this->validation->setError('ngay_bat_dau', 'Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc');
-                $this->validation->setError('ngay_ket_thuc', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu');
-                return false;
+            $builder->groupStart();
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($field, $keyword);
+                } else {
+                    $builder->orLike($field, $keyword);
+                }
             }
+            $builder->groupEnd();
         }
         
-        return true;
+        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
+            $status = (int)$criteria['status'];
+            $builder->where($this->table . '.status', $status);
+        }
+        
+        // Xử lý lọc theo ngày
+        if (!empty($criteria['ngay_bat_dau_from'])) {
+            $builder->where('ngay_bat_dau >=', $criteria['ngay_bat_dau_from']);
+        }
+        
+        if (!empty($criteria['ngay_bat_dau_to'])) {
+            $builder->where('ngay_bat_dau <=', $criteria['ngay_bat_dau_to']);
+        }
+        
+        if (!empty($criteria['ngay_ket_thuc_from'])) {
+            $builder->where('ngay_ket_thuc >=', $criteria['ngay_ket_thuc_from']);
+        }
+        
+        if (!empty($criteria['ngay_ket_thuc_to'])) {
+            $builder->where('ngay_ket_thuc <=', $criteria['ngay_ket_thuc_to']);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Chuẩn bị các quy tắc xác thực dựa trên tình huống
+     * 
+     * @param string $scenario Tình huống xác thực ('insert' hoặc 'update')
+     * @param array $data Dữ liệu cần xác thực
+     */
+    public function prepareValidationRules(string $scenario = 'insert', array $data = [])
+    {
+        $entity = new NamHoc();
+        $this->validationRules = $entity->getValidationRules();
+        $this->validationMessages = $entity->getValidationMessages();
+        
+        // Loại trừ các trường timestamp và primary key khi thêm mới
+        unset($this->validationRules['created_at']);
+        unset($this->validationRules['updated_at']);
+        unset($this->validationRules['deleted_at']);
+        if ($scenario === 'insert') {
+            unset($this->validationRules['nam_hoc_id']);
+        }
+        
+        if ($scenario === 'update' && isset($data['nam_hoc_id'])) {
+            foreach ($this->validationRules as $field => &$rules) {
+                // Kiểm tra nếu $rules là một mảng
+                if (is_array($rules) && isset($rules['rules'])) {
+                    // Kiểm tra nếu chuỗi quy tắc chứa is_unique
+                    if (strpos($rules['rules'], 'is_unique') !== false) {
+                        $rules['rules'] = str_replace('{nam_hoc_id}', $data['nam_hoc_id'], $rules['rules']);
+                    }
+                } 
+                // Nếu $rules là một chuỗi
+                else if (is_string($rules) && strpos($rules, 'is_unique') !== false) {
+                    $rules = str_replace('{nam_hoc_id}', $data['nam_hoc_id'], $rules);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Thiết lập số lượng liên kết trang hiển thị xung quanh trang hiện tại
+     * 
+     * @param int $count Số lượng liên kết trang hiển thị (mỗi bên)
+     * @return $this
+     */
+    public function setSurroundCount(int $count)
+    {
+        if ($this->pager !== null) {
+            $this->pager->setSurroundCount($count);
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Lấy đối tượng phân trang 
+     * 
+     * @return Pager|null
+     */
+    public function getPager()
+    {
+        return $this->pager;
+    }
+    
+    /**
+     * Tìm bản ghi với các quan hệ
+     *
+     * @param int $id ID bản ghi cần tìm
+     * @param array $relations Các quan hệ cần lấy theo
+     * @param bool $validate Có kiểm tra dữ liệu trước khi trả về không
+     * @return object|null Đối tượng tìm thấy hoặc null nếu không tìm thấy
+     */
+    public function findWithRelations($id, $relations = [], $validate = false)
+    {
+        // Trong trường hợp đơn giản, chúng ta chỉ gọi phương thức find
+        // Nhưng trong thực tế, có thể cần xử lý thêm các quan hệ
+        return $this->find($id);
+    }
+    
+    /**
+     * Tìm kiếm các bản ghi đã xóa
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @param array $options Tùy chọn tìm kiếm (limit, offset, sort, order)
+     * @return array
+     */
+    public function searchDeleted(array $criteria = [], array $options = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
+        // Đặt điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
+        return $this->search($criteria, $options);
+    }
+    
+    /**
+     * Đếm số lượng bản ghi đã xóa theo tiêu chí tìm kiếm
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @return int
+     */
+    public function countDeletedResults(array $criteria = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
+        // Đặt điều kiện để chỉ đếm các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
+        return $this->countSearchResults($criteria);
+    }
+    
+    /**
+     * Xử lý dữ liệu trước khi lưu vào database
+     *
+     * @param array $data Dữ liệu cần xử lý
+     * @return array Dữ liệu đã xử lý
+     */
+    protected function beforeInsert(array $data): array
+    {
+        $data = parent::beforeInsert($data);
+        
+        // Xử lý thời gian bắt đầu
+        if (isset($data['data']['ngay_bat_dau'])) {
+            $data['data']['ngay_bat_dau'] = $this->formatDate($data['data']['ngay_bat_dau']);
+        }
+        
+        // Xử lý thời gian kết thúc
+        if (isset($data['data']['ngay_ket_thuc'])) {
+            $data['data']['ngay_ket_thuc'] = $this->formatDate($data['data']['ngay_ket_thuc']);
+        }
+        
+        return $data;
+    }
+    
+    /**
+     * Xử lý dữ liệu trước khi cập nhật vào database
+     *
+     * @param array $data Dữ liệu cần xử lý
+     * @return array Dữ liệu đã xử lý
+     */
+    protected function beforeUpdate(array $data): array
+    {
+        $data = parent::beforeUpdate($data);
+        
+        // Xử lý thời gian bắt đầu
+        if (isset($data['data']['ngay_bat_dau'])) {
+            $data['data']['ngay_bat_dau'] = $this->formatDate($data['data']['ngay_bat_dau']);
+        }
+        
+        // Xử lý thời gian kết thúc
+        if (isset($data['data']['ngay_ket_thuc'])) {
+            $data['data']['ngay_ket_thuc'] = $this->formatDate($data['data']['ngay_ket_thuc']);
+        }
+        
+        return $data;
+    }
+    
+    /**
+     * Định dạng ngày
+     *
+     * @param string|null $date Chuỗi ngày cần định dạng
+     * @return string|null Ngày đã định dạng
+     */
+    protected function formatDate(?string $date): ?string
+    {
+        if (empty($date)) {
+            return null;
+        }
+        
+        try {
+            // Thử parse ngày
+            $time = Time::parse($date);
+            
+            // Kiểm tra xem ngày có hợp lệ không
+            if ($time === false) {
+                log_message('error', 'Ngày không hợp lệ: ' . $date);
+                return null;
+            }
+            
+            // Format lại ngày theo định dạng chuẩn
+            return $time->format('Y-m-d');
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi định dạng ngày: ' . $e->getMessage() . ' - Input: ' . $date);
+            return null;
+        }
+    }
+    
+    /**
+     * Kiểm tra xem tên năm học đã tồn tại chưa
+     *
+     * @param string $tenNamHoc
+     * @param int|null $excludeId ID của bản ghi cần loại trừ khi kiểm tra (cho update)
+     * @return bool
+     */
+    public function isTenNamHocExists(string $tenNamHoc, ?int $excludeId = null): bool
+    {
+        $builder = $this->builder();
+        $builder->where('ten_nam_hoc', $tenNamHoc);
+        $builder->where('deleted_at IS NULL');
+        
+        if ($excludeId !== null) {
+            $builder->where($this->primaryKey . ' !=', $excludeId);
+        }
+        
+        return $builder->countAllResults() > 0;
+    }
+    
+    /**
+     * Lấy năm học hiện tại (status = 1)
+     *
+     * @return object|null
+     */
+    public function getCurrentNamHoc()
+    {
+        return $this->where('status', 1)
+                    ->where('deleted_at IS NULL')
+                    ->orderBy('ngay_bat_dau', 'DESC')
+                    ->first();
     }
 } 

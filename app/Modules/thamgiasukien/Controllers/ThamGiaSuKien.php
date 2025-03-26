@@ -32,6 +32,7 @@ class ThamGiaSuKien extends BaseController
     protected $moduleUrl;
     protected $title;
     protected $module_name = 'thamgiasukien';
+    protected $controller_name = 'ThamGiaSuKien';
     
     public function __construct()
     {
@@ -170,7 +171,7 @@ class ThamGiaSuKien extends BaseController
                 throw new \RuntimeException('Không thể thêm mới ' . $this->title);
             }
         } catch (\Exception $e) {
-            log_message('error', '[ThamGiaSuKien::create] ' . $e->getMessage());
+            log_message('error', '[' . $this->controller_name . '::create] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title);
@@ -191,16 +192,16 @@ class ThamGiaSuKien extends BaseController
         $this->initializeRelationTrait();
         
         // Lấy thông tin dữ liệu cơ bản
-        $thamGiaSuKien = $this->model->find($id);
+        $data = $this->model->find($id);
         
-        if (empty($thamGiaSuKien)) {
+        if (empty($data)) {
             $this->alert->set('danger', 'Không tìm thấy dữ liệu tham gia sự kiện', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Xử lý dữ liệu và nạp các quan hệ
-        $processedData = $this->processData([$thamGiaSuKien]);
-        $thamGiaSuKien = $processedData[0] ?? $thamGiaSuKien;
+        $processedData = $this->processData([$data]);
+        $data = $processedData[0] ?? $data;
         
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Chi tiết', current_url());
@@ -209,7 +210,7 @@ class ThamGiaSuKien extends BaseController
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chi tiết ' . $this->title,
-            'thamGiaSuKien' => $thamGiaSuKien,
+            'data' => $data,
             'moduleUrl' => $this->moduleUrl,
             'module_name' => $this->module_name
         ];
@@ -228,9 +229,9 @@ class ThamGiaSuKien extends BaseController
         }
         
         // Sử dụng phương thức findWithRelations từ model
-        $thamGiaSuKien = $this->model->findWithRelations($id);
+        $data = $this->model->findWithRelations($id);
         
-        if (empty($thamGiaSuKien)) {
+        if (empty($data)) {
             $this->alert->set('danger', 'Không tìm thấy dữ liệu tham gia sự kiện', true);
             return redirect()->to($this->moduleUrl);
         }
@@ -243,7 +244,7 @@ class ThamGiaSuKien extends BaseController
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chỉnh sửa ' . $this->title,
             'validation' => $this->validator,
-            'thamGiaSuKien' => $thamGiaSuKien,
+            'data' => $data,
             'moduleUrl' => $this->moduleUrl,
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
             'module_name' => $this->module_name
@@ -303,7 +304,7 @@ class ThamGiaSuKien extends BaseController
                 throw new \RuntimeException('Không thể cập nhật ' . $this->title);
             }
         } catch (\Exception $e) {
-            log_message('error', '[ThamGiaSuKien::update] ' . $e->getMessage());
+            log_message('error', '[' . $this->controller_name . '::update] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title);
@@ -373,10 +374,10 @@ class ThamGiaSuKien extends BaseController
         $this->model->withDeleted();
         
         // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
-        $pageData = $this->model->search($criteria, $options);
+        $data = $this->model->search($criteria, $options);
         
         // Xử lý dữ liệu và nạp các quan hệ
-        $pageData = $this->processData($pageData);
+        $data = $this->processData($data);
         
         // Lấy tổng số kết quả
         $total = $this->model->countSearchResults($criteria);
@@ -399,7 +400,7 @@ class ThamGiaSuKien extends BaseController
         $pager->setCurrentPage($params['page']);
         
         // Chuẩn bị dữ liệu cho view
-        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
+        $viewData = $this->prepareViewData($this->module_name, $data, $pager, array_merge($params, ['total' => $total]));
         
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);
@@ -490,7 +491,7 @@ class ThamGiaSuKien extends BaseController
         ];
         
         // Thực hiện tìm kiếm
-        $results = $this->model->search($criteria, $options);
+        $data = $this->model->search($criteria, $options);
         
         // Tổng số kết quả
         $totalRecords = $this->model->countSearchResults($criteria);
@@ -501,7 +502,7 @@ class ThamGiaSuKien extends BaseController
                 'draw' => $this->request->getGet('draw'),
                 'recordsTotal' => $totalRecords,
                 'recordsFiltered' => $totalRecords,
-                'data' => $results
+                'data' => $data
             ]);
         }
         
@@ -509,7 +510,7 @@ class ThamGiaSuKien extends BaseController
         $viewData = [
             'breadcrumb' => $this->breadcrumb->add('Tìm kiếm', current_url())->render(),
             'title' => 'Tìm kiếm ' . $this->title,
-            'templates' => $results,
+            'data' => $results,
             'pager' => $this->model->pager,
             'keyword' => $keyword,
             'filters' => $filters,

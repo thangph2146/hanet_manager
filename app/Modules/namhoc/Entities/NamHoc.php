@@ -8,6 +8,8 @@ use CodeIgniter\I18n\Time;
 class NamHoc extends BaseEntity
 {
     protected $tableName = 'nam_hoc';
+    protected $primaryKey = 'nam_hoc_id';
+    
     protected $dates = [
         'created_at',
         'updated_at',
@@ -19,38 +21,59 @@ class NamHoc extends BaseEntity
     protected $casts = [
         'nam_hoc_id' => 'int',
         'status' => 'int',
-        'bin' => 'int',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+        'deleted_at' => 'timestamp',
+        'ngay_bat_dau' => 'date',
+        'ngay_ket_thuc' => 'date'
     ];
     
-    protected $datamap = [];
+    // Định nghĩa các chỉ mục
+    protected $indexes = [
+        'idx_ten_nam_hoc' => ['ten_nam_hoc']
+    ];
     
-    protected $jsonFields = [];
-    
-    protected $hiddenFields = [
-        'deleted_at',
+    // Định nghĩa các ràng buộc unique
+    protected $uniqueKeys = [
+        'uk_ten_nam_hoc' => ['ten_nam_hoc']
     ];
     
     // Các quy tắc xác thực cụ thể cho NamHoc
     protected $validationRules = [
-        'ten_nam_hoc' => 'required|min_length[3]|max_length[50]',
-        'ngay_bat_dau' => 'permit_empty|valid_date',
-        'ngay_ket_thuc' => 'permit_empty|valid_date',
-        'status' => 'permit_empty|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
+        'ten_nam_hoc' => [
+            'rules' => 'required|max_length[50]|is_unique[nam_hoc.ten_nam_hoc,nam_hoc_id,{nam_hoc_id}]',
+            'label' => 'Tên năm học'
+        ],
+        'ngay_bat_dau' => [
+            'rules' => 'permit_empty|valid_date',
+            'label' => 'Ngày bắt đầu'
+        ],
+        'ngay_ket_thuc' => [
+            'rules' => 'permit_empty|valid_date',
+            'label' => 'Ngày kết thúc'
+        ],
+        'status' => [
+            'rules' => 'required|in_list[0,1]',
+            'label' => 'Trạng thái'
+        ]
     ];
     
     protected $validationMessages = [
         'ten_nam_hoc' => [
-            'required' => 'Tên năm học là bắt buộc',
-            'min_length' => 'Tên năm học phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên năm học không được vượt quá {param} ký tự',
+            'required' => '{field} là bắt buộc',
+            'max_length' => '{field} không được vượt quá 50 ký tự',
+            'is_unique' => '{field} đã tồn tại trong hệ thống'
         ],
         'ngay_bat_dau' => [
-            'valid_date' => 'Ngày bắt đầu không hợp lệ',
+            'valid_date' => '{field} không hợp lệ'
         ],
         'ngay_ket_thuc' => [
-            'valid_date' => 'Ngày kết thúc không hợp lệ',
+            'valid_date' => '{field} không hợp lệ'
         ],
+        'status' => [
+            'required' => '{field} không được để trống',
+            'in_list' => '{field} không hợp lệ'
+        ]
     ];
     
     /**
@@ -60,7 +83,7 @@ class NamHoc extends BaseEntity
      */
     public function getId(): int
     {
-        return (int)$this->attributes['nam_hoc_id'] ?? 0;
+        return (int)($this->attributes[$this->primaryKey] ?? 0);
     }
     
     /**
@@ -74,18 +97,6 @@ class NamHoc extends BaseEntity
     }
     
     /**
-     * Cập nhật tên năm học
-     *
-     * @param string $tenNamHoc
-     * @return $this
-     */
-    public function setTenNamHoc(string $tenNamHoc)
-    {
-        $this->attributes['ten_nam_hoc'] = $tenNamHoc;
-        return $this;
-    }
-    
-    /**
      * Lấy ngày bắt đầu
      *
      * @return Time|null
@@ -95,30 +106,12 @@ class NamHoc extends BaseEntity
         if (empty($this->attributes['ngay_bat_dau'])) {
             return null;
         }
-        
+
         if ($this->attributes['ngay_bat_dau'] instanceof Time) {
             return $this->attributes['ngay_bat_dau'];
         }
-        
-        // Chuyển đổi chuỗi thành đối tượng Time
-        try {
-            return new Time($this->attributes['ngay_bat_dau']);
-        } catch (\Exception $e) {
-            log_message('error', 'Error converting ngay_bat_dau to Time: ' . $e->getMessage());
-            return null;
-        }
-    }
-    
-    /**
-     * Cập nhật ngày bắt đầu
-     *
-     * @param string|null $ngayBatDau
-     * @return $this
-     */
-    public function setNgayBatDau(?string $ngayBatDau)
-    {
-        $this->attributes['ngay_bat_dau'] = $ngayBatDau;
-        return $this;
+
+        return new Time($this->attributes['ngay_bat_dau']);
     }
     
     /**
@@ -131,74 +124,12 @@ class NamHoc extends BaseEntity
         if (empty($this->attributes['ngay_ket_thuc'])) {
             return null;
         }
-        
+
         if ($this->attributes['ngay_ket_thuc'] instanceof Time) {
             return $this->attributes['ngay_ket_thuc'];
         }
-        
-        // Chuyển đổi chuỗi thành đối tượng Time
-        try {
-            return new Time($this->attributes['ngay_ket_thuc']);
-        } catch (\Exception $e) {
-            log_message('error', 'Error converting ngay_ket_thuc to Time: ' . $e->getMessage());
-            return null;
-        }
-    }
-    
-    /**
-     * Cập nhật ngày kết thúc
-     *
-     * @param string|null $ngayKetThuc
-     * @return $this
-     */
-    public function setNgayKetThuc(?string $ngayKetThuc)
-    {
-        $this->attributes['ngay_ket_thuc'] = $ngayKetThuc;
-        return $this;
-    }
-    
-    /**
-     * Kiểm tra năm học có đang hoạt động không
-     *
-     * @return bool
-     */
-    public function isActive(): bool
-    {
-        return (bool)($this->attributes['status'] ?? false);
-    }
-    
-    /**
-     * Đặt trạng thái hoạt động cho năm học
-     *
-     * @param bool $status
-     * @return $this
-     */
-    public function setStatus(bool $status)
-    {
-        $this->attributes['status'] = (int)$status;
-        return $this;
-    }
-    
-    /**
-     * Kiểm tra năm học có đang trong thùng rác không
-     *
-     * @return bool
-     */
-    public function isInBin(): bool
-    {
-        return (bool)($this->attributes['bin'] ?? false);
-    }
-    
-    /**
-     * Đặt trạng thái thùng rác
-     *
-     * @param bool $binStatus
-     * @return $this
-     */
-    public function setBinStatus(bool $binStatus)
-    {
-        $this->attributes['bin'] = (int)$binStatus;
-        return $this;
+
+        return new Time($this->attributes['ngay_ket_thuc']);
     }
     
     /**
@@ -228,28 +159,122 @@ class NamHoc extends BaseEntity
     }
     
     /**
-     * Lấy ngày tạo dưới dạng chuỗi với định dạng cụ thể
+     * Kiểm tra trạng thái hoạt động
      *
-     * @param string $format
-     * @return string
+     * @return bool
      */
-    public function getCreatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    public function isActive(): bool
     {
-        return $this->created_at instanceof Time 
-            ? $this->created_at->format($format) 
-            : '';
+        return (bool)($this->attributes['status'] ?? true);
     }
     
     /**
-     * Lấy ngày cập nhật dưới dạng chuỗi với định dạng cụ thể
+     * Đặt trạng thái hoạt động
      *
-     * @param string $format
+     * @param bool $status
+     * @return $this
+     */
+    public function setStatus(bool $status)
+    {
+        $this->attributes['status'] = (int)$status;
+        return $this;
+    }
+    
+    /**
+     * Kiểm tra xem bản ghi đã bị xóa chưa
+     *
+     * @return bool
+     */
+    public function isDeleted(): bool
+    {
+        return !empty($this->attributes['deleted_at']);
+    }
+    
+    /**
+     * Lấy nhãn trạng thái hiển thị
+     *
+     * @return string HTML với badge status
+     */
+    public function getStatusLabel(): string
+    {
+        if ($this->status == 1) {
+            return '<span class="badge bg-success">Hoạt động</span>';
+        } else {
+            return '<span class="badge bg-danger">Không hoạt động</span>';
+        }
+    }
+    
+    /**
+     * Lấy ngày tạo đã định dạng
+     * 
      * @return string
      */
-    public function getUpdatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    public function getCreatedAtFormatted(): string
     {
-        return $this->updated_at instanceof Time 
-            ? $this->updated_at->format($format) 
-            : '';
+        if (empty($this->attributes['created_at'])) {
+            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
+        }
+        
+        $time = $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
+            
+        return $time->format('Y-m-d H:i:s');
+    }
+    
+    /**
+     * Lấy ngày cập nhật đã định dạng
+     * 
+     * @return string
+     */
+    public function getUpdatedAtFormatted(): string
+    {
+        if (empty($this->attributes['updated_at'])) {
+            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
+        }
+        
+        $time = $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+            
+        return $time->format('Y-m-d H:i:s');
+    }
+    
+    /**
+     * Lấy ngày xóa đã định dạng
+     * 
+     * @return string
+     */
+    public function getDeletedAtFormatted(): string
+    {
+        if (empty($this->attributes['deleted_at'])) {
+            return '<span class="text-muted fst-italic">Chưa xóa</span>';
+        }
+        
+        $time = $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
+            
+        return $time->format('Y-m-d H:i:s');
+    }
+    
+    /**
+     * Lấy các quy tắc xác thực
+     *
+     * @return array
+     */
+    public function getValidationRules(): array
+    {
+        return $this->validationRules;
+    }
+    
+    /**
+     * Lấy các thông báo xác thực
+     *
+     * @return array
+     */
+    public function getValidationMessages(): array
+    {
+        return $this->validationMessages;
     }
 } 

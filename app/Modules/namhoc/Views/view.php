@@ -22,9 +22,9 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Chi tiết tham gia sự kiện ID: <?= esc($data->tham_gia_su_kien_id) ?></h5>
+        <h5 class="card-title mb-0">Chi tiết tham gia sự kiện ID: <?= esc($thamGiaSuKien->tham_gia_su_kien_id) ?></h5>
         <div class="d-flex gap-2">
-            <a href="<?= site_url($module_name . '/edit/' . $data->tham_gia_su_kien_id) ?>" class="btn btn-sm btn-primary">
+            <a href="<?= site_url($module_name . '/edit/' . $thamGiaSuKien->tham_gia_su_kien_id) ?>" class="btn btn-sm btn-primary">
                 <i class="bx bx-edit me-1"></i> Chỉnh sửa
             </a>
             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
@@ -52,45 +52,45 @@
                 <tbody>
                     <tr>
                         <th style="width: 200px;">ID</th>
-                        <td><?= esc($data->tham_gia_su_kien_id) ?></td>
+                        <td><?= esc($thamGiaSuKien->tham_gia_su_kien_id) ?></td>
                     </tr>
                     <tr>
                         <th>Người dùng</th>
                         <td>
-                            <?php if (isset($data->nguoi_dung) && !empty($data->nguoi_dung)): ?>
-                                <?= esc($data->nguoi_dung->ho_ten) ?>
-                                <?php if (!empty($data->nguoi_dung->email)): ?>
-                                    (<?= esc($data->nguoi_dung->email) ?>)
+                            <?php if (isset($thamGiaSuKien->nguoi_dung) && !empty($thamGiaSuKien->nguoi_dung)): ?>
+                                <?= esc($thamGiaSuKien->nguoi_dung->ho_ten) ?>
+                                <?php if (!empty($thamGiaSuKien->nguoi_dung->email)): ?>
+                                    (<?= esc($thamGiaSuKien->nguoi_dung->email) ?>)
                                 <?php endif; ?>
                             <?php else: ?>
-                                <span class="text-muted">ID: <?= esc($data->nguoi_dung_id) ?></span>
+                                <span class="text-muted">ID: <?= esc($thamGiaSuKien->nguoi_dung_id) ?></span>
                             <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
                         <th>Sự kiện</th>
                         <td>
-                            <?php if (isset($data->su_kien) && !empty($data->su_kien)): ?>
-                                <?= esc($data->su_kien->ten_su_kien) ?>
-                                <?php if (!empty($data->su_kien->mo_ta_su_kien)): ?>
+                            <?php if (isset($thamGiaSuKien->su_kien) && !empty($thamGiaSuKien->su_kien)): ?>
+                                <?= esc($thamGiaSuKien->su_kien->ten_su_kien) ?>
+                                <?php if (!empty($thamGiaSuKien->su_kien->mo_ta_su_kien)): ?>
                                     <br>
-                                    <small class="text-muted"><?= esc($data->su_kien->mo_ta_su_kien) ?></small>
+                                    <small class="text-muted"><?= esc($thamGiaSuKien->su_kien->mo_ta_su_kien) ?></small>
                                 <?php endif; ?>
                             <?php else: ?>
-                                <span class="text-muted">ID: <?= esc($data->su_kien_id) ?></span>
+                                <span class="text-muted">ID: <?= esc($thamGiaSuKien->su_kien_id) ?></span>
                             <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
                         <th>Thời gian điểm danh</th>
-                        <td><?= !empty($data->thoi_gian_diem_danh) ? date('d/m/Y H:i:s', strtotime($data->thoi_gian_diem_danh)) : 'Chưa điểm danh' ?></td>
+                        <td><?= !empty($thamGiaSuKien->thoi_gian_diem_danh) ? date('d/m/Y H:i:s', strtotime($thamGiaSuKien->thoi_gian_diem_danh)) : 'Chưa điểm danh' ?></td>
                     </tr>
                     <tr>
                         <th>Phương thức điểm danh</th>
                         <td>
-                            <?php if ($data->phuong_thuc_diem_danh == 'qr_code'): ?>
+                            <?php if ($thamGiaSuKien->phuong_thuc_diem_danh == 'qr_code'): ?>
                                 <span class="badge bg-info">QR Code</span>
-                            <?php elseif ($data->phuong_thuc_diem_danh == 'face_id'): ?>
+                            <?php elseif ($thamGiaSuKien->phuong_thuc_diem_danh == 'face_id'): ?>
                                 <span class="badge bg-primary">Face ID</span>
                             <?php else: ?>
                                 <span class="badge bg-secondary">Thủ công</span>
@@ -99,12 +99,12 @@
                     </tr>
                     <tr>
                         <th>Ghi chú</th>
-                        <td><?= !empty($data->ghi_chu) ? nl2br(esc($data->ghi_chu)) : '<em>Không có ghi chú</em>' ?></td>
+                        <td><?= !empty($thamGiaSuKien->ghi_chu) ? nl2br(esc($thamGiaSuKien->ghi_chu)) : '<em>Không có ghi chú</em>' ?></td>
                     </tr>
                     <tr>
                         <th>Trạng thái</th>
                         <td>
-                            <?php if ($data->status == 1): ?>
+                            <?php if ($thamGiaSuKien->status == 1): ?>
                                 <span class="badge bg-success">Hoạt động</span>
                             <?php else: ?>
                                 <span class="badge bg-danger">Không hoạt động</span>
@@ -113,11 +113,11 @@
                     </tr>
                     <tr>
                         <th>Ngày tạo</th>
-                        <td><?= !empty($data->created_at) ? date('d/m/Y H:i:s', strtotime($data->created_at)) : 'N/A' ?></td>
+                        <td><?= !empty($thamGiaSuKien->created_at) ? date('d/m/Y H:i:s', strtotime($thamGiaSuKien->created_at)) : 'N/A' ?></td>
                     </tr>
                     <tr>
                         <th>Cập nhật lần cuối</th>
-                        <td><?= !empty($data->updated_at) ? date('d/m/Y H:i:s', strtotime($data->updated_at)) : 'N/A' ?></td>
+                        <td><?= !empty($thamGiaSuKien->updated_at) ? date('d/m/Y H:i:s', strtotime($thamGiaSuKien->updated_at)) : 'N/A' ?></td>
                     </tr>
                 </tbody>
             </table>
@@ -134,11 +134,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn xóa tham gia sự kiện ID: <strong><?= esc($data->tham_gia_su_kien_id) ?></strong> không?
+                Bạn có chắc chắn muốn xóa tham gia sự kiện ID: <strong><?= esc($thamGiaSuKien->tham_gia_su_kien_id) ?></strong> không?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <a href="<?= site_url($module_name . '/delete/' . $data->tham_gia_su_kien_id) ?>" class="btn btn-danger">Xóa</a>
+                <a href="<?= site_url($module_name . '/delete/' . $thamGiaSuKien->tham_gia_su_kien_id) ?>" class="btn btn-danger">Xóa</a>
             </div>
         </div>
     </div>
