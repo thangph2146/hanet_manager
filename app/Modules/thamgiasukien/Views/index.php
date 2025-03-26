@@ -147,8 +147,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($thamGiaSuKiens)) : ?>
-                            <?php foreach ($thamGiaSuKiens as $item) : ?>
+                        <?php if (!empty($processedData)) : ?>
+                            <?php foreach ($processedData as $item) : ?>
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
@@ -230,7 +230,7 @@
                 </table>
             </div>
         </div>
-        <?php if (!empty($thamGiaSuKiens)): ?>
+        <?php if (!empty($processedData)): ?>
             <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-2">
                 <div class="col-sm-12 col-md-5">
                     <div class="dataTables_info">

@@ -1,26 +1,21 @@
 <?php
 
-namespace App\Modules\thamgiasukien\Traits;
+namespace App\Modules\loainguoidung\Traits;
 
 use CodeIgniter\I18n\Time;
-use App\Modules\sukien\Models\SuKienModel;
-use App\Modules\nguoidung\Models\NguoiDungModel;
+use App\Modules\loainguoidung\Models\LoaiNguoiDungModel;
 
 trait RelationTrait
 {
-    protected $suKienModel;
-    protected $nguoiDungModel;
+    protected $loaiNguoiDungModel;
 
     /**
      * Khởi tạo các model cần thiết
      */
     protected function initializeRelationTrait()
     {
-        if (!$this->suKienModel) {
-            $this->suKienModel = new SuKienModel();
-        }
-        if (!$this->nguoiDungModel) {
-            $this->nguoiDungModel = new NguoiDungModel();
+        if (!$this->loaiNguoiDungModel) {
+            $this->loaiNguoiDungModel = new LoaiNguoiDungModel();
         }
     }
 
@@ -43,9 +38,7 @@ trait RelationTrait
             $nguoiDungInfo = $this->nguoiDungModel->find($params['nguoi_dung_id']);
         }
         
-        if (!empty($params['su_kien_id'])) {
-            $suKienInfo = $this->suKienModel->find($params['su_kien_id']);
-        }
+     
         
         return [
             'processedData' => $processedData,
@@ -58,10 +51,6 @@ trait RelationTrait
             'keyword' => $params['keyword'],
             'status' => $params['status'],
             'nguoi_dung_id' => $params['nguoi_dung_id'],
-            'nguoi_dung_info' => $nguoiDungInfo,
-            'su_kien_id' => $params['su_kien_id'],
-            'su_kien_info' => $suKienInfo,
-            'phuong_thuc_diem_danh' => $params['phuong_thuc_diem_danh'],
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Danh sách ' . $this->title,
             'moduleUrl' => $this->moduleUrl,
@@ -81,19 +70,6 @@ trait RelationTrait
 
         // Khởi tạo các model nếu chưa được khởi tạo
         $this->initializeRelationTrait();
-
-        // Lấy danh sách ID duy nhất để tối ưu query
-        $suKienIds = [];
-        $nguoiDungIds = [];
-        foreach ($data as $item) {
-            if (!empty($item->su_kien_id)) {
-                $suKienIds[] = $item->su_kien_id;
-            }
-            if (!empty($item->nguoi_dung_id)) {
-                $nguoiDungIds[] = $item->nguoi_dung_id;
-            }
-        }
-
         // Lấy dữ liệu relation một lần duy nhất
         $suKiens = [];
         $nguoiDungs = [];
@@ -107,10 +83,6 @@ trait RelationTrait
             $nguoiDungIds = array_unique($nguoiDungIds);
             $nguoiDungs = $this->nguoiDungModel->find($nguoiDungIds);
         }
-
-        // Chuyển đổi thành mảng key-value để dễ truy cập
-        $suKienMap = array_column($suKiens, null, 'su_kien_id');
-        $nguoiDungMap = array_column($nguoiDungs, null, 'nguoi_dung_id');
 
         foreach ($data as &$item) {
             // Xử lý thời gian điểm danh
@@ -161,12 +133,6 @@ trait RelationTrait
                 }
             }
 
-            // Thêm thông tin sự kiện
-            if (!empty($item->su_kien_id) && isset($suKienMap[$item->su_kien_id])) {
-                $item->su_kien = $suKienMap[$item->su_kien_id];
-            } else {
-                $item->su_kien = null;
-            }
 
             // Thêm thông tin người dùng
             if (!empty($item->nguoi_dung_id) && isset($nguoiDungMap[$item->nguoi_dung_id])) {
@@ -214,8 +180,6 @@ trait RelationTrait
             'keyword' => $request->getGet('keyword') ?? '',
             'status' => $request->getGet('status'),
             'nguoi_dung_id' => $request->getGet('nguoi_dung_id'),
-            'su_kien_id' => $request->getGet('su_kien_id'),
-            'phuong_thuc_diem_danh' => $request->getGet('phuong_thuc_diem_danh')
         ];
     }
 
@@ -253,14 +217,6 @@ trait RelationTrait
         
         if (!empty($params['nguoi_dung_id'])) {
             $criteria['nguoi_dung_id'] = $params['nguoi_dung_id'];
-        }
-        
-        if (!empty($params['su_kien_id'])) {
-            $criteria['su_kien_id'] = $params['su_kien_id'];
-        }
-        
-        if (!empty($params['phuong_thuc_diem_danh'])) {
-            $criteria['phuong_thuc_diem_danh'] = $params['phuong_thuc_diem_danh'];
         }
 
         return $criteria;
