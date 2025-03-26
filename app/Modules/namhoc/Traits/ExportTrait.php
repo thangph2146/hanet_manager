@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\thamgiasukien\Traits;
+namespace App\Modules\namhoc\Traits;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -16,7 +16,7 @@ trait ExportTrait
     /**
      * Chuẩn bị tiêu chí tìm kiếm
      */
-    protected function prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id, $includeDeleted = false)
+    protected function prepareSearchCriteria($keyword, $status, $includeDeleted = false)
     {
         $criteria = [];
         
@@ -26,18 +26,6 @@ trait ExportTrait
         
         if (isset($status) && $status !== '') {
             $criteria['status'] = (int)$status;
-        }
-        
-        if (!empty($phuong_thuc_diem_danh)) {
-            $criteria['phuong_thuc_diem_danh'] = $phuong_thuc_diem_danh;
-        }
-        
-        if (!empty($nguoi_dung_id)) {
-            $criteria['nguoi_dung_id'] = $nguoi_dung_id;
-        }
-        
-        if (!empty($su_kien_id)) {
-            $criteria['su_kien_id'] = $su_kien_id;
         }
         
         if ($includeDeleted) {
@@ -54,8 +42,8 @@ trait ExportTrait
     {
         // Nếu không có sort được chỉ định, mặc định là sắp xếp theo thời gian điểm danh giảm dần
         if (empty($sort)) {
-            $sort = 'thoi_gian_diem_danh';
-            $order = 'DESC';
+            $sort = 'nam_hoc_id';
+            $order = 'ASC';
         }
 
         return [
@@ -84,12 +72,13 @@ trait ExportTrait
         $headers = [
             'STT' => 'A',
             'ID' => 'B',
-            'Người dùng ID' => 'C',
-            'Sự kiện ID' => 'D',
-            'Thời gian điểm danh' => 'E',
-            'Phương thức điểm danh' => 'F',
-            'Ghi chú' => 'G',
-            'Trạng thái' => 'H'
+            'Tên năm học' => 'C',
+            'Ngày bắt đầu' => 'D',
+            'Ngày kết thúc' => 'E',
+            'Trạng thái' => 'F',
+            'Ngày tạo' => 'G',
+            'Ngày cập nhật' => 'H',
+            'Ngày xóa' => 'I'
         ];
 
         if ($includeDeleted) {
@@ -160,7 +149,7 @@ trait ExportTrait
         ];
 
         // Thêm tiêu đề
-        $sheet->setCellValue('A1', 'DANH SÁCH THAM GIA SỰ KIỆN');
+        $sheet->setCellValue('A1', 'DANH SÁCH NĂM HỌC');
         $sheet->mergeCells('A1:' . end($headers) . '1');
         $sheet->getStyle('A1')->applyFromArray([
             'font' => ['bold' => true, 'size' => 14],
@@ -203,27 +192,13 @@ trait ExportTrait
         $row++;
         foreach ($data as $index => $item) {
             $sheet->setCellValue('A' . $row, $index + 1);
-            $sheet->setCellValue('B' . $row, $item->tham_gia_su_kien_id);
-            $sheet->setCellValue('C' . $row, $item->nguoi_dung_id);
-            $sheet->setCellValue('D' . $row, $item->su_kien_id);
-            
-            // Xử lý thời gian điểm danh
-            if (!empty($item->thoi_gian_diem_danh)) {
-                try {
-                    $thoiGianDiemDanh = $item->thoi_gian_diem_danh instanceof Time ? 
-                        $item->thoi_gian_diem_danh : 
-                        Time::parse($item->thoi_gian_diem_danh);
-                    $sheet->setCellValue('E' . $row, $thoiGianDiemDanh->format('d/m/Y H:i:s'));
-                } catch (\Exception $e) {
-                    $sheet->setCellValue('E' . $row, 'Chưa điểm danh');
-                }
-            } else {
-                $sheet->setCellValue('E' . $row, 'Chưa điểm danh');
-            }
-            
-            $sheet->setCellValue('F' . $row, $this->getPhuongThucDiemDanhText($item->phuong_thuc_diem_danh));
-            $sheet->setCellValue('G' . $row, $item->ghi_chu ?? '');
-            $sheet->setCellValue('H' . $row, $item->status == 1 ? 'Hoạt động' : 'Không hoạt động');
+            $sheet->setCellValue('B' . $row, $item->nam_hoc_id);
+            $sheet->setCellValue('C' . $row, $item->ten_nam_hoc);
+            $sheet->setCellValue('D' . $row, $item->ngay_bat_dau);
+            $sheet->setCellValue('E' . $row, $item->ngay_ket_thuc);
+            $sheet->setCellValue('F' . $row, $item->status == 1 ? 'Hoạt động' : 'Không hoạt động');
+            $sheet->setCellValue('G' . $row, $item->created_at);
+            $sheet->setCellValue('H' . $row, $item->updated_at);
 
             // Xử lý thời gian xóa
             if ($includeDeleted && isset($item->deleted_at)) {
@@ -232,7 +207,7 @@ trait ExportTrait
                         $deletedAt = $item->deleted_at instanceof Time ? 
                             $item->deleted_at : 
                             Time::parse($item->deleted_at);
-                        $sheet->setCellValue('I' . $row, $deletedAt->format('d/m/Y H:i:s'));
+                        $sheet->setCellValue('I' . $row, $deletedAt->format('d/m/Y'));
                     } catch (\Exception $e) {
                         $sheet->setCellValue('I' . $row, '');
                     }
@@ -288,7 +263,7 @@ trait ExportTrait
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'title' => $title,
-            'date' => Time::now()->format('d/m/Y H:i:s'),
+            'date' => Time::now()->format('d/m/Y'),
             'filters' => $this->formatFilters($filters),
             'data' => $data,
             'includeDeletedAt' => $includeDeleted,
@@ -305,21 +280,6 @@ trait ExportTrait
         // Tải file PDF
         $dompdf->stream($filename . '.pdf', ['Attachment' => true]);
         exit();
-    }
-
-    /**
-     * Lấy text cho phương thức điểm danh
-     */
-    protected function getPhuongThucDiemDanhText($phuongThuc)
-    {
-        switch ($phuongThuc) {
-            case 'qr_code':
-                return 'QR Code';
-            case 'face_id':
-                return 'Face ID';
-            default:
-                return 'Thủ công';
-        }
     }
 
     /**

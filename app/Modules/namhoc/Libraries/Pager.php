@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Modules\thamgiasukien\Libraries;
+namespace App\Modules\namhoc\Libraries;
 
 /**
- * Lớp Pager - cung cấp chức năng phân trang cho module ThamGiaSuKien
+ * Lớp Pager - cung cấp chức năng phân trang cho module NamHoc
  * 
  * Lớp này thay thế cho \CodeIgniter\Pager\Pager mặc định để tùy chỉnh
- * cách hiển thị và xử lý phân trang riêng cho module ThamGiaSuKien.
+ * cách hiển thị và xử lý phân trang riêng cho module NamHoc.
  */
 class Pager
 {
@@ -15,7 +15,7 @@ class Pager
      * 
      * @var string
      */
-    protected $module_name = 'thamgiasukien';
+    protected $module_name = 'namhoc';
 
     /**
      * Số lượng trang hiển thị xung quanh trang hiện tại

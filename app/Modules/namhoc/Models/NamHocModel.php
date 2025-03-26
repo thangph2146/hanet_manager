@@ -385,9 +385,8 @@ class NamHocModel extends BaseModel
         unset($this->validationRules['created_at']);
         unset($this->validationRules['updated_at']);
         unset($this->validationRules['deleted_at']);
-        if ($scenario === 'insert') {
-            unset($this->validationRules['nam_hoc_id']);
-        }
+        // Loại bỏ validation cho nam_hoc_id trong mọi trường hợp
+        unset($this->validationRules['nam_hoc_id']);
         
         if ($scenario === 'update' && isset($data['nam_hoc_id'])) {
             foreach ($this->validationRules as $field => &$rules) {

@@ -154,6 +154,8 @@ function page_css($type = 'all') {
     <!-- Form CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/plugins/select2/css/select2.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') ?>">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         .form-label {
             font-weight: 500;
@@ -163,6 +165,31 @@ function page_css($type = 'all') {
         }
         .btn {
             padding: 0.5rem 1rem;
+        }
+        /* Flatpickr custom styles */
+        .flatpickr-input {
+            background-color: #fff !important;
+        }
+        .flatpickr-day.selected, 
+        .flatpickr-day.startRange, 
+        .flatpickr-day.endRange, 
+        .flatpickr-day.selected.inRange, 
+        .flatpickr-day.startRange.inRange, 
+        .flatpickr-day.endRange.inRange, 
+        .flatpickr-day.selected:focus, 
+        .flatpickr-day.startRange:focus, 
+        .flatpickr-day.endRange:focus, 
+        .flatpickr-day.selected:hover, 
+        .flatpickr-day.startRange:hover, 
+        .flatpickr-day.endRange:hover, 
+        .flatpickr-day.selected.prevMonthDay, 
+        .flatpickr-day.startRange.prevMonthDay, 
+        .flatpickr-day.endRange.prevMonthDay, 
+        .flatpickr-day.selected.nextMonthDay, 
+        .flatpickr-day.startRange.nextMonthDay, 
+        .flatpickr-day.endRange.nextMonthDay {
+            background: #435ebe;
+            border-color: #435ebe;
         }
     </style>
     <?php
@@ -238,12 +265,36 @@ function page_js($type = 'all', $module_name) {
     <!-- Form JS -->
     <script src="<?= base_url('assets/plugins/jquery-validation/jquery.validate.min.js') ?>"></script>
     <script src="<?= base_url('assets/plugins/select2/js/select2.min.js') ?>"></script>
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
             // Initialize Select2
             $('.select2').select2({
                 theme: 'bootstrap4'
             });
+
+            // Initialize Flatpickr datepickers
+            if (typeof flatpickr !== 'undefined') {
+                const datepickerConfig = {
+                    dateFormat: "Y-m-d",
+                    locale: "vn",
+                    allowInput: true,
+                    altInput: true,
+                    altFormat: "d/m/Y",
+                    disableMobile: true
+                };
+                
+                const datepickers = document.querySelectorAll(".datepicker");
+                if (datepickers.length > 0) {
+                    datepickers.forEach(function(elem) {
+                        flatpickr(elem, datepickerConfig);
+                    });
+                }
+            }
 
             // Form validation
             $('#form-<?= $module_name ?>').validate({
@@ -375,7 +426,7 @@ function page_table_js($module_name) {
                 ordering: true,
                 responsive: true,
                 columnDefs: [
-                    { orderable: false, targets: [0, 7] },
+                    { orderable: false, targets: [0, 5] },
                     { className: 'align-middle', targets: '_all' }
                 ],
                 searching: false, // Tắt tìm kiếm của DataTable vì đã có form tìm kiếm

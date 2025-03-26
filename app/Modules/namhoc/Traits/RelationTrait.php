@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\thamgiasukien\Traits;
+namespace App\Modules\namhoc\Traits;
 
 use CodeIgniter\I18n\Time;
 use App\Modules\sukien\Models\SuKienModel;

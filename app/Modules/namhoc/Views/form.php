@@ -1,51 +1,61 @@
 <?php
 /**
- * Form component for creating and updating tham gia su kien
+ * Form component for creating and updating năm học
  * 
  * @var string $action Form submission URL
  * @var string $method Form method (POST or PUT)
- * @var ThamGiaSuKien $thamGiaSuKien ThamGiaSuKien entity data for editing (optional)
- * @var array $nguoiDungList Danh sách người dùng (nếu có)
- * @var array $suKienList Danh sách sự kiện (nếu có)
+ * @var NamHoc $namHoc NamHoc entity data for editing (optional)
  */
 
 // Set default values if editing
-$nguoi_dung_id = isset($thamGiaSuKien) ? $thamGiaSuKien->getNguoiDungId() : '';
-$su_kien_id = isset($thamGiaSuKien) ? $thamGiaSuKien->getSuKienId() : '';
-$thoi_gian_diem_danh = isset($thamGiaSuKien) ? $thamGiaSuKien->getThoiGianDiemDanh() : '';
-$phuong_thuc_diem_danh = isset($thamGiaSuKien) ? $thamGiaSuKien->getPhuongThucDiemDanh() : 'manual';
-$ghi_chu = isset($thamGiaSuKien) ? $thamGiaSuKien->getGhiChu() : '';
-$status = isset($thamGiaSuKien) ? (string)$thamGiaSuKien->isActive() : '1';
-$id = isset($thamGiaSuKien) ? $thamGiaSuKien->getId() : '';
+$ten_nam_hoc = isset($namHoc) ? $namHoc->getTenNamHoc() : '';
+$ngay_bat_dau = isset($namHoc) ? $namHoc->getNgayBatDau() : '';
+$ngay_ket_thuc = isset($namHoc) ? $namHoc->getNgayKetThuc() : '';
+$status = isset($namHoc) ? (string)$namHoc->isActive() : '1';
+$id = isset($namHoc) ? $namHoc->getId() : '';
 
 // Set default values for form action and method
 $action = isset($action) ? $action : site_url($module_name . '/create');
 $method = isset($method) ? $method : 'POST';
 
 // Xác định tiêu đề form dựa trên mode
-$isUpdate = isset($thamGiaSuKien) && $thamGiaSuKien->getId() > 0;
+$isUpdate = isset($namHoc) && $namHoc->getId() > 0;
 
-// Format thời gian điểm danh cho input datetime-local
-if (!empty($thoi_gian_diem_danh)) {
+// Format ngày bắt đầu cho input date
+if (!empty($ngay_bat_dau)) {
     try {
-        if ($thoi_gian_diem_danh instanceof \CodeIgniter\I18n\Time) {
-            $thoi_gian_diem_danh = $thoi_gian_diem_danh->format('Y-m-d H:i:s');
+        if ($ngay_bat_dau instanceof \CodeIgniter\I18n\Time) {
+            $ngay_bat_dau = $ngay_bat_dau->format('Y-m-d');
         } else {
-            $date = new \DateTime($thoi_gian_diem_danh);
-            $thoi_gian_diem_danh = $date->format('Y-m-d H:i:s');
+            $date = new \DateTime($ngay_bat_dau);
+            $ngay_bat_dau = $date->format('Y-m-d');
         }
     } catch (\Exception $e) {
-        log_message('error', 'Lỗi định dạng thời gian điểm danh: ' . $e->getMessage());
-        $thoi_gian_diem_danh = '';
+        log_message('error', 'Lỗi định dạng ngày bắt đầu: ' . $e->getMessage());
+        $ngay_bat_dau = '';
     }
-} else {
-    // Nếu không có giá trị, đặt giá trị mặc định là thời gian hiện tại
-    $now = new \DateTime();
-    $thoi_gian_diem_danh = $now->format('Y-m-d H:i:s');
+}
+
+// Format ngày kết thúc cho input date
+if (!empty($ngay_ket_thuc)) {
+    try {
+        if ($ngay_ket_thuc instanceof \CodeIgniter\I18n\Time) {
+            $ngay_ket_thuc = $ngay_ket_thuc->format('Y-m-d');
+        } else {
+            $date = new \DateTime($ngay_ket_thuc);
+            $ngay_ket_thuc = $date->format('Y-m-d');
+        }
+    } catch (\Exception $e) {
+        log_message('error', 'Lỗi định dạng ngày kết thúc: ' . $e->getMessage());
+        $ngay_ket_thuc = '';
+    }
 }
 
 // Lấy giá trị từ old() nếu có
-$thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
+$ten_nam_hoc = old('ten_nam_hoc', $ten_nam_hoc);
+$ngay_bat_dau = old('ngay_bat_dau', $ngay_bat_dau);
+$ngay_ket_thuc = old('ngay_ket_thuc', $ngay_ket_thuc);
+$status = old('status', $status);
 ?>
 
 <!-- Form chính -->
@@ -53,7 +63,9 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
     <?= csrf_field() ?>
     
     <?php if ($id): ?>
-        <input type="hidden" name="tham_gia_su_kien_id" value="<?= $id ?>">
+        <input type="hidden" name="nam_hoc_id" value="<?= $id ?>">
+    <?php else: ?>
+        <input type="hidden" name="nam_hoc_id" value="0">
     <?php endif; ?>
     
     <!-- Hiển thị thông báo lỗi nếu có -->
@@ -109,161 +121,84 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="card-title mb-0">
-                <i class='bx bx-info-circle text-primary me-2'></i>
-                Thông tin tham gia sự kiện
+                <i class='bx bx-calendar text-primary me-2'></i>
+                Thông tin năm học
             </h5>
         </div>
         
         <div class="card-body">
             <div class="row g-3">
-                <!-- nguoi_dung_id -->
-                <div class="col-md-6">
-                    <label for="nguoi_dung_id" class="form-label fw-semibold">
-                        Người dùng <span class="text-danger">*</span>
+                <!-- ten_nam_hoc -->
+                <div class="col-md-12">
+                    <label for="ten_nam_hoc" class="form-label fw-semibold">
+                        Tên năm học <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
-                        <?php if (isset($nguoiDungList) && !empty($nguoiDungList)): ?>
-                            <select class="form-select <?= isset($validation) && $validation->hasError('nguoi_dung_id') ? 'is-invalid' : '' ?>" 
-                                id="nguoi_dung_id" name="nguoi_dung_id" required>
-                                <option value="">-- Chọn người dùng --</option>
-                                <?php foreach ($nguoiDungList as $user): ?>
-                                    <option value="<?= $user->nguoi_dung_id ?>" <?= old('nguoi_dung_id', $nguoi_dung_id) == $user->nguoi_dung_id ? 'selected' : '' ?>>
-                                        <?= esc($user->ho_ten ?? 'ID: ' . $user->nguoi_dung_id) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        <?php else: ?>
-                            <input type="number" class="form-control <?= isset($validation) && $validation->hasError('nguoi_dung_id') ? 'is-invalid' : '' ?>" 
-                                id="nguoi_dung_id" name="nguoi_dung_id" 
-                                value="<?= old('nguoi_dung_id', $nguoi_dung_id) ?>" 
-                                placeholder="ID người dùng"
-                                required min="1">
-                        <?php endif; ?>
-                        <?php if (isset($validation) && $validation->hasError('nguoi_dung_id')): ?>
+                        <span class="input-group-text bg-light"><i class='bx bx-calendar'></i></span>
+                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('ten_nam_hoc') ? 'is-invalid' : '' ?>" 
+                            id="ten_nam_hoc" name="ten_nam_hoc" 
+                            value="<?= esc($ten_nam_hoc) ?>" 
+                            placeholder="Nhập tên năm học (VD: 2023-2024)"
+                            required maxlength="50">
+                        <?php if (isset($validation) && $validation->hasError('ten_nam_hoc')): ?>
                             <div class="invalid-feedback">
-                                <?= $validation->getError('nguoi_dung_id') ?>
+                                <?= $validation->getError('ten_nam_hoc') ?>
                             </div>
                         <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng nhập/chọn ID người dùng</div>
+                            <div class="invalid-feedback">Vui lòng nhập tên năm học</div>
                         <?php endif; ?>
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        ID người dùng tham gia sự kiện
+                        Tên năm học là duy nhất, định dạng: YYYY-YYYY (VD: 2023-2024)
                     </div>
                 </div>
 
-                <!-- su_kien_id -->
+                <!-- ngay_bat_dau -->
                 <div class="col-md-6">
-                    <label for="su_kien_id" class="form-label fw-semibold">
-                        Sự kiện <span class="text-danger">*</span>
+                    <label for="ngay_bat_dau" class="form-label fw-semibold">
+                        Ngày bắt đầu
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-calendar-event'></i></span>
-                        <?php if (isset($suKienList) && !empty($suKienList)): ?>
-                            <select class="form-select <?= isset($validation) && $validation->hasError('su_kien_id') ? 'is-invalid' : '' ?>" 
-                                id="su_kien_id" name="su_kien_id" required>
-                                <option value="">-- Chọn sự kiện --</option>
-                                <?php foreach ($suKienList as $event): ?>
-                                    <option value="<?= $event->su_kien_id ?>" <?= old('su_kien_id', $su_kien_id) == $event->su_kien_id ? 'selected' : '' ?>>
-                                        <?= esc($event->ten_su_kien ?? 'ID: ' . $event->su_kien_id) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        <?php else: ?>
-                            <input type="number" class="form-control <?= isset($validation) && $validation->hasError('su_kien_id') ? 'is-invalid' : '' ?>" 
-                                id="su_kien_id" name="su_kien_id" 
-                                value="<?= old('su_kien_id', $su_kien_id) ?>" 
-                                placeholder="ID sự kiện"
-                                required min="1">
-                        <?php endif; ?>
-                        <?php if (isset($validation) && $validation->hasError('su_kien_id')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('su_kien_id') ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng nhập/chọn ID sự kiện</div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        ID sự kiện người dùng tham gia
-                    </div>
-                </div>
-
-                <!-- thoi_gian_diem_danh -->
-                <div class="col-md-6">
-                    <label for="thoi_gian_diem_danh_display" class="form-label fw-semibold">
-                        Thời gian điểm danh
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-time'></i></span>
                         <input type="text" 
-                               class="form-control datetimepicker <?= isset($validation) && $validation->hasError('thoi_gian_diem_danh') ? 'is-invalid' : '' ?>" 
-                               id="thoi_gian_diem_danh_display" 
-                               placeholder="DD/MM/YYYY HH:mm:ss"
-                               value="<?= old('thoi_gian_diem_danh', $thoi_gian_diem_danh) ?>"
-                               autocomplete="off">
-                        <input type="hidden" name="thoi_gian_diem_danh" id="thoi_gian_diem_danh" 
-                               value="<?= old('thoi_gian_diem_danh', $thoi_gian_diem_danh) ?>">
-                        <?php if (isset($validation) && $validation->hasError('thoi_gian_diem_danh')): ?>
+                               class="form-control datepicker <?= isset($validation) && $validation->hasError('ngay_bat_dau') ? 'is-invalid' : '' ?>" 
+                               id="ngay_bat_dau" name="ngay_bat_dau"
+                               value="<?= esc($ngay_bat_dau) ?>"
+                               placeholder="Chọn ngày bắt đầu">
+                        <?php if (isset($validation) && $validation->hasError('ngay_bat_dau')): ?>
                             <div class="invalid-feedback">
-                                <?= $validation->getError('thoi_gian_diem_danh') ?>
+                                <?= $validation->getError('ngay_bat_dau') ?>
                             </div>
                         <?php endif; ?>
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Để trống nếu chưa điểm danh. Định dạng: DD/MM/YYYY HH:mm:ss
+                        Ngày bắt đầu năm học (vd: 01/09/2023)
                     </div>
                 </div>
 
-                <!-- phuong_thuc_diem_danh -->
+                <!-- ngay_ket_thuc -->
                 <div class="col-md-6">
-                    <label for="phuong_thuc_diem_danh" class="form-label fw-semibold">
-                        Phương thức điểm danh <span class="text-danger">*</span>
+                    <label for="ngay_ket_thuc" class="form-label fw-semibold">
+                        Ngày kết thúc
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-qr-scan'></i></span>
-                        <select class="form-select <?= isset($validation) && $validation->hasError('phuong_thuc_diem_danh') ? 'is-invalid' : '' ?>" 
-                               id="phuong_thuc_diem_danh" name="phuong_thuc_diem_danh" required>
-                            <option value="">-- Chọn phương thức --</option>
-                            <option value="qr_code" <?= old('phuong_thuc_diem_danh', $phuong_thuc_diem_danh) == 'qr_code' ? 'selected' : '' ?>>QR Code</option>
-                            <option value="face_id" <?= old('phuong_thuc_diem_danh', $phuong_thuc_diem_danh) == 'face_id' ? 'selected' : '' ?>>Face ID</option>
-                            <option value="manual" <?= old('phuong_thuc_diem_danh', $phuong_thuc_diem_danh) == 'manual' ? 'selected' : '' ?>>Thủ công</option>
-                        </select>
-                        <?php if (isset($validation) && $validation->hasError('phuong_thuc_diem_danh')): ?>
+                        <span class="input-group-text bg-light"><i class='bx bx-calendar-x'></i></span>
+                        <input type="text" 
+                               class="form-control datepicker <?= isset($validation) && $validation->hasError('ngay_ket_thuc') ? 'is-invalid' : '' ?>" 
+                               id="ngay_ket_thuc" name="ngay_ket_thuc"
+                               value="<?= esc($ngay_ket_thuc) ?>"
+                               placeholder="Chọn ngày kết thúc">
+                        <?php if (isset($validation) && $validation->hasError('ngay_ket_thuc')): ?>
                             <div class="invalid-feedback">
-                                <?= $validation->getError('phuong_thuc_diem_danh') ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng chọn phương thức điểm danh</div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Phương thức điểm danh người dùng sử dụng
-                    </div>
-                </div>
-
-                <!-- ghi_chu -->
-                <div class="col-md-12">
-                    <label for="ghi_chu" class="form-label fw-semibold">Ghi chú</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-notepad'></i></span>
-                        <textarea class="form-control <?= isset($validation) && $validation->hasError('ghi_chu') ? 'is-invalid' : '' ?>" 
-                                id="ghi_chu" name="ghi_chu" rows="3"
-                                placeholder="Nhập ghi chú"><?= old('ghi_chu', $ghi_chu) ?></textarea>
-                        <?php if (isset($validation) && $validation->hasError('ghi_chu')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('ghi_chu') ?>
+                                <?= $validation->getError('ngay_ket_thuc') ?>
                             </div>
                         <?php endif; ?>
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Thông tin bổ sung về việc tham gia sự kiện
+                        Ngày kết thúc năm học (vd: 31/05/2024)
                     </div>
                 </div>
 
@@ -277,8 +212,8 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
                         <select class="form-select <?= isset($validation) && $validation->hasError('status') ? 'is-invalid' : '' ?>" 
                                id="status" name="status" required>
                             <option value="">-- Chọn trạng thái --</option>
-                            <option value="1" <?= old('status', $status) == '1' ? 'selected' : '' ?>>Hoạt động</option>
-                            <option value="0" <?= old('status', $status) == '0' ? 'selected' : '' ?>>Không hoạt động</option>
+                            <option value="1" <?= $status == '1' ? 'selected' : '' ?>>Hoạt động</option>
+                            <option value="0" <?= $status == '0' ? 'selected' : '' ?>>Không hoạt động</option>
                         </select>
                         <?php if (isset($validation) && $validation->hasError('status')): ?>
                             <div class="invalid-feedback">
@@ -287,6 +222,10 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
                         <?php else: ?>
                             <div class="invalid-feedback">Vui lòng chọn trạng thái</div>
                         <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Nếu chọn "Hoạt động", đây sẽ là năm học hiện tại
                     </div>
                 </div>
             </div>
@@ -313,25 +252,6 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
     </div>
 </form>
 
-<!-- Thêm CSS của flatpickr -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<style>
-    /* Tùy chỉnh vị trí của calendar */
-    .flatpickr-calendar {
-        width: 100% !important;
-        max-width: 307px;
-    }
-    
-    /* Đảm bảo calendar hiển thị phía dưới input */
-    .flatpickr-calendar.open {
-        z-index: 1000;
-    }
-</style>
-
-<!-- Thêm thư viện flatpickr -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Form validation
@@ -347,100 +267,62 @@ $thoi_gian_diem_danh = old('thoi_gian_diem_danh', $thoi_gian_diem_danh);
         });
         
         // Tự động focus vào trường đầu tiên
-        document.getElementById('nguoi_dung_id').focus();
+        document.getElementById('ten_nam_hoc').focus();
         
-        // Khi chọn người dùng và sự kiện, kiểm tra xem người dùng đã tham gia sự kiện chưa
-        const nguoiDungInput = document.getElementById('nguoi_dung_id');
-        const suKienInput = document.getElementById('su_kien_id');
-        
-        function checkUserEventParticipation() {
-            const nguoiDungValue = nguoiDungInput.value;
-            const suKienValue = suKienInput.value;
-            
-            if (!nguoiDungValue || !suKienValue) {
-                return;
-            }
-            
-            // Chỉ thực hiện kiểm tra khi thêm mới (không phải cập nhật)
-            <?php if (!$isUpdate): ?>
-            fetch('<?= site_url($module_name . '/checkUserParticipation') ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('input[name="<?= csrf_token() ?>"]').value
-                },
-                body: JSON.stringify({
-                    nguoi_dung_id: nguoiDungValue,
-                    su_kien_id: suKienValue
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.exists) {
-                    const warningHtml = `
-                        <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
-                            <i class='bx bx-info-circle me-1'></i>
-                            Người dùng này đã tham gia sự kiện được chọn.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    `;
-                    
-                    // Xóa cảnh báo cũ nếu có
-                    const oldWarning = document.querySelector('.participation-warning');
-                    if (oldWarning) {
-                        oldWarning.remove();
-                    }
-                    
-                    // Thêm cảnh báo mới
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'participation-warning';
-                    alertDiv.innerHTML = warningHtml;
-                    
-                    const formCard = document.querySelector('.card');
-                    formCard.parentNode.insertBefore(alertDiv, formCard);
-                }
-            })
-            .catch(error => console.error('Error:', error));
-            <?php endif; ?>
-        }
-        
-        if (nguoiDungInput && suKienInput) {
-            nguoiDungInput.addEventListener('change', checkUserEventParticipation);
-            suKienInput.addEventListener('change', checkUserEventParticipation);
-        }
-
-        // Xử lý thời gian điểm danh với flatpickr
-        const configDateTimePicker = {
-            dateFormat: "d/m/Y H:i:s",
+        // Khởi tạo Flatpickr cho các trường ngày tháng
+        const dateConfig = {
+            dateFormat: "Y-m-d",
             locale: "vn",
             allowInput: true,
-            enableTime: true,
-            time_24hr: true,
-            position: "below",
-            static: true,
-            defaultDate: "today",
-            defaultHour: new Date().getHours(),
-            defaultMinute: new Date().getMinutes(),
-            defaultSeconds: new Date().getSeconds(),
-            onChange: function(selectedDates, dateStr, instance) {
-                const hiddenInput = document.getElementById('thoi_gian_diem_danh');
-                if (selectedDates.length > 0) {
-                    const date = selectedDates[0];
-                    const year = date.getFullYear();
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const day = String(date.getDate()).padStart(2, '0');
-                    const hours = String(date.getHours()).padStart(2, '0');
-                    const minutes = String(date.getMinutes()).padStart(2, '0');
-                    const seconds = String(date.getSeconds()).padStart(2, '0');
-                    hiddenInput.value = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-                } else {
-                    hiddenInput.value = '';
-                }
-            }
+            altInput: true,
+            altFormat: "d/m/Y",
+            disableMobile: true
         };
         
-        // Áp dụng flatpickr cho trường thời gian điểm danh
-        flatpickr("#thoi_gian_diem_danh_display", configDateTimePicker);
+        const ngayBatDauPicker = flatpickr('#ngay_bat_dau', {
+            ...dateConfig,
+            onChange: function(selectedDates, dateStr) {
+                validateDates();
+                suggestSchoolYear(selectedDates[0]);
+            }
+        });
+        
+        const ngayKetThucPicker = flatpickr('#ngay_ket_thuc', {
+            ...dateConfig,
+            onChange: function(selectedDates) {
+                validateDates();
+            }
+        });
+        
+        // Kiểm tra ngày kết thúc phải sau ngày bắt đầu
+        function validateDates() {
+            const ngayBatDauValue = ngayBatDauPicker.selectedDates[0];
+            const ngayKetThucValue = ngayKetThucPicker.selectedDates[0];
+            
+            if (ngayBatDauValue && ngayKetThucValue) {
+                if (ngayKetThucValue < ngayBatDauValue) {
+                    Swal.fire({
+                        title: 'Cảnh báo',
+                        text: 'Ngày kết thúc phải sau ngày bắt đầu',
+                        icon: 'warning',
+                        confirmButtonText: 'Đã hiểu'
+                    });
+                    ngayKetThucPicker.clear();
+                }
+            }
+        }
+        
+        // Đề xuất tên năm học dựa trên ngày bắt đầu
+        function suggestSchoolYear(date) {
+            const tenNamHocInput = document.getElementById('ten_nam_hoc');
+            
+            // Chỉ đề xuất tên năm học nếu trường tên đang trống
+            if (date && !tenNamHocInput.value.trim()) {
+                const year = date.getFullYear();
+                const nextYear = year + 1;
+                
+                tenNamHocInput.value = `${year}-${nextYear}`;
+            }
+        }
     });
 </script> 
