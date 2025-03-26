@@ -1,30 +1,40 @@
 <?= $this->extend('layouts/default') ?>
+<?= $this->section('linkHref') ?>
+<?php include __DIR__ . '/master_scripts.php'; ?>
+<?= page_css('form') ?>
+<?= page_section_css('modal') ?>
+<?= $this->endSection() ?>
 <?= $this->section('title') ?>CẬP NHẬT BẬC HỌC<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Cập nhật Bậc học',
-    'dashboard_url' => site_url('bachoc/dashboard'),
+    'title' => 'Cập nhật bậc học',
+    'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Bậc học', 'url' => site_url('bachoc')],
+        ['title' => 'Quản lý Bậc Học', 'url' => site_url($module_name)],
         ['title' => 'Cập nhật', 'active' => true]
-    ]
+    ],
+    'actions' => [
+		['url' => site_url($module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+	]
 ]) ?>
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<div class="card">
+<div class="card shadow-sm">
     <div class="card-body">
-        <?= view('App\Modules\bachoc\Views\form', [
-            'action' => site_url('bachoc/update/' . $bac_hoc->getId()),
-            'method' => 'POST',
-            'bac_hoc' => $bac_hoc
-        ]) ?>
+        <?= form_open(site_url($module_name . '/update/' . $data->bac_hoc_id), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+            <?php
+            // Include form fields with namHoc data
+            $action = site_url($module_name . '/update/' . $data->bac_hoc_id);
+            $method = 'POST';
+            include __DIR__ . '/form.php';
+            ?>
+        <?= form_close() ?>
     </div>
 </div>
-<?= $this->endSection() ?>
+<?= $this->endSection() ?>  
 
 <?= $this->section('script') ?>
-<?php include __DIR__ . '/master_scripts.php'; ?>
-<?= bachoc_js('form') ?>
-<?= $this->endSection() ?>
+<?= page_js('form', $module_name) ?>
+<?= $this->endSection() ?> 

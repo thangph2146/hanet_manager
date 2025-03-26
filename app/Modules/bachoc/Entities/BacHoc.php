@@ -8,58 +8,75 @@ use CodeIgniter\I18n\Time;
 class BacHoc extends BaseEntity
 {
     protected $tableName = 'bac_hoc';
+    protected $primaryKey = 'bac_hoc_id';
+    
     protected $dates = [
         'created_at',
         'updated_at',
-        'deleted_at',
+        'deleted_at'
     ];
     
     protected $casts = [
         'bac_hoc_id' => 'int',
         'status' => 'int',
-        'bin' => 'int',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+        'deleted_at' => 'timestamp'
     ];
     
-    protected $datamap = [];
-    
-    protected $jsonFields = [];
-    
-    protected $hiddenFields = [
-        'deleted_at',
+    // Định nghĩa các chỉ mục
+    protected $indexes = [
+        'idx_ten_bac_hoc' => ['ten_bac_hoc']
     ];
     
-    // Validation rules
+    // Định nghĩa các ràng buộc unique
+    protected $uniqueKeys = [
+        'uk_ten_bac_hoc' => ['ten_bac_hoc']
+    ];
+    
+    // Các quy tắc xác thực cụ thể cho Bachoc
     protected $validationRules = [
-        'ten_bac_hoc' => 'required|min_length[3]|max_length[100]|is_unique[bac_hoc.ten_bac_hoc,bac_hoc_id,{bac_hoc_id}]',
-        'ma_bac_hoc' => 'permit_empty|max_length[20]',
-        'status' => 'permit_empty|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
+        'ten_bac_hoc' => [
+            'rules' => 'required|max_length[100]|is_unique[bac_hoc.ten_bac_hoc,bac_hoc_id,{bac_hoc_id}]',
+            'label' => 'Tên bậc học'
+        ],
+        'ma_bac_hoc' => [
+            'rules' => 'permit_empty|max_length[20]',
+            'label' => 'Mã bậc học'
+        ],
+        'status' => [
+            'rules' => 'required|in_list[0,1]',
+            'label' => 'Trạng thái'
+        ]
     ];
     
     protected $validationMessages = [
         'ten_bac_hoc' => [
-            'required' => 'Tên bậc học là bắt buộc',
-            'min_length' => 'Tên bậc học phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên bậc học không được vượt quá {param} ký tự',
-            'is_unique' => 'Tên bậc học này đã tồn tại',
+            'required' => '{field} là bắt buộc',
+            'max_length' => '{field} không được vượt quá 100 ký tự',
+            'is_unique' => '{field} đã tồn tại trong hệ thống'
         ],
         'ma_bac_hoc' => [
-            'max_length' => 'Mã bậc học không được vượt quá {param} ký tự',
+            'max_length' => '{field} không được vượt quá 20 ký tự'
         ],
+        'status' => [
+            'required' => '{field} không được để trống',
+            'in_list' => '{field} không hợp lệ'
+        ]
     ];
     
     /**
-     * Get ID
+     * Lấy ID của bậc học
      *
      * @return int
      */
     public function getId(): int
     {
-        return (int)$this->attributes['bac_hoc_id'] ?? 0;
+        return (int)($this->attributes[$this->primaryKey] ?? 0);
     }
     
     /**
-     * Get name
+     * Lấy tên bậc học
      *
      * @return string
      */
@@ -69,19 +86,7 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Set name
-     *
-     * @param string $tenBacHoc
-     * @return $this
-     */
-    public function setTenBacHoc(string $tenBacHoc)
-    {
-        $this->attributes['ten_bac_hoc'] = $tenBacHoc;
-        return $this;
-    }
-    
-    /**
-     * Get code
+     * Lấy mã bậc học
      *
      * @return string|null
      */
@@ -91,29 +96,17 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Set code
-     *
-     * @param string|null $maBacHoc
-     * @return $this
-     */
-    public function setMaBacHoc(?string $maBacHoc)
-    {
-        $this->attributes['ma_bac_hoc'] = $maBacHoc;
-        return $this;
-    }
-    
-    /**
-     * Check if active
+     * Kiểm tra trạng thái hoạt động
      *
      * @return bool
      */
     public function isActive(): bool
     {
-        return (bool)($this->attributes['status'] ?? false);
+        return (bool)($this->attributes['status'] ?? true);
     }
     
     /**
-     * Set status
+     * Đặt trạng thái hoạt động
      *
      * @param bool $status
      * @return $this
@@ -125,50 +118,100 @@ class BacHoc extends BaseEntity
     }
     
     /**
-     * Check if in bin
+     * Kiểm tra xem bản ghi đã bị xóa chưa
      *
      * @return bool
      */
-    public function isInBin(): bool
+    public function isDeleted(): bool
     {
-        return (bool)($this->attributes['bin'] ?? false);
+        return !empty($this->attributes['deleted_at']);
     }
     
     /**
-     * Set bin status
+     * Lấy nhãn trạng thái hiển thị
      *
-     * @param bool $binStatus
-     * @return $this
+     * @return string HTML với badge status
      */
-    public function setBinStatus(bool $binStatus)
+    public function getStatusLabel(): string
     {
-        $this->attributes['bin'] = (int)$binStatus;
-        return $this;
+        if ($this->status == 1) {
+            return '<span class="badge bg-success">Hoạt động</span>';
+        } else {
+            return '<span class="badge bg-danger">Không hoạt động</span>';
+        }
     }
     
     /**
-     * Get formatted created date
-     *
-     * @param string $format
+     * Lấy ngày tạo đã định dạng
+     * 
      * @return string
      */
-    public function getCreatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    public function getCreatedAtFormatted(): string
     {
-        return $this->created_at instanceof Time 
-            ? $this->created_at->format($format) 
-            : '';
+        if (empty($this->attributes['created_at'])) {
+            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
+        }
+        
+        $time = $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
-     * Get formatted updated date
-     *
-     * @param string $format
+     * Lấy ngày cập nhật đã định dạng
+     * 
      * @return string
      */
-    public function getUpdatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    public function getUpdatedAtFormatted(): string
     {
-        return $this->updated_at instanceof Time 
-            ? $this->updated_at->format($format) 
-            : '';
+        if (empty($this->attributes['updated_at'])) {
+            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
+        }
+        
+        $time = $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
-}
+    
+    /**
+     * Lấy ngày xóa đã định dạng
+     * 
+     * @return string
+     */
+    public function getDeletedAtFormatted(): string
+    {
+        if (empty($this->attributes['deleted_at'])) {
+            return '<span class="text-muted fst-italic">Chưa xóa</span>';
+        }
+        
+        $time = $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
+            
+        return $time->format('Y-m-d H:i:s');
+    }
+    
+    /**
+     * Lấy các quy tắc xác thực
+     *
+     * @return array
+     */
+    public function getValidationRules(): array
+    {
+        return $this->validationRules;
+    }
+    
+    /**
+     * Lấy các thông báo xác thực
+     *
+     * @return array
+     */
+    public function getValidationMessages(): array
+    {
+        return $this->validationMessages;
+    }
+} 
