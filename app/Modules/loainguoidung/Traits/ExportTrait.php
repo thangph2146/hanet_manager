@@ -43,7 +43,7 @@ trait ExportTrait
         // Nếu không có sort được chỉ định, mặc định là sắp xếp theo thời gian điểm danh giảm dần
         if (empty($sort)) {
             $sort = 'ten_loai';
-            $order = 'DESC';
+            $order = 'ASC';
         }
 
         return [
@@ -72,16 +72,13 @@ trait ExportTrait
         $headers = [
             'STT' => 'A',
             'ID' => 'B',
-            'Tên loại' => 'C',
+            'Tên loại người dùng' => 'C',
             'Mô tả' => 'D',
-            'Trạng thái' => 'E',
-            'Ngày tạo' => 'F',
-            'Ngày cập nhật' => 'G',
-            'Ngày xóa' => 'H'
+            'Trạng thái' => 'E'
         ];
 
         if ($includeDeleted) {
-            $headers['Ngày xóa'] = 'I';
+            $headers['Ngày xóa'] = 'F';
         }
 
         return $headers;
@@ -194,7 +191,6 @@ trait ExportTrait
             $sheet->setCellValue('B' . $row, $item->loai_nguoi_dung_id);
             $sheet->setCellValue('C' . $row, $item->ten_loai);
             $sheet->setCellValue('D' . $row, $item->mo_ta);
-            
             $sheet->setCellValue('E' . $row, $item->status == 1 ? 'Hoạt động' : 'Không hoạt động');
 
             // Xử lý thời gian xóa
@@ -204,12 +200,12 @@ trait ExportTrait
                         $deletedAt = $item->deleted_at instanceof Time ? 
                             $item->deleted_at : 
                             Time::parse($item->deleted_at);
-                        $sheet->setCellValue('I' . $row, $deletedAt->format('d/m/Y H:i:s'));
+                        $sheet->setCellValue('F' . $row, $deletedAt->format('d/m/Y H:i:s'));
                     } catch (\Exception $e) {
-                        $sheet->setCellValue('I' . $row, '');
+                        $sheet->setCellValue('F' . $row, '');
                     }
                 } else {
-                    $sheet->setCellValue('I' . $row, '');
+                    $sheet->setCellValue('F' . $row, '');
                 }
             }
 
@@ -278,22 +274,7 @@ trait ExportTrait
         $dompdf->stream($filename . '.pdf', ['Attachment' => true]);
         exit();
     }
-
-    /**
-     * Lấy text cho phương thức điểm danh
-     */
-    protected function getPhuongThucDiemDanhText($phuongThuc)
-    {
-        switch ($phuongThuc) {
-            case 'qr_code':
-                return 'QR Code';
-            case 'face_id':
-                return 'Face ID';
-            default:
-                return 'Thủ công';
-        }
-    }
-
+  
     /**
      * Format filters để hiển thị trong PDF
      */

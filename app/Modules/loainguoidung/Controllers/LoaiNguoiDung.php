@@ -32,6 +32,7 @@ class LoaiNguoiDung extends BaseController
     protected $moduleUrl;
     protected $title;
     protected $module_name = 'loainguoidung';
+    protected $controller_name = 'LoaiNguoiDung';
     
     public function __construct()
     {
@@ -68,7 +69,7 @@ class LoaiNguoiDung extends BaseController
         $criteria = $this->buildSearchCriteria($params);
         $options = $this->buildSearchOptions($params);
         
-        // Lấy dữ liệu loại người dùng và thông tin phân trang
+        // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
         $pageData = $this->model->search($criteria, $options);
         // Lấy tổng số kết quả
         $pager = $this->model->getPager();
@@ -133,18 +134,6 @@ class LoaiNguoiDung extends BaseController
         // Lấy dữ liệu từ form
         $data = $this->request->getPost();
         
-        // Xử lý thời gian điểm danh nếu có
-        if (!empty($data['thoi_gian_diem_danh'])) {
-            try {
-                $time = Time::parse($data['thoi_gian_diem_danh']);
-                $data['thoi_gian_diem_danh'] = $time->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {
-                log_message('error', 'Lỗi parse thời gian điểm danh: ' . $e->getMessage());
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Thời gian điểm danh không hợp lệ');
-            }
-        }
         
         // Chuẩn bị quy tắc validation cho thêm mới
         $this->model->prepareValidationRules('insert');
@@ -154,15 +143,8 @@ class LoaiNguoiDung extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
-        // Kiểm tra xem người dùng đã tham gia sự kiện chưa
-        if ($this->model->isUserJoinedEvent($data['nguoi_dung_id'], $data['su_kien_id'])) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Người dùng này đã tham gia sự kiện được chọn.');
-        }
-        
         try {
-            // Lưu dữ liệu trực tiếp
+            // Lưu dữ liệu trực tiếp    
             if ($this->model->insert($data)) {
                 $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
@@ -170,7 +152,7 @@ class LoaiNguoiDung extends BaseController
                 throw new \RuntimeException('Không thể thêm mới ' . $this->title);
             }
         } catch (\Exception $e) {
-            log_message('error', '[LoaiNguoiDung::create] ' . $e->getMessage());
+            log_message('error', '[' . $this->controller_name . '::create] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title);
@@ -191,16 +173,16 @@ class LoaiNguoiDung extends BaseController
         $this->initializeRelationTrait();
         
         // Lấy thông tin dữ liệu cơ bản
-        $loaiNguoiDung = $this->model->find($id);
+        $data = $this->model->find($id);
         
-        if (empty($loaiNguoiDung)) {
+        if (empty($data)) {
             $this->alert->set('danger', 'Không tìm thấy dữ liệu loại người dùng', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Xử lý dữ liệu và nạp các quan hệ
-        $processedData = $this->processData([$loaiNguoiDung]);
-        $loaiNguoiDung = $processedData[0] ?? $loaiNguoiDung;
+        $processedData = $this->processData([$data]);
+        $data = $processedData[0] ?? $data;
         
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Chi tiết', current_url());
@@ -209,7 +191,7 @@ class LoaiNguoiDung extends BaseController
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chi tiết ' . $this->title,
-            'loaiNguoiDung' => $loaiNguoiDung,
+            'data' => $data,
             'moduleUrl' => $this->moduleUrl,
             'module_name' => $this->module_name
         ];
@@ -228,9 +210,9 @@ class LoaiNguoiDung extends BaseController
         }
         
         // Sử dụng phương thức findWithRelations từ model
-        $loaiNguoiDung = $this->model->findWithRelations($id);
+        $data = $this->model->findWithRelations($id);
         
-        if (empty($loaiNguoiDung)) {
+        if (empty($data)) {
             $this->alert->set('danger', 'Không tìm thấy dữ liệu loại người dùng', true);
             return redirect()->to($this->moduleUrl);
         }
@@ -243,7 +225,7 @@ class LoaiNguoiDung extends BaseController
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chỉnh sửa ' . $this->title,
             'validation' => $this->validator,
-            'loaiNguoiDung' => $loaiNguoiDung,
+            'data' => $data,
             'moduleUrl' => $this->moduleUrl,
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
             'module_name' => $this->module_name
@@ -273,21 +255,8 @@ class LoaiNguoiDung extends BaseController
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
         
-        // Xử lý thời gian điểm danh
-        if (!empty($data['thoi_gian_diem_danh'])) {
-            try {
-                $time = Time::parse($data['thoi_gian_diem_danh']);
-                $data['thoi_gian_diem_danh'] = $time->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {
-                log_message('error', 'Lỗi xử lý thời gian điểm danh: ' . $e->getMessage());
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Thời gian điểm danh không hợp lệ');
-            }
-        }
-    
         // Chuẩn bị quy tắc validation cho cập nhật
-        $this->model->prepareValidationRules('update', ['tham_gia_su_kien_id' => $id]);
+        $this->model->prepareValidationRules('update', ['loai_nguoi_dung_id' => $id]);
         
         // Kiểm tra dữ liệu
         if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
@@ -303,7 +272,7 @@ class LoaiNguoiDung extends BaseController
                 throw new \RuntimeException('Không thể cập nhật ' . $this->title);
             }
         } catch (\Exception $e) {
-            log_message('error', '[LoaiNguoiDung::update] ' . $e->getMessage());
+            log_message('error', '[' . $this->controller_name . '::update] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title);
@@ -316,13 +285,13 @@ class LoaiNguoiDung extends BaseController
     public function delete($id = null, $backToUrl = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID tham gia sự kiện không hợp lệ', true);
+            $this->alert->set('danger', 'ID loại người dùng không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Thực hiện xóa mềm (sử dụng deleted_at thay vì bin)
         if ($this->model->delete($id)) {
-            $this->alert->set('success', 'Đã xóa dữ liệu tham gia sự kiện thành công', true);
+            $this->alert->set('success', 'Đã xóa dữ liệu loại người dùng thành công', true);
         } else {
             $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
         }
@@ -337,7 +306,7 @@ class LoaiNguoiDung extends BaseController
     }
     
     /**
-     * Hiển thị danh sách tham gia sự kiện đã xóa
+     * Hiển thị danh sách loại người dùng đã xóa
      */
     public function listdeleted()
     {
@@ -394,7 +363,7 @@ class LoaiNguoiDung extends BaseController
         }
         
         $pager->setPath($this->module_name . '/listdeleted');
-        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'nguoi_dung_id', 'su_kien_id', 'phuong_thuc_diem_danh']);
+        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'loai_nguoi_dung_id']);
         $pager->setPerPage($params['perPage']);
         $pager->setCurrentPage($params['page']);
         
@@ -824,13 +793,10 @@ class LoaiNguoiDung extends BaseController
     {
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
-        $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
-        $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
-        $su_kien_id = $this->request->getGet('su_kien_id');
-        $sort = $this->request->getGet('sort') ?? 'thoi_gian_diem_danh';
+        $sort = $this->request->getGet('sort') ?? 'ten_loai';
         $order = $this->request->getGet('order') ?? 'DESC';
 
-        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id);
+        $criteria = $this->prepareSearchCriteria($keyword, $status);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
         $headers = $this->prepareExcelHeaders();
@@ -838,12 +804,9 @@ class LoaiNguoiDung extends BaseController
         $filters = [];
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
         if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
-        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
-        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
-        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
-        $this->createExcelFile($data, $headers, $filters, 'danh_sach_tham_gia_su_kien');
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_loai_nguoi_dung');
     }
 
     /**
@@ -852,26 +815,20 @@ class LoaiNguoiDung extends BaseController
     public function exportPdf()
     {
         $keyword = $this->request->getGet('keyword');
-        $status = $this->request->getGet('status');
-        $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
-        $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
-        $su_kien_id = $this->request->getGet('su_kien_id');
-        $sort = $this->request->getGet('sort') ?? 'thoi_gian_diem_danh';
+        $status = $this->request->getGet('status'); 
+        $sort = $this->request->getGet('sort') ?? 'ten_loai';
         $order = $this->request->getGet('order') ?? 'DESC';
 
-        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id);
+        $criteria = $this->prepareSearchCriteria($keyword, $status);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
 
         $filters = [];
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
-        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
-        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
-        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
-        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
-        $this->createPdfFile($data, $filters, 'DANH SÁCH THAM GIA SỰ KIỆN', 'danh_sach_tham_gia_su_kien');
+        $this->createPdfFile($data, $filters, 'DANH SÁCH LOẠI NGƯỜI DÙNG', 'danh_sach_loai_nguoi_dung');
     }
 
     /**
@@ -881,26 +838,20 @@ class LoaiNguoiDung extends BaseController
     {
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
-        $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
-        $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
-        $su_kien_id = $this->request->getGet('su_kien_id');
-        $sort = $this->request->getGet('sort') ?? 'deleted_at';
+        $sort = $this->request->getGet('sort') ?? 'ten_loai';
         $order = $this->request->getGet('order') ?? 'DESC';
 
-        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id, true);
+        $criteria = $this->prepareSearchCriteria($keyword, $status, true);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
 
         $filters = [];
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
-        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
-        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
-        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
-        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';      
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
         $filters['Trạng thái'] = 'Đã xóa';
 
-        $this->createPdfFile($data, $filters, 'DANH SÁCH THAM GIA SỰ KIỆN ĐÃ XÓA', 'danh_sach_tham_gia_su_kien_da_xoa', true);
+        $this->createPdfFile($data, $filters, 'DANH SÁCH LOẠI NGƯỜI DÙNG ĐÃ XÓA', 'danh_sach_loai_nguoi_dung_da_xoa', true);
     }
 
     /**
@@ -910,27 +861,21 @@ class LoaiNguoiDung extends BaseController
     {
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
-        $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
-        $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
-        $su_kien_id = $this->request->getGet('su_kien_id');
-        $sort = $this->request->getGet('sort') ?? 'deleted_at';
+        $sort = $this->request->getGet('sort') ?? 'ten_loai';
         $order = $this->request->getGet('order') ?? 'DESC';
 
-        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id, true);
+        $criteria = $this->prepareSearchCriteria($keyword, $status, true);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
         $headers = $this->prepareExcelHeaders(true);
 
         $filters = [];
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
-        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
-        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
-        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
-        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
         $filters['Trạng thái'] = 'Đã xóa';
 
-        $this->createExcelFile($data, $headers, $filters, 'danh_sach_tham_gia_su_kien_da_xoa', true);
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_loai_nguoi_dung_da_xoa', true);
     }
 
     /**
@@ -939,13 +884,12 @@ class LoaiNguoiDung extends BaseController
     protected function getSortText($sort, $order)
     {
         $sortFields = [
-            'thoi_gian_diem_danh' => 'Thời gian điểm danh',
+            'ten_loai' => 'Tên loại người dùng',
+            'mo_ta' => 'Mô tả',
             'created_at' => 'Ngày tạo',
             'updated_at' => 'Ngày cập nhật',
             'deleted_at' => 'Ngày xóa',
-            'tham_gia_su_kien_id' => 'ID',
-            'nguoi_dung_id' => 'Người dùng ID',
-            'su_kien_id' => 'Sự kiện ID',
+            'loai_nguoi_dung_id' => 'ID',
             'status' => 'Trạng thái'
         ];
 

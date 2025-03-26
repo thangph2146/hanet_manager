@@ -4,14 +4,14 @@
 <?= page_css('table') ?>
 <?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>DANH SÁCH LOẠI NGƯỜI DÙNG<?= $this->endSection() ?>
+<?= $this->section('title') ?>DANH SÁCH THAM GIA SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Danh sách loại người dùng',
+	'title' => 'Danh sách tham gia sự kiện',
 	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Loại Người Dùng', 'url' => site_url($module_name)],
+		['title' => 'Quản lý Tham Gia Sự Kiện', 'url' => site_url($module_name)],
 		['title' => 'Danh sách', 'active' => true]
 	],
 	'actions' => [
@@ -19,10 +19,11 @@
 	]
 ]) ?>
 <?= $this->endSection() ?>  
+
 <?= $this->section('content') ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách loại người dùng</h5>
+        <h5 class="card-title mb-0">Danh sách tham gia sự kiện</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -72,7 +73,7 @@
                             <button class="btn btn-outline-secondary btn-sm" type="submit">
                                 <i class='bx bx-search'></i>
                             </button>
-                            <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
+                            <?php if (!empty($keyword) || (isset($status) && $status !== '') || (isset($phuong_thuc_diem_danh) && $phuong_thuc_diem_danh !== '')): ?>
                             <a href="<?= site_url($module_name) ?>" class="btn btn-outline-danger btn-sm">
                                 <i class='bx bx-x'></i>
                             </a>
@@ -122,7 +123,7 @@
                                 </div>
                             </th>
                             <th width="10%" class="align-middle">ID</th>
-                            <th width="15%" class="align-middle">Tên loại</th>
+                            <th width="15%" class="align-middle">Tên loại người dùng</th>
                             <th width="15%" class="align-middle">Mô tả</th>
                             <th width="10%" class="text-center align-middle">Trạng thái</th>
                             <th width="20%" class="text-center align-middle">Thao tác</th>
@@ -140,9 +141,12 @@
                                         </div>
                                     </td>
                                     <td><?= esc($item->loai_nguoi_dung_id) ?></td>
-                                    <td><?= esc($item->ten_loai) ?></td>
-                                    <td><?= esc($item->mo_ta) ?></td>
-                                    
+                                    <td>
+                                        <?= esc($item->ten_loai) ?>
+                                    </td>
+                                    <td>
+                                        <?= esc($item->mo_ta) ?>
+                                    </td>
                                     <td class="text-center">
                                         <form action="<?= site_url($module_name . '/statusMultiple') ?>" method="post" class="d-inline">
                                             <?= csrf_field() ?>
@@ -157,15 +161,15 @@
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <a href="<?= site_url($module_name . "/view/{$item->tham_gia_su_kien_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                            <a href="<?= site_url($module_name . "/view/{$item->loai_nguoi_dung_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
                                                 <i class="bx bx-info-circle text-white"></i>
                                             </a>
-                                            <a href="<?= site_url($module_name . "/edit/{$item->tham_gia_su_kien_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
+                                            <a href="<?= site_url($module_name . "/edit/{$item->loai_nguoi_dung_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
                                                 <i class="bx bx-edit"></i>
                                             </a>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
-                                                    data-id="<?= $item->tham_gia_su_kien_id ?>" 
-                                                    data-name="ID: <?= esc($item->tham_gia_su_kien_id) ?>"
+                                                    data-id="<?= $item->loai_nguoi_dung_id ?>" 
+                                                    data-name="ID: <?= esc($item->loai_nguoi_dung_id) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa">
                                                 <i class="bx bx-trash"></i>
                                             </button>
@@ -298,7 +302,6 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-
 <?= page_js('table', $module_name) ?>
 <?= page_section_js('table', $module_name) ?>
 <?= page_table_js($module_name) ?>

@@ -102,11 +102,8 @@
             <tr>
                 <th class="text-center">STT</th>
                 <th>ID</th>
-                <th>Người dùng ID</th>
-                <th>Sự kiện ID</th>
-                <th>Thời gian điểm danh</th>
-                <th>Phương thức điểm danh</th>
-                <th>Ghi chú</th>
+                <th>Tên loại người dùng</th>
+                <th>Mô tả</th>
                 <th>Trạng thái</th>
                 <?php if ($includeDeletedAt): ?>
                 <th>Ngày xóa</th>
@@ -117,29 +114,9 @@
             <?php foreach ($data as $index => $item): ?>
             <tr>
                 <td class="text-center"><?= $index + 1 ?></td>
-                <td class="text-center"><?= $item->tham_gia_su_kien_id ?></td>
-                <td class="text-center"><?= $item->nguoi_dung_id ?></td>
-                <td class="text-center"><?= $item->su_kien_id ?></td>
-                <td><?= !empty($item->thoi_gian_diem_danh) ? 
-                    ($item->thoi_gian_diem_danh instanceof \CodeIgniter\I18n\Time ? 
-                        $item->thoi_gian_diem_danh->format('d/m/Y H:i:s') : 
-                        date('d/m/Y H:i:s', strtotime($item->thoi_gian_diem_danh))) : 
-                    'Chưa điểm danh' ?></td>
-                <td class="text-center">
-                    <?php
-                    switch ($item->phuong_thuc_diem_danh) {
-                        case 'qr_code':
-                            echo 'QR Code';
-                            break;
-                        case 'face_id':
-                            echo 'Face ID';
-                            break;
-                        default:
-                            echo 'Thủ công';
-                    }
-                    ?>
-                </td>
-                <td><?= $item->ghi_chu ?? '' ?></td>
+                <td class="text-center"><?= $item->loai_nguoi_dung_id ?></td>
+                <td class="text-center"><?= $item->ten_loai ?></td>
+                <td class="text-center"><?= $item->mo_ta ?></td>
                 <td class="text-center <?= $item->status == 1 ? 'status-active' : 'status-inactive' ?>">
                     <?= $item->status == 1 ? 'Hoạt động' : 'Không hoạt động' ?>
                 </td>

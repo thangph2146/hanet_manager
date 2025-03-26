@@ -5,6 +5,7 @@ namespace App\Modules\loainguoidung\Models;
 use App\Models\BaseModel;
 use App\Modules\loainguoidung\Entities\LoaiNguoiDung;
 use App\Modules\loainguoidung\Libraries\Pager;
+use CodeIgniter\I18n\Time;
 
 class LoaiNguoiDungModel extends BaseModel
 {
@@ -40,7 +41,9 @@ class LoaiNguoiDungModel extends BaseModel
     
     // Trường có thể lọc
     protected $filterableFields = [
-        'status'
+        'status',
+        'ten_loai',
+        'mo_ta'
     ];
     
     // Các quy tắc xác thực
@@ -52,7 +55,7 @@ class LoaiNguoiDungModel extends BaseModel
     public $pager = null;
     
     /**
-     * Lấy tất cả bản ghi loại người dùng
+     * Lấy tất cả bản ghi tham gia sự kiện
      *
      * @param int $limit Số lượng bản ghi trên mỗi trang
      * @param int $offset Vị trí bắt đầu lấy dữ liệu
@@ -88,7 +91,7 @@ class LoaiNguoiDungModel extends BaseModel
     }
     
     /**
-     * Lấy tất cả bản ghi loại người dùng đã xóa
+     * Lấy tất cả bản ghi tham gia sự kiện đã xóa
      *
      * @param int $limit Số lượng bản ghi trên mỗi trang
      * @param int $offset Vị trí bắt đầu lấy dữ liệu
@@ -124,7 +127,7 @@ class LoaiNguoiDungModel extends BaseModel
     }
 
     /**
-     * Đếm tổng số bản ghi loại người dùng
+     * Đếm tổng số bản ghi tham gia sự kiện
      *
      * @param array $conditions Điều kiện bổ sung
      * @return int
@@ -144,7 +147,7 @@ class LoaiNguoiDungModel extends BaseModel
     }
     
     /**
-     * Đếm tổng số bản ghi loại người dùng đã xóa
+     * Đếm tổng số bản ghi tham gia sự kiện đã xóa
      *
      * @param array $conditions Điều kiện bổ sung
      * @return int
@@ -222,7 +225,7 @@ class LoaiNguoiDungModel extends BaseModel
     }
     
     /**
-     * Tìm kiếm loại người dùng dựa vào các tiêu chí
+     * Tìm kiếm tham gia sự kiện dựa vào các tiêu chí
      *
      * @param array $criteria Các tiêu chí tìm kiếm
      * @param array $options Tùy chọn phân trang và sắp xếp
@@ -230,7 +233,6 @@ class LoaiNguoiDungModel extends BaseModel
      */
     public function search(array $criteria = [], array $options = [])
     {
-        // Reset query builder để đảm bảo không có điều kiện nào từ trước
         $builder = $this->builder();
         
         // Xử lý withDeleted nếu cần
@@ -259,7 +261,6 @@ class LoaiNguoiDungModel extends BaseModel
             $status = (int)$criteria['status'];
             $builder->where($this->table . '.status', $status);
         }
-        
         // Xác định trường sắp xếp và thứ tự sắp xếp
         $sort = $options['sort'] ?? 'created_at';
         $order = $options['order'] ?? 'DESC';
@@ -267,10 +268,6 @@ class LoaiNguoiDungModel extends BaseModel
         // Xử lý giới hạn và phân trang
         $limit = $options['limit'] ?? 10;
         $offset = $options['offset'] ?? 0;
-        
-        // Log thông tin tìm kiếm nếu cần
-        log_message('debug', 'Tham số tìm kiếm: ' . json_encode($criteria));
-        log_message('debug', 'Tùy chọn: ' . json_encode($options));
         
         // Thực hiện truy vấn với phân trang
         if ($limit > 0) {
@@ -282,23 +279,15 @@ class LoaiNguoiDungModel extends BaseModel
         
         // Thực hiện truy vấn
         $result = $builder->get()->getResult($this->returnType);
-        
+
         // Thiết lập pager nếu cần
         if ($limit > 0) {
             $totalRows = $this->countSearchResults($criteria);
-            
-            if ($this->pager === null) {
-                $this->pager = new Pager(
-                    $totalRows,
-                    $limit,
-                    floor($offset / $limit) + 1
-                );
-            } else {
-                $this->pager->setTotal($totalRows)
-                           ->setPerPage($limit)
-                           ->setCurrentPage(floor($offset / $limit) + 1);
-            }
-            
+            $this->pager = new Pager(
+                $totalRows,
+                $limit,
+                floor($offset / $limit) + 1
+            );
             $this->pager->setSurroundCount($this->surroundCount ?? 2);
         }
         
@@ -340,7 +329,7 @@ class LoaiNguoiDungModel extends BaseModel
         if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
             $status = (int)$criteria['status'];
             $builder->where($this->table . '.status', $status);
-        }
+        }       
         
         return $builder->countAllResults();
     }
@@ -394,8 +383,6 @@ class LoaiNguoiDungModel extends BaseModel
             $this->pager->setSurroundCount($count);
         }
         
-        $this->surroundCount = $count;
-        
         return $this;
     }
     
@@ -434,6 +421,9 @@ class LoaiNguoiDungModel extends BaseModel
     public function searchDeleted(array $criteria = [], array $options = [])
     {
         // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
+        // Đặt điều kiện để chỉ lấy các bản ghi đã xóa
         $criteria['deleted'] = true;
         
         // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
@@ -448,6 +438,9 @@ class LoaiNguoiDungModel extends BaseModel
      */
     public function countDeletedResults(array $criteria = [])
     {
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
         // Đặt điều kiện để chỉ đếm các bản ghi đã xóa
         $criteria['deleted'] = true;
         
@@ -456,49 +449,57 @@ class LoaiNguoiDungModel extends BaseModel
     }
     
     /**
-     * Chuyển bản ghi vào thùng rác (xóa mềm)
+     * Xử lý dữ liệu trước khi lưu vào database
      *
-     * @param int $id ID bản ghi cần chuyển vào thùng rác
-     * @return bool Kết quả thực hiện
+     * @param array $data Dữ liệu cần xử lý
+     * @return array Dữ liệu đã xử lý
      */
-    public function moveToRecycleBin($id)
+    protected function beforeInsert(array $data): array
     {
-        return $this->delete($id);
+        $data = parent::beforeInsert($data);
+        
+        return $data;
     }
     
     /**
-     * Khôi phục bản ghi từ thùng rác
+     * Xử lý dữ liệu trước khi cập nhật vào database
      *
-     * @param int $id ID bản ghi cần khôi phục
-     * @return bool Kết quả thực hiện
+     * @param array $data Dữ liệu cần xử lý
+     * @return array Dữ liệu đã xử lý
      */
-    public function restoreFromRecycleBin($id)
+    protected function beforeUpdate(array $data): array
     {
-        $this->db->table($this->table)
-                 ->where($this->primaryKey, $id)
-                 ->set($this->deletedField, null)
-                 ->update();
-        
-        return $this->db->affectedRows() > 0;
+        $data = parent::beforeUpdate($data);
+        return $data;
     }
     
     /**
-     * Kiểm tra xem tên đã tồn tại chưa
-     * 
-     * @param string $name Tên cần kiểm tra
-     * @param int|null $exceptId ID bản ghi cần loại trừ khi kiểm tra
-     * @return bool Kết quả kiểm tra
+     * Định dạng thời gian
+     *
+     * @param string|null $datetime Chuỗi thời gian cần định dạng
+     * @return string|null Thời gian đã định dạng
      */
-    public function isNameExists(string $name, ?int $exceptId = null): bool
+    protected function formatDateTime(?string $datetime): ?string
     {
-        $builder = $this->db->table($this->table)
-                 ->where('ten_loai', $name)
-                 ->where('deleted_at IS NULL');
-        
-        if ($exceptId !== null) {
-            $builder->where($this->primaryKey . ' !=', $exceptId);
+        if (empty($datetime)) {
+            return null;
         }
         
-        return $builder->countAllResults() > 0;
+        try {
+            // Thử parse thời gian
+            $time = Time::parse($datetime);
+            
+            // Kiểm tra xem thời gian có hợp lệ không
+            if ($time === false) {
+                log_message('error', 'Thời gian không hợp lệ: ' . $datetime);
+                return null;
+            }
+            
+            // Format lại thời gian theo định dạng chuẩn
+            return $time->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi định dạng thời gian: ' . $e->getMessage() . ' - Input: ' . $datetime);
+            return null;
+        }
     }
 } 

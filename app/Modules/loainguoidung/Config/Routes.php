@@ -4,36 +4,36 @@ namespace Config;
 
 // Create a new instance of our RouteCollection class.
 $routes = Services::routes();
-$controller = 'LoaiNguoiDung';
-$module = 'loainguoidung';
+$module_name = 'loainguoidung';
+$controller_name = 'LoaiNguoiDung';
 // Định nghĩa routes cho module Nganh
-$routes->group($module, ['namespace' => 'App\Modules\\' . $module . '\Controllers'], 
-function ($routes) use ($controller, $module) {
-    $routes->get('/', $controller . '::index');
-    $routes->get('dashboard', $controller . '::dashboard');
-    $routes->get('statistics', $controller . '::statistics');
-    $routes->get('listdeleted', $controller . '::listdeleted');
-    $routes->get('new', $controller . '::new');
-    $routes->post('create', $controller . '::create');
-    $routes->get('edit/(:num)', $controller . '::edit/$1');
-    $routes->post('update/(:num)', $controller . '::update/$1');
-    $routes->get('delete/(:num)', $controller . '::delete/$1');
-    $routes->post('delete/(:num)', $controller . '::delete/$1');
-    $routes->get('restore/(:num)', $controller . '::restore/$1');
-    $routes->post('restore/(:num)', $controller . '::restore/$1');
-    $routes->post('purge/(:num)', $controller . '::purge/$1');
-    $routes->post('status/(:num)', $controller . '::status/$1');
-    $routes->post('deleteMultiple', $controller . '::deleteMultiple');
-    $routes->post('restoreMultiple', $controller . '::restoreMultiple');
-    $routes->get('permanentDelete/(:num)', $controller . '::permanentDelete/$1');
-    $routes->post('permanentDelete/(:num)', $controller . '::permanentDelete/$1');
-    $routes->post('permanentDeleteMultiple', $controller . '::permanentDeleteMultiple');
-    $routes->post('deletePermanentMultiple', $controller . '::deletePermanentMultiple');
-    $routes->post('statusMultiple', $controller . '::statusMultiple');
-    $routes->get('deleted', $controller . '::deleted');
-    $routes->get('view/(:num)', $controller . '::view/$1');
-    $routes->get('exportPdf', $controller . '::exportPdf');
-    $routes->get('exportExcel', $controller . '::exportExcel');
-    $routes->get('exportDeletedPdf', $controller . '::exportDeletedPdf');
-    $routes->get('exportDeletedExcel', $controller . '::exportDeletedExcel');
+$routes->group($module_name, ['namespace' => 'App\Modules\\' . $module_name . '\Controllers'], 
+function ($routes) use ($controller_name) {
+    $routes->get('/', $controller_name . '::index');
+    $routes->get('dashboard', $controller_name . '::dashboard');
+    $routes->get('statistics', $controller_name . '::statistics');
+    $routes->get('listdeleted', $controller_name . '::listdeleted');
+    $routes->get('new', $controller_name . '::new');
+    $routes->post('create', $controller_name . '::create');
+    $routes->get('edit/(:num)', $controller_name . '::edit/$1');
+    $routes->post('update/(:num)', $controller_name . '::update/$1');
+    $routes->get('delete/(:num)', $controller_name . '::delete/$1');
+    $routes->post('delete/(:num)', $controller_name . '::delete/$1');
+    $routes->get('restore/(:num)', $controller_name . '::restore/$1');
+    $routes->post('restore/(:num)', $controller_name . '::restore/$1');
+    $routes->post('purge/(:num)', $controller_name . '::purge/$1');
+    $routes->post('status/(:num)', $controller_name . '::status/$1');
+    $routes->post('deleteMultiple', $controller_name . '::deleteMultiple');
+    $routes->post('restoreMultiple', $controller_name . '::restoreMultiple');
+    $routes->get('permanentDelete/(:num)', $controller_name . '::permanentDelete/$1');
+    $routes->post('permanentDelete/(:num)', $controller_name . '::permanentDelete/$1');
+    $routes->post('permanentDeleteMultiple', $controller_name . '::permanentDeleteMultiple');
+    $routes->post('deletePermanentMultiple', $controller_name . '::deletePermanentMultiple');
+    $routes->post('statusMultiple', $controller_name . '::statusMultiple');
+    $routes->get('deleted', $controller_name . '::deleted');
+    $routes->get('view/(:num)', $controller_name . '::view/$1');
+    $routes->get('exportPdf', $controller_name . '::exportPdf');
+    $routes->get('exportExcel', $controller_name . '::exportExcel');
+    $routes->get('exportDeletedPdf', $controller_name . '::exportDeletedPdf');
+    $routes->get('exportDeletedExcel', $controller_name . '::exportDeletedExcel');
 }); 

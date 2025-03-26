@@ -4,14 +4,14 @@
 <?= page_css('form') ?>
 <?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CẬP NHẬT THAM GIA SỰ KIỆN<?= $this->endSection() ?>
+<?= $this->section('title') ?>CẬP NHẬT LOẠI NGƯỜI DÙNG<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Cập nhật tham gia sự kiện',
+    'title' => 'Cập nhật loại người dùng',
     'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Tham Gia Sự Kiện', 'url' => site_url($module_name)],
+        ['title' => 'Quản lý loại người dùng', 'url' => site_url($module_name)],
         ['title' => 'Cập nhật', 'active' => true]
     ],
     'actions' => [
@@ -23,7 +23,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-body">
-        <?= form_open(site_url($module_name . '/update/' . $thamGiaSuKien->tham_gia_su_kien_id), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+        <?= form_open(site_url($module_name . '/update/' . $data->loai_nguoi_dung_id), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
             <?php
             // Include form fields
             include __DIR__ . '/form.php';

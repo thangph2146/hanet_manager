@@ -68,16 +68,15 @@
                         <input type="hidden" name="perPage" value="<?= $perPage ?>">
                         <div class="input-group search-box">
                             <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
-                            <select name="phuong_thuc_diem_danh" class="form-select form-select-sm" style="max-width: 150px;">
-                                <option value="">-- Phương thức --</option>
-                                <option value="qr_code" <?= (isset($phuong_thuc_diem_danh) && $phuong_thuc_diem_danh == 'qr_code') ? 'selected' : '' ?>>QR Code</option>
-                                <option value="face_id" <?= (isset($phuong_thuc_diem_danh) && $phuong_thuc_diem_danh == 'face_id') ? 'selected' : '' ?>>Face ID</option>
-                                <option value="manual" <?= (isset($phuong_thuc_diem_danh) && $phuong_thuc_diem_danh == 'manual') ? 'selected' : '' ?>>Thủ công</option>
+                            <select name="status" class="form-select form-select-sm" style="max-width: 140px;">
+                                <option value="">-- Trạng thái --</option>
+                                <option value="1" <?= (isset($status) && $status == '1') ? 'selected' : '' ?>>Hoạt động</option>
+                                <option value="0" <?= (isset($status) && $status == '0') ? 'selected' : '' ?>>Không hoạt động</option>
                             </select>
                             <button class="btn btn-outline-secondary btn-sm" type="submit">
                                 <i class='bx bx-search'></i>
                             </button>
-                            <?php if (!empty($keyword) || (isset($phuong_thuc_diem_danh) && $phuong_thuc_diem_danh !== '')): ?>
+                            <?php if (!empty($keyword)): ?>
                             <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
                                 <i class='bx bx-x'></i>
                             </a>
@@ -102,21 +101,12 @@
             </div>
         <?php endif; ?>
         
-        <?php if (!empty($keyword) || (isset($phuong_thuc_diem_danh) && $phuong_thuc_diem_danh !== '')): ?>
+        <?php if (!empty($keyword)): ?>
             <div class="alert alert-info m-3">
                 <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
                 <div class="small">
                     <?php if (!empty($keyword)): ?>
                         <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
-                    <?php endif; ?>
-                    <?php if (isset($phuong_thuc_diem_danh) && $phuong_thuc_diem_danh !== ''): ?>
-                        <span class="badge bg-info me-2">Phương thức: 
-                            <?php 
-                                if ($phuong_thuc_diem_danh == 'qr_code') echo 'QR Code';
-                                elseif ($phuong_thuc_diem_danh == 'face_id') echo 'Face ID';
-                                else echo 'Thủ công';
-                            ?>
-                        </span>
                     <?php endif; ?>
                     <a href="<?= site_url($module_name . '/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>
@@ -128,76 +118,59 @@
                 <table id="dataTable" class="table table-striped table-hover m-0 w-100">
                     <thead class="table-light">
                         <tr>
-                            <th width="5%" class="text-center align-middle">
+                        <th width="5%" class="text-center align-middle">
                                 <div class="form-check">
                                     <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
                                 </div>
                             </th>
                             <th width="10%" class="align-middle">ID</th>
-                            <th width="15%" class="align-middle">Người dùng</th>
-                            <th width="15%" class="align-middle">Sự kiện</th>
-                            <th width="15%" class="align-middle">Thời gian điểm danh</th>
-                            <th width="10%" class="text-center align-middle">Phương thức</th>
-                            <th width="15%" class="text-center align-middle">Ngày xóa</th>
-                            <th width="15%" class="text-center align-middle">Thao tác</th>
+                            <th width="15%" class="align-middle">Tên loại người dùng</th>
+                            <th width="15%" class="align-middle">Mô tả</th>
+                            <th width="10%" class="text-center align-middle">Trạng thái</th>
+                            <th width="20%" class="text-center align-middle">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($processedData)) : ?>
                             <?php foreach ($processedData as $item) : ?>
                                 <tr>
-                                    <td class="text-center">
+                                <td class="text-center">
                                         <div class="form-check">
-                                            <input class="form-check-input checkbox-item cursor-pointer"
-                                             type="checkbox" name="selected_items[]"
-                                              value="<?= $item->loai_nguoi_dung_id ?>">
+                                            <input class="form-check-input checkbox-item cursor-pointer" 
+                                            type="checkbox" name="selected_items[]" 
+                                            value="<?= $item->loai_nguoi_dung_id ?>">
                                         </div>
                                     </td>
                                     <td><?= esc($item->loai_nguoi_dung_id) ?></td>
                                     <td>
-                                        <?php if (isset($item->nguoi_dung) && !empty($item->nguoi_dung)): ?>
-                                            <span class="d-block fw-medium"><?= esc($item->nguoi_dung->ho_ten ?? '(Không có tên)') ?></span>
-                                            <?php if (!empty($item->nguoi_dung->email)): ?>
-                                                <small class="text-muted"><?= esc($item->nguoi_dung->email) ?></small>
-                                            <?php endif; ?>
-                                        <?php else: ?>
-                                            <span class="text-muted">ID: <?= esc($item->nguoi_dung_id) ?></span>
-                                        <?php endif; ?>
+                                        <?= esc($item->ten_loai) ?>
                                     </td>
                                     <td>
-                                        <?php if (isset($item->su_kien) && !empty($item->su_kien)): ?>
-                                            <span class="d-block fw-medium"><?= esc($item->su_kien->ten_su_kien ?? '(Không có tên)') ?></span>
-                                            <?php if (!empty($item->su_kien->mo_ta_su_kien)): ?>
-                                                <small class="text-muted text-truncate d-inline-block" style="max-width: 150px;"><?= esc($item->su_kien->mo_ta_su_kien) ?></small>
-                                            <?php endif; ?>
-                                        <?php else: ?>
-                                            <span class="text-muted">ID: <?= esc($item->su_kien_id) ?></span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td><?= !empty($item->thoi_gian_diem_danh) ? date('d/m/Y H:i:s', strtotime($item->thoi_gian_diem_danh)) : 'Chưa điểm danh' ?></td>
-                                    <td class="text-center">
-                                        <?php if ($item->phuong_thuc_diem_danh == 'qr_code'): ?>
-                                            <span class="badge bg-info">QR Code</span>
-                                        <?php elseif ($item->phuong_thuc_diem_danh == 'face_id'): ?>
-                                            <span class="badge bg-primary">Face ID</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-secondary">Thủ công</span>
-                                        <?php endif; ?>
+                                        <?= esc($item->mo_ta) ?>
                                     </td>
                                     <td class="text-center">
-                                        <?= !empty($item->deleted_at) ? date('d/m/Y H:i:s', strtotime($item->deleted_at)) : 'N/A' ?>
+                                        <form action="<?= site_url($module_name . '/statusMultiple') ?>" method="post" class="d-inline">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="selected_ids[]" value="<?= $item->tham_gia_su_kien_id ?>">
+                                            <input type="hidden" name="return_url" value="<?= current_url() ?>">
+                                            <button type="submit" class="btn btn-sm <?= $item->status == 1 ? 'btn-success' : 'btn-danger' ?> status-toggle" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="<?= $item->status == 1 ? 'Đang hoạt động - Click để tắt' : 'Đang tắt - Click để bật' ?>">
+                                                <?= $item->status == 1 ? 'Hoạt động' : 'Không hoạt động' ?>
+                                            </button>
+                                        </form>
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <button type="button" class="btn btn-success btn-sm btn-restore w-100 h-100" 
-                                                    data-id="<?= $item->tham_gia_su_kien_id ?>" 
-                                                    data-name="ID: <?= esc($item->tham_gia_su_kien_id) ?>"
+                                                    data-id="<?= $item->loai_nguoi_dung_id ?>" 
+                                                    data-name="ID: <?= esc($item->loai_nguoi_dung_id) ?>"
                                                     data-bs-toggle="tooltip" title="Khôi phục">
                                                 <i class="bx bx-revision"></i>
                                             </button>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
-                                                    data-id="<?= $item->tham_gia_su_kien_id ?>" 
-                                                    data-name="ID: <?= esc($item->tham_gia_su_kien_id) ?>"
+                                                    data-id="<?= $item->loai_nguoi_dung_id ?>" 
+                                                    data-name="ID: <?= esc($item->loai_nguoi_dung_id) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa vĩnh viễn">
                                                 <i class="bx bx-trash"></i>
                                             </button>

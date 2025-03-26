@@ -3,20 +3,17 @@
 namespace App\Modules\loainguoidung\Traits;
 
 use CodeIgniter\I18n\Time;
-use App\Modules\loainguoidung\Models\LoaiNguoiDungModel;
 
 trait RelationTrait
 {
-    protected $loaiNguoiDungModel;
-
     /**
-     * Khởi tạo các model cần thiết
+     * Khởi tạo các model cần thiết cho các mối quan hệ
      */
     protected function initializeRelationTrait()
     {
-        if (!$this->loaiNguoiDungModel) {
-            $this->loaiNguoiDungModel = new LoaiNguoiDungModel();
-        }
+        // Kiểm tra xem các model đã được khởi tạo chưa
+        // và khởi tạo nếu cần
+    
     }
 
     /**
@@ -29,17 +26,7 @@ trait RelationTrait
         
         // Xử lý dữ liệu và thêm relation
         $processedData = $this->processData($data);
-        
-        // Lấy thông tin người dùng và sự kiện cho các tham số
-        $nguoiDungInfo = null;
-        $suKienInfo = null;
-        
-        if (!empty($params['nguoi_dung_id'])) {
-            $nguoiDungInfo = $this->nguoiDungModel->find($params['nguoi_dung_id']);
-        }
-        
-     
-        
+
         return [
             'processedData' => $processedData,
             'pager' => $pager,
@@ -50,7 +37,6 @@ trait RelationTrait
             'order' => $params['order'],
             'keyword' => $params['keyword'],
             'status' => $params['status'],
-            'nguoi_dung_id' => $params['nguoi_dung_id'],
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Danh sách ' . $this->title,
             'moduleUrl' => $this->moduleUrl,
@@ -70,33 +56,8 @@ trait RelationTrait
 
         // Khởi tạo các model nếu chưa được khởi tạo
         $this->initializeRelationTrait();
-        // Lấy dữ liệu relation một lần duy nhất
-        $suKiens = [];
-        $nguoiDungs = [];
         
-        if (!empty($suKienIds)) {
-            $suKienIds = array_unique($suKienIds);
-            $suKiens = $this->suKienModel->find($suKienIds);
-        }
-        
-        if (!empty($nguoiDungIds)) {
-            $nguoiDungIds = array_unique($nguoiDungIds);
-            $nguoiDungs = $this->nguoiDungModel->find($nguoiDungIds);
-        }
-
-        foreach ($data as &$item) {
-            // Xử lý thời gian điểm danh
-            if (!empty($item->thoi_gian_diem_danh)) {
-                try {
-                    $item->thoi_gian_diem_danh = $item->thoi_gian_diem_danh instanceof Time ? 
-                        $item->thoi_gian_diem_danh : 
-                        Time::parse($item->thoi_gian_diem_danh);
-                } catch (\Exception $e) {
-                    log_message('error', 'Lỗi xử lý thời gian điểm danh: ' . $e->getMessage());
-                    $item->thoi_gian_diem_danh = null;
-                }
-            }
-
+        foreach ($data as $item) {
             // Xử lý thời gian tạo
             if (!empty($item->created_at)) {
                 try {
@@ -132,40 +93,16 @@ trait RelationTrait
                     $item->deleted_at = null;
                 }
             }
-
-
-            // Thêm thông tin người dùng
-            if (!empty($item->nguoi_dung_id) && isset($nguoiDungMap[$item->nguoi_dung_id])) {
-                $item->nguoi_dung = $nguoiDungMap[$item->nguoi_dung_id];
-            } else {
-                $item->nguoi_dung = null;
-            }
-
-            // Xử lý phương thức điểm danh
-            $item->phuong_thuc_diem_danh_text = $this->getPhuongThucDiemDanhTextRelation($item->phuong_thuc_diem_danh);
-
+           
             // Xử lý trạng thái
             $item->status_text = $item->status == 1 ? 'Hoạt động' : 'Không hoạt động';
             $item->status_class = $item->status == 1 ? 'status-active' : 'status-inactive';
-        }
 
-        return $data;
+        }
+        return $data;   
     }
 
-    /**
-     * Lấy text cho phương thức điểm danh (phiên bản cho RelationTrait)
-     */
-    protected function getPhuongThucDiemDanhTextRelation($phuongThuc)
-    {
-        switch ($phuongThuc) {
-            case 'qr_code':
-                return 'QR Code';
-            case 'face_id':
-                return 'Face ID';
-            default:
-                return 'Thủ công';
-        }
-    }
+ 
 
     /**
      * Chuẩn bị tham số tìm kiếm
@@ -179,7 +116,6 @@ trait RelationTrait
             'order' => $request->getGet('order') ?? 'DESC',
             'keyword' => $request->getGet('keyword') ?? '',
             'status' => $request->getGet('status'),
-            'nguoi_dung_id' => $request->getGet('nguoi_dung_id'),
         ];
     }
 
@@ -213,10 +149,6 @@ trait RelationTrait
         
         if (isset($params['status']) && $params['status'] !== '') {
             $criteria['status'] = $params['status'];
-        }
-        
-        if (!empty($params['nguoi_dung_id'])) {
-            $criteria['nguoi_dung_id'] = $params['nguoi_dung_id'];
         }
 
         return $criteria;

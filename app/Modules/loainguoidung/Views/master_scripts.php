@@ -3,7 +3,6 @@
  * Master script file for ThamGiaSuKien module
  * Contains common CSS and JS for all views
  */
-
 // CSS section
 function page_css($type = 'all') {
     ob_start();
@@ -25,6 +24,9 @@ function page_css($type = 'all') {
         }
         .form-check .form-check-input {
             margin-left: 0.05rem;
+        }
+        .cursor-pointer {
+            cursor: pointer !important;
         }
         .table > :not(caption) > * > * {
             padding: 0.75rem !important;
@@ -249,30 +251,16 @@ function page_js($type = 'all', $module_name) {
             // Form validation
             $('#form-<?= $module_name ?>').validate({
                 rules: {
-                    nguoi_dung_id: {
+                    loai_nguoi_dung_id: {
                         required: true,
                         number: true
                     },
-                    su_kien_id: {
-                        required: true,
-                        number: true
-                    },
-                    phuong_thuc_diem_danh: {
-                        required: true
-                    }
                 },
                 messages: {
-                    nguoi_dung_id: {
-                        required: "Vui lòng nhập ID người dùng",
-                        number: "ID người dùng phải là số"
+                    loai_nguoi_dung_id: {
+                        required: "Vui lòng nhập ID loại người dùng",
+                        number: "ID loại người dùng phải là số"
                     },
-                    su_kien_id: {
-                        required: "Vui lòng nhập ID sự kiện",
-                        number: "ID sự kiện phải là số"
-                    },
-                    phuong_thuc_diem_danh: {
-                        required: "Vui lòng chọn phương thức điểm danh"
-                    }
                 },
                 errorElement: 'span',
                 errorPlacement: function(error, element) {
@@ -359,13 +347,27 @@ function page_table_js($module_name) {
     ?>
     <script>
     $(document).ready(function() {
+        // Đảm bảo jQuery đã được tải
+        if (typeof $ === 'undefined') {
+            console.error('jQuery chưa được tải!');
+            return;
+        }
+        
+        console.log('page_table_js đang chạy cho module:', '<?= $module_name ?>');
+        
+        // Khởi tạo tooltips
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        if (tooltips.length > 0 && typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            [...tooltips].map(t => new bootstrap.Tooltip(t));
+        }
+        
+        // Kiểm tra và log số lượng các element quan trọng
+        console.log('Checkbox select-all:', $('#select-all').length);
+        console.log('Checkbox items:', $('.checkbox-item').length);
+        
         // Kiểm tra xem bảng đã được khởi tạo thành DataTable chưa
         if (!$.fn.DataTable.isDataTable('#dataTable')) {
-            // Khởi tạo tooltips
-            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            [...tooltips].map(t => new bootstrap.Tooltip(t));
-            
-            // Khởi tạo DataTable với cấu hình tiếng Việt
+            // Cấu hình DataTable mà không ảnh hưởng đến các sự kiện checkbox
             const dataTable = $('#dataTable').DataTable({
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json',
@@ -376,27 +378,60 @@ function page_table_js($module_name) {
                 ordering: true,
                 responsive: true,
                 columnDefs: [
-                    { orderable: false, targets: [0, 7] },
+                    { orderable: false, targets: [0, 5] }, // Không cho phép sắp xếp cột đầu tiên (checkbox) và cột cuối (thao tác)
                     { className: 'align-middle', targets: '_all' }
                 ],
                 searching: false, // Tắt tìm kiếm của DataTable vì đã có form tìm kiếm
                 paging: false, // Tắt phân trang của DataTable vì đã có phân trang CodeIgniter
-                info: false // Tắt thông tin của DataTable
-            });
-            
-            // Xử lý form tìm kiếm
-            $('#search-form').on('submit', function() {
-                // Form sẽ gửi yêu cầu GET nên không cần xử lý gì thêm
-                return true;
-            });
-            
-            // Xử lý nhấn Enter trong ô tìm kiếm
-            $('#table-search').on('keyup', function(e) {
-                if (e.key === 'Enter') {
-                    $('#search-form').submit();
+                info: false, // Tắt thông tin của DataTable
+                // Đảm bảo không ảnh hưởng đến các sự kiện checkbox
+                drawCallback: function() {
+                    // Khôi phục lại sự kiện cho các checkbox sau khi DataTable vẽ lại
+                    bindCheckboxEvents();
                 }
             });
         }
+        
+        // Hàm gắn lại các sự kiện cho checkbox
+        function bindCheckboxEvents() {
+            // Xử lý nút chọn tất cả checkbox
+            $('#select-all').off('change').on('change', function() {
+                console.log('Select all changed:', $(this).prop('checked'));
+                $('.checkbox-item').prop('checked', $(this).prop('checked'));
+                updateActionButtons();
+            });
+            
+            // Cập nhật trạng thái nút thao tác khi checkbox thay đổi
+            $('.checkbox-item').off('change').on('change', function() {
+                updateActionButtons();
+                
+                // Nếu bỏ chọn một item, bỏ chọn select-all
+                if (!$(this).prop('checked')) {
+                    $('#select-all').prop('checked', false);
+                }
+                
+                // Nếu chọn tất cả items, chọn select-all
+                if ($('.checkbox-item:checked').length === $('.checkbox-item').length && $('.checkbox-item').length > 0) {
+                    $('#select-all').prop('checked', true);
+                }
+            });
+        }
+        
+        // Gắn sự kiện ngay khi trang tải
+        bindCheckboxEvents();
+        
+        // Xử lý form tìm kiếm
+        $('#search-form').on('submit', function() {
+            // Form sẽ gửi yêu cầu GET nên không cần xử lý gì thêm
+            return true;
+        });
+        
+        // Xử lý nhấn Enter trong ô tìm kiếm
+        $('#table-search').on('keyup', function(e) {
+            if (e.key === 'Enter') {
+                $('#search-form').submit();
+            }
+        });
         
         // Làm mới bảng
         $('#refresh-table').on('click', function() {
@@ -559,6 +594,12 @@ function page_table_js($module_name) {
             // Lấy đường dẫn hiện tại cho return_url
             const pathAndQuery = window.location.pathname + window.location.search;
             
+            // Đảm bảo form tồn tại
+            if ($('#form-delete-multiple').length === 0) {
+                console.error('Không tìm thấy form-delete-multiple');
+                return;
+            }
+            
             // Xóa các input cũ
             $('#form-delete-multiple').empty();
             
@@ -580,12 +621,28 @@ function page_table_js($module_name) {
                 value: pathAndQuery
             }).appendTo('#form-delete-multiple');
             
+            // Lấy các ID đã chọn
+            const selectedItems = $('.checkbox-item:checked');
+            console.log('Số lượng checkbox đã chọn:', selectedItems.length);
+            
+            // Kiểm tra xem có mục nào được chọn không
+            if (selectedItems.length === 0) {
+                Swal.fire({
+                    title: 'Cảnh báo',
+                    text: 'Vui lòng chọn ít nhất một mục để xóa',
+                    icon: 'warning'
+                });
+                return;
+            }
+            
             // Thêm các ID đã chọn vào form
-            $('.checkbox-item:checked').each(function() {
+            selectedItems.each(function() {
+                const id = $(this).val();
+                console.log('Thêm ID vào form:', id);
                 const input = $('<input>').attr({
                     type: 'hidden',
                     name: 'selected_ids[]',
-                    value: $(this).val()
+                    value: id
                 });
                 $('#form-delete-multiple').append(input);
             });
@@ -677,27 +734,6 @@ function page_table_js($module_name) {
             $('#deleteMultipleModal').modal('show');
         });
         
-        // Xử lý nút chọn tất cả checkbox
-        $('#select-all').on('change', function() {
-            $('.checkbox-item').prop('checked', $(this).prop('checked'));
-            updateActionButtons();
-        });
-        
-        // Cập nhật trạng thái nút thao tác khi checkbox thay đổi
-        $(document).on('change', '.checkbox-item', function() {
-            updateActionButtons();
-            
-            // Nếu bỏ chọn một item, bỏ chọn select-all
-            if (!$(this).prop('checked')) {
-                $('#select-all').prop('checked', false);
-            }
-            
-            // Nếu chọn tất cả items, chọn select-all
-            if ($('.checkbox-item:checked').length === $('.checkbox-item').length && $('.checkbox-item').length > 0) {
-                $('#select-all').prop('checked', true);
-            }
-        });
-        
         // Hàm cập nhật trạng thái các nút thao tác
         function updateActionButtons() {
             const hasChecked = $('.checkbox-item:checked').length > 0;
@@ -739,10 +775,6 @@ function page_table_js($module_name) {
             if (queryParams.has('status')) {
                 params.push('status=' + encodeURIComponent(queryParams.get('status')));
             }
-            if (queryParams.has('phuong_thuc_diem_danh')) {
-                params.push('phuong_thuc_diem_danh=' + encodeURIComponent(queryParams.get('phuong_thuc_diem_danh')));
-            }
-            
             // Thêm các tham số vào URL
             if (params.length > 0) {
                 exportUrl += '?' + params.join('&');
@@ -777,9 +809,6 @@ function page_table_js($module_name) {
             if (queryParams.has('status')) {
                 params.push('status=' + encodeURIComponent(queryParams.get('status')));
             }
-            if (queryParams.has('phuong_thuc_diem_danh')) {
-                params.push('phuong_thuc_diem_danh=' + encodeURIComponent(queryParams.get('phuong_thuc_diem_danh')));
-            }
             
             // Thêm các tham số vào URL
             if (params.length > 0) {
@@ -796,7 +825,7 @@ function page_table_js($module_name) {
             const urlParams = new URLSearchParams(window.location.search);
             
             // Giữ lại tất cả các tham số cần thiết
-            const paramsToKeep = ['keyword', 'status', 'phuong_thuc_diem_danh'];
+            const paramsToKeep = ['keyword', 'status'];
             
             // Tạo URL mới với tham số perPage và reset về trang 1
             const newParams = new URLSearchParams();

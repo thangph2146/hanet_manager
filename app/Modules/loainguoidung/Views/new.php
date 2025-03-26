@@ -3,14 +3,14 @@
 <?php include __DIR__ . '/master_scripts.php'; ?>
 <?= page_css('form') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>THÊM MỚI THAM GIA SỰ KIỆN<?= $this->endSection() ?>
+<?= $this->section('title') ?>THÊM MỚI LOẠI NGƯỜI DÙNG<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thêm mới Tham Gia Sự Kiện',
+	'title' => 'Thêm mới loại người dùng',
 	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Tham Gia Sự Kiện', 'url' => site_url($module_name)],
+		['title' => 'Quản lý loại người dùng', 'url' => site_url($module_name)],
 		['title' => 'Thêm mới', 'active' => true]
 	]
 ]) ?>
