@@ -1,31 +1,40 @@
 <?= $this->extend('layouts/default') ?>
-
+<?= $this->section('linkHref') ?>
+<?php include __DIR__ . '/master_scripts.php'; ?>
+<?= page_css('form') ?>
+<?= page_section_css('modal') ?>
+<?= $this->endSection() ?>
 <?= $this->section('title') ?>CẬP NHẬT KHÓA HỌC<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Cập nhật Khóa Học',
-    'dashboard_url' => site_url('khoahoc/dashboard'),
+    'title' => 'Cập nhật khóa học',
+    'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Khóa Học', 'url' => site_url('khoahoc')],
+        ['title' => 'Quản lý Khóa Học', 'url' => site_url($module_name)],
         ['title' => 'Cập nhật', 'active' => true]
-    ]
+    ],
+    'actions' => [
+		['url' => site_url($module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+	]
 ]) ?>
 <?= $this->endSection() ?>
 
-<?= $this->section('content') ?>
-<div class="card">
+<?= $this->section("content") ?>
+<div class="card shadow-sm">
     <div class="card-body">
-        <?= view('App\Modules\khoahoc\Views\form', [
-            'action' => site_url('khoahoc/update/' . $khoa_hoc->getId()),
-            'method' => 'POST',
-            'khoa_hoc' => $khoa_hoc
-        ]) ?>
+        <?= form_open(site_url($module_name . '/update/' . $data->khoa_hoc_id), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+            <?php
+            // Include form fields with namHoc data
+            $action = site_url($module_name . '/update/' . $data->khoa_hoc_id);
+            $method = 'POST';
+            include __DIR__ . '/form.php';
+            ?>
+        <?= form_close() ?>
     </div>
 </div>
-<?= $this->endSection() ?>
+<?= $this->endSection() ?>  
 
 <?= $this->section('script') ?>
-<?php include __DIR__ . '/master_scripts.php'; ?>
-<?= loainguoidung_js('form') ?>
+<?= page_js('form', $module_name) ?>
 <?= $this->endSection() ?> 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\khoahoc\Database\Migrations;
+namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
@@ -10,58 +10,61 @@ class KhoaHoc extends Migration
     {
         $this->forge->addField([
             'khoa_hoc_id' => [
-                'type'           => 'INT',
+                'type' => 'INT',
                 'auto_increment' => true
             ],
             'ten_khoa_hoc' => [
-                'type'       => 'VARCHAR',
-                'constraint' => 50,
-                'null'       => false
+                'type' => 'VARCHAR',
+                'constraint' => 100,
+                'null' => false
             ],
             'nam_bat_dau' => [
                 'type' => 'INT',
-                'null' => false
+                'null' => true
             ],
             'nam_ket_thuc' => [
                 'type' => 'INT',
-                'null' => false
+                'null' => true
             ],
             'phong_khoa_id' => [
                 'type' => 'INT',
-                'null' => false
+                'null' => true
             ],
             'status' => [
-                'type'       => 'TINYINT',
+                'type' => 'TINYINT',
                 'constraint' => 1,
-                'default'    => 1
-            ],
-            'bin' => [
-                'type'       => 'TINYINT',
-                'constraint' => 1,
-                'default'    => 0
+                'default' => 1
             ],
             'created_at' => [
-                'type'    => 'TIMESTAMP',
-                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
+                'type' => 'DATETIME',
+                'null' => true
             ],
             'updated_at' => [
-                'type'       => 'TIMESTAMP',
-                'null'       => true,
-                'on update'  => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
+                'type' => 'DATETIME',
+                'null' => true,
             ],
             'deleted_at' => [
-                'type'       => 'TIMESTAMP',
-                'null'       => true
-            ],
+                'type' => 'DATETIME',
+                'null' => true
+            ]
         ]);
-        
+
+        // Thêm khóa chính
         $this->forge->addKey('khoa_hoc_id', true);
+        
+        // Thêm chỉ mục cho ten_khoa_hoc
         $this->forge->addKey('ten_khoa_hoc', false, false, 'idx_ten_khoa_hoc');
+        
+        // Thêm chỉ mục cho phong_khoa_id
+        $this->forge->addKey('phong_khoa_id', false, false, 'idx_phong_khoa_id');
+
+        // Tạo bảng
         $this->forge->createTable('khoa_hoc');
     }
 
     public function down()
     {
+        // Xóa bảng
         $this->forge->dropTable('khoa_hoc');
     }
-}
+} 

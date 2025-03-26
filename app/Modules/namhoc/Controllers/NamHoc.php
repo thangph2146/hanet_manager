@@ -27,7 +27,6 @@ class NamHoc extends BaseController
     use RelationTrait;
     
     protected $model;
-    protected $breadcrumb;
     protected $alert;
     protected $moduleUrl;
     protected $title;
@@ -41,7 +40,6 @@ class NamHoc extends BaseController
 
         // Khởi tạo các thành phần cần thiết
         $this->model = new NamHocModel();
-        $this->breadcrumb = new Breadcrumb();
         $this->alert = new Alert();
         
         // Thông tin module
@@ -55,9 +53,6 @@ class NamHoc extends BaseController
      */
     public function index()
     {
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Danh sách', current_url());
-        
         // Lấy và xử lý tham số tìm kiếm
         $params = $this->prepareSearchParams($this->request);
         $params = $this->processSearchParams($params);
@@ -110,12 +105,8 @@ class NamHoc extends BaseController
      */
     public function new()
     {
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Thêm mới', current_url());
-        
         // Chuẩn bị dữ liệu cho view
         $viewData = [
-            'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Thêm mới ' . $this->title,
             'validation' => $this->validator,
             'moduleUrl' => $this->moduleUrl,
@@ -182,12 +173,8 @@ class NamHoc extends BaseController
         $processedData = $this->processData([$data]);
         $data = $processedData[0] ?? $data;
         
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Chi tiết', current_url());
-        
         // Chuẩn bị dữ liệu cho view
         $viewData = [
-            'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chi tiết ' . $this->title,
             'data' => $data,
             'moduleUrl' => $this->moduleUrl,
@@ -215,12 +202,8 @@ class NamHoc extends BaseController
             return redirect()->to($this->moduleUrl);
         }
         
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Chỉnh sửa', current_url());
-        
         // Chuẩn bị dữ liệu cho view
         $viewData = [
-            'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chỉnh sửa ' . $this->title,
             'validation' => $this->validator,
             'data' => $data,
@@ -321,9 +304,6 @@ class NamHoc extends BaseController
      */
     public function listdeleted()
     {
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Lịch sử xóa', current_url());
-        
         // Lấy và xử lý tham số tìm kiếm
         $params = $this->prepareSearchParams($this->request);
         $params = $this->processSearchParams($params);

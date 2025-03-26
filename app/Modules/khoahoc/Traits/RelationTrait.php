@@ -1,21 +1,20 @@
 <?php
 
-namespace App\Modules\namhoc\Traits;
+namespace App\Modules\khoahoc\Traits;
 
 use CodeIgniter\I18n\Time;
-use App\Modules\sukien\Models\SuKienModel;
-use App\Modules\nguoidung\Models\NguoiDungModel;
+use App\Modules\phongkhoa\Models\PhongKhoaModel;
 
 trait RelationTrait
 {
-    protected $suKienModel;
-    protected $nguoiDungModel;
+    protected $phongKhoaModel;
 
     /**
      * Khởi tạo các model cần thiết
      */
     protected function initializeRelationTrait()
     {
+        $this->phongKhoaModel = new PhongKhoaModel();
     }
 
     /**
@@ -29,16 +28,17 @@ trait RelationTrait
         // Xử lý dữ liệu và thêm relation
         $processedData = $this->processData($data);
         
+        // Lấy danh sách phòng khoa cho form select box
+        $phongKhoaList = $this->phongKhoaModel->getAllActive(100, 0, 'ten_phong_khoa', 'ASC');
+        
         // Lấy thông tin người dùng và sự kiện cho các tham số
         $nguoiDungInfo = null;
         $suKienInfo = null;
         
-        if (!empty($params['nguoi_dung_id'])) {
-            $nguoiDungInfo = $this->nguoiDungModel->find($params['nguoi_dung_id']);
-        }
-        
-        if (!empty($params['su_kien_id'])) {
-            $suKienInfo = $this->suKienModel->find($params['su_kien_id']);
+        // Lấy thông tin phòng khoa nếu có tham số
+        $phongKhoaInfo = null;
+        if (!empty($params['phong_khoa_id'])) {
+            $phongKhoaInfo = $this->phongKhoaModel->find($params['phong_khoa_id']);
         }
         
         return [
@@ -51,12 +51,9 @@ trait RelationTrait
             'order' => $params['order'],
             'keyword' => $params['keyword'],
             'status' => $params['status'],
-            'nguoi_dung_id' => $params['nguoi_dung_id'],
-            'nguoi_dung_info' => $nguoiDungInfo,
-            'su_kien_id' => $params['su_kien_id'],
-            'su_kien_info' => $suKienInfo,
-            'phuong_thuc_diem_danh' => $params['phuong_thuc_diem_danh'],
-            'breadcrumb' => $this->breadcrumb->render(),
+            'phong_khoa_id' => $params['phong_khoa_id'] ?? null,
+            'phong_khoa_info' => $phongKhoaInfo,
+            'phongKhoaList' => $phongKhoaList,
             'title' => 'Danh sách ' . $this->title,
             'moduleUrl' => $this->moduleUrl,
             'title' => $this->title,
@@ -77,48 +74,27 @@ trait RelationTrait
         $this->initializeRelationTrait();
 
         // Lấy danh sách ID duy nhất để tối ưu query
-        $suKienIds = [];
-        $nguoiDungIds = [];
+        $phongKhoaIds = [];
+        
         foreach ($data as $item) {
-            if (!empty($item->su_kien_id)) {
-                $suKienIds[] = $item->su_kien_id;
-            }
-            if (!empty($item->nguoi_dung_id)) {
-                $nguoiDungIds[] = $item->nguoi_dung_id;
+            if (!empty($item->phong_khoa_id)) {
+                $phongKhoaIds[] = $item->phong_khoa_id;
             }
         }
-
+      
         // Lấy dữ liệu relation một lần duy nhất
-        $suKiens = [];
-        $nguoiDungs = [];
+        $phongKhoas = [];
         
-        if (!empty($suKienIds)) {
-            $suKienIds = array_unique($suKienIds);
-            $suKiens = $this->suKienModel->find($suKienIds);
-        }
-        
-        if (!empty($nguoiDungIds)) {
-            $nguoiDungIds = array_unique($nguoiDungIds);
-            $nguoiDungs = $this->nguoiDungModel->find($nguoiDungIds);
+        if (!empty($phongKhoaIds)) {
+            $phongKhoaIds = array_unique($phongKhoaIds);
+            $phongKhoas = $this->phongKhoaModel->find($phongKhoaIds);
         }
 
         // Chuyển đổi thành mảng key-value để dễ truy cập
-        $suKienMap = array_column($suKiens, null, 'su_kien_id');
-        $nguoiDungMap = array_column($nguoiDungs, null, 'nguoi_dung_id');
+        $phongKhoaMap = !empty($phongKhoas) ? array_column($phongKhoas, null, 'phong_khoa_id') : [];
 
         foreach ($data as &$item) {
-            // Xử lý thời gian điểm danh
-            if (!empty($item->thoi_gian_diem_danh)) {
-                try {
-                    $item->thoi_gian_diem_danh = $item->thoi_gian_diem_danh instanceof Time ? 
-                        $item->thoi_gian_diem_danh : 
-                        Time::parse($item->thoi_gian_diem_danh);
-                } catch (\Exception $e) {
-                    log_message('error', 'Lỗi xử lý thời gian điểm danh: ' . $e->getMessage());
-                    $item->thoi_gian_diem_danh = null;
-                }
-            }
-
+          
             // Xử lý thời gian tạo
             if (!empty($item->created_at)) {
                 try {
@@ -155,22 +131,16 @@ trait RelationTrait
                 }
             }
 
-            // Thêm thông tin sự kiện
-            if (!empty($item->su_kien_id) && isset($suKienMap[$item->su_kien_id])) {
-                $item->su_kien = $suKienMap[$item->su_kien_id];
+            // Thêm thông tin phòng khoa
+            if (!empty($item->phong_khoa_id) && isset($phongKhoaMap[$item->phong_khoa_id])) {
+                $item->phong_khoa = $phongKhoaMap[$item->phong_khoa_id];
+                $item->ten_phong_khoa = $phongKhoaMap[$item->phong_khoa_id]->getTenPhongKhoa();
+                $item->ma_phong_khoa = $phongKhoaMap[$item->phong_khoa_id]->getMaPhongKhoa();
             } else {
-                $item->su_kien = null;
+                $item->phong_khoa = null;
+                $item->ten_phong_khoa = 'Chưa xác định';
+                $item->ma_phong_khoa = '';
             }
-
-            // Thêm thông tin người dùng
-            if (!empty($item->nguoi_dung_id) && isset($nguoiDungMap[$item->nguoi_dung_id])) {
-                $item->nguoi_dung = $nguoiDungMap[$item->nguoi_dung_id];
-            } else {
-                $item->nguoi_dung = null;
-            }
-
-            // Xử lý phương thức điểm danh
-            $item->phuong_thuc_diem_danh_text = $this->getPhuongThucDiemDanhTextRelation($item->phuong_thuc_diem_danh);
 
             // Xử lý trạng thái
             $item->status_text = $item->status == 1 ? 'Hoạt động' : 'Không hoạt động';
@@ -178,21 +148,6 @@ trait RelationTrait
         }
 
         return $data;
-    }
-
-    /**
-     * Lấy text cho phương thức điểm danh (phiên bản cho RelationTrait)
-     */
-    protected function getPhuongThucDiemDanhTextRelation($phuongThuc)
-    {
-        switch ($phuongThuc) {
-            case 'qr_code':
-                return 'QR Code';
-            case 'face_id':
-                return 'Face ID';
-            default:
-                return 'Thủ công';
-        }
     }
 
     /**
@@ -207,9 +162,7 @@ trait RelationTrait
             'order' => $request->getGet('order') ?? 'DESC',
             'keyword' => $request->getGet('keyword') ?? '',
             'status' => $request->getGet('status'),
-            'nguoi_dung_id' => $request->getGet('nguoi_dung_id'),
-            'su_kien_id' => $request->getGet('su_kien_id'),
-            'phuong_thuc_diem_danh' => $request->getGet('phuong_thuc_diem_danh')
+            'phong_khoa_id' => $request->getGet('phong_khoa_id'),
         ];
     }
 
@@ -245,16 +198,8 @@ trait RelationTrait
             $criteria['status'] = $params['status'];
         }
         
-        if (!empty($params['nguoi_dung_id'])) {
-            $criteria['nguoi_dung_id'] = $params['nguoi_dung_id'];
-        }
-        
-        if (!empty($params['su_kien_id'])) {
-            $criteria['su_kien_id'] = $params['su_kien_id'];
-        }
-        
-        if (!empty($params['phuong_thuc_diem_danh'])) {
-            $criteria['phuong_thuc_diem_danh'] = $params['phuong_thuc_diem_danh'];
+        if (!empty($params['phong_khoa_id'])) {
+            $criteria['phong_khoa_id'] = $params['phong_khoa_id'];
         }
 
         return $criteria;
@@ -270,6 +215,30 @@ trait RelationTrait
             'offset' => ($params['page'] - 1) * $params['perPage'],
             'sort' => $params['sort'],
             'order' => $params['order']
+        ];
+    }
+    
+    /**
+     * Chuẩn bị dữ liệu cho form
+     * 
+     * @param string $module_name Tên module
+     * @param object $data Dữ liệu khóa học (nếu là cập nhật)
+     * @return array Dữ liệu để truyền vào view
+     */
+    public function prepareFormData($module_name, $data = null)
+    {
+        // Khởi tạo các model nếu chưa được khởi tạo
+        $this->initializeRelationTrait();
+        
+        // Lấy danh sách phòng khoa cho form select box
+        $phongKhoaList = $this->phongKhoaModel->getAllActive(100, 0, 'ten_phong_khoa', 'ASC');
+        
+        return [
+            'data' => $data,
+            'phongKhoaList' => $phongKhoaList,
+            'module_name' => $module_name,
+            'title' => $this->title,
+            'moduleUrl' => $this->moduleUrl,
         ];
     }
 } 
