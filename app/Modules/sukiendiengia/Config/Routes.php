@@ -19,6 +19,7 @@ $routes->group('sukiendiengia', ['namespace' => 'App\Modules\sukiendiengia\Contr
     $routes->post('delete/(:num)', 'SuKienDienGia::delete/$1');
     $routes->get('restore/(:num)', 'SuKienDienGia::restore/$1');
     $routes->post('restore/(:num)', 'SuKienDienGia::restore/$1');
+    $routes->add('restore/(:num)', 'SuKienDienGia::restore/$1');
     $routes->post('purge/(:num)', 'SuKienDienGia::purge/$1');
     $routes->post('status/(:num)', 'SuKienDienGia::status/$1');
     $routes->post('deleteMultiple', 'SuKienDienGia::deleteMultiple');

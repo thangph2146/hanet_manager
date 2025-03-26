@@ -1,6 +1,3 @@
-<?php
-$module_name = 'thamgiasukien';
-?>
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
@@ -37,7 +34,7 @@ $module_name = 'thamgiasukien';
 <?= $this->endSection() ?>  
 
 <?= $this->section('script') ?>
-<?= page_js('form') ?>
+<?= page_js('form', $module_name) ?>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('form-<?= $module_name ?>');

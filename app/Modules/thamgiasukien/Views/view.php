@@ -1,10 +1,7 @@
-<?php
-$module_name = 'thamgiasukien';
-?>
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
-<?= page_css('view') ?>
+<?= page_css('view', $module_name) ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>CHI TIẾT THAM GIA SỰ KIỆN<?= $this->endSection() ?>
 
@@ -149,5 +146,5 @@ $module_name = 'thamgiasukien';
 <?= $this->endSection() ?>
 
 <?= $this->section('script_ext') ?>
-<?= page_js('view') ?>
+<?= page_js('view', $module_name) ?>
 <?= $this->endSection() ?>

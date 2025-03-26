@@ -27,7 +27,7 @@ trait RelationTrait
     /**
      * Chuẩn bị dữ liệu cho view
      */
-    protected function prepareViewData($data, $pager, $params)
+    protected function prepareViewData($module_name, $data, $pager, $params)
     {
         // Khởi tạo các model nếu chưa được khởi tạo
         $this->initializeRelationTrait();
@@ -63,9 +63,10 @@ trait RelationTrait
             'su_kien_info' => $suKienInfo,
             'phuong_thuc_diem_danh' => $params['phuong_thuc_diem_danh'],
             'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Danh sách ' . $this->moduleName,
+            'title' => 'Danh sách ' . $this->title,
             'moduleUrl' => $this->moduleUrl,
-            'moduleName' => $this->moduleName
+            'title' => $this->title,
+            'module_name' => $module_name
         ];
     }
 

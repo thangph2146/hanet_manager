@@ -40,6 +40,9 @@ class SuKienDienGia extends BaseController
     {
         // Khởi tạo session sớm
         $this->session = service('session');
+        $data = [
+            'module_name' => $this->module_name,
+        ];
         
         // Khởi tạo các thành phần cần thiết
         $this->model = new ThamGiaSuKienModel();
@@ -82,7 +85,7 @@ class SuKienDienGia extends BaseController
         $options = $this->buildSearchOptions($params);
         
         // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
-        $thamGiaSuKiens = $this->model->search($criteria, $options);
+        $data = $this->model->search($criteria, $options);
         
         // Lấy tổng số kết quả
         $pager = $this->model->getPager();
@@ -113,7 +116,7 @@ class SuKienDienGia extends BaseController
         }
         
         // Chuẩn bị dữ liệu cho view
-        $viewData = $this->prepareViewData($thamGiaSuKiens, $pager, array_merge($params, ['total' => $total]));
+        $viewData = $this->prepareViewData($data, $pager, array_merge($params, ['total' => $total]));
         
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
@@ -385,10 +388,10 @@ class SuKienDienGia extends BaseController
         $this->model->withDeleted();
         
         // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
-        $thamGiaSuKiens = $this->model->search($criteria, $options);
+        $data = $this->model->search($criteria, $options);
         
         // Xử lý dữ liệu và nạp các quan hệ
-        $thamGiaSuKiens = $this->processData($thamGiaSuKiens);
+        $data = $this->processData($data);
         
         // Lấy tổng số kết quả
         $total = $this->model->countSearchResults($criteria);
@@ -412,7 +415,7 @@ class SuKienDienGia extends BaseController
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
-            'thamGiaSuKiens' => $thamGiaSuKiens,
+            'data' => $data,
             'pager' => $pager,
             'currentPage' => $params['page'],
             'perPage' => $params['perPage'],

@@ -1,6 +1,3 @@
-<?php
-$module_name = 'sukiendiengia';
-?>
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
@@ -146,8 +143,8 @@ $module_name = 'sukiendiengia';
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($thamGiaSuKiens)) : ?>
-                            <?php foreach ($thamGiaSuKiens as $item) : ?>
+                        <?php if (!empty($data)) : ?>
+                            <?php foreach ($data as $item) : ?>
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
@@ -190,12 +187,24 @@ $module_name = 'sukiendiengia';
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <button type="button" class="btn btn-success btn-sm btn-restore w-100 h-100" 
-                                                    data-id="<?= $item->tham_gia_su_kien_id ?>" 
+                                            <form action="<?= site_url($module_name . '/restore/' . $item->tham_gia_su_kien_id) ?>" method="post">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="btn btn-success btn-sm btn-restore w-100 h-100" 
+                                                        data-id="<?= $item->tham_gia_su_kien_id ?>" 
                                                     data-name="ID: <?= esc($item->tham_gia_su_kien_id) ?>"
                                                     data-bs-toggle="tooltip" title="Khôi phục">
                                                 <i class="bx bx-revision"></i>
                                             </button>
+                                            </form>
+                                            <form action="<?= site_url($module_name . '/restore/' . $item->tham_gia_su_kien_id) ?>" method="post" style="display:inline;">
+                                                <input type="hidden" name="return_url" value="<?= current_url() . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '') ?>">
+                                                <button type="submit" class="btn btn-success btn-sm btn-restore w-100 h-100" 
+                                                    data-id="<?= $item->tham_gia_su_kien_id ?>" 
+                                                    data-name="ID: <?= esc($item->tham_gia_su_kien_id) ?>"
+                                                    data-bs-toggle="tooltip" title="Khôi phục">
+                                                    <i class="bx bx-revision mr-0"></i>
+                                                </button>
+                                            </form>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
                                                     data-id="<?= $item->tham_gia_su_kien_id ?>" 
                                                     data-name="ID: <?= esc($item->tham_gia_su_kien_id) ?>"
@@ -220,7 +229,7 @@ $module_name = 'sukiendiengia';
                 </table>
             </div>
         </div>
-        <?php if (!empty($thamGiaSuKiens)): ?>
+        <?php if (!empty($data)): ?>
             <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-2">
                 <div class="col-sm-12 col-md-5">
                     <div class="dataTables_info">

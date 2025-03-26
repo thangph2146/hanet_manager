@@ -1,6 +1,3 @@
-<?php
-$module_name = 'thamgiasukien';
-?>
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
@@ -356,7 +353,7 @@ $module_name = 'thamgiasukien';
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= page_js('table') ?>
-<?= page_section_js('table') ?>
-<?= page_table_js() ?>
+<?= page_js('table', $module_name) ?>
+<?= page_section_js('table', $module_name) ?>
+<?= page_table_js($module_name) ?>
 <?= $this->endSection() ?> 

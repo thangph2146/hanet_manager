@@ -30,17 +30,14 @@ class ThamGiaSuKien extends BaseController
     protected $breadcrumb;
     protected $alert;
     protected $moduleUrl;
-    protected $moduleName;
+    protected $title;
     protected $module_name = 'thamgiasukien';
-    protected $session;
-    protected $data;
-    protected $permission;
     
     public function __construct()
     {
         // Khởi tạo session sớm
         $this->session = service('session');
-        
+
         // Khởi tạo các thành phần cần thiết
         $this->model = new ThamGiaSuKienModel();
         $this->breadcrumb = new Breadcrumb();
@@ -48,18 +45,8 @@ class ThamGiaSuKien extends BaseController
         
         // Thông tin module
         $this->moduleUrl = base_url($this->module_name);
-        $this->moduleName = 'Tham Gia Sự Kiện';
+        $this->title = 'Tham Gia Sự Kiện';
         
-        // Khởi tạo data để truyền đến view
-        $this->data = [
-            'title' => $this->moduleName,
-            'moduleUrl' => $this->moduleUrl,
-            'moduleName' => $this->moduleName,
-        ];
-        
-        // Thêm breadcrumb cơ bản cho tất cả các trang trong controller này
-        $this->breadcrumb->add('Trang chủ', base_url())
-                        ->add($this->moduleName, $this->moduleUrl);
     }
     
     /**
@@ -82,8 +69,7 @@ class ThamGiaSuKien extends BaseController
         $options = $this->buildSearchOptions($params);
         
         // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
-        $thamGiaSuKiens = $this->model->search($criteria, $options);
-        
+        $pageData = $this->model->search($criteria, $options);
         // Lấy tổng số kết quả
         $pager = $this->model->getPager();
         $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($criteria);
@@ -113,8 +99,7 @@ class ThamGiaSuKien extends BaseController
         }
         
         // Chuẩn bị dữ liệu cho view
-        $viewData = $this->prepareViewData($thamGiaSuKiens, $pager, array_merge($params, ['total' => $total]));
-        
+        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
     }
@@ -130,10 +115,11 @@ class ThamGiaSuKien extends BaseController
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Thêm mới ' . $this->moduleName,
+            'title' => 'Thêm mới ' . $this->title,
             'validation' => $this->validator,
             'moduleUrl' => $this->moduleUrl,
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
+            'module_name' => $this->module_name
         ];
         
         return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
@@ -178,16 +164,16 @@ class ThamGiaSuKien extends BaseController
         try {
             // Lưu dữ liệu trực tiếp
             if ($this->model->insert($data)) {
-                $this->alert->set('success', 'Thêm mới ' . $this->moduleName . ' thành công', true);
+                $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
-                throw new \RuntimeException('Không thể thêm mới ' . $this->moduleName);
+                throw new \RuntimeException('Không thể thêm mới ' . $this->title);
             }
         } catch (\Exception $e) {
             log_message('error', '[ThamGiaSuKien::create] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->moduleName);
+                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title);
         }
     }
     
@@ -222,9 +208,10 @@ class ThamGiaSuKien extends BaseController
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Chi tiết ' . $this->moduleName,
+            'title' => 'Chi tiết ' . $this->title,
             'thamGiaSuKien' => $thamGiaSuKien,
-            'moduleUrl' => $this->moduleUrl
+            'moduleUrl' => $this->moduleUrl,
+            'module_name' => $this->module_name
         ];
         
         return view('App\Modules\\' . $this->module_name . '\Views\view', $viewData);
@@ -254,11 +241,12 @@ class ThamGiaSuKien extends BaseController
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Chỉnh sửa ' . $this->moduleName,
+            'title' => 'Chỉnh sửa ' . $this->title,
             'validation' => $this->validator,
             'thamGiaSuKien' => $thamGiaSuKien,
             'moduleUrl' => $this->moduleUrl,
             'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
+            'module_name' => $this->module_name
         ];
         
         return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
@@ -309,16 +297,16 @@ class ThamGiaSuKien extends BaseController
         try {
             // Lưu dữ liệu trực tiếp
             if ($this->model->update($id, $data)) {
-                $this->alert->set('success', 'Cập nhật ' . $this->moduleName . ' thành công', true);
+                $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
-                throw new \RuntimeException('Không thể cập nhật ' . $this->moduleName);
+                throw new \RuntimeException('Không thể cập nhật ' . $this->title);
             }
         } catch (\Exception $e) {
             log_message('error', '[ThamGiaSuKien::update] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->moduleName);
+                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title);
         }
     }
     
@@ -385,10 +373,10 @@ class ThamGiaSuKien extends BaseController
         $this->model->withDeleted();
         
         // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
-        $thamGiaSuKiens = $this->model->search($criteria, $options);
+        $pageData = $this->model->search($criteria, $options);
         
         // Xử lý dữ liệu và nạp các quan hệ
-        $thamGiaSuKiens = $this->processData($thamGiaSuKiens);
+        $pageData = $this->processData($pageData);
         
         // Lấy tổng số kết quả
         $total = $this->model->countSearchResults($criteria);
@@ -411,24 +399,7 @@ class ThamGiaSuKien extends BaseController
         $pager->setCurrentPage($params['page']);
         
         // Chuẩn bị dữ liệu cho view
-        $viewData = [
-            'thamGiaSuKiens' => $thamGiaSuKiens,
-            'pager' => $pager,
-            'currentPage' => $params['page'],
-            'perPage' => $params['perPage'],
-            'total' => $total,
-            'sort' => $params['sort'],
-            'order' => $params['order'],
-            'keyword' => $params['keyword'],
-            'status' => $params['status'],
-            'nguoi_dung_id' => $params['nguoi_dung_id'],
-            'su_kien_id' => $params['su_kien_id'],
-            'phuong_thuc_diem_danh' => $params['phuong_thuc_diem_danh'],
-            'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Lịch sử xóa ' . $this->moduleName,
-            'moduleUrl' => $this->moduleUrl,
-            'moduleName' => $this->moduleName
-        ];
+        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
         
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);
@@ -537,7 +508,7 @@ class ThamGiaSuKien extends BaseController
         // Nếu không phải AJAX, hiển thị trang tìm kiếm
         $viewData = [
             'breadcrumb' => $this->breadcrumb->add('Tìm kiếm', current_url())->render(),
-            'title' => 'Tìm kiếm ' . $this->moduleName,
+            'title' => 'Tìm kiếm ' . $this->title,
             'templates' => $results,
             'pager' => $this->model->pager,
             'keyword' => $keyword,

@@ -3,11 +3,8 @@
  * Master script file for ThamGiaSuKien module
  * Contains common CSS and JS for all views
  */
-$module_name = 'thamgiasukien';
- 
 // CSS section
 function page_css($type = 'all') {
-    global $module_name;
     ob_start();
     
     // Common CSS for DataTables
@@ -175,8 +172,7 @@ function page_css($type = 'all') {
 }
 
 // JS section
-function page_js($type = 'all') {
-    global $module_name;
+function page_js($type = 'all', $module_name) {
     
     ob_start();
     
@@ -299,7 +295,6 @@ function page_js($type = 'all') {
 
 // Section CSS function
 function page_section_css($section) {
-    global $module_name;
     ob_start();
 
     // Modal CSS
@@ -327,8 +322,7 @@ function page_section_css($section) {
 }
 
 // Section JS function
-function page_section_js($section) {
-    global $module_name;
+function page_section_js($section, $module_name) {
     ob_start();
 
     // Table specific additional JS
@@ -358,8 +352,7 @@ function page_section_js($section) {
 }
 
 // Thêm hàm đồng bộ JavaScript cho bảng ThamGiaSuKien
-function page_table_js() {
-    global $module_name;
+function page_table_js($module_name) {
     
     ob_start();
     ?>
@@ -842,9 +835,6 @@ function page_table_js() {
 <link rel="stylesheet" href="<?= base_url('assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css') ?>" />
 <link rel="stylesheet" href="<?= base_url('assets/vendor/libs/select2/select2.css') ?>" />
 <link rel="stylesheet" href="<?= base_url('assets/vendor/libs/sweetalert2/sweetalert2.css') ?>" />
-
-<!-- Module CSS -->
-<link rel="stylesheet" href="<?= base_url('css/modules/' . $module_name . '/style.css') ?>" />
 
 <?php
 // Module JavaScript end

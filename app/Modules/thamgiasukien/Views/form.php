@@ -9,8 +9,6 @@
  * @var array $suKienList Danh sách sự kiện (nếu có)
  */
 
-$module_name = 'thamgiasukien';
-
 // Set default values if editing
 $nguoi_dung_id = isset($thamGiaSuKien) ? $thamGiaSuKien->getNguoiDungId() : '';
 $su_kien_id = isset($thamGiaSuKien) ? $thamGiaSuKien->getSuKienId() : '';

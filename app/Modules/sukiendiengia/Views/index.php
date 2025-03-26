@@ -1,6 +1,3 @@
-<?php
-$module_name = 'sukiendiengia';
-?>
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
@@ -150,8 +147,8 @@ $module_name = 'sukiendiengia';
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($thamGiaSuKiens)) : ?>
-                            <?php foreach ($thamGiaSuKiens as $item) : ?>
+                        <?php if (!empty($data)) : ?>
+                            <?php foreach ($data as $item) : ?>
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
@@ -233,7 +230,7 @@ $module_name = 'sukiendiengia';
                 </table>
             </div>
         </div>
-        <?php if (!empty($thamGiaSuKiens)): ?>
+        <?php if (!empty($data)): ?>
             <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-2">
                 <div class="col-sm-12 col-md-5">
                     <div class="dataTables_info">

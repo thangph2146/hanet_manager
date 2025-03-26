@@ -705,8 +705,15 @@ class DienGia extends BaseController
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
-        // Lấy URL trả về từ form
-        $returnUrl = $this->request->getPost('return_url');
+        // Kiểm tra phương thức yêu cầu
+        $method = $this->request->getMethod();
+        
+        // Log thông tin để debug 
+        log_message('debug', 'Restore - Request Method: ' . $method);
+        log_message('debug', 'Restore - ID: ' . $id);
+        
+        // Lấy URL trả về từ form hoặc từ HTTP_REFERER
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
         log_message('debug', 'Restore - Return URL: ' . ($returnUrl ?? 'None'));
         
         if ($this->model->restoreFromRecycleBin($id)) {

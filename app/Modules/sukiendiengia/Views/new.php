@@ -1,6 +1,3 @@
-<?php
-$module_name = 'sukiendiengia';
-?>
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php include __DIR__ . '/master_scripts.php'; ?>
