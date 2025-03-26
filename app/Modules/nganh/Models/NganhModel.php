@@ -4,427 +4,499 @@ namespace App\Modules\nganh\Models;
 
 use App\Models\BaseModel;
 use App\Modules\nganh\Entities\Nganh;
-use CodeIgniter\Database\ConnectionInterface;
-use CodeIgniter\Validation\ValidationInterface;
+use App\Modules\nganh\Libraries\Pager;
+use CodeIgniter\I18n\Time;
 
 class NganhModel extends BaseModel
 {
     protected $table = 'nganh';
     protected $primaryKey = 'nganh_id';
-    protected $useSoftDeletes = false;
-    protected $deletedField = 'deleted_at';
+    protected $useAutoIncrement = true;
+    
+    protected $useSoftDeletes = true;
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
+    protected $deletedField = 'deleted_at';
+    
+    // Số lượng liên kết trang hiển thị xung quanh trang hiện tại   
+    protected $surroundCount = 2;
     
     protected $allowedFields = [
-        'ma_nganh',
         'ten_nganh',
+        'ma_nganh',
         'phong_khoa_id',
         'status',
-        'bin',
-        'deleted_at',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'deleted_at'
     ];
     
-    protected $returnType = 'App\Modules\nganh\Entities\Nganh';
+    protected $returnType = Nganh::class;
     
-    // Định nghĩa các mối quan hệ
-    protected $relations = [
-        'phong_khoa' => [
-            'type' => 'n-1',
-            'table' => 'phong_khoa',
-            'foreignKey' => 'phong_khoa_id',
-            'localKey' => 'phong_khoa_id',
-            'foreignPrimaryKey' => 'phong_khoa_id',
-            'entity' => 'App\Modules\phongkhoa\Entities\PhongKhoa',
-            'conditions' => [
-                ['field' => 'phong_khoa.bin', 'value' => 0]
-            ],
-            'select' => ['phong_khoa_id', 'ma_phong_khoa', 'ten_phong_khoa', 'status'],
-            'useSoftDeletes' => true
-        ],
-    ];
-    
-    // Các trường được tìm kiếm
+    // Trường có thể tìm kiếm
     protected $searchableFields = [
-        'ma_nganh',
-        'ten_nganh'
+        'ten_nganh',
+        'ma_nganh'
     ];
     
-    // Các trường có thể lọc
+    // Trường có thể lọc
     protected $filterableFields = [
         'phong_khoa_id',
-        'status',
-        'bin',
-        'created_at'
-    ];
-    
-    // Các trường cần kiểm tra tính duy nhất
-    protected $uniqueFields = [
-        'ma_nganh' => 'Mã ngành',
-        'ten_nganh' => 'Tên ngành'
-    ];
-    
-    // Các trường loại bỏ khoảng trắng thừa trước khi lưu
-    protected $beforeSpaceRemoval = [
-        'ma_nganh',
-        'ten_nganh'
+        'status'
     ];
     
     // Các quy tắc xác thực
-    public $validationRules = [
-        'ten_nganh' => 'required|min_length[3]|max_length[200]',
-        'ma_nganh' => 'required|max_length[20]',
-        'phong_khoa_id' => 'permit_empty|integer',
-        'status' => 'permit_empty|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
-    ];
+    protected $validationRules = [];
+    protected $validationMessages = [];
+    protected $skipValidation = false;
     
-    public $validationMessages = [
-        'ten_nganh' => [
-            'required' => 'Tên ngành là bắt buộc',
-            'min_length' => 'Tên ngành phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên ngành không được vượt quá {param} ký tự',
-        ],
-        'ma_nganh' => [
-            'required' => 'Mã ngành là bắt buộc',
-            'max_length' => 'Mã ngành không được vượt quá {param} ký tự',
-        ],
-        'phong_khoa_id' => [
-            'integer' => 'ID phòng/khoa phải là số nguyên',
-        ],
-    ];
-    
-    public function __construct(ConnectionInterface &$db = null, ValidationInterface $validation = null)
-    {
-        parent::__construct($db, $validation);
-    }
+    // Template pager
+    public $pager = null;
     
     /**
-     * Khởi tạo query cơ bản cho model
-     * Tự động tải quan hệ phong_khoa khi được yêu cầu
-     * 
-     * @return BaseBuilder
-     */
-    protected function getBaseQuery()
-    {
-        return parent::getBaseQuery()->where('bin', 0);
-    }
-    
-    /**
-     * Lấy tất cả các bản ghi ngành đã xóa
+     * Lấy tất cả bản ghi ngành
      *
-     * @param bool $withRelations Có tải mối quan hệ không
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAllDeleted(bool $withRelations = false)
+    public function getAll($limit = 10, $offset = 0, $sort = 'created_at', $order = 'DESC')
     {
-        $query = $this->withDeleted()
-                 ->where('deleted_at IS NOT NULL')
-                 ->orderBy('deleted_at', 'DESC');
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
         
-        if ($withRelations) {
-            $query->withRelations(['phong_khoa']);
+        // Chỉ lấy bản ghi chưa xóa
+        $this->builder->where('deleted_at IS NULL');
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
         }
         
-        return $query->findAll();
+        $total = $this->countAll();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        return $result ?: [];
     }
     
     /**
-     * Kiểm tra tên ngành đã tồn tại chưa
+     * Lấy tất cả bản ghi ngành đã xóa
      *
-     * @param string $tenNganh
-     * @param int|null $exceptId ID ngành cần loại trừ khi kiểm tra
-     * @return bool
-     */
-    public function isNameExists(string $tenNganh, int $exceptId = null)
-    {
-        $builder = $this->where('ten_nganh', $tenNganh);
-        
-        if ($exceptId !== null) {
-            $builder->where('nganh_id !=', $exceptId);
-        }
-        
-        return $builder->countAllResults() > 0;
-    }
-    
-    /**
-     * Kiểm tra mã ngành đã tồn tại chưa
-     *
-     * @param string $maNganh
-     * @param int|null $exceptId ID ngành cần loại trừ khi kiểm tra
-     * @return bool
-     */
-    public function isCodeExists(string $maNganh, int $exceptId = null)
-    {
-        $builder = $this->where('ma_nganh', $maNganh);
-        
-        if ($exceptId !== null) {
-            $builder->where('nganh_id !=', $exceptId);
-        }
-        
-        return $builder->countAllResults() > 0;
-    }
-    
-    /**
-     * Lấy danh sách ngành theo ID phòng/khoa
-     *
-     * @param int $phongKhoaId
-     * @param bool $withRelations Có tải mối quan hệ không
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getByPhongKhoaId(int $phongKhoaId, bool $withRelations = false)
+    public function getAllDeleted($limit = 10, $offset = 0, $sort = 'deleted_at', $order = 'DESC')
     {
-        $query = $this->where('phong_khoa_id', $phongKhoaId)
-                 ->where('status', 1)
-                 ->where('bin', 0)
-                 ->orderBy('ten_nganh', 'ASC');
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
         
-        if ($withRelations) {
-            $query->withRelations(['phong_khoa']);
+        // Chỉ lấy bản ghi đã xóa
+        $this->builder->where('deleted_at IS NOT NULL');
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
         }
         
-        return $query->findAll();
+        $total = $this->countAllDeleted();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        return $result ?: [];
+    }
+
+    /**
+     * Đếm tổng số bản ghi ngành
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAll($conditions = [])
+    {
+        $builder = $this->builder();
+        
+        // Mặc định chỉ đếm bản ghi chưa xóa
+        $builder->where('deleted_at IS NULL');
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
     }
     
     /**
-     * Lấy tất cả phòng khoa để hiển thị trong dropdown
+     * Đếm tổng số bản ghi ngành đã xóa
      *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAllDeleted($conditions = [])
+    {
+        $builder = $this->builder();
+        
+        // Mặc định chỉ đếm bản ghi đã xóa
+        $builder->where('deleted_at IS NOT NULL');
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Lấy tất cả bản ghi đang hoạt động
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAllPhongKhoa()
+    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'created_at', string $order = 'DESC')
     {
-        $db = \Config\Database::connect();
-        $builder = $db->table('phong_khoa');
-        $builder->where('bin', 0);
-        $builder->orderBy('ten_phong_khoa', 'ASC');
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        $this->builder->where('status', 1);
+        $this->builder->where('deleted_at IS NULL');
         
-        return $builder->get()->getResult();
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
+        }
+        
+        $total = $this->countAllActive();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        if ($limit > 0) {
+            $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+            return $result ?: [];
+        }
+        
+        return $this->findAll();
     }
     
     /**
-     * Tìm kiếm ngành theo từ khóa và bộ lọc
-     * Tận dụng phương thức search từ BaseModel
-     * 
-     * @param array $criteria Tiêu chí tìm kiếm
-     * @param array $options Tùy chọn bổ sung
+     * Đếm tổng số bản ghi đang hoạt động
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAllActive($conditions = [])
+    {
+        $builder = $this->builder();
+        $builder->where('status', 1);
+        $builder->where('deleted_at IS NULL');
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Tìm kiếm ngành dựa vào các tiêu chí
+     *
+     * @param array $criteria Các tiêu chí tìm kiếm
+     * @param array $options Tùy chọn phân trang và sắp xếp
      * @return array
      */
     public function search(array $criteria = [], array $options = [])
     {
-        // Biến đổi criteria để phù hợp với BaseModel
-        $searchCriteria = [];
-        
-        if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
-            $searchCriteria['search'] = $criteria['keyword'];
-        }
-        
-        if (isset($criteria['filters']) && is_array($criteria['filters'])) {
-            $searchCriteria['filters'] = $criteria['filters'];
-        }
-        
-        // Thiết lập tùy chọn
-        $searchOptions = [];
-        
-        if (isset($options['sort_field']) && isset($options['sort_direction'])) {
-            $searchOptions['sort'] = $options['sort_field'];
-            $searchOptions['sort_direction'] = $options['sort_direction'];
-        }
-        
-        if (isset($options['limit']) && isset($options['offset'])) {
-            $searchOptions['limit'] = $options['limit'];
-            $searchOptions['page'] = floor($options['offset'] / $options['limit']) + 1;
-        }
-        
-        // Tải quan hệ
-        if (!isset($options['withRelations']) || $options['withRelations'] === true) {
-            $this->withRelations(['phong_khoa']);
-        }
-        
-        // Chỉ hiển thị bản ghi không bị xóa mềm và không trong thùng rác
-        $builder = $this->where('bin', 0);
-        
-        return parent::search($searchCriteria, $searchOptions);
-    }
-    
-    /**
-     * Lấy ngành với quan hệ phòng khoa
-     *
-     * @param int $id ID ngành cần lấy
-     * @return object|null
-     */
-    public function findWithPhongKhoa(int $id)
-    {
-        // Sử dụng withRelations với mảng chuỗi
-        return $this->withRelations(['phong_khoa'])->findWithRelations($id);
-    }
-    
-    /**
-     * Chuyển ngành vào thùng rác
-     *
-     * @param int $id ID ngành cần chuyển vào thùng rác
-     * @return bool
-     */
-    public function moveToRecycleBin(int $id): bool
-    {
-        return $this->update($id, ['bin' => 1]);
-    }
-    
-    /**
-     * Khôi phục ngành từ thùng rác
-     *
-     * @param int $id ID ngành cần khôi phục
-     * @return bool
-     */
-    public function restoreFromRecycleBin(int $id): bool
-    {
-        return $this->update($id, ['bin' => 0]);
-    }
-    
-    /**
-     * Lấy tất cả các ngành kèm theo quan hệ phòng khoa
-     * 
-     * @return array
-     */
-    public function getAll()
-    {
-        return $this->where('bin', 0)
-                ->orderBy('updated_at', 'DESC')
-                ->withRelations(['phong_khoa'])
-                ->findAll();
-    }
-    
-    /**
-     * Lấy tất cả ngành đang hoạt động (không ở thùng rác và có status = 1)
-     *
-     * @return array
-     */
-    public function getAllActive()
-    {
-        return $this->where('status', 1)
-                    ->where('bin', 0)
-                    ->orderBy('ten_nganh', 'ASC')
-                    ->findAll();
-    }
-    
-    /**
-     * Lấy tất cả các bản ghi trong thùng rác
-     * 
-     * @return array
-     */
-    public function getAllInRecycleBin()
-    {
-        return $this->where('bin', 1)
-                ->orderBy('deleted_at', 'DESC')
-                ->withRelations(['phong_khoa'])
-                ->findAll();
-    }
-    
-    /**
-     * Lấy ngành theo phòng khoa
-     *
-     * @param int $phongKhoaId ID phòng khoa cần lọc
-     * @return array
-     */
-    public function getByPhongKhoa(int $phongKhoaId)
-    {
-        return $this->where('phong_khoa_id', $phongKhoaId)
-                    ->where('bin', 0)
-                    ->orderBy('ten_nganh', 'ASC')
-                    ->findAll();
-    }
-    
-    /**
-     * Tìm kiếm ngành nâng cao
-     *
-     * @param array $criteria Tiêu chí tìm kiếm (search, filters)
-     * @param array $options Tùy chọn (sort, sort_direction, page, limit)
-     * @return array
-     */
-    public function searchNganh(array $criteria = [], array $options = [])
-    {
-        // Thiết lập sắp xếp mặc định nếu không được chỉ định
-        if (empty($options['sort'])) {
-            $options['sort'] = 'ten_nganh';
-            $options['sort_direction'] = 'ASC';
-        }
-        
-        // Tạo builder và thêm điều kiện không ở thùng rác
         $builder = $this->builder();
-        $builder->where('bin', 0);
         
-        // Xử lý tìm kiếm text
-        if (!empty($criteria['search']) && !empty($this->searchableFields)) {
+        // Xử lý withDeleted nếu cần
+        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+            $builder->where($this->table . '.deleted_at IS NOT NULL');
+        } else {
+            // Mặc định chỉ lấy dữ liệu chưa xóa
+            $builder->where($this->table . '.deleted_at IS NULL');
+        }
+        
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
+            
             $builder->groupStart();
-            foreach ($this->searchableFields as $field) {
-                $builder->orLike($field, $criteria['search']);
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($field, $keyword);
+                } else {
+                    $builder->orLike($field, $keyword);
+                }
             }
             $builder->groupEnd();
         }
         
-        // Xử lý bộ lọc
-        if (!empty($criteria['filters'])) {
-            foreach ($criteria['filters'] as $field => $value) {
-                if (in_array($field, $this->filterableFields)) {
-                    if (is_array($value)) {
-                        $builder->whereIn($field, $value);
-                    } else {
-                        $builder->where($field, $value);
-                    }
-                }
-            }
+        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
+            $status = (int)$criteria['status'];
+            $builder->where($this->table . '.status', $status);
         }
         
-        // Xử lý sắp xếp
-        if (!empty($options['sort'])) {
-            $direction = $options['sort_direction'] ?? 'ASC';
-            $builder->orderBy($options['sort'], $direction);
+        // Lọc theo phòng khoa
+        if (!empty($criteria['phong_khoa_id'])) {
+            $builder->where($this->table . '.phong_khoa_id', $criteria['phong_khoa_id']);
         }
         
-        // Xử lý phân trang
-        if (isset($options['page']) && isset($options['limit'])) {
-            $offset = ($options['page'] - 1) * $options['limit'];
-            $builder->limit($options['limit'], $offset);
+        // Xác định trường sắp xếp và thứ tự sắp xếp
+        $sort = $options['sort'] ?? 'created_at';
+        $order = $options['order'] ?? 'DESC';
+        
+        // Xử lý giới hạn và phân trang
+        $limit = $options['limit'] ?? 10;
+        $offset = $options['offset'] ?? 0;
+        
+        // Thực hiện truy vấn với phân trang
+        if ($limit > 0) {
+            $builder->limit($limit, $offset);
         }
         
-        return $builder->get()->getResult($this->returnType);
+        // Sắp xếp kết quả
+        $builder->orderBy($sort, $order);
+        
+        // Thực hiện truy vấn
+        $result = $builder->get()->getResult($this->returnType);
+        
+        // Thiết lập pager nếu cần
+        if ($limit > 0) {
+            $totalRows = $this->countSearchResults($criteria);
+            $this->pager = new Pager(
+                $totalRows,
+                $limit,
+                floor($offset / $limit) + 1
+            );
+            $this->pager->setSurroundCount($this->surroundCount ?? 2);
+        }
+        
+        return $result;
     }
     
     /**
      * Đếm tổng số kết quả tìm kiếm
-     * 
+     *
      * @param array $criteria Tiêu chí tìm kiếm
      * @return int
      */
     public function countSearchResults(array $criteria = [])
     {
         $builder = $this->builder();
-        $builder->where('bin', 0);
         
-        // Xử lý tìm kiếm text
-        if (!empty($criteria['search']) && !empty($this->searchableFields)) {
+        // Xử lý withDeleted nếu cần
+        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+            $builder->where($this->table . '.deleted_at IS NOT NULL');
+        } else {
+            // Mặc định chỉ lấy dữ liệu chưa xóa
+            $builder->where($this->table . '.deleted_at IS NULL');
+        }
+        
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
+            
             $builder->groupStart();
-            foreach ($this->searchableFields as $field) {
-                $builder->orLike($field, $criteria['search']);
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($field, $keyword);
+                } else {
+                    $builder->orLike($field, $keyword);
+                }
             }
             $builder->groupEnd();
         }
         
-        // Xử lý bộ lọc
-        if (!empty($criteria['filters'])) {
-            foreach ($criteria['filters'] as $field => $value) {
-                if (in_array($field, $this->filterableFields)) {
-                    if (is_array($value)) {
-                        $builder->whereIn($field, $value);
-                    } else {
-                        $builder->where($field, $value);
-                    }
-                }
-            }
+        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
+            $status = (int)$criteria['status'];
+            $builder->where($this->table . '.status', $status);
+        }
+        
+        // Lọc theo phòng khoa
+        if (!empty($criteria['phong_khoa_id'])) {
+            $builder->where($this->table . '.phong_khoa_id', $criteria['phong_khoa_id']);
         }
         
         return $builder->countAllResults();
+    }
+    
+    /**
+     * Chuẩn bị các quy tắc xác thực dựa trên tình huống
+     * 
+     * @param string $scenario Tình huống xác thực ('insert' hoặc 'update')
+     * @param array $data Dữ liệu cần xác thực
+     */
+    public function prepareValidationRules(string $scenario = 'insert', array $data = [])
+    {
+        $entity = new Nganh();
+        $this->validationRules = $entity->getValidationRules();
+        $this->validationMessages = $entity->getValidationMessages();
+        
+        // Loại trừ các trường timestamp và primary key khi thêm mới
+        unset($this->validationRules['created_at']);
+        unset($this->validationRules['updated_at']);
+        unset($this->validationRules['deleted_at']);
+        // Loại bỏ validation cho nganh_id trong mọi trường hợp
+        unset($this->validationRules['nganh_id']);
+        
+        if ($scenario === 'update' && isset($data['nganh_id'])) {
+            foreach ($this->validationRules as $field => &$rules) {
+                // Kiểm tra nếu $rules là một mảng
+                if (is_array($rules) && isset($rules['rules'])) {
+                    // Kiểm tra nếu chuỗi quy tắc chứa is_unique
+                    if (strpos($rules['rules'], 'is_unique') !== false) {
+                        $rules['rules'] = str_replace('{nganh_id}', $data['nganh_id'], $rules['rules']);
+                    }
+                } 
+                // Nếu $rules là một chuỗi
+                else if (is_string($rules) && strpos($rules, 'is_unique') !== false) {
+                    $rules = str_replace('{nganh_id}', $data['nganh_id'], $rules);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Thiết lập số lượng liên kết trang hiển thị xung quanh trang hiện tại
+     * 
+     * @param int $count Số lượng liên kết trang hiển thị (mỗi bên)
+     * @return $this
+     */
+    public function setSurroundCount(int $count)
+    {
+        if ($this->pager !== null) {
+            $this->pager->setSurroundCount($count);
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Lấy đối tượng phân trang 
+     * 
+     * @return Pager|null
+     */
+    public function getPager()
+    {
+        return $this->pager;
+    }
+    
+    /**
+     * Tìm bản ghi với các quan hệ
+     *
+     * @param int $id ID bản ghi cần tìm
+     * @param array $relations Các quan hệ cần lấy theo
+     * @param bool $validate Có kiểm tra dữ liệu trước khi trả về không
+     * @return object|null Đối tượng tìm thấy hoặc null nếu không tìm thấy
+     */
+    public function findWithRelations($id, $relations = [], $validate = false)
+    {
+        // Trong trường hợp đơn giản, chúng ta chỉ gọi phương thức find
+        // Nhưng trong thực tế, có thể cần xử lý thêm các quan hệ
+        return $this->find($id);
+    }
+    
+    /**
+     * Tìm kiếm các bản ghi đã xóa
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @param array $options Tùy chọn tìm kiếm (limit, offset, sort, order)
+     * @return array
+     */
+    public function searchDeleted(array $criteria = [], array $options = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
+        // Đặt điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
+        return $this->search($criteria, $options);
+    }
+    
+    /**
+     * Đếm số lượng bản ghi đã xóa theo tiêu chí tìm kiếm
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @return int
+     */
+    public function countDeletedResults(array $criteria = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
+        // Đặt điều kiện để chỉ đếm các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
+        return $this->countSearchResults($criteria);
+    }
+    
+    /**
+     * Kiểm tra xem mã ngành đã tồn tại chưa
+     *
+     * @param string $maNganh
+     * @param int|null $excludeId ID của bản ghi cần loại trừ khi kiểm tra (cho update)
+     * @return bool
+     */
+    public function isMaNganhExists(string $maNganh, ?int $excludeId = null): bool
+    {
+        $builder = $this->builder();
+        $builder->where('ma_nganh', $maNganh);
+        $builder->where('deleted_at IS NULL');
+        
+        if ($excludeId !== null) {
+            $builder->where($this->primaryKey . ' !=', $excludeId);
+        }
+        
+        return $builder->countAllResults() > 0;
+    }
+    
+    /**
+     * Lấy danh sách ngành theo phòng khoa
+     *
+     * @param int $phongKhoaId ID của phòng khoa
+     * @param bool $onlyActive Chỉ lấy các ngành đang hoạt động
+     * @return array
+     */
+    public function getByPhongKhoa(int $phongKhoaId, bool $onlyActive = true)
+    {
+        $builder = $this->builder();
+        $builder->where('phong_khoa_id', $phongKhoaId);
+        $builder->where('deleted_at IS NULL');
+        
+        if ($onlyActive) {
+            $builder->where('status', 1);
+        }
+        
+        $builder->orderBy('ten_nganh', 'ASC');
+        
+        return $builder->get()->getResult($this->returnType);
     }
 } 

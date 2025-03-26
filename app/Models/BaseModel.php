@@ -474,10 +474,6 @@ class BaseModel extends Model
     {
         return $this->onlyDeleted()->findAll();
     }
-    public function getActive()
-    {
-        return $this->where('status', 1)->where('bin', 0)->findAll();
-    }
 
     // Space removal utility
     protected function removeSpaces(array $data)

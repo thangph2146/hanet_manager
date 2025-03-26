@@ -33,8 +33,7 @@ class StudentModel extends Model {
         'he_dao_tao_id',
         'nganh_id',
         'phong_khoa_id',
-        'status',
-        'bin'
+        'status'
     ];
 
 	protected $useTimestamps = TRUE;

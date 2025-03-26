@@ -9,62 +9,52 @@ class NganhSeeder extends Seeder
 {
     public function run()
     {
+        // Dữ liệu mẫu cho các ngành
         $data = [
             [
-                'ma_nganh' => 'CNTT',
                 'ten_nganh' => 'Công nghệ thông tin',
-                'phong_khoa_id' => null,
+                'ma_nganh' => 'CNTT',
+                'phong_khoa_id' => 7,
                 'status' => 1,
-                'bin' => 0,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
             ],
             [
-                'ma_nganh' => 'MARKETING',
-                'ten_nganh' => 'Marketing',
-                'phong_khoa_id' => null,
+                'ten_nganh' => 'Kỹ thuật phần mềm',
+                'ma_nganh' => 'KTPM',
+                'phong_khoa_id' => 7,
                 'status' => 1,
-                'bin' => 0,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
             ],
             [
-                'ma_nganh' => 'QTKINHDOANH',
-                'ten_nganh' => 'Quản trị kinh doanh',
-                'phong_khoa_id' => null,
+                'ten_nganh' => 'Mạng máy tính và truyền thông dữ liệu',
+                'ma_nganh' => 'MMT',
+                'phong_khoa_id' => 7,
                 'status' => 1,
-                'bin' => 0,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
             ],
             [
-                'ma_nganh' => 'KINHTE',
-                'ten_nganh' => 'Kinh tế',
-                'phong_khoa_id' => null,
+                'ten_nganh' => 'Khoa học máy tính',
+                'ma_nganh' => 'KHMT',
+                'phong_khoa_id' => 7,
                 'status' => 1,
-                'bin' => 0,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
-            ],
-            [
-                'ma_nganh' => 'KTOAN',
-                'ten_nganh' => 'Kế toán',
-                'phong_khoa_id' => null,
-                'status' => 1,
-                'bin' => 0,
-                'created_at' => Time::now()->toDateTimeString(),
-                'updated_at' => Time::now()->toDateTimeString(),
-                'deleted_at' => null
-            ],
+            ]
         ];
-
-        // Thêm dữ liệu vào bảng nganh
-        $this->db->table('nganh')->insertBatch($data);
         
-        echo "Seeder NganhSeeder đã được chạy thành công!\n";
+        // Thêm dữ liệu vào bảng nganh
+        if (!empty($data)) {
+            $this->db->table('nganh')->insertBatch($data);
+            echo "Đã tạo " . count($data) . " bản ghi ngành.\n";
+        }
+        
+        echo "Seeder NganhSeeder đã được chạy thành công! Đã tạo dữ liệu mẫu cho ngành.\n";
     }
 } 

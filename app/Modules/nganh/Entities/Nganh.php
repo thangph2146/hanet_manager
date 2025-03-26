@@ -13,50 +13,67 @@ class Nganh extends BaseEntity
     protected $dates = [
         'created_at',
         'updated_at',
-        'deleted_at',
+        'deleted_at'
     ];
     
     protected $casts = [
         'nganh_id' => 'int',
         'phong_khoa_id' => 'int',
         'status' => 'int',
-        'bin' => 'int',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+        'deleted_at' => 'timestamp'
     ];
     
-    protected $jsonFields = [];
-    
-    protected $hiddenFields = [
-        'deleted_at',
+    // Định nghĩa các chỉ mục
+    protected $indexes = [
+        'idx_ma_nganh' => ['ma_nganh'],
+        'idx_ten_nganh' => ['ten_nganh'],
+        'idx_phong_khoa_id' => ['phong_khoa_id']
     ];
     
-    // Trường duy nhất cần kiểm tra
-    protected $uniqueFields = [
-        'ma_nganh' => 'Mã ngành',
-        'ten_nganh' => 'Tên ngành'
+    // Định nghĩa các ràng buộc unique
+    protected $uniqueKeys = [
+        'uk_ma_nganh' => ['ma_nganh']
     ];
     
     // Các quy tắc xác thực cụ thể cho Nganh
     protected $validationRules = [
-        'ten_nganh' => 'required|min_length[3]|max_length[200]',
-        'ma_nganh' => 'required|max_length[20]',
-        'phong_khoa_id' => 'permit_empty|integer',
-        'status' => 'permit_empty|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
+        'ten_nganh' => [
+            'rules' => 'required|max_length[200]',
+            'label' => 'Tên ngành'
+        ],
+        'ma_nganh' => [
+            'rules' => 'required|max_length[20]|is_unique[nganh.ma_nganh,nganh_id,{nganh_id}]',
+            'label' => 'Mã ngành'
+        ],
+        'phong_khoa_id' => [
+            'rules' => 'permit_empty|integer',
+            'label' => 'Phòng khoa'
+        ],
+        'status' => [
+            'rules' => 'required|in_list[0,1]',
+            'label' => 'Trạng thái'
+        ]
     ];
     
     protected $validationMessages = [
         'ten_nganh' => [
-            'required' => 'Tên ngành là bắt buộc',
-            'min_length' => 'Tên ngành phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên ngành không được vượt quá {param} ký tự',
+            'required' => '{field} là bắt buộc',
+            'max_length' => '{field} không được vượt quá 200 ký tự'
         ],
         'ma_nganh' => [
-            'required' => 'Mã ngành là bắt buộc',
-            'max_length' => 'Mã ngành không được vượt quá {param} ký tự',
+            'required' => '{field} là bắt buộc',
+            'max_length' => '{field} không được vượt quá 20 ký tự',
+            'is_unique' => '{field} đã tồn tại trong hệ thống'
         ],
         'phong_khoa_id' => [
-            'integer' => 'ID phòng/khoa phải là số nguyên',
+            'integer' => '{field} phải là số nguyên'
         ],
+        'status' => [
+            'required' => '{field} không được để trống',
+            'in_list' => '{field} không hợp lệ'
+        ]
     ];
     
     /**
@@ -82,36 +99,35 @@ class Nganh extends BaseEntity
     /**
      * Lấy mã ngành
      *
-     * @return string|null
+     * @return string
      */
-    public function getMaNganh(): ?string
+    public function getMaNganh(): string
     {
-        return $this->attributes['ma_nganh'] ?? null;
+        return $this->attributes['ma_nganh'] ?? '';
     }
     
     /**
-     * Lấy ID phòng/khoa
+     * Lấy ID phòng khoa
      *
      * @return int|null
      */
     public function getPhongKhoaId(): ?int
     {
-        $id = $this->attributes['phong_khoa_id'] ?? null;
-        return $id !== null ? (int)$id : null;
+        return isset($this->attributes['phong_khoa_id']) ? (int)$this->attributes['phong_khoa_id'] : null;
     }
     
     /**
-     * Kiểm tra ngành có đang hoạt động không
+     * Kiểm tra trạng thái hoạt động
      *
      * @return bool
      */
     public function isActive(): bool
     {
-        return (bool)($this->attributes['status'] ?? false);
+        return (bool)($this->attributes['status'] ?? true);
     }
     
     /**
-     * Đặt trạng thái hoạt động cho ngành
+     * Đặt trạng thái hoạt động
      *
      * @param bool $status
      * @return $this
@@ -123,41 +139,13 @@ class Nganh extends BaseEntity
     }
     
     /**
-     * Kiểm tra ngành có đang trong thùng rác không
+     * Kiểm tra xem bản ghi đã bị xóa chưa
      *
      * @return bool
      */
-    public function isInBin(): bool
+    public function isDeleted(): bool
     {
-        return (bool)($this->attributes['bin'] ?? false);
-    }
-    
-    /**
-     * Đặt trạng thái thùng rác
-     *
-     * @param bool $binStatus
-     * @return $this
-     */
-    public function setBinStatus(bool $binStatus)
-    {
-        $this->attributes['bin'] = (int)$binStatus;
-        return $this;
-    }
-    
-    /**
-     * Lấy thông tin phòng khoa dưới dạng văn bản có định dạng
-     * 
-     * @return string
-     */
-    public function getPhongKhoaInfo()
-    {
-        // Kiểm tra nếu thuộc tính phong_khoa tồn tại
-        if (isset($this->phong_khoa) && !empty($this->phong_khoa)) {
-            return '<span class="badge bg-info">' . esc($this->phong_khoa->ten_phong_khoa) . ' (' . esc($this->phong_khoa->ma_phong_khoa) . ')</span>';
-        }
-        
-        // Nếu không có phòng khoa hoặc chưa load
-        return '<span class="text-muted">Không có</span>';
+        return !empty($this->attributes['deleted_at']);
     }
     
     /**
@@ -165,7 +153,7 @@ class Nganh extends BaseEntity
      *
      * @return string HTML với badge status
      */
-    public function getStatusLabel()
+    public function getStatusLabel(): string
     {
         if ($this->status == 1) {
             return '<span class="badge bg-success">Hoạt động</span>';
@@ -179,14 +167,17 @@ class Nganh extends BaseEntity
      * 
      * @return string
      */
-    public function getCreatedAtFormatted()
+    public function getCreatedAtFormatted(): string
     {
         if (empty($this->attributes['created_at'])) {
             return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
         }
         
-        $time = $this->attributes['created_at'] instanceof Time ? $this->attributes['created_at'] : new Time($this->attributes['created_at']);
-        return $time->format('d/m/Y H:i:s');
+        $time = $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
@@ -194,88 +185,54 @@ class Nganh extends BaseEntity
      * 
      * @return string
      */
-    public function getUpdatedAtFormatted()
+    public function getUpdatedAtFormatted(): string
     {
         if (empty($this->attributes['updated_at'])) {
             return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
         }
         
-        $time = $this->attributes['updated_at'] instanceof Time ? $this->attributes['updated_at'] : new Time($this->attributes['updated_at']);
-        return $time->format('d/m/Y H:i:s');
+        $time = $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
      * Lấy ngày xóa đã định dạng
-     *
+     * 
      * @return string
      */
-    public function getDeletedAtFormatted()
+    public function getDeletedAtFormatted(): string
     {
-        // Kiểm tra nếu deleted_at là null, chuỗi rỗng hoặc định dạng ngày mặc định
-        if (!isset($this->attributes['deleted_at']) || 
-            empty($this->attributes['deleted_at']) || 
-            $this->attributes['deleted_at'] == '0000-00-00 00:00:00') {
-            return '';
+        if (empty($this->attributes['deleted_at'])) {
+            return '<span class="text-muted fst-italic">Chưa xóa</span>';
         }
         
-        try {
-            // Chuyển đổi sang đối tượng Time
-            $time = $this->attributes['deleted_at'] instanceof Time ? 
-                $this->attributes['deleted_at'] : 
-                new Time($this->attributes['deleted_at']);
-                
-            return $time->format('d/m/Y H:i:s');
-        } catch (\Exception $e) {
-            // Trả về chuỗi rỗng nếu có lỗi
-            return '';
-        }
+        $time = $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
-     * Kiểm tra xem mã ngành có phải là duy nhất không
+     * Lấy các quy tắc xác thực
      *
-     * @param string $code Mã ngành cần kiểm tra
-     * @param int|null $excludeId ID ngành cần loại trừ (khi cập nhật)
-     * @return bool
+     * @return array
      */
-    public function isUniqueCode(string $code, ?int $excludeId = null): bool
+    public function getValidationRules(): array
     {
-        $model = model('App\Modules\nganh\Models\NganhModel');
-        return !$model->isCodeExists($code, $excludeId);
+        return $this->validationRules;
     }
     
     /**
-     * Kiểm tra xem tên ngành có phải là duy nhất không
+     * Lấy các thông báo xác thực
      *
-     * @param string $name Tên ngành cần kiểm tra
-     * @param int|null $excludeId ID ngành cần loại trừ (khi cập nhật)
-     * @return bool
+     * @return array
      */
-    public function isUniqueName(string $name, ?int $excludeId = null): bool
+    public function getValidationMessages(): array
     {
-        $model = model('App\Modules\nganh\Models\NganhModel');
-        return !$model->isNameExists($name, $excludeId);
-    }
-    
-    /**
-     * Kiểm tra tính duy nhất của một trường
-     * 
-     * @param string $field Tên trường cần kiểm tra
-     * @param mixed $value Giá trị cần kiểm tra
-     * @param int|null $exceptId ID cần loại trừ từ kiểm tra
-     * @return bool True nếu không tìm thấy bản ghi trùng lặp
-     */
-    protected function validateUniqueField(string $field, $value, ?int $exceptId = null): bool
-    {
-        $db = \Config\Database::connect();
-        $builder = $db->table($this->tableName);
-        $builder->where($field, $value);
-        $builder->where('bin', 0);
-        
-        if ($exceptId !== null) {
-            $builder->where($this->primaryKey . ' !=', $exceptId);
-        }
-        
-        return $builder->countAllResults() === 0;
+        return $this->validationMessages;
     }
 } 
