@@ -70,10 +70,10 @@ class CameraModel extends BaseModel
         $this->builder->select('*');
         
         // Chỉ lấy bản ghi chưa xóa
-        $this->builder->where('deleted_at IS NULL');
+        $this->builder->where($this->table . '.deleted_at IS NULL');
         
         if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
+            $this->builder->orderBy($this->table . '.' . $sort, $order);
         }
         
         $total = $this->countAll();
@@ -106,10 +106,10 @@ class CameraModel extends BaseModel
         $this->builder->select('*');
         
         // Chỉ lấy bản ghi đã xóa
-        $this->builder->where('deleted_at IS NOT NULL');
+        $this->builder->where($this->table . '.deleted_at IS NOT NULL');
         
         if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
+            $this->builder->orderBy($this->table . '.' . $sort, $order);
         }
         
         $total = $this->countAllDeleted();
@@ -138,7 +138,7 @@ class CameraModel extends BaseModel
         $builder = $this->builder();
         
         // Mặc định chỉ đếm bản ghi chưa xóa
-        $builder->where('deleted_at IS NULL');
+        $builder->where($this->table . '.deleted_at IS NULL');
         
         if (!empty($conditions)) {
             $builder->where($conditions);
@@ -158,7 +158,7 @@ class CameraModel extends BaseModel
         $builder = $this->builder();
         
         // Mặc định chỉ đếm bản ghi đã xóa
-        $builder->where('deleted_at IS NOT NULL');
+        $builder->where($this->table . '.deleted_at IS NOT NULL');
         
         if (!empty($conditions)) {
             $builder->where($conditions);
@@ -180,11 +180,11 @@ class CameraModel extends BaseModel
     {
         $this->builder = $this->db->table($this->table);
         $this->builder->select('*');
-        $this->builder->where('status', 1);
-        $this->builder->where('deleted_at IS NULL');
+        $this->builder->where($this->table . '.status', 1);
+        $this->builder->where($this->table . '.deleted_at IS NULL');
         
         if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
+            $this->builder->orderBy($this->table . '.' . $sort, $order);
         }
         
         $total = $this->countAllActive();
@@ -200,10 +200,27 @@ class CameraModel extends BaseModel
         
         if ($limit > 0) {
             $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+            
+            // Kiểm tra lại một lần nữa để đảm bảo không có bản ghi nào đã xóa
+            if (!empty($result)) {
+                $result = array_filter($result, function($item) {
+                    return !$item->isDeleted() && $item->isActive();
+                });
+            }
+            
             return $result ?: [];
         }
         
-        return $this->findAll();
+        $result = $this->findAll();
+        
+        // Kiểm tra lại một lần nữa để đảm bảo không có bản ghi nào đã xóa
+        if (!empty($result)) {
+            $result = array_filter($result, function($item) {
+                return !$item->isDeleted() && $item->isActive();
+            });
+        }
+        
+        return $result ?: [];
     }
     
     /**
@@ -215,8 +232,8 @@ class CameraModel extends BaseModel
     public function countAllActive($conditions = [])
     {
         $builder = $this->builder();
-        $builder->where('status', 1);
-        $builder->where('deleted_at IS NULL');
+        $builder->where($this->table . '.status', 1);
+        $builder->where($this->table . '.deleted_at IS NULL');
         
         if (!empty($conditions)) {
             $builder->where($conditions);
@@ -250,9 +267,9 @@ class CameraModel extends BaseModel
             $builder->groupStart();
             foreach ($this->searchableFields as $index => $field) {
                 if ($index === 0) {
-                    $builder->like($field, $keyword);
+                    $builder->like($this->table . '.' . $field, $keyword);
                 } else {
-                    $builder->orLike($field, $keyword);
+                    $builder->orLike($this->table . '.' . $field, $keyword);
                 }
             }
             $builder->groupEnd();
@@ -277,7 +294,7 @@ class CameraModel extends BaseModel
         }
         
         // Sắp xếp kết quả
-        $builder->orderBy($sort, $order);
+        $builder->orderBy($this->table . '.' . $sort, $order);
         
         // Thực hiện truy vấn
         $result = $builder->get()->getResult($this->returnType);
@@ -320,9 +337,9 @@ class CameraModel extends BaseModel
             $builder->groupStart();
             foreach ($this->searchableFields as $index => $field) {
                 if ($index === 0) {
-                    $builder->like($field, $keyword);
+                    $builder->like($this->table . '.' . $field, $keyword);
                 } else {
-                    $builder->orLike($field, $keyword);
+                    $builder->orLike($this->table . '.' . $field, $keyword);
                 }
             }
             $builder->groupEnd();
@@ -408,9 +425,15 @@ class CameraModel extends BaseModel
      */
     public function findWithRelations($id, $relations = [], $validate = false)
     {
-        // Trong trường hợp đơn giản, chúng ta chỉ gọi phương thức find
-        // Nhưng trong thực tế, có thể cần xử lý thêm các quan hệ
-        return $this->find($id);
+        // Tìm bản ghi
+        $item = $this->find($id);
+        
+        // Kiểm tra xem bản ghi có bị xóa không
+        if ($item && !$item->isDeleted()) {
+            return $item;
+        }
+        
+        return null;
     }
     
     /**
@@ -461,7 +484,7 @@ class CameraModel extends BaseModel
     {
         $builder = $this->builder();
         $builder->where('ten_camera', $tenCamera);
-        $builder->where('deleted_at IS NULL');
+        $builder->where($this->table . '.deleted_at IS NULL');
         
         if ($excludeId !== null) {
             $builder->where($this->primaryKey . ' !=', $excludeId);

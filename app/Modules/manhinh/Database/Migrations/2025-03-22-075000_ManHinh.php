@@ -25,63 +25,47 @@ class ManHinh extends Migration
             ],
             'camera_id' => [
                 'type' => 'INT',
-                'null' => true,
-                'unsigned' => true
+                'null' => true
             ],
             'template_id' => [
                 'type' => 'INT',
-                'null' => true,
-                'unsigned' => true
+                'null' => true
             ],
             'status' => [
                 'type' => 'TINYINT',
                 'constraint' => 1,
                 'default' => 1
             ],
-            'bin' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'default' => 0
-            ],
             'created_at' => [
-                'type' => 'TIMESTAMP',
-                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
+                'type' => 'DATETIME',
+                'null' => true
             ],
             'updated_at' => [
-                'type' => 'TIMESTAMP',
-                'null' => true,
-                'on update' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
+                'type' => 'DATETIME',
+                'null' => true
             ],
             'deleted_at' => [
-                'type' => 'TIMESTAMP',
+                'type' => 'DATETIME',
                 'null' => true
             ]
         ]);
 
-        // Add primary key
+        // Thêm khóa chính
         $this->forge->addKey('man_hinh_id', true);
         
-        // Add foreign keys
-        $this->forge->addForeignKey('camera_id', 'camera', 'camera_id', 'CASCADE', 'SET NULL');
-        $this->forge->addForeignKey('template_id', 'template', 'template_id', 'CASCADE', 'SET NULL');
-        
-        // Add indexes
+        // Thêm chỉ mục
         $this->forge->addKey('ten_man_hinh', false, false, 'idx_ten_man_hinh');
-        $this->forge->addKey('ma_man_hinh', false, false, 'idx_ma_man_hinh');
-        $this->forge->addKey('status', false, false, 'idx_status');
-        $this->forge->addKey('bin', false, false, 'idx_bin');
         
-        // Add unique constraints
+        // Thêm ràng buộc unique cho ten_man_hinh
         $this->forge->addUniqueKey('ten_man_hinh', 'uk_ten_man_hinh');
-        $this->forge->addUniqueKey('ma_man_hinh', 'uk_ma_man_hinh');
 
-        // Create the table
+        // Tạo bảng
         $this->forge->createTable('man_hinh');
     }
 
     public function down()
     {
-        // Drop the table
+        // Xóa bảng
         $this->forge->dropTable('man_hinh');
     }
 } 

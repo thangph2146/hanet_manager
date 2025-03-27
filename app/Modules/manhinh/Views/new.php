@@ -7,11 +7,11 @@
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thêm mới Màn Hình',
-	'dashboard_url' => site_url('manhinh/dashboard'),
+	'title' => 'Thêm mới Màn hình',
+	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Màn Hình', 'url' => site_url('manhinh')],
-		['title' => 'Thêm mới Màn Hình', 'active' => true]
+		['title' => 'Quản lý Màn hình', 'url' => site_url($module_name)],
+		['title' => 'Thêm mới', 'active' => true]
 	]
 ]) ?>
 <?= $this->endSection() ?>
@@ -19,9 +19,11 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
 	<div class="card-body">
-		<?= form_open(site_url('manhinh/create'), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-manhinh']) ?>
+		<?= form_open(site_url($module_name . '/create'), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
 			<?php
 			// Include form fields
+			$action = site_url($module_name . '/create');
+			$method = 'POST';
 			include __DIR__ . '/form.php';
 			?>
 		<?= form_close() ?>
@@ -30,19 +32,5 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= page_js('form') ?>
-<script>
-	document.addEventListener('DOMContentLoaded', function () {
-		const form = document.getElementById('form-manhinh');
-		
-		// Validate form khi submit
-		form.addEventListener('submit', function (event) {
-			if (!form.checkValidity()) {
-				event.preventDefault();
-				event.stopPropagation();
-			}
-			
-		});
-	});
-</script>
+<?= page_js('form', $module_name) ?>
 <?= $this->endSection() ?> 

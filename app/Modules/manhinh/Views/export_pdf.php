@@ -1,18 +1,14 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
     <meta charset="UTF-8">
     <title><?= $title ?></title>
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
-            font-size: 12px;
+            font-size: 10pt;
             line-height: 1.4;
             margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 100%;
             padding: 20px;
         }
         .header {
@@ -20,113 +16,130 @@
             margin-bottom: 20px;
         }
         .header h1 {
-            font-size: 18px;
+            font-size: 16pt;
             margin: 0;
-            padding: 0;
+            padding: 10px 0;
+            color: #333;
         }
-        .date {
-            text-align: right;
-            margin-bottom: 20px;
-            font-style: italic;
+        .header p {
+            margin: 5px 0;
+            color: #666;
         }
         .filters {
-            margin-bottom: 15px;
-            font-style: italic;
-            color: #555;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        .filters p {
+            margin: 5px 0;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
         th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            text-align: center;
+            background-color: #4472C4;
+            color: white;
             padding: 8px;
+            text-align: left;
+            font-weight: bold;
         }
         td {
             padding: 8px;
-            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .status-active {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-inactive {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .deleted {
+            color: #dc3545;
+        }
+        .footer {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #dee2e6;
+            padding-top: 10px;
         }
         .text-center {
             text-align: center;
         }
-        .footer {
-            text-align: center;
-            margin-top: 20px;
+        .export-info {
+            text-align: right;
+            margin-bottom: 10px;
             font-style: italic;
-            font-size: 10px;
-        }
-        .status-active {
-            color: green;
-            font-weight: bold;
-        }
-        .status-inactive {
-            color: red;
-            font-weight: bold;
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><?= $title ?></h1>
-        </div>
-        
-        <div class="date">
-            Ngày xuất: <?= $date ?>
-        </div>
-        
-        <?php if (isset($filters) && !empty($filters)): ?>
-        <div class="filters">
-            <strong>Bộ lọc:</strong> <?= implode(', ', $filters) ?>
-        </div>
-        <?php endif; ?>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th width="5%">STT</th>
-                    <th width="15%">Mã màn hình</th>
-                    <th width="25%">Tên màn hình</th>
-                    <th width="20%">Camera</th>
-                    <th width="20%">Template</th>
-                    <th width="15%">Trạng thái</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($manhinhs)): ?>
-                    <?php $i = 1; foreach ($manhinhs as $item): ?>
-                        <tr>
-                            <td class="text-center"><?= $i++ ?></td>
-                            <td><?= esc($item->ma_man_hinh) ?></td>
-                            <td><?= esc($item->ten_man_hinh) ?></td>
-                            <td><?= esc($item->ten_camera ?? 'Chưa gắn camera') ?></td>
-                            <td><?= esc($item->ten_template ?? 'Chưa gắn template') ?></td>
-                            <td class="text-center">
-                                <?php if ($item->status == 1): ?>
-                                    <span class="status-active">Hoạt động</span>
-                                <?php else: ?>
-                                    <span class="status-inactive">Không hoạt động</span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="6" class="text-center">Không có dữ liệu</td>
-                    </tr>
+    <div class="header">
+        <h1><?= $title ?></h1>
+        <p>Ngày xuất: <?= $date ?></p>
+    </div>
+
+    <?php if (!empty($filters)): ?>
+    <div class="filters">
+        <p><strong>Thông tin bộ lọc:</strong></p>
+        <p><?= $filters ?></p>
+    </div>
+    <?php endif; ?>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="text-center">STT</th>
+                <th>ID</th>
+                <th>Tên màn hình</th>   
+                <th>Mã màn hình</th>
+                <th>Camera</th>
+                <th>Template</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th>Ngày cập nhật</th>
+                <?php if ($includeDeletedAt): ?>
+                <th>Ngày xóa</th>
                 <?php endif; ?>
-            </tbody>
-        </table>
-        
-        <div class="footer">
-            Tài liệu này được xuất tự động từ hệ thống quản lý màn hình - <?= date('Y') ?>
-        </div>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($data as $index => $item): ?>
+            <tr>
+                <td class="text-center"><?= $index + 1 ?></td>
+                <td class="text-center"><?= $item->getId() ?></td>
+                <td class="text-center"><?= $item->getTenManHinh() ?></td>
+                <td class="text-center"><?= $item->getMaManHinh() ?></td>
+                <td class="text-center"><?= !empty($item->camera) ? $item->camera->getTenCamera() : 'N/A' ?></td>
+                <td class="text-center"><?= !empty($item->template) ? $item->template->getTenTemplate() : 'N/A' ?></td>
+                <td class="text-center <?= $item->isActive() ? 'status-active' : 'status-inactive' ?>">
+                    <?= $item->isActive() ? 'Hoạt động' : 'Không hoạt động' ?>
+                </td>
+                <td class="text-center"><?= $item->getCreatedAtFormatted() ?></td>
+                <td class="text-center"><?= $item->getUpdatedAtFormatted() ?></td>
+                <?php if ($includeDeletedAt): ?>
+                <td class="text-center deleted">
+                    <?= $item->getDeletedAtFormatted() ?>
+                </td>
+                <?php endif; ?>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Tổng số bản ghi: <?= $total_records ?></p>
     </div>
 </body>
 </html> 

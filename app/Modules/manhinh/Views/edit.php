@@ -9,13 +9,13 @@
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
     'title' => 'Cập nhật màn hình',
-    'dashboard_url' => site_url('manhinh/dashboard'),
+    'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Màn Hình', 'url' => site_url('manhinh')],
+        ['title' => 'Quản lý Màn hình', 'url' => site_url($module_name)],
         ['title' => 'Cập nhật', 'active' => true]
     ],
     'actions' => [
-		['url' => site_url('/manhinh'), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+		['url' => site_url($module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>
@@ -23,9 +23,11 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-body">
-        <?= form_open(site_url('manhinh/update/' . $manhinh->man_hinh_id), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-manhinh']) ?>
+        <?= form_open(site_url($module_name . '/update/' . $data->man_hinh_id), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
             <?php
-            // Include form fields
+            // Include form fields with namHoc data
+            $action = site_url($module_name . '/update/' . $data->man_hinh_id);
+            $method = 'POST';
             include __DIR__ . '/form.php';
             ?>
         <?= form_close() ?>
@@ -34,20 +36,5 @@
 <?= $this->endSection() ?>  
 
 <?= $this->section('script') ?>
-<?= page_js('form') ?>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('form-manhinh');
-        
-        // Validate form khi submit
-        form.addEventListener('submit', function (event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            
-            form.classList.add('was-validated');
-        });
-    });
-</script>
+<?= page_js('form', $module_name) ?>
 <?= $this->endSection() ?> 
