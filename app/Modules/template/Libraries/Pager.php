@@ -3,13 +3,20 @@
 namespace App\Modules\template\Libraries;
 
 /**
- * Lớp Pager - cung cấp chức năng phân trang cho module Camera
+ * Lớp Pager - cung cấp chức năng phân trang cho module HeDaoTao
  * 
  * Lớp này thay thế cho \CodeIgniter\Pager\Pager mặc định để tùy chỉnh
- * cách hiển thị và xử lý phân trang riêng cho module Camera.
+ * cách hiển thị và xử lý phân trang riêng cho module HeDaoTao.
  */
 class Pager
 {
+    /**
+     * Tên module
+     * 
+     * @var string
+     */
+    protected $module_name = 'template';
+
     /**
      * Số lượng trang hiển thị xung quanh trang hiện tại
      * 
@@ -450,7 +457,7 @@ class Pager
         }
         
         // Tìm kiếm template phân trang
-        $viewPath = 'App\Modules\camera\Views\pagers\pager';
+        $viewPath = 'App\Modules\\' . $this->module_name . '\Views\pagers\pager';
         
         // Truyền dữ liệu cho view
         $data = [

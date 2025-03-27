@@ -13,48 +13,56 @@ class Template extends BaseEntity
     protected $dates = [
         'created_at',
         'updated_at',
-        'deleted_at',
+        'deleted_at'
     ];
     
     protected $casts = [
         'template_id' => 'int',
         'status' => 'int',
-        'bin' => 'int',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+        'deleted_at' => 'timestamp'
     ];
     
-    protected $jsonFields = [];
-    
-    protected $hiddenFields = [
-        'deleted_at',
+    // Định nghĩa các chỉ mục
+    protected $indexes = [
+        'idx_ten_template' => ['ten_template']
     ];
     
-    // Trường duy nhất cần kiểm tra
-    protected $uniqueFields = [
-        'ten_template' => 'Tên template'
+    // Định nghĩa các ràng buộc unique
+    protected $uniqueKeys = [
+        'uk_ten_template' => ['ten_template']
     ];
     
     // Các quy tắc xác thực cụ thể cho Template
     protected $validationRules = [
-        'ten_template' => 'required|min_length[3]|max_length[255]|is_unique[template.ten_template,template_id,{template_id}]',
-        'ma_template' => 'permit_empty|max_length[20]',
-        'status' => 'required|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
+        'ten_template' => [
+            'rules' => 'required|max_length[255]|is_unique[template.ten_template,template_id,{template_id}]',
+            'label' => 'Tên template'
+        ],
+        'ma_template' => [
+            'rules' => 'permit_empty|max_length[20]',
+            'label' => 'Mã template'
+        ],
+        'status' => [
+            'rules' => 'required|in_list[0,1]',
+            'label' => 'Trạng thái'
+        ]
     ];
     
     protected $validationMessages = [
         'ten_template' => [
-            'required' => 'Tên template là bắt buộc',
-            'min_length' => 'Tên template phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên template không được vượt quá {param} ký tự',
-            'is_unique' => 'Tên template đã tồn tại, vui lòng chọn tên khác',
+            'required' => '{field} là bắt buộc',
+            'max_length' => '{field} không được vượt quá 255 ký tự',
+            'is_unique' => '{field} đã tồn tại trong hệ thống'
         ],
         'ma_template' => [
-            'max_length' => 'Mã template không được vượt quá {param} ký tự',
+            'max_length' => '{field} không được vượt quá 20 ký tự'
         ],
         'status' => [
-            'required' => 'Trạng thái không được để trống',
-            'in_list' => 'Trạng thái không hợp lệ',
-        ],
+            'required' => '{field} không được để trống',
+            'in_list' => '{field} không hợp lệ'
+        ]
     ];
     
     /**
@@ -88,17 +96,17 @@ class Template extends BaseEntity
     }
     
     /**
-     * Kiểm tra template có đang hoạt động không
+     * Kiểm tra trạng thái hoạt động
      *
      * @return bool
      */
     public function isActive(): bool
     {
-        return (bool)($this->attributes['status'] ?? false);
+        return (bool)($this->attributes['status'] ?? true);
     }
     
     /**
-     * Đặt trạng thái hoạt động cho template
+     * Đặt trạng thái hoạt động
      *
      * @param bool $status
      * @return $this
@@ -110,25 +118,13 @@ class Template extends BaseEntity
     }
     
     /**
-     * Kiểm tra template có đang trong thùng rác không
+     * Kiểm tra xem bản ghi đã bị xóa chưa
      *
      * @return bool
      */
-    public function isInBin(): bool
+    public function isDeleted(): bool
     {
-        return (bool)($this->attributes['bin'] ?? false);
-    }
-    
-    /**
-     * Đặt trạng thái thùng rác
-     *
-     * @param bool $binStatus
-     * @return $this
-     */
-    public function setBinStatus(bool $binStatus)
-    {
-        $this->attributes['bin'] = (int)$binStatus;
-        return $this;
+        return !empty($this->attributes['deleted_at']);
     }
     
     /**
@@ -136,7 +132,7 @@ class Template extends BaseEntity
      *
      * @return string HTML với badge status
      */
-    public function getStatusLabel()
+    public function getStatusLabel(): string
     {
         if ($this->status == 1) {
             return '<span class="badge bg-success">Hoạt động</span>';
@@ -150,14 +146,17 @@ class Template extends BaseEntity
      * 
      * @return string
      */
-    public function getCreatedAtFormatted()
+    public function getCreatedAtFormatted(): string
     {
         if (empty($this->attributes['created_at'])) {
             return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
         }
         
-        $time = $this->attributes['created_at'] instanceof Time ? $this->attributes['created_at'] : new Time($this->attributes['created_at']);
-        return $time->format('d/m/Y H:i:s');
+        $time = $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
@@ -165,99 +164,35 @@ class Template extends BaseEntity
      * 
      * @return string
      */
-    public function getUpdatedAtFormatted()
+    public function getUpdatedAtFormatted(): string
     {
         if (empty($this->attributes['updated_at'])) {
             return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
         }
         
-        $time = $this->attributes['updated_at'] instanceof Time ? $this->attributes['updated_at'] : new Time($this->attributes['updated_at']);
-        return $time->format('d/m/Y H:i:s');
+        $time = $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
      * Lấy ngày xóa đã định dạng
-     *
+     * 
      * @return string
      */
-    public function getDeletedAtFormatted()
+    public function getDeletedAtFormatted(): string
     {
-        // Kiểm tra nếu deleted_at là null, chuỗi rỗng hoặc định dạng ngày mặc định
-        if (!isset($this->attributes['deleted_at']) || 
-            empty($this->attributes['deleted_at']) || 
-            $this->attributes['deleted_at'] == '0000-00-00 00:00:00') {
-            return '';
+        if (empty($this->attributes['deleted_at'])) {
+            return '<span class="text-muted fst-italic">Chưa xóa</span>';
         }
         
-        $time = $this->attributes['deleted_at'] instanceof Time ? $this->attributes['deleted_at'] : new Time($this->attributes['deleted_at']);
-        return $time->format('d/m/Y H:i:s');
-    }
-    
-    /**
-     * Kiểm tra mã template có là duy nhất không
-     *
-     * @param string $code Mã cần kiểm tra
-     * @param int|null $excludeId ID cần loại trừ khi kiểm tra
-     * @return bool
-     */
-    public function isUniqueCode(string $code, ?int $excludeId = null): bool
-    {
-        return $this->validateUniqueField('ma_template', $code, $excludeId);
-    }
-    
-    /**
-     * Kiểm tra tên template có là duy nhất không
-     *
-     * @param string $name Tên cần kiểm tra
-     * @param int|null $excludeId ID cần loại trừ khi kiểm tra
-     * @return bool
-     */
-    public function isUniqueName(string $name, ?int $excludeId = null): bool
-    {
-        return $this->validateUniqueField('ten_template', $name, $excludeId);
-    }
-    
-    /**
-     * Phương thức trợ giúp để kiểm tra tính duy nhất của một trường
-     *
-     * @param string $field Tên trường cần kiểm tra
-     * @param mixed $value Giá trị cần kiểm tra
-     * @param int|null $exceptId ID cần loại trừ
-     * @return bool
-     */
-    protected function validateUniqueField(string $field, $value, ?int $exceptId = null): bool
-    {
-        $db = \Config\Database::connect();
-        $builder = $db->table($this->tableName);
-        
-        $builder->where($field, $value);
-        
-        if ($exceptId !== null) {
-            $builder->where("{$this->primaryKey} !=", $exceptId);
-        }
-        
-        // Trả về true nếu không tìm thấy bản ghi nào (tức là giá trị là duy nhất)
-        return $builder->countAllResults() === 0;
-    }
-    
-    /**
-     * Overrides BaseEntity setAttributes() để tự động trim dữ liệu chuỗi
-     * 
-     * @param array $data
-     * @return $this
-     */
-    public function setAttributes(array $data)
-    {
-        // Tự động trim các trường chuỗi
-        foreach ($data as $key => $value) {
-            // Chỉ trim các trường là chuỗi và không phải là mật khẩu
-            if (is_string($value) && $key !== 'password') {
-                $data[$key] = trim($value);
-            }
-        }
-        
-        // Gọi phương thức setAttributes của lớp cha
-        return parent::setAttributes($data);
+        $time = $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**

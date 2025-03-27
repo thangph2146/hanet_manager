@@ -1,9 +1,8 @@
 <?php
 /**
- * Master script file for Template module
+ * Master script file for ThamGiaSuKien module
  * Contains common CSS and JS for all views
  */
-
 // CSS section
 function page_css($type = 'all') {
     ob_start();
@@ -155,6 +154,8 @@ function page_css($type = 'all') {
     <!-- Form CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/plugins/select2/css/select2.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') ?>">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         .form-label {
             font-weight: 500;
@@ -165,6 +166,31 @@ function page_css($type = 'all') {
         .btn {
             padding: 0.5rem 1rem;
         }
+        /* Flatpickr custom styles */
+        .flatpickr-input {
+            background-color: #fff !important;
+        }
+        .flatpickr-day.selected, 
+        .flatpickr-day.startRange, 
+        .flatpickr-day.endRange, 
+        .flatpickr-day.selected.inRange, 
+        .flatpickr-day.startRange.inRange, 
+        .flatpickr-day.endRange.inRange, 
+        .flatpickr-day.selected:focus, 
+        .flatpickr-day.startRange:focus, 
+        .flatpickr-day.endRange:focus, 
+        .flatpickr-day.selected:hover, 
+        .flatpickr-day.startRange:hover, 
+        .flatpickr-day.endRange:hover, 
+        .flatpickr-day.selected.prevMonthDay, 
+        .flatpickr-day.startRange.prevMonthDay, 
+        .flatpickr-day.endRange.prevMonthDay, 
+        .flatpickr-day.selected.nextMonthDay, 
+        .flatpickr-day.startRange.nextMonthDay, 
+        .flatpickr-day.endRange.nextMonthDay {
+            background: #435ebe;
+            border-color: #435ebe;
+        }
     </style>
     <?php
     endif;
@@ -173,7 +199,8 @@ function page_css($type = 'all') {
 }
 
 // JS section
-function page_js($type = 'all') {
+function page_js($type = 'all', $module_name) {
+    
     ob_start();
     
     // DataTable scripts
@@ -238,6 +265,11 @@ function page_js($type = 'all') {
     <!-- Form JS -->
     <script src="<?= base_url('assets/plugins/jquery-validation/jquery.validate.min.js') ?>"></script>
     <script src="<?= base_url('assets/plugins/select2/js/select2.min.js') ?>"></script>
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
             // Initialize Select2
@@ -245,26 +277,51 @@ function page_js($type = 'all') {
                 theme: 'bootstrap4'
             });
 
+            // Initialize Flatpickr datepickers
+            if (typeof flatpickr !== 'undefined') {
+                const datepickerConfig = {
+                    dateFormat: "Y-m-d",
+                    locale: "vn",
+                    allowInput: true,
+                    altInput: true,
+                    altFormat: "d/m/Y",
+                    disableMobile: true
+                };
+                
+                const datepickers = document.querySelectorAll(".datepicker");
+                if (datepickers.length > 0) {
+                    datepickers.forEach(function(elem) {
+                        flatpickr(elem, datepickerConfig);
+                    });
+                }
+            }
+
             // Form validation
-            $('#form-template').validate({
+            $('#form-<?= $module_name ?>').validate({
                 rules: {
-                    ten_template: {
+                    nguoi_dung_id: {
                         required: true,
-                        minlength: 3,
-                        maxlength: 255
+                        number: true
                     },
-                    ma_template: {
-                        maxlength: 20
+                    su_kien_id: {
+                        required: true,
+                        number: true
+                    },
+                    phuong_thuc_diem_danh: {
+                        required: true
                     }
                 },
                 messages: {
-                    ten_template: {
-                        required: "Vui lòng nhập tên template",
-                        minlength: "Tên template phải có ít nhất {0} ký tự",
-                        maxlength: "Tên template không được vượt quá {0} ký tự"
+                    nguoi_dung_id: {
+                        required: "Vui lòng nhập ID người dùng",
+                        number: "ID người dùng phải là số"
                     },
-                    ma_template: {
-                        maxlength: "Mã template không được vượt quá {0} ký tự"
+                    su_kien_id: {
+                        required: "Vui lòng nhập ID sự kiện",
+                        number: "ID sự kiện phải là số"
+                    },
+                    phuong_thuc_diem_danh: {
+                        required: "Vui lòng chọn phương thức điểm danh"
                     }
                 },
                 errorElement: 'span',
@@ -279,34 +336,6 @@ function page_js($type = 'all') {
                     $(element).removeClass('is-invalid');
                 }
             });
-
-            // Auto-generate code from name
-            let typingTimer;
-            $('#ten_template').on('input', function() {
-                clearTimeout(typingTimer);
-                typingTimer = setTimeout(function() {
-                    const ten = $('#ten_template').val();
-                    if (ten && !$('#ma_template').val()) {
-                        const ma = generateCode(ten);
-                        $('#ma_template').val(ma);
-                    }
-                }, 500);
-            });
-
-            // Helper function to generate code from name
-            function generateCode(str) {
-                str = str.toLowerCase();
-                str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
-                str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
-                str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
-                str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
-                str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
-                str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
-                str = str.replace(/đ/g, "d");
-                str = str.replace(/\W+/g, " ");
-                str = str.trim();
-                return str.split(' ').map(word => word.charAt(0)).join('').toUpperCase();
-            }
         });
     </script>
     <?php
@@ -344,7 +373,7 @@ function page_section_css($section) {
 }
 
 // Section JS function
-function page_section_js($section) {
+function page_section_js($section, $module_name) {
     ob_start();
 
     // Table specific additional JS
@@ -373,6 +402,480 @@ function page_section_js($section) {
     return ob_get_clean();
 }
 
+// Thêm hàm đồng bộ JavaScript cho bảng ThamGiaSuKien
+function page_table_js($module_name) {
+    
+    ob_start();
+    ?>
+    <script>
+    $(document).ready(function() {
+        // Kiểm tra xem bảng đã được khởi tạo thành DataTable chưa
+        if (!$.fn.DataTable.isDataTable('#dataTable')) {
+            // Khởi tạo tooltips
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            [...tooltips].map(t => new bootstrap.Tooltip(t));
+            
+            // Khởi tạo DataTable với cấu hình tiếng Việt
+            const dataTable = $('#dataTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json',
+                },
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                dom: '<"row mx-0"<"col-sm-12 px-0"tr>><"row mx-0 mt-2"<"col-sm-12 col-md-5"l><"col-sm-12 col-md-7"p>>',
+                ordering: true,
+                responsive: true,
+                columnDefs: [
+                    { orderable: false, targets: [0, 5] },
+                    { className: 'align-middle', targets: '_all' }
+                ],
+                searching: false, // Tắt tìm kiếm của DataTable vì đã có form tìm kiếm
+                paging: false, // Tắt phân trang của DataTable vì đã có phân trang CodeIgniter
+                info: false // Tắt thông tin của DataTable
+            });
+            
+            // Xử lý form tìm kiếm
+            $('#search-form').on('submit', function() {
+                // Form sẽ gửi yêu cầu GET nên không cần xử lý gì thêm
+                return true;
+            });
+            
+            // Xử lý nhấn Enter trong ô tìm kiếm
+            $('#table-search').on('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    $('#search-form').submit();
+                }
+            });
+        }
+        
+        // Làm mới bảng
+        $('#refresh-table').on('click', function() {
+            $('#loading-indicator').css('display', 'flex').fadeIn(100);
+            location.reload();
+        });
+        
+        // Kiểm tra xem đang ở trang listdeleted hay không
+        const isListDeletedPage = window.location.href.indexOf('listdeleted') > -1;
+        
+        // Xử lý nút xóa (xóa thường hoặc xóa vĩnh viễn tùy thuộc vào trang)
+        $('.btn-delete').on('click', function() {
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            $('#delete-item-name').text(name);
+            
+            // Lấy đường dẫn tương đối (path + query string)
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Tạo URL xóa với tham số truy vấn return_url
+            let deleteUrl;
+            
+            // Kiểm tra xem đang ở trang listdeleted hay không
+            if (isListDeletedPage) {
+                deleteUrl = '<?= site_url($module_name . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            } else {
+                deleteUrl = '<?= site_url($module_name . '/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            }
+            
+            $('#delete-form').attr('action', deleteUrl);
+            $('#deleteModal').modal('show');
+        });
+        
+        // Xử lý nút khôi phục
+        $('.btn-restore').on('click', function() {
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            $('#restore-item-name').text(name);
+            
+            // Lấy đường dẫn tương đối (path + query string)
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Tạo URL khôi phục với tham số truy vấn return_url
+            const restoreUrl = '<?= site_url($module_name . '/restore/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            $('#restore-form').attr('action', restoreUrl);
+            
+            $('#restoreModal').modal('show');
+        });
+        
+        // Xử lý nút xóa vĩnh viễn
+        $('.btn-delete-permanent').on('click', function() {
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            $('#delete-item-name').text(name);
+            
+            // Lấy đường dẫn tương đối (path + query string)
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Tạo URL xóa với tham số truy vấn return_url
+            const deleteUrl = '<?= site_url($module_name . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            $('#delete-form').attr('action', deleteUrl);
+            
+            $('#deleteModal').modal('show');
+        });
+        
+        // Xử lý nút xóa nhiều
+        $('#delete-selected-multiple').on('click', function() {
+            const selectedCount = $('.checkbox-item:checked').length;
+            
+            if (selectedCount === 0) {
+                Swal.fire({
+                    title: 'Cảnh báo',
+                    text: 'Vui lòng chọn ít nhất một mục để xóa',
+                    icon: 'warning'
+                });
+                return;
+            }
+            
+            // Hiển thị số lượng mục đã chọn trong modal
+            $('#selected-count').text(selectedCount);
+            // Hiển thị modal xác nhận xóa nhiều
+            $('#deleteMultipleModal').modal('show');
+        });
+        
+        // Xử lý nút đổi trạng thái nhiều (hỗ trợ cả ID status-selected và status-selected-multiple)
+        $('#status-selected, #status-selected-multiple').on('click', function() {
+            const selectedCount = $('.checkbox-item:checked').length;
+            
+            if (selectedCount === 0) {
+                Swal.fire({
+                    title: 'Cảnh báo',
+                    text: 'Vui lòng chọn ít nhất một mục để thay đổi trạng thái',
+                    icon: 'warning'
+                });
+                return;
+            }
+            
+            // Hiển thị số lượng mục đã chọn trong modal statusMultipleModal
+            $('#status-count').text(selectedCount);
+            $('#statusMultipleModal').modal('show');
+        });
+        
+        // Xử lý xác nhận đổi trạng thái
+        $('#confirm-status-multiple').on('click', function() {
+            // Tạo form tạm thời chứa các checkbox đã chọn
+            const tempForm = $('#form-status-multiple');
+            
+            // Xóa các input cũ
+            tempForm.empty();
+            
+            // Lấy đường dẫn tương đối (path + query string)
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Thêm URL hiện tại làm return_url
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }));
+
+            // Thêm CSRF token
+            tempForm.append($('<input>').attr({
+                type: 'hidden',
+                name: '<?= csrf_token() ?>',
+                value: '<?= csrf_hash() ?>'
+            }));
+            
+            // Thêm các checkbox đã chọn vào form
+            const selectedIds = [];
+            $('.checkbox-item:checked').each(function() {
+                const id = $(this).val();
+                selectedIds.push(id);
+                const input = $('<input>').attr({
+                    type: 'hidden',
+                    name: 'selected_ids[]',
+                    value: id
+                });
+                tempForm.append(input);
+            });
+            
+            // Debug - hiển thị thông tin trực tiếp
+            console.log('Form action:', tempForm.attr('action'));
+            console.log('Form method:', tempForm.attr('method'));
+            console.log('Changing status for multiple items with return URL:', pathAndQuery);
+            console.log('Selected IDs:', selectedIds);
+            console.log('Form data:', {
+                return_url: pathAndQuery,
+                selected_ids: selectedIds,
+                csrf_token: '<?= csrf_hash() ?>'
+            });
+            
+            tempForm.submit();
+            
+            // Đóng modal
+            $('#statusMultipleModal').modal('hide');
+        });
+        
+        // Xử lý xác nhận xóa nhiều
+        $('#confirm-delete-multiple').on('click', function() {
+            // Lấy đường dẫn hiện tại cho return_url
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Xóa các input cũ
+            $('#form-delete-multiple').empty();
+            
+            // Thêm CSRF token - đảm bảo tên chính xác
+            const csrfName = '<?= csrf_token() ?>';
+            const csrfHash = '<?= csrf_hash() ?>';
+            
+            // Thêm CSRF token
+            $('<input>').attr({
+                type: 'hidden',
+                name: csrfName,
+                value: csrfHash
+            }).appendTo('#form-delete-multiple');
+            
+            // Thêm input return_url
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }).appendTo('#form-delete-multiple');
+            
+            // Thêm các ID đã chọn vào form
+            $('.checkbox-item:checked').each(function() {
+                const input = $('<input>').attr({
+                    type: 'hidden',
+                    name: 'selected_ids[]',
+                    value: $(this).val()
+                });
+                $('#form-delete-multiple').append(input);
+            });
+            
+            // Log dữ liệu form trước khi submit để debug
+            console.log('Form delete data before submit:', $('#form-delete-multiple').serialize());
+            
+            // Submit form
+            $('#form-delete-multiple').submit();
+            
+            // Đóng modal
+            $('#deleteMultipleModal').modal('hide');
+        });
+        
+        // Xử lý nút khôi phục nhiều
+        $('#restore-selected').on('click', function() {
+            const selectedCount = $('.checkbox-item:checked').length;
+            
+            if (selectedCount === 0) {
+                Swal.fire({
+                    title: 'Cảnh báo',
+                    text: 'Vui lòng chọn ít nhất một mục để khôi phục',
+                    icon: 'warning'
+                });
+                return;
+            }
+            
+            // Hiển thị số lượng mục đã chọn trong modal
+            $('#restore-count').text(selectedCount);
+            // Hiển thị modal xác nhận khôi phục nhiều
+            $('#restoreMultipleModal').modal('show');
+        });
+        
+        // Xử lý xác nhận khôi phục nhiều
+        $('#confirm-restore-multiple').on('click', function() {
+            // Lấy đường dẫn hiện tại cho return_url
+            const pathAndQuery = window.location.pathname + window.location.search;
+            
+            // Xóa các input cũ
+            $('#form-restore-multiple').empty();
+            
+            // Thêm CSRF token
+            $('<input>').attr({
+                type: 'hidden',
+                name: '<?= csrf_token() ?>',
+                value: '<?= csrf_hash() ?>'
+            }).appendTo('#form-restore-multiple');
+            
+            // Thêm input return_url
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }).appendTo('#form-restore-multiple');
+            
+            // Thêm các ID đã chọn vào form
+            $('.checkbox-item:checked').each(function() {
+                const input = $('<input>').attr({
+                    type: 'hidden',
+                    name: 'selected_ids[]',
+                    value: $(this).val()
+                });
+                $('#form-restore-multiple').append(input);
+            });
+            
+            // Submit form
+            $('#form-restore-multiple').submit();
+            
+            // Đóng modal
+            $('#restoreMultipleModal').modal('hide');
+        });
+        
+        // Xử lý nút xóa vĩnh viễn nhiều
+        $('#delete-permanent-multiple').on('click', function() {
+            const selectedCount = $('.checkbox-item:checked').length;
+            
+            if (selectedCount === 0) {
+                Swal.fire({
+                    title: 'Cảnh báo',
+                    text: 'Vui lòng chọn ít nhất một mục để xóa vĩnh viễn',
+                    icon: 'warning'
+                });
+                return;
+            }
+            
+            // Hiển thị số lượng mục đã chọn trong modal
+            $('#delete-count').text(selectedCount);
+            // Hiển thị modal xác nhận xóa vĩnh viễn nhiều
+            $('#deleteMultipleModal').modal('show');
+        });
+        
+        // Xử lý nút chọn tất cả checkbox
+        $('#select-all').on('change', function() {
+            $('.checkbox-item').prop('checked', $(this).prop('checked'));
+            updateActionButtons();
+        });
+        
+        // Cập nhật trạng thái nút thao tác khi checkbox thay đổi
+        $(document).on('change', '.checkbox-item', function() {
+            updateActionButtons();
+            
+            // Nếu bỏ chọn một item, bỏ chọn select-all
+            if (!$(this).prop('checked')) {
+                $('#select-all').prop('checked', false);
+            }
+            
+            // Nếu chọn tất cả items, chọn select-all
+            if ($('.checkbox-item:checked').length === $('.checkbox-item').length && $('.checkbox-item').length > 0) {
+                $('#select-all').prop('checked', true);
+            }
+        });
+        
+        // Hàm cập nhật trạng thái các nút thao tác
+        function updateActionButtons() {
+            const hasChecked = $('.checkbox-item:checked').length > 0;
+            // Kiểm tra xem đang ở trang chính hay trang thùng rác
+            if (isListDeletedPage) {
+                // Trang thùng rác
+                $('#restore-selected, #delete-permanent-multiple').prop('disabled', !hasChecked);
+            } else {
+                // Trang chính
+                $('#delete-selected-multiple, #status-selected-multiple, #status-selected').prop('disabled', !hasChecked);
+            }
+        }
+        
+        // Khởi tạo trạng thái nút khi trang load
+        updateActionButtons();
+        
+        // Xuất dữ liệu Excel
+        $('#export-excel').on('click', function(e) {
+            e.preventDefault();
+            
+            // Lấy URL hiện tại và các tham số query string
+            const currentUrl = new URL(window.location.href);
+            const queryParams = currentUrl.searchParams;
+            
+            // Xác định loại export dựa trên URL hiện tại
+            let exportUrl = '';
+            if (isListDeletedPage) {
+                exportUrl = '<?= site_url($module_name . "/exportDeletedExcel") ?>';
+            } else {
+                exportUrl = '<?= site_url($module_name . "/exportExcel") ?>';
+            }
+            
+            const params = [];
+            
+            // Thêm các tham số cần thiết
+            if (queryParams.has('keyword')) {
+                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
+            }
+            if (queryParams.has('status')) {
+                params.push('status=' + encodeURIComponent(queryParams.get('status')));
+            }
+            if (queryParams.has('phuong_thuc_diem_danh')) {
+                params.push('phuong_thuc_diem_danh=' + encodeURIComponent(queryParams.get('phuong_thuc_diem_danh')));
+            }
+            
+            // Thêm các tham số vào URL
+            if (params.length > 0) {
+                exportUrl += '?' + params.join('&');
+            }
+            
+            // Chuyển hướng đến URL xuất Excel
+            window.location.href = exportUrl;
+        });
+        
+        // Xuất PDF
+        $('#export-pdf').on('click', function(e) {
+            e.preventDefault();
+            
+            // Lấy URL hiện tại và các tham số query string
+            const currentUrl = new URL(window.location.href);
+            const queryParams = currentUrl.searchParams;
+            
+            // Xác định loại export dựa trên URL hiện tại
+            let exportUrl = '';
+            if (isListDeletedPage) {
+                exportUrl = '<?= site_url($module_name . "/exportDeletedPdf") ?>';
+            } else {
+                exportUrl = '<?= site_url($module_name . "/exportPdf") ?>';
+            }
+            
+            const params = [];
+            
+            // Thêm các tham số cần thiết
+            if (queryParams.has('keyword')) {
+                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
+            }
+            if (queryParams.has('status')) {
+                params.push('status=' + encodeURIComponent(queryParams.get('status')));
+            }
+            if (queryParams.has('phuong_thuc_diem_danh')) {
+                params.push('phuong_thuc_diem_danh=' + encodeURIComponent(queryParams.get('phuong_thuc_diem_danh')));
+            }
+            
+            // Thêm các tham số vào URL
+            if (params.length > 0) {
+                exportUrl += '?' + params.join('&');
+            }
+            
+            // Chuyển hướng đến URL xuất PDF
+            window.location.href = exportUrl;
+        });
+
+        // Xử lý khi thay đổi số lượng bản ghi trên mỗi trang
+        $('#perPageSelect').on('change', function() {
+            const perPage = $(this).val();
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Giữ lại tất cả các tham số cần thiết
+            const paramsToKeep = ['keyword', 'status', 'phuong_thuc_diem_danh'];
+            
+            // Tạo URL mới với tham số perPage và reset về trang 1
+            const newParams = new URLSearchParams();
+            newParams.set('perPage', perPage);
+            newParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
+            
+            // Giữ lại các tham số quan trọng
+            paramsToKeep.forEach(param => {
+                if (urlParams.has(param)) {
+                    // Đặc biệt xử lý status=0
+                    if (param === 'status' && urlParams.get(param) === '0') {
+                        newParams.set(param, '0');
+                    } 
+                    // Chỉ giữ lại tham số có giá trị
+                    else if (urlParams.get(param)) {
+                        newParams.set(param, urlParams.get(param));
+                    }
+                }
+            });
+            
+            // Chuyển hướng đến URL mới
+            window.location.href = window.location.pathname + '?' + newParams.toString();
+        });
+    });
+    </script>
+    <?php
+    return ob_get_clean();
+}
+
 // Plugin CSS
 ?>
 
@@ -384,5 +887,6 @@ function page_section_js($section) {
 <link rel="stylesheet" href="<?= base_url('assets/vendor/libs/select2/select2.css') ?>" />
 <link rel="stylesheet" href="<?= base_url('assets/vendor/libs/sweetalert2/sweetalert2.css') ?>" />
 
-<!-- Module CSS -->
-<link rel="stylesheet" href="<?= base_url('css/modules/template/style.css') ?>" />
+<?php
+// Module JavaScript end
+?>
