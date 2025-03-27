@@ -4,34 +4,36 @@ namespace Config;
 
 // Create a new instance of our RouteCollection class.
 $routes = Services::routes();
-
+$module_name = 'diengia';
+$controller_name = 'DienGia';
 // Định nghĩa routes cho module Nganh
-$routes->group('diengia', ['namespace' => 'App\Modules\diengia\Controllers'], function ($routes) {
-    $routes->get('/', 'DienGia::index');
-    $routes->get('dashboard', 'DienGia::dashboard');
-    $routes->get('statistics', 'DienGia::statistics');
-    $routes->get('listdeleted', 'DienGia::listdeleted');
-    $routes->get('new', 'DienGia::new');
-    $routes->post('create', 'DienGia::create');
-    $routes->get('edit/(:num)', 'DienGia::edit/$1');
-    $routes->post('update/(:num)', 'DienGia::update/$1');
-    $routes->get('delete/(:num)', 'DienGia::delete/$1');
-    $routes->post('delete/(:num)', 'DienGia::delete/$1');
-    $routes->get('restore/(:num)', 'DienGia::restore/$1');
-    $routes->post('restore/(:num)', 'DienGia::restore/$1');
-    $routes->post('purge/(:num)', 'DienGia::purge/$1');
-    $routes->post('changestatus/(:num)', 'DienGia::changeStatus/$1');
-    $routes->post('deleteMultiple', 'DienGia::deleteMultiple');
-    $routes->post('restoreMultiple', 'DienGia::restoreMultiple');
-    $routes->get('permanentDelete/(:num)', 'DienGia::permanentDelete/$1');
-    $routes->post('permanentDelete/(:num)', 'DienGia::permanentDelete/$1');
-    $routes->post('permanentDeleteMultiple', 'DienGia::permanentDeleteMultiple');
-    $routes->post('deletePermanentMultiple', 'DienGia::deletePermanentMultiple');
-    $routes->post('statusMultiple', 'DienGia::statusMultiple');
-    $routes->get('deleted', 'DienGia::deleted');
-    $routes->get('view/(:num)', 'DienGia::view/$1');
-    $routes->get('exportPdf', 'DienGia::exportPdf');
-    $routes->get('exportExcel', 'DienGia::exportExcel');
-    $routes->get('exportDeletedPdf', 'DienGia::exportDeletedPdf');
-    $routes->get('exportDeletedExcel', 'DienGia::exportDeletedExcel');
+$routes->group($module_name, ['namespace' => 'App\Modules\\' . $module_name . '\Controllers'], 
+function ($routes) use ($controller_name) {
+    $routes->get('/', $controller_name . '::index');
+    $routes->get('dashboard', $controller_name . '::dashboard');
+    $routes->get('statistics', $controller_name . '::statistics');
+    $routes->get('listdeleted', $controller_name . '::listdeleted');
+    $routes->get('new', $controller_name . '::new');
+    $routes->post('create', $controller_name . '::create');
+    $routes->get('edit/(:num)', $controller_name . '::edit/$1');
+    $routes->post('update/(:num)', $controller_name . '::update/$1');
+    $routes->get('delete/(:num)', $controller_name . '::delete/$1');
+    $routes->post('delete/(:num)', $controller_name . '::delete/$1');
+    $routes->get('restore/(:num)', $controller_name . '::restore/$1');
+    $routes->post('restore/(:num)', $controller_name . '::restore/$1');
+    $routes->post('purge/(:num)', $controller_name . '::purge/$1');
+    $routes->post('status/(:num)', $controller_name . '::status/$1');
+    $routes->post('deleteMultiple', $controller_name . '::deleteMultiple');
+    $routes->post('restoreMultiple', $controller_name . '::restoreMultiple');
+    $routes->get('permanentDelete/(:num)', $controller_name . '::permanentDelete/$1');
+    $routes->post('permanentDelete/(:num)', $controller_name . '::permanentDelete/$1');
+    $routes->post('permanentDeleteMultiple', $controller_name . '::permanentDeleteMultiple');
+    $routes->post('deletePermanentMultiple', $controller_name . '::deletePermanentMultiple');
+    $routes->post('statusMultiple', $controller_name . '::statusMultiple');
+    $routes->get('deleted', $controller_name . '::deleted');
+    $routes->get('view/(:num)', $controller_name . '::view/$1');
+    $routes->get('exportPdf', $controller_name . '::exportPdf');
+    $routes->get('exportExcel', $controller_name . '::exportExcel');
+    $routes->get('exportDeletedPdf', $controller_name . '::exportDeletedPdf');
+    $routes->get('exportDeletedExcel', $controller_name . '::exportDeletedExcel');
 }); 

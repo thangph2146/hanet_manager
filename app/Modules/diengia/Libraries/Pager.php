@@ -3,13 +3,20 @@
 namespace App\Modules\diengia\Libraries;
 
 /**
- * Lớp Pager - cung cấp chức năng phân trang cho module DienGia
+ * Lớp Pager - cung cấp chức năng phân trang cho module Diễn giả
  * 
  * Lớp này thay thế cho \CodeIgniter\Pager\Pager mặc định để tùy chỉnh
- * cách hiển thị và xử lý phân trang riêng cho module DienGia.
+ * cách hiển thị và xử lý phân trang riêng cho module Diễn giả.
  */
 class Pager
 {
+    /**
+     * Tên module
+     * 
+     * @var string
+     */
+    protected $module_name = 'diengia';
+
     /**
      * Số lượng trang hiển thị xung quanh trang hiện tại
      * 
@@ -75,14 +82,12 @@ class Pager
      */
     public function __construct(int $total = 0, int $perPage = 10, int $currentPage = 1)
     {
-        $this->total = max(0, $total);
-        $this->perPage = max(1, $perPage);
+        $this->total = $total;
+        $this->perPage = $perPage;
+        $this->currentPage = $currentPage;
         
         // Tính tổng số trang
         $this->calculatePageCount();
-        
-        // Đảm bảo trang hiện tại hợp lệ
-        $this->currentPage = max(1, min($currentPage, $this->pageCount > 0 ? $this->pageCount : 1));
     }
     
     /**
@@ -129,7 +134,7 @@ class Pager
      */
     public function setTotal(int $total)
     {
-        $this->total = max(0, $total);
+        $this->total = $total;
         $this->calculatePageCount();
         
         // Đảm bảo trang hiện tại vẫn hợp lệ sau khi tổng số trang thay đổi
@@ -146,7 +151,7 @@ class Pager
      */
     public function setPerPage(int $perPage)
     {
-        $this->perPage = max(1, $perPage);
+        $this->perPage = $perPage;
         $this->calculatePageCount();
         
         // Đảm bảo trang hiện tại vẫn hợp lệ sau khi tổng số trang thay đổi
@@ -163,8 +168,7 @@ class Pager
      */
     public function setCurrentPage(int $currentPage)
     {
-        // Đảm bảo trang hiện tại hợp lệ (nằm trong khoảng từ 1 đến tổng số trang)
-        $this->currentPage = max(1, min($currentPage, $this->pageCount > 0 ? $this->pageCount : 1));
+        $this->currentPage = $currentPage;
         return $this;
     }
     
@@ -185,7 +189,7 @@ class Pager
      * 
      * @return int
      */
-    public function getTotal()
+    public function getTotal(): int
     {
         return $this->total;
     }
@@ -195,7 +199,7 @@ class Pager
      * 
      * @return int
      */
-    public function getPerPage()
+    public function getPerPage(): int
     {
         return $this->perPage;
     }
@@ -205,7 +209,7 @@ class Pager
      * 
      * @return int
      */
-    public function getCurrentPage()
+    public function getCurrentPage(): int
     {
         return $this->currentPage;
     }
@@ -453,7 +457,7 @@ class Pager
         }
         
         // Tìm kiếm template phân trang
-        $viewPath = 'App\Modules\camera\Views\pagers\pager';
+        $viewPath = 'App\Modules\\' . $this->module_name . '\Views\pagers\pager';
         
         // Truyền dữ liệu cho view
         $data = [
@@ -560,5 +564,67 @@ class Pager
         }
         
         return $url;
+    }
+    
+    public function getLastPage(): int
+    {
+        return $this->perPage > 0 ? (int)ceil($this->total / $this->perPage) : 1;
+    }
+    
+    public function hasMore(): bool
+    {
+        return $this->currentPage < $this->getLastPage();
+    }
+    
+    public function getOffset(): int
+    {
+        return ($this->currentPage - 1) * $this->perPage;
+    }
+    
+    public function getLinks(): array
+    {
+        $links = [];
+        $lastPage = $this->getLastPage();
+        
+        // Luôn hiển thị trang đầu
+        $links[] = 1;
+        
+        // Tính toán phạm vi trang xung quanh trang hiện tại
+        $start = max(2, $this->currentPage - $this->surroundCount);
+        $end = min($lastPage - 1, $this->currentPage + $this->surroundCount);
+        
+        // Thêm dấu ... nếu cần
+        if ($start > 2) {
+            $links[] = '...';
+        }
+        
+        // Thêm các trang ở giữa
+        for ($i = $start; $i <= $end; $i++) {
+            $links[] = $i;
+        }
+        
+        // Thêm dấu ... và trang cuối nếu cần
+        if ($end < $lastPage - 1) {
+            $links[] = '...';
+        }
+        
+        // Luôn hiển thị trang cuối nếu có nhiều hơn 1 trang
+        if ($lastPage > 1) {
+            $links[] = $lastPage;
+        }
+        
+        return $links;
+    }
+    
+    public function getInfo(): array
+    {
+        return [
+            'total' => $this->total,
+            'per_page' => $this->perPage,
+            'current_page' => $this->currentPage,
+            'last_page' => $this->getLastPage(),
+            'has_more' => $this->hasMore(),
+            'links' => $this->getLinks()
+        ];
     }
 } 
