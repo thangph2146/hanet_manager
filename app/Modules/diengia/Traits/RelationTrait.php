@@ -6,6 +6,24 @@ use CodeIgniter\I18n\Time;
 
 trait RelationTrait
 {
+    protected $fields = [
+        'ten_dien_gia' => 'getTenDienGia',
+        'chuc_danh' => 'getChucDanh',
+        'to_chuc' => 'getToChuc',
+        'gioi_thieu' => 'getGioiThieu',
+        'avatar' => 'getAvatar',
+        'email' => 'getEmail',
+        'dien_thoai' => 'getDienThoai',
+        'website' => 'getWebsite',
+        'chuyen_mon' => 'getChuyenMon',
+        'thanh_tuu' => 'getThanhTuu',
+        'mang_xa_hoi' => 'getMangXaHoi',
+        'status' => 'getStatus',
+        'created_at_formatted' => 'getCreatedAtFormatted',
+        'updated_at_formatted' => 'getUpdatedAtFormatted',
+        'deleted_at_formatted' => 'getDeletedAtFormatted',
+        'is_deleted' => 'isDeleted',
+    ];
 
     /**
      * Khởi tạo các model cần thiết
@@ -90,22 +108,9 @@ trait RelationTrait
             }
 
             // Thêm các thuộc tính đã định dạng
-            $item->ten_dien_gia = $item->getTenDienGia();
-            $item->chuc_danh = $item->getChucDanh();
-            $item->to_chuc = $item->getToChuc();
-            $item->gioi_thieu = $item->getGioiThieu();
-            $item->avatar = $item->getAvatar();
-            $item->email = $item->getEmail();
-            $item->dien_thoai = $item->getDienThoai();
-            $item->website = $item->getWebsite();
-            $item->chuyen_mon = $item->getChuyenMon();
-            $item->thanh_tuu = $item->getThanhTuu();
-            $item->mang_xa_hoi = $item->getMangXaHoi();
-            $item->status = $item->getStatus();
-            $item->created_at_formatted = $item->getCreatedAtFormatted();
-            $item->updated_at_formatted = $item->getUpdatedAtFormatted();
-            $item->deleted_at_formatted = $item->getDeletedAtFormatted();
-            $item->is_deleted = $item->isDeleted();
+            foreach ($this->fields as $key => $value) {
+                $item->$key = $item->$value();
+            }
         }
 
         return $data;
