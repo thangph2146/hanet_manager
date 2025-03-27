@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Database\Migrations;
+namespace App\Modules\camera\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
@@ -8,20 +8,23 @@ class Camera extends Migration
 {
     public function up()
     {
+        // Tạo bảng camera
         $this->forge->addField([
             'camera_id' => [
                 'type' => 'INT',
+                'constraint' => 11,
+                'unsigned' => true,
                 'auto_increment' => true
-            ],
-            'ma_camera' => [
-                'type' => 'VARCHAR',
-                'constraint' => 20,
-                'null' => true
             ],
             'ten_camera' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,
                 'null' => false
+            ],
+            'ma_camera' => [
+                'type' => 'VARCHAR',
+                'constraint' => 20,
+                'null' => true
             ],
             'ip_camera' => [
                 'type' => 'VARCHAR',
@@ -30,7 +33,7 @@ class Camera extends Migration
             ],
             'port' => [
                 'type' => 'INT',
-                'constraint' => 5,
+                'constraint' => 11,
                 'null' => true
             ],
             'username' => [
@@ -46,56 +49,43 @@ class Camera extends Migration
             'status' => [
                 'type' => 'TINYINT',
                 'constraint' => 1,
-                'default' => 1
-            ],
-            'bin' => [
-                'type' => 'TINYINT',
-                'constraint' => 1,
-                'default' => 0
+                'default' => 1,
+                'null' => false
             ],
             'created_at' => [
-                'type' => 'TIMESTAMP',
-                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
+                'type' => 'DATETIME',
+                'null' => true
             ],
             'updated_at' => [
-                'type' => 'TIMESTAMP',
-                'null' => true,
-                'on update' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
+                'type' => 'DATETIME',
+                'null' => true
             ],
             'deleted_at' => [
-                'type' => 'TIMESTAMP',
+                'type' => 'DATETIME',
                 'null' => true
             ]
         ]);
 
-        // Add primary key
+        // Thêm khóa chính
         $this->forge->addKey('camera_id', true);
         
-        // Add index for ma_camera
-        $this->forge->addKey('ma_camera', false, false, 'idx_ma_camera');
+        // Thêm chỉ mục
+        $this->forge->addKey('ten_camera');
         
-        // Add index for ten_camera
-        $this->forge->addKey('ten_camera', false, false, 'idx_ten_camera');
-        
-        // Add index for ip_camera
-        $this->forge->addKey('ip_camera', false, false, 'idx_ip_camera');
-        
-        // Add index for status
-        $this->forge->addKey('status', false, false, 'idx_status');
-        
-        // Add index for bin
-        $this->forge->addKey('bin', false, false, 'idx_bin');
-        
-        // Add unique constraint for ten_camera
-        $this->forge->addKey('ten_camera', false, true, 'uk_ten_camera');
+        // Thêm ràng buộc unique
+        $this->forge->addUniqueKey('ten_camera', 'uk_ten_camera');
 
-        // Create the table
-        $this->forge->createTable('camera');
+        // Tạo bảng
+        $this->forge->createTable('camera', true, [
+            'ENGINE' => 'InnoDB',
+            'CHARACTER SET' => 'utf8mb4',
+            'COLLATE' => 'utf8mb4_general_ci'
+        ]);
     }
 
     public function down()
     {
-        // Drop the table
+        // Xóa bảng
         $this->forge->dropTable('camera');
     }
 } 

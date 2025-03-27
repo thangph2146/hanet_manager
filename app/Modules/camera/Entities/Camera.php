@@ -13,61 +13,74 @@ class Camera extends BaseEntity
     protected $dates = [
         'created_at',
         'updated_at',
-        'deleted_at',
+        'deleted_at'
     ];
     
     protected $casts = [
         'camera_id' => 'int',
         'port' => 'int',
         'status' => 'int',
-        'bin' => 'int',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+        'deleted_at' => 'timestamp'
     ];
     
-    protected $jsonFields = [];
-    
-    protected $hiddenFields = [
-        'deleted_at',
+    // Định nghĩa các chỉ mục
+    protected $indexes = [
+        'idx_ten_camera' => ['ten_camera']
     ];
     
-    // Trường duy nhất cần kiểm tra
-    protected $uniqueFields = [
-        'ten_camera' => 'Tên camera'
+    // Định nghĩa các ràng buộc unique
+    protected $uniqueKeys = [
+        'uk_ten_camera' => ['ten_camera']
     ];
     
     // Các quy tắc xác thực cụ thể cho Camera
     protected $validationRules = [
-        'ten_camera' => 'required|min_length[3]|max_length[255]|is_unique[camera.ten_camera,camera_id,{camera_id}]',
-        'ma_camera' => 'permit_empty|max_length[20]',
-        'ip_camera' => 'permit_empty|max_length[100]',
-        'port' => 'permit_empty|integer',
-        'username' => 'permit_empty|max_length[50]',
-        'password' => 'permit_empty|max_length[50]',
-        'status' => 'permit_empty|in_list[0,1]',
-        'bin' => 'permit_empty|in_list[0,1]',
+        'ten_camera' => [
+            'rules' => 'required|max_length[255]|is_unique[camera.ten_camera,camera_id,{camera_id}]',
+            'label' => 'Tên camera'
+        ],
+        'ma_camera' => [
+            'rules' => 'permit_empty|max_length[20]',
+            'label' => 'Mã camera'
+        ],
+        'ip_camera' => [
+            'rules' => 'permit_empty|max_length[100]|valid_ip',
+            'label' => 'IP camera'
+        ],
+        'port' => [
+            'rules' => 'permit_empty|integer|greater_than[0]|less_than[65536]',
+            'label' => 'Port'
+        ],
+        'status' => [
+            'rules' => 'required|in_list[0,1]',
+            'label' => 'Trạng thái'
+        ]
     ];
     
     protected $validationMessages = [
         'ten_camera' => [
-            'required' => 'Tên camera là bắt buộc',
-            'min_length' => 'Tên camera phải có ít nhất {param} ký tự',
-            'max_length' => 'Tên camera không được vượt quá {param} ký tự',
-            'is_unique' => 'Tên camera đã tồn tại, vui lòng chọn tên khác',
+            'required' => '{field} là bắt buộc',
+            'max_length' => '{field} không được vượt quá 255 ký tự',
+            'is_unique' => '{field} đã tồn tại trong hệ thống'
         ],
         'ma_camera' => [
-            'max_length' => 'Mã camera không được vượt quá {param} ký tự',
+            'max_length' => '{field} không được vượt quá 20 ký tự'
         ],
         'ip_camera' => [
-            'max_length' => 'IP camera không được vượt quá {param} ký tự',
+            'max_length' => '{field} không được vượt quá 100 ký tự',
+            'valid_ip' => '{field} không hợp lệ'
         ],
         'port' => [
-            'integer' => 'Port phải là số nguyên',
+            'integer' => '{field} phải là số nguyên',
+            'greater_than' => '{field} phải lớn hơn 0',
+            'less_than' => '{field} phải nhỏ hơn 65536'
         ],
-        'username' => [
-            'max_length' => 'Username không được vượt quá {param} ký tự',
-        ],
-        'password' => [
-            'max_length' => 'Password không được vượt quá {param} ký tự',
-        ],
+        'status' => [
+            'required' => '{field} không được để trống',
+            'in_list' => '{field} không hợp lệ'
+        ]
     ];
     
     /**
@@ -101,7 +114,7 @@ class Camera extends BaseEntity
     }
     
     /**
-     * Lấy IP của camera
+     * Lấy IP camera
      *
      * @return string|null
      */
@@ -111,48 +124,27 @@ class Camera extends BaseEntity
     }
     
     /**
-     * Lấy port của camera
+     * Lấy port
      *
      * @return int|null
      */
     public function getPort(): ?int
     {
-        $port = $this->attributes['port'] ?? null;
-        return $port !== null ? (int)$port : null;
+        return $this->attributes['port'] ?? null;
     }
     
     /**
-     * Lấy username của camera
-     *
-     * @return string|null
-     */
-    public function getUsername(): ?string
-    {
-        return $this->attributes['username'] ?? null;
-    }
-    
-    /**
-     * Lấy password của camera
-     *
-     * @return string|null
-     */
-    public function getPassword(): ?string
-    {
-        return $this->attributes['password'] ?? null;
-    }
-    
-    /**
-     * Kiểm tra camera có đang hoạt động không
+     * Kiểm tra trạng thái hoạt động
      *
      * @return bool
      */
     public function isActive(): bool
     {
-        return (bool)($this->attributes['status'] ?? false);
+        return (bool)($this->attributes['status'] ?? true);
     }
     
     /**
-     * Đặt trạng thái hoạt động cho camera
+     * Đặt trạng thái hoạt động
      *
      * @param bool $status
      * @return $this
@@ -164,62 +156,13 @@ class Camera extends BaseEntity
     }
     
     /**
-     * Kiểm tra camera có đang trong thùng rác không
+     * Kiểm tra xem bản ghi đã bị xóa chưa
      *
      * @return bool
      */
-    public function isInBin(): bool
+    public function isDeleted(): bool
     {
-        return (bool)($this->attributes['bin'] ?? false);
-    }
-    
-    /**
-     * Đặt trạng thái thùng rác
-     *
-     * @param bool $binStatus
-     * @return $this
-     */
-    public function setBinStatus(bool $binStatus)
-    {
-        $this->attributes['bin'] = (int)$binStatus;
-        return $this;
-    }
-    
-    /**
-     * Lấy thông tin IP:Port
-     * 
-     * @return string
-     */
-    public function getConnectionInfo()
-    {
-        $ip = $this->getIpCamera();
-        $port = $this->getPort();
-        
-        if (empty($ip)) {
-            return '<span class="text-muted">Chưa cấu hình</span>';
-        }
-        
-        if (!empty($port)) {
-            return '<span class="badge bg-info">' . esc($ip) . ':' . esc($port) . '</span>';
-        }
-        
-        return '<span class="badge bg-info">' . esc($ip) . '</span>';
-    }
-    
-    /**
-     * Lấy thông tin đăng nhập camera
-     * 
-     * @return string
-     */
-    public function getCredentialsInfo()
-    {
-        $username = $this->getUsername();
-        
-        if (empty($username)) {
-            return '<span class="text-muted">Không có</span>';
-        }
-        
-        return '<span class="badge bg-secondary">' . esc($username) . '</span>';
+        return !empty($this->attributes['deleted_at']);
     }
     
     /**
@@ -227,7 +170,7 @@ class Camera extends BaseEntity
      *
      * @return string HTML với badge status
      */
-    public function getStatusLabel()
+    public function getStatusLabel(): string
     {
         if ($this->status == 1) {
             return '<span class="badge bg-success">Hoạt động</span>';
@@ -241,14 +184,17 @@ class Camera extends BaseEntity
      * 
      * @return string
      */
-    public function getCreatedAtFormatted()
+    public function getCreatedAtFormatted(): string
     {
         if (empty($this->attributes['created_at'])) {
             return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
         }
         
-        $time = $this->attributes['created_at'] instanceof Time ? $this->attributes['created_at'] : new Time($this->attributes['created_at']);
-        return $time->format('d/m/Y H:i:s');
+        $time = $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
@@ -256,99 +202,35 @@ class Camera extends BaseEntity
      * 
      * @return string
      */
-    public function getUpdatedAtFormatted()
+    public function getUpdatedAtFormatted(): string
     {
         if (empty($this->attributes['updated_at'])) {
             return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
         }
         
-        $time = $this->attributes['updated_at'] instanceof Time ? $this->attributes['updated_at'] : new Time($this->attributes['updated_at']);
-        return $time->format('d/m/Y H:i:s');
+        $time = $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
      * Lấy ngày xóa đã định dạng
-     *
+     * 
      * @return string
      */
-    public function getDeletedAtFormatted()
+    public function getDeletedAtFormatted(): string
     {
-        // Kiểm tra nếu deleted_at là null, chuỗi rỗng hoặc định dạng ngày mặc định
-        if (!isset($this->attributes['deleted_at']) || 
-            empty($this->attributes['deleted_at']) || 
-            $this->attributes['deleted_at'] == '0000-00-00 00:00:00') {
-            return '';
+        if (empty($this->attributes['deleted_at'])) {
+            return '<span class="text-muted fst-italic">Chưa xóa</span>';
         }
         
-        $time = $this->attributes['deleted_at'] instanceof Time ? $this->attributes['deleted_at'] : new Time($this->attributes['deleted_at']);
-        return $time->format('d/m/Y H:i:s');
-    }
-    
-    /**
-     * Kiểm tra mã camera có là duy nhất không
-     *
-     * @param string $code Mã cần kiểm tra
-     * @param int|null $excludeId ID cần loại trừ khi kiểm tra
-     * @return bool
-     */
-    public function isUniqueCode(string $code, ?int $excludeId = null): bool
-    {
-        return $this->validateUniqueField('ma_camera', $code, $excludeId);
-    }
-    
-    /**
-     * Kiểm tra tên camera có là duy nhất không
-     *
-     * @param string $name Tên cần kiểm tra
-     * @param int|null $excludeId ID cần loại trừ khi kiểm tra
-     * @return bool
-     */
-    public function isUniqueName(string $name, ?int $excludeId = null): bool
-    {
-        return $this->validateUniqueField('ten_camera', $name, $excludeId);
-    }
-    
-    /**
-     * Phương thức trợ giúp để kiểm tra tính duy nhất của một trường
-     *
-     * @param string $field Tên trường cần kiểm tra
-     * @param mixed $value Giá trị cần kiểm tra
-     * @param int|null $exceptId ID cần loại trừ
-     * @return bool
-     */
-    protected function validateUniqueField(string $field, $value, ?int $exceptId = null): bool
-    {
-        $db = \Config\Database::connect();
-        $builder = $db->table($this->tableName);
-        
-        $builder->where($field, $value);
-        
-        if ($exceptId !== null) {
-            $builder->where("{$this->primaryKey} !=", $exceptId);
-        }
-        
-        // Trả về true nếu không tìm thấy bản ghi nào (tức là giá trị là duy nhất)
-        return $builder->countAllResults() === 0;
-    }
-    
-    /**
-     * Overrides BaseEntity setAttributes() để tự động trim dữ liệu chuỗi
-     * 
-     * @param array $data
-     * @return $this
-     */
-    public function setAttributes(array $data)
-    {
-        // Tự động trim các trường chuỗi
-        foreach ($data as $key => $value) {
-            // Chỉ trim các trường là chuỗi và không phải là mật khẩu
-            if (is_string($value) && $key !== 'password') {
-                $data[$key] = trim($value);
-            }
-        }
-        
-        // Gọi phương thức setAttributes của lớp cha
-        return parent::setAttributes($data);
+        $time = $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**

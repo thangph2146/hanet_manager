@@ -1,8 +1,4 @@
 <?php
-/**
- * @var \App\Modules\camera\Libraries\Pager $pager
- */
-
 // Tính toán thông tin phân trang
 $total = $pager->getTotal();
 $perPage = $pager->getPerPage();

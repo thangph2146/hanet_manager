@@ -5,6 +5,7 @@ namespace App\Modules\camera\Models;
 use App\Models\BaseModel;
 use App\Modules\camera\Entities\Camera;
 use App\Modules\camera\Libraries\Pager;
+use CodeIgniter\I18n\Time;
 
 class CameraModel extends BaseModel
 {
@@ -13,35 +14,26 @@ class CameraModel extends BaseModel
     protected $useAutoIncrement = true;
     
     protected $useSoftDeletes = true;
-    protected $deletedField = 'deleted_at';
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
+    protected $deletedField = 'deleted_at';
+    
+    // Số lượng liên kết trang hiển thị xung quanh trang hiện tại   
+    protected $surroundCount = 2;
     
     protected $allowedFields = [
         'ten_camera',
         'ma_camera',
         'ip_camera',
         'port',
-        'username',
-        'password',
         'status',
-        'bin',
         'created_at',
         'updated_at',
         'deleted_at'
     ];
     
     protected $returnType = Camera::class;
-    
-    // Khai báo quan hệ với bảng khác
-    protected $relationships = [
-        'manhinh' => [
-            'model' => 'App\Modules\manhinh\Models\ManhinhModel',
-            'type' => 'hasMany',
-            'foreignKey' => 'camera_id'
-        ]
-    ];
     
     // Trường có thể tìm kiếm
     protected $searchableFields = [
@@ -52,8 +44,7 @@ class CameraModel extends BaseModel
     
     // Trường có thể lọc
     protected $filterableFields = [
-        'status',
-        'bin'
+        'status'
     ];
     
     // Các quy tắc xác thực
@@ -61,11 +52,11 @@ class CameraModel extends BaseModel
     protected $validationMessages = [];
     protected $skipValidation = false;
     
-    // Camera pager
-    protected $Pager = null;
+    // Template pager
+    public $pager = null;
     
     /**
-     * Lấy tất cả camera
+     * Lấy tất cả bản ghi camera
      *
      * @param int $limit Số lượng bản ghi trên mỗi trang
      * @param int $offset Vị trí bắt đầu lấy dữ liệu
@@ -73,42 +64,71 @@ class CameraModel extends BaseModel
      * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAll($limit = 10, $offset = 0, $sort = 'ten_camera', $order = 'ASC')
+    public function getAll($limit = 10, $offset = 0, $sort = 'created_at', $order = 'DESC')
     {
-        // Reset query builder để đảm bảo không có điều kiện nào từ trước
         $this->builder = $this->db->table($this->table);
         $this->builder->select('*');
-        $this->builder->where('deleted_at', null);
-        $this->builder->where('bin', 0);
+        
+        // Chỉ lấy bản ghi chưa xóa
+        $this->builder->where('deleted_at IS NULL');
         
         if ($sort && $order) {
             $this->builder->orderBy($sort, $order);
         }
         
-        // Lấy tổng số bản ghi để cấu hình pagination
         $total = $this->countAll();
-        
-        // Tính toán trang hiện tại từ offset và limit
         $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
         
-        // Khởi tạo Pager nếu chưa có
-        if ($this->Pager === null) {
-            $this->Pager = new Pager($total, $limit, $currentPage);
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
         } else {
-            $this->Pager->setTotal($total)
-                             ->setPerPage($limit)
-                             ->setCurrentPage($currentPage);
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
         }
         
-        // Lấy dữ liệu với phân trang
         $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
-        
-        // Đảm bảo kết quả được trả về dù không có dữ liệu
         return $result ?: [];
     }
     
     /**
-     * Đếm tổng số camera không nằm trong thùng rác
+     * Lấy tất cả bản ghi camera đã xóa
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
+     */
+    public function getAllDeleted($limit = 10, $offset = 0, $sort = 'deleted_at', $order = 'DESC')
+    {
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        
+        // Chỉ lấy bản ghi đã xóa
+        $this->builder->where('deleted_at IS NOT NULL');
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
+        }
+        
+        $total = $this->countAllDeleted();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        return $result ?: [];
+    }
+
+    /**
+     * Đếm tổng số bản ghi camera
      *
      * @param array $conditions Điều kiện bổ sung
      * @return int
@@ -116,9 +136,10 @@ class CameraModel extends BaseModel
     public function countAll($conditions = [])
     {
         $builder = $this->builder();
-        $builder->where('bin', 0);
         
-        // Áp dụng điều kiện bổ sung nếu có
+        // Mặc định chỉ đếm bản ghi chưa xóa
+        $builder->where('deleted_at IS NULL');
+        
         if (!empty($conditions)) {
             $builder->where($conditions);
         }
@@ -127,7 +148,27 @@ class CameraModel extends BaseModel
     }
     
     /**
-     * Lấy tất cả camera đang hoạt động
+     * Đếm tổng số bản ghi camera đã xóa
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAllDeleted($conditions = [])
+    {
+        $builder = $this->builder();
+        
+        // Mặc định chỉ đếm bản ghi đã xóa
+        $builder->where('deleted_at IS NOT NULL');
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Lấy tất cả bản ghi đang hoạt động
      *
      * @param int $limit Số lượng bản ghi trên mỗi trang
      * @param int $offset Vị trí bắt đầu lấy dữ liệu
@@ -135,36 +176,28 @@ class CameraModel extends BaseModel
      * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'ten_camera', string $order = 'ASC')
+    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'created_at', string $order = 'DESC')
     {
-        // Reset query builder
         $this->builder = $this->db->table($this->table);
         $this->builder->select('*');
-        $this->builder->where('deleted_at', null);
-        $this->builder->where('bin', 0);
         $this->builder->where('status', 1);
+        $this->builder->where('deleted_at IS NULL');
         
-        // Thiết lập sắp xếp
         if ($sort && $order) {
             $this->builder->orderBy($sort, $order);
         }
         
-        // Lấy tổng số bản ghi
         $total = $this->countAllActive();
-        
-        // Tính toán trang hiện tại từ offset và limit
         $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
         
-        // Khởi tạo Pager nếu chưa có
-        if ($this->Pager === null) {
-            $this->Pager = new Pager($total, $limit, $currentPage);
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
         } else {
-            $this->Pager->setTotal($total)
-                             ->setPerPage($limit)
-                             ->setCurrentPage($currentPage);
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
         }
         
-        // Nếu limit > 0 thì sử dụng phân trang
         if ($limit > 0) {
             $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
             return $result ?: [];
@@ -174,7 +207,7 @@ class CameraModel extends BaseModel
     }
     
     /**
-     * Đếm tổng số camera đang hoạt động
+     * Đếm tổng số bản ghi đang hoạt động
      *
      * @param array $conditions Điều kiện bổ sung
      * @return int
@@ -182,10 +215,9 @@ class CameraModel extends BaseModel
     public function countAllActive($conditions = [])
     {
         $builder = $this->builder();
-        $builder->where('bin', 0);
         $builder->where('status', 1);
+        $builder->where('deleted_at IS NULL');
         
-        // Áp dụng điều kiện bổ sung nếu có
         if (!empty($conditions)) {
             $builder->where($conditions);
         }
@@ -194,257 +226,26 @@ class CameraModel extends BaseModel
     }
     
     /**
-     * Lấy tất cả camera trong thùng rác
+     * Tìm kiếm camera dựa vào các tiêu chí
      *
-     * @param int $limit Số lượng bản ghi trên mỗi trang
-     * @param int $offset Vị trí bắt đầu lấy dữ liệu
-     * @param string $sort Trường sắp xếp
-     * @param string $order Thứ tự sắp xếp (ASC, DESC)
-     * @return array
-     */
-    public function getAllInRecycleBin(int $limit = 10, int $offset = 0, string $sort = 'updated_at', string $order = 'DESC')
-    {
-        // Reset query builder để đảm bảo không có điều kiện nào từ trước
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        $this->builder->where('bin', 1);
-        
-        // Thiết lập sắp xếp
-        if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
-        }
-        
-        // Lấy tổng số bản ghi để cấu hình pagination
-        $total = $this->countAllInRecycleBin();
-        
-        // Tính toán trang hiện tại từ offset và limit
-        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
-        
-        // Khởi tạo Pager nếu chưa có
-        if ($this->Pager === null) {
-            $this->Pager = new Pager($total, $limit, $currentPage);
-        } else {
-            $this->Pager->setTotal($total)
-                             ->setPerPage($limit)
-                             ->setCurrentPage($currentPage);
-        }
-        
-        // Lấy dữ liệu với phân trang
-        if ($limit > 0) {
-            $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
-            return $result ?: [];
-        }
-        
-        return $this->findAll();
-    }
-    
-    /**
-     * Đếm tổng số camera trong thùng rác
-     *
-     * @param array $conditions Điều kiện bổ sung
-     * @return int
-     */
-    public function countAllInRecycleBin($conditions = [])
-    {
-        $builder = $this->builder();
-        $builder->where('bin', 1);
-        
-        // Áp dụng điều kiện bổ sung nếu có
-        if (!empty($conditions)) {
-            $builder->where($conditions);
-        }
-        
-        return $builder->countAllResults();
-    }
-    
-    /**
-     * Lấy camera theo ID
-     *
-     * @param mixed $id
-     * @param array|null $relations Quan hệ cần tải
-     * @param bool $validate Xác thực dữ liệu hay không
-     * @return Camera|null
-     */
-    public function findWithRelations($id, $relations = [], $validate = false)
-    {
-        if (empty($relations)) {
-            $relations = ['manhinh'];
-        }
-        
-        return parent::findWithRelations($id, $relations, $validate);
-    }
-    
-    /**
-     * Tìm kiếm camera
-     *
-     * @param array $criteria Tiêu chí tìm kiếm
-     * @param array $options Tùy chọn tìm kiếm (limit, offset, relations, sort, order)
+     * @param array $criteria Các tiêu chí tìm kiếm
+     * @param array $options Tùy chọn phân trang và sắp xếp
      * @return array
      */
     public function search(array $criteria = [], array $options = [])
     {
-        // Reset query builder để đảm bảo không có điều kiện nào từ trước
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        
-        // Loại trừ các bản ghi đã bị xóa mềm
-        if ($this->useSoftDeletes) {
-            $this->builder->where($this->table . '.' . $this->deletedField, null);
-        }
-        
-        // Mặc định các tùy chọn
-        $defaultOptions = [
-            'limit' => 10,
-            'offset' => 0,
-            'sort' => 'ten_camera',
-            'order' => 'ASC'
-        ];
-        
-        // Merge options
-        $options = array_merge($defaultOptions, $options);
-        
-        // Log đầy đủ tham số tìm kiếm và tùy chọn
-        log_message('debug', 'Tham số tìm kiếm và tùy chọn đầy đủ:');
-        log_message('debug', 'Tham số tìm kiếm: ' . json_encode($criteria));
-        log_message('debug', 'Tùy chọn: ' . json_encode($options));
-        
-        // Xử lý từ khóa tìm kiếm
-        if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
-            $keyword = trim($criteria['keyword']);
-            
-            // Sử dụng LIKE chính xác
-            $this->builder->groupStart();
-            foreach ($this->searchableFields as $index => $field) {
-                if ($index === 0) {
-                    $this->builder->like($field, $keyword);
-                } else {
-                    $this->builder->orLike($field, $keyword);
-                }
-            }
-            $this->builder->groupEnd();
-            
-            log_message('debug', 'Từ khóa tìm kiếm: ' . $keyword);
-        }
-        
-        // Xử lý status - đặc biệt quan tâm đến status=0
-        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
-            $status = $criteria['status'];
-            log_message('debug', 'Giá trị status nhận được: ' . var_export($status, true));
-            
-            // Chuyển đổi thành số và áp dụng cho truy vấn
-            $status = (int)$status;
-            $this->builder->where($this->table . '.status', $status);
-            log_message('debug', 'Giá trị status sau khi ép kiểu: ' . $status);
-        }
-        
-        // Xác định xem đang lấy dữ liệu từ thùng rác hay không
-        $bin = isset($criteria['bin']) ? (int)$criteria['bin'] : 0;
-        $this->builder->where($this->table . '.bin', $bin);
-        
-        // Thiết lập sắp xếp
-        if (!empty($options['sort']) && !empty($options['order'])) {
-            $this->builder->orderBy($options['sort'], $options['order']);
-        }
-        
-        // Clone builder để đếm tổng số bản ghi
-        $builderForCount = clone $this->builder;
-        $total = $builderForCount->countAllResults();
-        log_message('debug', 'Tổng số bản ghi phù hợp (đếm trực tiếp): ' . $total);
-        
-        // Tính toán trang hiện tại từ offset và limit
-        $currentPage = $options['limit'] > 0 ? floor($options['offset'] / $options['limit']) + 1 : 1;
-        log_message('debug', 'Tính toán trang: offset=' . $options['offset'] . ', limit=' . $options['limit'] . ', trang=' . $currentPage);
-        
-        // Khởi tạo Pager nếu chưa có
-        if ($this->Pager === null) {
-            $this->Pager = new Pager($total, $options['limit'], $currentPage);
-        } else {
-            $this->Pager->setTotal($total)
-                             ->setPerPage($options['limit'])
-                             ->setCurrentPage($currentPage);
-        }
-        
-        // Phân trang kết quả
-        if ($options['limit'] > 0) {
-            // Log câu lệnh SQL để debug trước khi thêm limit
-            $sqlBeforeLimit = $this->builder->getCompiledSelect(false);
-            log_message('debug', 'SQL Query trước khi limit: ' . $sqlBeforeLimit);
-            
-            // Đảm bảo offset không vượt quá tổng số bản ghi
-            if ($options['offset'] >= $total) {
-                // Nếu offset vượt quá, reset về trang 1
-                log_message('debug', 'Offset vượt quá tổng số bản ghi, reset về trang 1');
-                $options['offset'] = 0;
-                $currentPage = 1;
-                
-                // Cập nhật lại pager
-                $this->Pager->setCurrentPage($currentPage);
-            }
-            
-            // Thêm limit và lấy kết quả
-            $this->builder->limit($options['limit'], $options['offset']);
-            $sqlWithLimit = $this->builder->getCompiledSelect(false);
-            log_message('debug', 'SQL Query sau khi limit: ' . $sqlWithLimit);
-            
-            // Thực hiện truy vấn
-            $result = $this->builder->get()->getResult($this->returnType);
-            
-            // Debug thông tin chi tiết các bản ghi
-            if (!empty($result)) {
-                // Lấy danh sách ID của các bản ghi trả về
-                $record_ids = array_map(function($record) {
-                    return $record->camera_id;
-                }, $result);
-                
-                // Log thông tin chi tiết
-                $debug_info = [
-                    'total_records' => $total,
-                    'current_page' => $currentPage,
-                    'per_page' => $options['limit'],
-                    'offset' => $options['offset'],
-                    'record_count' => count($result),
-                    'record_ids' => $record_ids
-                ];
-                log_message('debug', 'Thông tin phân trang và kết quả: ' . json_encode($debug_info));
-                
-                // Lấy một số bản ghi đầu tiên để kiểm tra
-                if (count($result) > 0) {
-                    $sampleRecord = $result[0];
-                    log_message('debug', 'Bản ghi đầu tiên: camera_id=' . $sampleRecord->camera_id . 
-                        ', ten_camera=' . $sampleRecord->ten_camera . 
-                        ', status=' . $sampleRecord->status);
-                }
-            } else {
-                log_message('debug', 'Không tìm thấy bản ghi nào với các tham số hiện tại');
-            }
-            
-            return $result ?: [];
-        }
-        
-        return $this->findAll();
-    }
-    
-    /**
-     * Đếm số lượng kết quả tìm kiếm
-     *
-     * @param array $params Tham số tìm kiếm
-     * @return int
-     */
-    public function countSearchResults(array $params)
-    {
         $builder = $this->builder();
         
-        // Loại trừ các bản ghi đã bị xóa mềm
-        if ($this->useSoftDeletes) {
-            $builder->where($this->table . '.' . $this->deletedField, null);
+        // Xử lý withDeleted nếu cần
+        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+            $builder->where($this->table . '.deleted_at IS NOT NULL');
+        } else {
+            // Mặc định chỉ lấy dữ liệu chưa xóa
+            $builder->where($this->table . '.deleted_at IS NULL');
         }
         
-        // Log tham số đầu vào
-        log_message('debug', 'Count: Tham số đếm nhận được: ' . json_encode($params));
-        
-        // Xử lý từ khóa tìm kiếm
-        if (!empty($params['keyword'])) {
-            $keyword = trim($params['keyword']);
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
             
             $builder->groupStart();
             foreach ($this->searchableFields as $index => $field) {
@@ -455,38 +256,89 @@ class CameraModel extends BaseModel
                 }
             }
             $builder->groupEnd();
-            
-            log_message('debug', 'Count: Từ khóa tìm kiếm: ' . $keyword);
         }
         
-        // Xử lý status - giống như phương thức search()
-        if (isset($params['status']) || array_key_exists('status', $params)) {
-            $status = $params['status'];
-            log_message('debug', 'Count: Giá trị status nhận được: ' . var_export($status, true));
-            
-            // Chuyển đổi thành số và áp dụng cho truy vấn
-            $status = (int)$status;
+        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
+            $status = (int)$criteria['status'];
             $builder->where($this->table . '.status', $status);
-            log_message('debug', 'Count: Giá trị status sau khi ép kiểu: ' . $status);
         }
         
-        // Mặc định không đếm bản ghi trong thùng rác, trừ khi chỉ định rõ
-        $bin = isset($params['bin']) ? (int)$params['bin'] : 0;
-        $builder->where($this->table . '.bin', $bin);
+        // Xác định trường sắp xếp và thứ tự sắp xếp
+        $sort = $options['sort'] ?? 'created_at';
+        $order = $options['order'] ?? 'DESC';
         
-        // Log câu lệnh SQL để debug
-        $sqlCount = $builder->getCompiledSelect(false);
-        log_message('debug', 'Count: SQL Query để đếm: ' . $sqlCount);
+        // Xử lý giới hạn và phân trang
+        $limit = $options['limit'] ?? 10;
+        $offset = $options['offset'] ?? 0;
         
-        $count = $builder->countAllResults();
-        log_message('debug', 'Count: Tổng số bản ghi tìm thấy: ' . $count);
+        // Thực hiện truy vấn với phân trang
+        if ($limit > 0) {
+            $builder->limit($limit, $offset);
+        }
         
-        return $count;
+        // Sắp xếp kết quả
+        $builder->orderBy($sort, $order);
+        
+        // Thực hiện truy vấn
+        $result = $builder->get()->getResult($this->returnType);
+        
+        // Thiết lập pager nếu cần
+        if ($limit > 0) {
+            $totalRows = $this->countSearchResults($criteria);
+            $this->pager = new Pager(
+                $totalRows,
+                $limit,
+                floor($offset / $limit) + 1
+            );
+            $this->pager->setSurroundCount($this->surroundCount ?? 2);
+        }
+        
+        return $result;
     }
     
     /**
-     * Chuẩn bị các quy tắc xác thực dựa trên ngữ cảnh
+     * Đếm tổng số kết quả tìm kiếm
      *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @return int
+     */
+    public function countSearchResults(array $criteria = [])
+    {
+        $builder = $this->builder();
+        
+        // Xử lý withDeleted nếu cần
+        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+            $builder->where($this->table . '.deleted_at IS NOT NULL');
+        } else {
+            // Mặc định chỉ lấy dữ liệu chưa xóa
+            $builder->where($this->table . '.deleted_at IS NULL');
+        }
+        
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
+            
+            $builder->groupStart();
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($field, $keyword);
+                } else {
+                    $builder->orLike($field, $keyword);
+                }
+            }
+            $builder->groupEnd();
+        }
+        
+        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
+            $status = (int)$criteria['status'];
+            $builder->where($this->table . '.status', $status);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Chuẩn bị các quy tắc xác thực dựa trên tình huống
+     * 
      * @param string $scenario Tình huống xác thực ('insert' hoặc 'update')
      * @param array $data Dữ liệu cần xác thực
      */
@@ -496,114 +348,29 @@ class CameraModel extends BaseModel
         $this->validationRules = $entity->getValidationRules();
         $this->validationMessages = $entity->getValidationMessages();
         
-        // Loại bỏ các quy tắc validate cho trường thời gian (vì chúng được tự động xử lý bởi model)
+        // Loại trừ các trường timestamp và primary key khi thêm mới
         unset($this->validationRules['created_at']);
         unset($this->validationRules['updated_at']);
         unset($this->validationRules['deleted_at']);
-        
-        // Điều chỉnh quy tắc dựa trên tình huống
+        // Loại bỏ validation cho camera_id trong mọi trường hợp
+        unset($this->validationRules['camera_id']);
+        unset($this->validationRules['username']);
+        unset($this->validationRules['password']);
         if ($scenario === 'update' && isset($data['camera_id'])) {
-            // Khi cập nhật, cần loại trừ chính ID hiện tại khi kiểm tra tính duy nhất
             foreach ($this->validationRules as $field => &$rules) {
-                if (strpos($rules, 'is_unique') !== false) {
-                    // Thay thế placeholder {camera_id} bằng ID thực tế
+                // Kiểm tra nếu $rules là một mảng
+                if (is_array($rules) && isset($rules['rules'])) {
+                    // Kiểm tra nếu chuỗi quy tắc chứa is_unique
+                    if (strpos($rules['rules'], 'is_unique') !== false) {
+                        $rules['rules'] = str_replace('{camera_id}', $data['camera_id'], $rules['rules']);
+                    }
+                } 
+                // Nếu $rules là một chuỗi
+                else if (is_string($rules) && strpos($rules, 'is_unique') !== false) {
                     $rules = str_replace('{camera_id}', $data['camera_id'], $rules);
                 }
             }
-        } elseif ($scenario === 'insert') {
-            // Khi thêm mới, bỏ loại trừ ID vì không có ID nào cần loại trừ
-            foreach ($this->validationRules as $field => &$rules) {
-                if (strpos($rules, 'is_unique') !== false) {
-                    $rules = str_replace(',camera_id,{camera_id}', '', $rules);
-                }
-            }
         }
-    }
-    
-    /**
-     * Chuyển một camera vào thùng rác
-     *
-     * @param int $id ID của camera cần chuyển vào thùng rác
-     * @return bool Trả về true nếu thành công, false nếu thất bại
-     */
-    public function moveToRecycleBin($id)
-    {
-        $camera = $this->find($id);
-        
-        if (!$camera) {
-            return false;
-        }
-        
-        // Cập nhật trạng thái bin thành 1 (đã trong thùng rác)
-        $camera->bin = 1;
-        
-        // Lưu vào cơ sở dữ liệu
-        return $this->save($camera);
-    }
-    
-    /**
-     * Khôi phục camera từ thùng rác
-     *
-     * @param int $id ID của camera cần khôi phục
-     * @return bool Trả về true nếu thành công, false nếu thất bại
-     */
-    public function restoreFromRecycleBin($id)
-    {
-        $camera = $this->find($id);
-        
-        if (!$camera) {
-            log_message('error', "Không tìm thấy camera với ID: {$id}");
-            return false;
-        }
-        
-        log_message('debug', "Bắt đầu khôi phục camera ID: {$id}, tên: {$camera->ten_camera}");
-        
-        try {
-            // Cập nhật trạng thái bin thành 0 (không trong thùng rác)
-            $camera->bin = 0;
-            
-            // Lưu vào cơ sở dữ liệu
-            $success = $this->save($camera);
-            
-            if ($success) {
-                log_message('debug', "Khôi phục thành công camera ID: {$id}");
-            } else {
-                log_message('error', "Lỗi khi lưu camera: " . print_r($this->errors(), true));
-            }
-            
-            return $success;
-        } catch (\Exception $e) {
-            log_message('error', "Ngoại lệ khi khôi phục camera: " . $e->getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * Kiểm tra xem tên camera đã tồn tại chưa
-     *
-     * @param string $name Tên camera cần kiểm tra
-     * @param int|null $exceptId ID camera để loại trừ khỏi việc kiểm tra (hữu ích khi cập nhật)
-     * @return bool Trả về true nếu tên đã tồn tại, false nếu chưa
-     */
-    public function isNameExists(string $name, ?int $exceptId = null): bool
-    {
-        $builder = $this->builder();
-        $builder->where('ten_camera', $name);
-        
-        // Loại trừ camera có ID cụ thể (dùng khi cập nhật)
-        if ($exceptId !== null) {
-            $builder->where("{$this->primaryKey} !=", $exceptId);
-        }
-        
-        // Loại trừ các bản ghi đã bị xóa mềm
-        if ($this->useSoftDeletes) {
-            $builder->where($this->deletedField, null);
-        }
-        
-        // Kiểm tra cả những camera không nằm trong thùng rác và trong thùng rác
-        // Điều này đảm bảo tên camera là duy nhất trong toàn bộ hệ thống
-        
-        return $builder->countAllResults() > 0;
     }
     
     /**
@@ -614,9 +381,8 @@ class CameraModel extends BaseModel
      */
     public function setSurroundCount(int $count)
     {
-        // Nếu đã có Pager thì cập nhật, nếu chưa thì chỉ lưu giá trị để dùng sau
-        if ($this->Pager !== null) {
-            $this->Pager->setSurroundCount($count);
+        if ($this->pager !== null) {
+            $this->pager->setSurroundCount($count);
         }
         
         return $this;
@@ -629,6 +395,78 @@ class CameraModel extends BaseModel
      */
     public function getPager()
     {
-        return $this->Pager;
+        return $this->pager;
+    }
+    
+    /**
+     * Tìm bản ghi với các quan hệ
+     *
+     * @param int $id ID bản ghi cần tìm
+     * @param array $relations Các quan hệ cần lấy theo
+     * @param bool $validate Có kiểm tra dữ liệu trước khi trả về không
+     * @return object|null Đối tượng tìm thấy hoặc null nếu không tìm thấy
+     */
+    public function findWithRelations($id, $relations = [], $validate = false)
+    {
+        // Trong trường hợp đơn giản, chúng ta chỉ gọi phương thức find
+        // Nhưng trong thực tế, có thể cần xử lý thêm các quan hệ
+        return $this->find($id);
+    }
+    
+    /**
+     * Tìm kiếm các bản ghi đã xóa
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @param array $options Tùy chọn tìm kiếm (limit, offset, sort, order)
+     * @return array
+     */
+    public function searchDeleted(array $criteria = [], array $options = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
+        // Đặt điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
+        return $this->search($criteria, $options);
+    }
+    
+    /**
+     * Đếm số lượng bản ghi đã xóa theo tiêu chí tìm kiếm
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @return int
+     */
+    public function countDeletedResults(array $criteria = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
+        // Đặt điều kiện để chỉ đếm các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
+        return $this->countSearchResults($criteria);
+    }
+    
+    /**
+     * Kiểm tra xem tên camera đã tồn tại chưa
+     *
+     * @param string $tenCamera
+     * @param int|null $excludeId ID của bản ghi cần loại trừ khi kiểm tra (cho update)
+     * @return bool
+     */
+    public function isTenCameraExists(string $tenCamera, ?int $excludeId = null): bool
+    {
+        $builder = $this->builder();
+        $builder->where('ten_camera', $tenCamera);
+        $builder->where('deleted_at IS NULL');
+        
+        if ($excludeId !== null) {
+            $builder->where($this->primaryKey . ' !=', $excludeId);
+        }
+        
+        return $builder->countAllResults() > 0;
     }
 } 

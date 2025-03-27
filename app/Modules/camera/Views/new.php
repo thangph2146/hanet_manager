@@ -8,10 +8,10 @@
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
 	'title' => 'Thêm mới Camera',
-	'dashboard_url' => site_url('camera/dashboard'),
+	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Camera', 'url' => site_url('camera')],
-		['title' => 'Thêm mới Camera', 'active' => true]
+		['title' => 'Quản lý Camera', 'url' => site_url($module_name)],
+		['title' => 'Thêm mới', 'active' => true]
 	]
 ]) ?>
 <?= $this->endSection() ?>
@@ -19,9 +19,11 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
 	<div class="card-body">
-		<?= form_open(site_url('camera/create'), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-camera']) ?>
+		<?= form_open(site_url($module_name . '/create'), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
 			<?php
 			// Include form fields
+			$action = site_url($module_name . '/create');
+			$method = 'POST';
 			include __DIR__ . '/form.php';
 			?>
 		<?= form_close() ?>
@@ -30,20 +32,5 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= page_js('form') ?>
-<script>
-	document.addEventListener('DOMContentLoaded', function () {
-		const form = document.getElementById('form-camera');
-		
-		// Validate form khi submit
-		form.addEventListener('submit', function (event) {
-			if (!form.checkValidity()) {
-				event.preventDefault();
-				event.stopPropagation();
-			}
-			
-			form.classList.add('was-validated');
-		});
-	});
-</script>
+<?= page_js('form', $module_name) ?>
 <?= $this->endSection() ?> 
