@@ -28,7 +28,14 @@ class DienGiaModel extends BaseModel
         'to_chuc',
         'gioi_thieu',
         'avatar',
-        'thu_tu',
+        'email',
+        'dien_thoai',
+        'website',
+        'nguoi_dung_id',
+        'chuyen_mon',
+        'thanh_tuu',
+        'mang_xa_hoi',
+        'status',
         'created_at',
         'updated_at',
         'deleted_at'
@@ -40,7 +47,17 @@ class DienGiaModel extends BaseModel
     protected $searchableFields = [
         'ten_dien_gia',
         'chuc_danh',
-        'to_chuc'
+        'to_chuc',
+        'gioi_thieu',
+        'email',
+        'dien_thoai',
+        'chuyen_mon',
+        'thanh_tuu'
+    ];
+    
+    // Trường có thể lọc
+    protected $filterableFields = [
+        'status'
     ];
     
     // Các quy tắc xác thực
@@ -48,7 +65,7 @@ class DienGiaModel extends BaseModel
     protected $validationMessages = [];
     protected $skipValidation = false;
     
-    // Template pager
+    // DienGia pager
     public $pager = null;
     
     /**
@@ -60,16 +77,17 @@ class DienGiaModel extends BaseModel
      * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAll($limit = 10, $offset = 0, $sort = 'thu_tu', $order = 'ASC')
+    public function getAll($limit = 10, $offset = 0, $sort = 'created_at', $order = 'DESC')
     {
         $this->builder = $this->db->table($this->table);
         $this->builder->select('*');
         
-        // Chỉ lấy bản ghi chưa xóa
-        $this->builder->where('deleted_at IS NULL');
+        // Chỉ lấy bản ghi chưa xóa và đang hoạt động
+        $this->builder->where($this->table . '.deleted_at IS NULL');
+        $this->builder->where($this->table . '.status', 1);
         
         if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
+            $this->builder->orderBy($this->table . '.' . $sort, $order);
         }
         
         $total = $this->countAll();
@@ -88,42 +106,6 @@ class DienGiaModel extends BaseModel
     }
     
     /**
-     * Lấy tất cả bản ghi diễn giả đã xóa
-     *
-     * @param int $limit Số lượng bản ghi trên mỗi trang
-     * @param int $offset Vị trí bắt đầu lấy dữ liệu
-     * @param string $sort Trường sắp xếp
-     * @param string $order Thứ tự sắp xếp (ASC, DESC)
-     * @return array
-     */
-    public function getAllDeleted($limit = 10, $offset = 0, $sort = 'deleted_at', $order = 'DESC')
-    {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        
-        // Chỉ lấy bản ghi đã xóa
-        $this->builder->where('deleted_at IS NOT NULL');
-        
-        if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
-        }
-        
-        $total = $this->countAllDeleted();
-        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
-        
-        if ($this->pager === null) {
-            $this->pager = new Pager($total, $limit, $currentPage);
-        } else {
-            $this->pager->setTotal($total)
-                        ->setPerPage($limit)
-                        ->setCurrentPage($currentPage);
-        }
-        
-        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
-        return $result ?: [];
-    }
-
-    /**
      * Đếm tổng số bản ghi diễn giả
      *
      * @param array $conditions Điều kiện bổ sung
@@ -133,28 +115,9 @@ class DienGiaModel extends BaseModel
     {
         $builder = $this->builder();
         
-        // Mặc định chỉ đếm bản ghi chưa xóa
-        $builder->where('deleted_at IS NULL');
-        
-        if (!empty($conditions)) {
-            $builder->where($conditions);
-        }
-        
-        return $builder->countAllResults();
-    }
-    
-    /**
-     * Đếm tổng số bản ghi diễn giả đã xóa
-     *
-     * @param array $conditions Điều kiện bổ sung
-     * @return int
-     */
-    public function countAllDeleted($conditions = [])
-    {
-        $builder = $this->builder();
-        
-        // Mặc định chỉ đếm bản ghi đã xóa
-        $builder->where('deleted_at IS NOT NULL');
+        // Mặc định chỉ đếm bản ghi chưa xóa và đang hoạt động
+        $builder->where($this->table . '.deleted_at IS NULL');
+        $builder->where($this->table . '.status', 1);
         
         if (!empty($conditions)) {
             $builder->where($conditions);
@@ -178,8 +141,9 @@ class DienGiaModel extends BaseModel
         if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
             $builder->where($this->table . '.deleted_at IS NOT NULL');
         } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa
+            // Mặc định chỉ lấy dữ liệu chưa xóa và đang hoạt động
             $builder->where($this->table . '.deleted_at IS NULL');
+            $builder->where($this->table . '.status', 1);
         }
         
         if (!empty($criteria['keyword'])) {
@@ -188,17 +152,17 @@ class DienGiaModel extends BaseModel
             $builder->groupStart();
             foreach ($this->searchableFields as $index => $field) {
                 if ($index === 0) {
-                    $builder->like($field, $keyword);
+                    $builder->like($this->table . '.' . $field, $keyword);
                 } else {
-                    $builder->orLike($field, $keyword);
+                    $builder->orLike($this->table . '.' . $field, $keyword);
                 }
             }
             $builder->groupEnd();
         }
         
         // Xác định trường sắp xếp và thứ tự sắp xếp
-        $sort = $options['sort'] ?? 'thu_tu';
-        $order = $options['order'] ?? 'ASC';
+        $sort = $options['sort'] ?? 'created_at';
+        $order = $options['order'] ?? 'DESC';
         
         // Xử lý giới hạn và phân trang
         $limit = $options['limit'] ?? 10;
@@ -210,7 +174,7 @@ class DienGiaModel extends BaseModel
         }
         
         // Sắp xếp kết quả
-        $builder->orderBy($sort, $order);
+        $builder->orderBy($this->table . '.' . $sort, $order);
         
         // Thực hiện truy vấn
         $result = $builder->get()->getResult($this->returnType);
@@ -243,8 +207,9 @@ class DienGiaModel extends BaseModel
         if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
             $builder->where($this->table . '.deleted_at IS NOT NULL');
         } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa
+            // Mặc định chỉ lấy dữ liệu chưa xóa và đang hoạt động
             $builder->where($this->table . '.deleted_at IS NULL');
+            $builder->where($this->table . '.status', 1);
         }
         
         if (!empty($criteria['keyword'])) {
@@ -253,9 +218,9 @@ class DienGiaModel extends BaseModel
             $builder->groupStart();
             foreach ($this->searchableFields as $index => $field) {
                 if ($index === 0) {
-                    $builder->like($field, $keyword);
+                    $builder->like($this->table . '.' . $field, $keyword);
                 } else {
-                    $builder->orLike($field, $keyword);
+                    $builder->orLike($this->table . '.' . $field, $keyword);
                 }
             }
             $builder->groupEnd();
@@ -326,69 +291,17 @@ class DienGiaModel extends BaseModel
     }
     
     /**
-     * Tìm bản ghi với các quan hệ
+     * Kiểm tra xem email đã tồn tại chưa
      *
-     * @param int $id ID bản ghi cần tìm
-     * @param array $relations Các quan hệ cần lấy theo
-     * @param bool $validate Có kiểm tra dữ liệu trước khi trả về không
-     * @return object|null Đối tượng tìm thấy hoặc null nếu không tìm thấy
-     */
-    public function findWithRelations($id, $relations = [], $validate = false)
-    {
-        // Trong trường hợp đơn giản, chúng ta chỉ gọi phương thức find
-        // Nhưng trong thực tế, có thể cần xử lý thêm các quan hệ
-        return $this->find($id);
-    }
-    
-    /**
-     * Tìm kiếm các bản ghi đã xóa
-     *
-     * @param array $criteria Tiêu chí tìm kiếm
-     * @param array $options Tùy chọn tìm kiếm (limit, offset, sort, order)
-     * @return array
-     */
-    public function searchDeleted(array $criteria = [], array $options = [])
-    {
-        // Đảm bảo withDeleted được thiết lập
-        $this->withDeleted();
-        
-        // Đặt điều kiện để chỉ lấy các bản ghi đã xóa
-        $criteria['deleted'] = true;
-        
-        // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
-        return $this->search($criteria, $options);
-    }
-    
-    /**
-     * Đếm số lượng bản ghi đã xóa theo tiêu chí tìm kiếm
-     *
-     * @param array $criteria Tiêu chí tìm kiếm
-     * @return int
-     */
-    public function countDeletedResults(array $criteria = [])
-    {
-        // Đảm bảo withDeleted được thiết lập
-        $this->withDeleted();
-        
-        // Đặt điều kiện để chỉ đếm các bản ghi đã xóa
-        $criteria['deleted'] = true;
-        
-        // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
-        return $this->countSearchResults($criteria);
-    }
-    
-    /**
-     * Kiểm tra xem tên diễn giả đã tồn tại chưa
-     *
-     * @param string $tenDienGia
+     * @param string $email
      * @param int|null $excludeId ID của bản ghi cần loại trừ khi kiểm tra (cho update)
      * @return bool
      */
-    public function isTenDienGiaExists(string $tenDienGia, ?int $excludeId = null): bool
+    public function isEmailExists(string $email, ?int $excludeId = null): bool
     {
         $builder = $this->builder();
-        $builder->where('ten_dien_gia', $tenDienGia);
-        $builder->where('deleted_at IS NULL');
+        $builder->where('email', $email);
+        $builder->where($this->table . '.deleted_at IS NULL');
         
         if ($excludeId !== null) {
             $builder->where($this->primaryKey . ' !=', $excludeId);
@@ -396,58 +309,93 @@ class DienGiaModel extends BaseModel
         
         return $builder->countAllResults() > 0;
     }
-    
+
     /**
-     * Lấy tất cả bản ghi đang hoạt động
+     * Tìm kiếm các bản ghi đã xóa
      *
-     * @param int $limit Số lượng bản ghi trên mỗi trang
-     * @param int $offset Vị trí bắt đầu lấy dữ liệu
-     * @param string $sort Trường sắp xếp
-     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @param array $criteria Các tiêu chí tìm kiếm
+     * @param array $options Tùy chọn phân trang và sắp xếp
      * @return array
      */
-    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'created_at', string $order = 'DESC')
+    public function searchDeleted(array $criteria = [], array $options = [])
     {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        $this->builder->where('deleted_at IS NULL');
+        $builder = $this->builder();
         
-        if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
+        // Chỉ lấy dữ liệu đã xóa
+        $builder->where($this->table . '.deleted_at IS NOT NULL');
+        
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
+            
+            $builder->groupStart();
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($this->table . '.' . $field, $keyword);
+                } else {
+                    $builder->orLike($this->table . '.' . $field, $keyword);
+                }
+            }
+            $builder->groupEnd();
         }
         
-        $total = $this->countAllActive();
-        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        // Xác định trường sắp xếp và thứ tự sắp xếp
+        $sort = $options['sort'] ?? 'deleted_at';
+        $order = $options['order'] ?? 'DESC';
         
-        if ($this->pager === null) {
-            $this->pager = new Pager($total, $limit, $currentPage);
-        } else {
-            $this->pager->setTotal($total)
-                        ->setPerPage($limit)
-                        ->setCurrentPage($currentPage);
-        }
+        // Xử lý giới hạn và phân trang
+        $limit = $options['limit'] ?? 10;
+        $offset = $options['offset'] ?? 0;
         
+        // Thực hiện truy vấn với phân trang
         if ($limit > 0) {
-            $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
-            return $result ?: [];
+            $builder->limit($limit, $offset);
         }
         
-        return $this->findAll();
+        // Sắp xếp kết quả
+        $builder->orderBy($this->table . '.' . $sort, $order);
+        
+        // Thực hiện truy vấn
+        $result = $builder->get()->getResult($this->returnType);
+        
+        // Thiết lập pager nếu cần
+        if ($limit > 0) {
+            $totalRows = $this->countDeletedSearchResults($criteria);
+            $this->pager = new Pager(
+                $totalRows,
+                $limit,
+                floor($offset / $limit) + 1
+            );
+            $this->pager->setSurroundCount($this->surroundCount ?? 2);
+        }
+        
+        return $result;
     }
     
     /**
-     * Đếm tổng số bản ghi đang hoạt động
+     * Đếm tổng số kết quả tìm kiếm đã xóa
      *
-     * @param array $conditions Điều kiện bổ sung
+     * @param array $criteria Tiêu chí tìm kiếm
      * @return int
      */
-    public function countAllActive($conditions = [])
+    public function countDeletedSearchResults(array $criteria = [])
     {
         $builder = $this->builder();
-        $builder->where('deleted_at IS NULL');
         
-        if (!empty($conditions)) {
-            $builder->where($conditions);
+        // Chỉ đếm bản ghi đã xóa
+        $builder->where($this->table . '.deleted_at IS NOT NULL');
+        
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
+            
+            $builder->groupStart();
+            foreach ($this->searchableFields as $index => $field) {
+                if ($index === 0) {
+                    $builder->like($this->table . '.' . $field, $keyword);
+                } else {
+                    $builder->orLike($this->table . '.' . $field, $keyword);
+                }
+            }
+            $builder->groupEnd();
         }
         
         return $builder->countAllResults();

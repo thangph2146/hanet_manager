@@ -13,8 +13,15 @@ $chuc_danh = isset($data) ? $data->getChucDanh() : '';
 $to_chuc = isset($data) ? $data->getToChuc() : '';
 $gioi_thieu = isset($data) ? $data->getGioiThieu() : '';
 $avatar = isset($data) ? $data->getAvatar() : '';
-$thu_tu = isset($data) ? $data->getThuTu() : 0;
+$email = isset($data) ? $data->getEmail() : '';
+$dien_thoai = isset($data) ? $data->getDienThoai() : '';
+$website = isset($data) ? $data->getWebsite() : '';
+$chuyen_mon = isset($data) ? $data->getChuyenMon() : '';
+$thanh_tuu = isset($data) ? $data->getThanhTuu() : '';
+$mang_xa_hoi = isset($data) ? $data->getMangXaHoi() : [];
+$status = isset($data) ? $data->getStatus() : 1;
 $id = isset($data) ? $data->getId() : '';
+$nguoi_dung_id = isset($data) ? $data->getNguoiDungId() : '';
 
 // Set default values for form action and method
 $action = isset($action) ? $action : site_url($module_name . '/create');
@@ -29,7 +36,14 @@ $chuc_danh = old('chuc_danh', $chuc_danh);
 $to_chuc = old('to_chuc', $to_chuc);
 $gioi_thieu = old('gioi_thieu', $gioi_thieu);
 $avatar = old('avatar', $avatar);
-$thu_tu = old('thu_tu', $thu_tu);
+$email = old('email', $email);
+$dien_thoai = old('dien_thoai', $dien_thoai);
+$website = old('website', $website);
+$chuyen_mon = old('chuyen_mon', $chuyen_mon);
+$thanh_tuu = old('thanh_tuu', $thanh_tuu);
+$mang_xa_hoi = old('mang_xa_hoi', $mang_xa_hoi);
+$status = old('status', $status);
+$nguoi_dung_id = old('nguoi_dung_id', $nguoi_dung_id);
 ?>
 
 <!-- Form chính -->
@@ -95,7 +109,7 @@ $thu_tu = old('thu_tu', $thu_tu);
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white py-3">
             <h5 class="card-title mb-0">
-                <i class='bx bx-user-voice text-primary me-2'></i>
+                <i class='bx bx-user text-primary me-2'></i>
                 Thông tin diễn giả
             </h5>
         </div>
@@ -124,7 +138,7 @@ $thu_tu = old('thu_tu', $thu_tu);
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Tên diễn giả là duy nhất, tối đa 255 ký tự
+                        Tên diễn giả là bắt buộc, tối đa 255 ký tự
                     </div>
                 </div>
 
@@ -134,7 +148,7 @@ $thu_tu = old('thu_tu', $thu_tu);
                         Chức danh
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-id-card'></i></span>
+                        <span class="input-group-text bg-light"><i class='bx bx-briefcase'></i></span>
                         <input type="text" 
                                class="form-control <?= isset($validation) && $validation->hasError('chuc_danh') ? 'is-invalid' : '' ?>" 
                                id="chuc_danh" name="chuc_danh"
@@ -146,10 +160,6 @@ $thu_tu = old('thu_tu', $thu_tu);
                                 <?= $validation->getError('chuc_danh') ?>
                             </div>
                         <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Chức danh tối đa 255 ký tự (không bắt buộc)
                     </div>
                 </div>
 
@@ -164,7 +174,7 @@ $thu_tu = old('thu_tu', $thu_tu);
                                class="form-control <?= isset($validation) && $validation->hasError('to_chuc') ? 'is-invalid' : '' ?>" 
                                id="to_chuc" name="to_chuc"
                                value="<?= esc($to_chuc) ?>"
-                               placeholder="Nhập tên tổ chức"
+                               placeholder="Nhập tổ chức"
                                maxlength="255">
                         <?php if (isset($validation) && $validation->hasError('to_chuc')): ?>
                             <div class="invalid-feedback">
@@ -172,9 +182,68 @@ $thu_tu = old('thu_tu', $thu_tu);
                             </div>
                         <?php endif; ?>
                     </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Tổ chức tối đa 255 ký tự (không bắt buộc)
+                </div>
+
+                <!-- email -->
+                <div class="col-md-6">
+                    <label for="email" class="form-label fw-semibold">
+                        Email
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-envelope'></i></span>
+                        <input type="email" 
+                               class="form-control <?= isset($validation) && $validation->hasError('email') ? 'is-invalid' : '' ?>" 
+                               id="email" name="email"
+                               value="<?= esc($email) ?>"
+                               placeholder="Nhập email"
+                               maxlength="100">
+                        <?php if (isset($validation) && $validation->hasError('email')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('email') ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- dien_thoai -->
+                <div class="col-md-6">
+                    <label for="dien_thoai" class="form-label fw-semibold">
+                        Số điện thoại
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-phone'></i></span>
+                        <input type="text" 
+                               class="form-control <?= isset($validation) && $validation->hasError('dien_thoai') ? 'is-invalid' : '' ?>" 
+                               id="dien_thoai" name="dien_thoai"
+                               value="<?= esc($dien_thoai) ?>"
+                               placeholder="Nhập số điện thoại"
+                               maxlength="20">
+                        <?php if (isset($validation) && $validation->hasError('dien_thoai')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('dien_thoai') ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- website -->
+                <div class="col-md-12">
+                    <label for="website" class="form-label fw-semibold">
+                        Website
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-globe'></i></span>
+                        <input type="url" 
+                               class="form-control <?= isset($validation) && $validation->hasError('website') ? 'is-invalid' : '' ?>" 
+                               id="website" name="website"
+                               value="<?= esc($website) ?>"
+                               placeholder="Nhập website"
+                               maxlength="255">
+                        <?php if (isset($validation) && $validation->hasError('website')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('website') ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -184,25 +253,153 @@ $thu_tu = old('thu_tu', $thu_tu);
                         Giới thiệu
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-info-circle'></i></span>
+                        <span class="input-group-text bg-light"><i class='bx bx-detail'></i></span>
                         <textarea class="form-control <?= isset($validation) && $validation->hasError('gioi_thieu') ? 'is-invalid' : '' ?>" 
-                               id="gioi_thieu" name="gioi_thieu"
-                               placeholder="Nhập giới thiệu về diễn giả"
-                               rows="4"><?= esc($gioi_thieu) ?></textarea>
+                                  id="gioi_thieu" name="gioi_thieu"
+                                  rows="4"
+                                  placeholder="Nhập giới thiệu"><?= esc($gioi_thieu) ?></textarea>
                         <?php if (isset($validation) && $validation->hasError('gioi_thieu')): ?>
                             <div class="invalid-feedback">
                                 <?= $validation->getError('gioi_thieu') ?>
                             </div>
                         <?php endif; ?>
                     </div>
+                </div>
+
+                <!-- chuyen_mon -->
+                <div class="col-md-12">
+                    <label for="chuyen_mon" class="form-label fw-semibold">
+                        Chuyên môn
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-brain'></i></span>
+                        <textarea class="form-control <?= isset($validation) && $validation->hasError('chuyen_mon') ? 'is-invalid' : '' ?>" 
+                                  id="chuyen_mon" name="chuyen_mon"
+                                  rows="4"
+                                  placeholder="Nhập chuyên môn"><?= esc($chuyen_mon) ?></textarea>
+                        <?php if (isset($validation) && $validation->hasError('chuyen_mon')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('chuyen_mon') ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- thanh_tuu -->
+                <div class="col-md-12">
+                    <label for="thanh_tuu" class="form-label fw-semibold">
+                        Thành tựu
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-trophy'></i></span>
+                        <textarea class="form-control <?= isset($validation) && $validation->hasError('thanh_tuu') ? 'is-invalid' : '' ?>" 
+                                  id="thanh_tuu" name="thanh_tuu"
+                                  rows="4"
+                                  placeholder="Nhập thành tựu"><?= esc($thanh_tuu) ?></textarea>
+                        <?php if (isset($validation) && $validation->hasError('thanh_tuu')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('thanh_tuu') ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- nguoi_dung_id -->
+                <div class="col-md-12">
+                    <label for="nguoi_dung_id" class="form-label fw-semibold">
+                        Người dùng <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-user-circle'></i></span>
+                        <input type="number" 
+                               class="form-control <?= isset($validation) && $validation->hasError('nguoi_dung_id') ? 'is-invalid' : '' ?>" 
+                               id="nguoi_dung_id" name="nguoi_dung_id"
+                               value="<?= esc($nguoi_dung_id) ?>"
+                               placeholder="Nhập ID người dùng"
+                               required>
+                        <?php if (isset($validation) && $validation->hasError('nguoi_dung_id')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('nguoi_dung_id') ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng nhập ID người dùng</div>
+                        <?php endif; ?>
+                    </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Thông tin giới thiệu về diễn giả (không bắt buộc)
+                        ID người dùng là bắt buộc và phải là số nguyên
+                    </div>
+                </div>
+
+                <!-- mang_xa_hoi -->
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">
+                        Mạng xã hội
+                    </label>
+                    <div class="card border shadow-none">
+                        <div class="card-body p-3">
+                            <div id="social-media-container">
+                                <?php 
+                                $socialMedia = is_string($mang_xa_hoi) ? json_decode($mang_xa_hoi, true) : $mang_xa_hoi;
+                                if (empty($socialMedia)) {
+                                    $socialMedia = [
+                                        'facebook' => '',
+                                        'linkedin' => '',
+                                        'google_scholar' => '',
+                                        'researchgate' => ''
+                                    ];
+                                }
+                                foreach ($socialMedia as $platform => $url): 
+                                ?>
+                                <div class="social-media-item mb-3">
+                                    <div class="row g-2">
+                                        <div class="col-md-3">
+                                            <select class="form-select social-platform">
+                                                <option value="facebook" <?= $platform === 'facebook' ? 'selected' : '' ?>>Facebook</option>
+                                                <option value="linkedin" <?= $platform === 'linkedin' ? 'selected' : '' ?>>LinkedIn</option>
+                                                <option value="google_scholar" <?= $platform === 'google_scholar' ? 'selected' : '' ?>>Google Scholar</option>
+                                                <option value="researchgate" <?= $platform === 'researchgate' ? 'selected' : '' ?>>ResearchGate</option>
+                                                <option value="github" <?= $platform === 'github' ? 'selected' : '' ?>>GitHub</option>
+                                                <option value="stackoverflow" <?= $platform === 'stackoverflow' ? 'selected' : '' ?>>Stack Overflow</option>
+                                                <option value="twitter" <?= $platform === 'twitter' ? 'selected' : '' ?>>Twitter</option>
+                                                <option value="youtube" <?= $platform === 'youtube' ? 'selected' : '' ?>>YouTube</option>
+                                                <option value="other" <?= !in_array($platform, ['facebook', 'linkedin', 'google_scholar', 'researchgate', 'github', 'stackoverflow', 'twitter', 'youtube']) ? 'selected' : '' ?>>Khác</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 platform-name-col" style="display: <?= !in_array($platform, ['facebook', 'linkedin', 'google_scholar', 'researchgate', 'github', 'stackoverflow', 'twitter', 'youtube']) ? 'block' : 'none' ?>;">
+                                            <input type="text" class="form-control platform-name" placeholder="Tên nền tảng" value="<?= !in_array($platform, ['facebook', 'linkedin', 'google_scholar', 'researchgate', 'github', 'stackoverflow', 'twitter', 'youtube']) ? $platform : '' ?>">
+                                        </div>
+                                        <div class="col">
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class='bx bx-link'></i></span>
+                                                <input type="url" class="form-control social-url" placeholder="Nhập URL" value="<?= esc($url) ?>">
+                                                <button type="button" class="btn btn-outline-danger remove-social-media">
+                                                    <i class='bx bx-trash'></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            
+                            <input type="hidden" name="mang_xa_hoi" id="mang_xa_hoi_json" value='<?= is_array($mang_xa_hoi) ? json_encode($mang_xa_hoi) : esc($mang_xa_hoi) ?>'>
+                            
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="add-social-media">
+                                    <i class='bx bx-plus'></i> Thêm mạng xã hội
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-text text-muted mt-2">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Chọn nền tảng mạng xã hội và nhập URL tương ứng
                     </div>
                 </div>
 
                 <!-- avatar -->
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <label for="avatar" class="form-label fw-semibold">
                         Ảnh đại diện
                     </label>
@@ -218,39 +415,31 @@ $thu_tu = old('thu_tu', $thu_tu);
                             </div>
                         <?php endif; ?>
                     </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Ảnh đại diện diễn giả (không bắt buộc)
-                    </div>
-                    <?php if(!empty($avatar)): ?>
-                    <div class="mt-2">
-                        <img src="<?= base_url('uploads/diengia/' . $avatar) ?>" alt="Avatar" class="img-thumbnail" style="max-height: 100px;">
-                    </div>
+                    <?php if (!empty($avatar)): ?>
+                        <div class="mt-2">
+                            <img src="<?= base_url('uploads/diengia/' . $avatar) ?>" alt="Ảnh đại diện" class="img-thumbnail" style="max-width: 200px;">
+                        </div>
                     <?php endif; ?>
                 </div>
 
-                <!-- thu_tu -->
-                <div class="col-md-6">
-                    <label for="thu_tu" class="form-label fw-semibold">
-                        Thứ tự
+                <!-- status -->
+                <div class="col-md-12">
+                    <label for="status" class="form-label fw-semibold">
+                        Trạng thái <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-sort-up'></i></span>
-                        <input type="number" 
-                               class="form-control <?= isset($validation) && $validation->hasError('thu_tu') ? 'is-invalid' : '' ?>" 
-                               id="thu_tu" name="thu_tu"
-                               value="<?= esc($thu_tu) ?>"
-                               placeholder="Nhập thứ tự hiển thị"
-                               min="0">
-                        <?php if (isset($validation) && $validation->hasError('thu_tu')): ?>
+                        <span class="input-group-text bg-light"><i class='bx bx-toggle-left'></i></span>
+                        <select class="form-select <?= isset($validation) && $validation->hasError('status') ? 'is-invalid' : '' ?>" 
+                                id="status" name="status"
+                                required>
+                            <option value="1" <?= $status == 1 ? 'selected' : '' ?>>Hoạt động</option>
+                            <option value="0" <?= $status == 0 ? 'selected' : '' ?>>Không hoạt động</option>
+                        </select>
+                        <?php if (isset($validation) && $validation->hasError('status')): ?>
                             <div class="invalid-feedback">
-                                <?= $validation->getError('thu_tu') ?>
+                                <?= $validation->getError('status') ?>
                             </div>
                         <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Thứ tự sắp xếp diễn giả (mặc định 0)
                     </div>
                 </div>
             </div>
@@ -293,5 +482,123 @@ $thu_tu = old('thu_tu', $thu_tu);
         
         // Tự động focus vào trường đầu tiên
         document.getElementById('ten_dien_gia').focus();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('social-media-container');
+        const addButton = document.getElementById('add-social-media');
+        const hiddenInput = document.getElementById('mang_xa_hoi_json');
+
+        // Hàm cập nhật JSON
+        function updateJSON() {
+            const items = container.querySelectorAll('.social-media-item');
+            const data = {};
+            
+            items.forEach(item => {
+                const platform = item.querySelector('.social-platform').value;
+                const url = item.querySelector('.social-url').value;
+                const customName = item.querySelector('.platform-name');
+                
+                if (url) {
+                    if (platform === 'other' && customName.value) {
+                        data[customName.value] = url;
+                    } else if (platform !== 'other') {
+                        data[platform] = url;
+                    }
+                }
+            });
+            
+            hiddenInput.value = JSON.stringify(data);
+        }
+
+        // Xử lý hiện/ẩn input tên nền tảng tùy chỉnh
+        function toggleCustomPlatform(select) {
+            const item = select.closest('.social-media-item');
+            const customInput = item.querySelector('.platform-name-col');
+            if (select.value === 'other') {
+                customInput.style.display = 'block';
+                customInput.querySelector('.platform-name').required = true;
+            } else {
+                customInput.style.display = 'none';
+                customInput.querySelector('.platform-name').required = false;
+            }
+        }
+
+        // Thêm mạng xã hội mới
+        addButton.addEventListener('click', function() {
+            const newItem = document.createElement('div');
+            newItem.className = 'social-media-item mb-3';
+            newItem.innerHTML = `
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <select class="form-select social-platform">
+                            <option value="facebook">Facebook</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="google_scholar">Google Scholar</option>
+                            <option value="researchgate">ResearchGate</option>
+                            <option value="github">GitHub</option>
+                            <option value="stackoverflow">Stack Overflow</option>
+                            <option value="twitter">Twitter</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="other">Khác</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 platform-name-col" style="display: none;">
+                        <input type="text" class="form-control platform-name" placeholder="Tên nền tảng">
+                    </div>
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class='bx bx-link'></i></span>
+                            <input type="url" class="form-control social-url" placeholder="Nhập URL">
+                            <button type="button" class="btn btn-outline-danger remove-social-media">
+                                <i class='bx bx-trash'></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newItem);
+            
+            // Gắn sự kiện cho các elements mới
+            const select = newItem.querySelector('.social-platform');
+            select.addEventListener('change', function() {
+                toggleCustomPlatform(this);
+                updateJSON();
+            });
+            
+            newItem.querySelector('.social-url').addEventListener('input', updateJSON);
+            newItem.querySelector('.platform-name').addEventListener('input', updateJSON);
+            newItem.querySelector('.remove-social-media').addEventListener('click', function() {
+                newItem.remove();
+                updateJSON();
+            });
+        });
+
+        // Gắn sự kiện cho các elements có sẵn
+        container.querySelectorAll('.social-platform').forEach(select => {
+            toggleCustomPlatform(select);
+            select.addEventListener('change', function() {
+                toggleCustomPlatform(this);
+                updateJSON();
+            });
+        });
+
+        container.querySelectorAll('.social-url').forEach(input => {
+            input.addEventListener('input', updateJSON);
+        });
+
+        container.querySelectorAll('.platform-name').forEach(input => {
+            input.addEventListener('input', updateJSON);
+        });
+
+        container.querySelectorAll('.remove-social-media').forEach(button => {
+            button.addEventListener('click', function() {
+                this.closest('.social-media-item').remove();
+                updateJSON();
+            });
+        });
+
+        // Cập nhật JSON ban đầu
+        updateJSON();
     });
 </script> 

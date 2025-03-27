@@ -18,7 +18,9 @@ class DienGia extends BaseEntity
     
     protected $casts = [
         'dien_gia_id' => 'int',
-        'thu_tu' => 'int',
+        'nguoi_dung_id' => 'int',
+        'status' => 'boolean',
+        'mang_xa_hoi' => 'json',
         'created_at' => 'timestamp',
         'updated_at' => 'timestamp',
         'deleted_at' => 'timestamp'
@@ -26,18 +28,20 @@ class DienGia extends BaseEntity
     
     // Định nghĩa các chỉ mục
     protected $indexes = [
-        'idx_ten_dien_gia' => ['ten_dien_gia']
+        'idx_ten_dien_gia' => ['ten_dien_gia'],
+        'idx_email' => ['email'],
+        'idx_status' => ['status']
     ];
     
     // Định nghĩa các ràng buộc unique
     protected $uniqueKeys = [
-        'uk_ten_dien_gia' => ['ten_dien_gia']
+        'uk_email' => ['email']
     ];
     
     // Các quy tắc xác thực cụ thể cho DienGia
     protected $validationRules = [
         'ten_dien_gia' => [
-            'rules' => 'required|max_length[255]|is_unique[dien_gia.ten_dien_gia,dien_gia_id,{dien_gia_id}]',
+            'rules' => 'required|max_length[255]',
             'label' => 'Tên diễn giả'
         ],
         'chuc_danh' => [
@@ -56,17 +60,44 @@ class DienGia extends BaseEntity
             'rules' => 'permit_empty|max_length[255]',
             'label' => 'Ảnh đại diện'
         ],
-        'thu_tu' => [
-            'rules' => 'permit_empty|integer',
-            'label' => 'Thứ tự'
+        'email' => [
+            'rules' => 'permit_empty|valid_email|max_length[100]|is_unique[dien_gia.email,dien_gia_id,{dien_gia_id}]',
+            'label' => 'Email'
+        ],
+        'dien_thoai' => [
+            'rules' => 'permit_empty|max_length[20]',
+            'label' => 'Số điện thoại'
+        ],
+        'website' => [
+            'rules' => 'permit_empty|valid_url|max_length[255]',
+            'label' => 'Website'
+        ],
+        'nguoi_dung_id' => [
+            'rules' => 'permit_empty|integer|is_not_unique[users.id]',
+            'label' => 'Người dùng'
+        ],
+        'chuyen_mon' => [
+            'rules' => 'permit_empty',
+            'label' => 'Chuyên môn'
+        ],
+        'thanh_tuu' => [
+            'rules' => 'permit_empty',
+            'label' => 'Thành tựu'
+        ],
+        'mang_xa_hoi' => [
+            'rules' => 'permit_empty',
+            'label' => 'Mạng xã hội'
+        ],
+        'status' => [
+            'rules' => 'required|in_list[0,1]',
+            'label' => 'Trạng thái'
         ]
     ];
     
     protected $validationMessages = [
         'ten_dien_gia' => [
             'required' => '{field} là bắt buộc',
-            'max_length' => '{field} không được vượt quá 255 ký tự',
-            'is_unique' => '{field} đã tồn tại trong hệ thống'
+            'max_length' => '{field} không được vượt quá 255 ký tự'
         ],
         'chuc_danh' => [
             'max_length' => '{field} không được vượt quá 255 ký tự'
@@ -77,8 +108,25 @@ class DienGia extends BaseEntity
         'avatar' => [
             'max_length' => '{field} không được vượt quá 255 ký tự'
         ],
-        'thu_tu' => [
-            'integer' => '{field} phải là số nguyên'
+        'email' => [
+            'valid_email' => '{field} không hợp lệ',
+            'max_length' => '{field} không được vượt quá 100 ký tự',
+            'is_unique' => '{field} đã tồn tại trong hệ thống'
+        ],
+        'dien_thoai' => [
+            'max_length' => '{field} không được vượt quá 20 ký tự'
+        ],
+        'website' => [
+            'valid_url' => '{field} không hợp lệ',
+            'max_length' => '{field} không được vượt quá 255 ký tự'
+        ],
+        'nguoi_dung_id' => [
+            'integer' => '{field} phải là số nguyên',
+            'is_not_unique' => '{field} không tồn tại trong hệ thống'
+        ],
+        'status' => [
+            'required' => '{field} là bắt buộc',
+            'in_list' => '{field} không hợp lệ'
         ]
     ];
     
@@ -133,7 +181,7 @@ class DienGia extends BaseEntity
     }
     
     /**
-     * Lấy avatar
+     * Lấy ảnh đại diện
      *
      * @return string|null
      */
@@ -143,13 +191,139 @@ class DienGia extends BaseEntity
     }
     
     /**
-     * Lấy thứ tự
+     * Lấy email
      *
-     * @return int
+     * @return string|null
      */
-    public function getThuTu(): int
+    public function getEmail(): ?string
     {
-        return (int)($this->attributes['thu_tu'] ?? 0);
+        return $this->attributes['email'] ?? null;
+    }
+    
+    /**
+     * Lấy số điện thoại
+     *
+     * @return string|null
+     */
+    public function getDienThoai(): ?string
+    {
+        return $this->attributes['dien_thoai'] ?? null;
+    }
+    
+    /**
+     * Lấy website
+     *
+     * @return string|null
+     */
+    public function getWebsite(): ?string
+    {
+        return $this->attributes['website'] ?? null;
+    }
+    
+    /**
+     * Lấy ID người dùng
+     *
+     * @return int|null
+     */
+    public function getNguoiDungId(): ?int
+    {
+        return $this->attributes['nguoi_dung_id'] ? (int)$this->attributes['nguoi_dung_id'] : null;
+    }
+    
+    /**
+     * Lấy chuyên môn
+     *
+     * @return string|null
+     */
+    public function getChuyenMon(): ?string
+    {
+        return $this->attributes['chuyen_mon'] ?? null;
+    }
+    
+    /**
+     * Lấy thành tựu
+     *
+     * @return string|null
+     */
+    public function getThanhTuu(): ?string
+    {
+        return $this->attributes['thanh_tuu'] ?? null;
+    }
+    
+    /**
+     * Lấy thông tin mạng xã hội
+     *
+     * @return array|null
+     */
+    public function getMangXaHoi(): ?array
+    {
+        if (empty($this->attributes['mang_xa_hoi'])) {
+            return null;
+        }
+        
+        if (is_string($this->attributes['mang_xa_hoi'])) {
+            return json_decode($this->attributes['mang_xa_hoi'], true);
+        }
+        
+        return $this->attributes['mang_xa_hoi'];
+    }
+    
+    /**
+     * Lấy trạng thái
+     *
+     * @return bool
+     */
+    public function getStatus(): bool
+    {
+        return (bool)($this->attributes['status'] ?? true);
+    }
+    
+    /**
+     * Lấy ngày tạo
+     *
+     * @return Time|null
+     */
+    public function getCreatedAt(): ?Time
+    {
+        if (empty($this->attributes['created_at'])) {
+            return null;
+        }
+        
+        return $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
+    }
+    
+    /**
+     * Lấy ngày cập nhật
+     *
+     * @return Time|null
+     */
+    public function getUpdatedAt(): ?Time
+    {
+        if (empty($this->attributes['updated_at'])) {
+            return null;
+        }
+        
+        return $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+    }
+    
+    /**
+     * Lấy ngày xóa
+     *
+     * @return Time|null
+     */
+    public function getDeletedAt(): ?Time
+    {
+        if (empty($this->attributes['deleted_at'])) {
+            return null;
+        }
+        
+        return $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
     }
     
     /**
@@ -164,56 +338,35 @@ class DienGia extends BaseEntity
     
     /**
      * Lấy ngày tạo đã định dạng
-     * 
-     * @return string
+     *
+     * @return string|null
      */
-    public function getCreatedAtFormatted(): string
+    public function getCreatedAtFormatted(): ?string
     {
-        if (empty($this->attributes['created_at'])) {
-            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
-        }
-        
-        $time = $this->attributes['created_at'] instanceof Time 
-            ? $this->attributes['created_at'] 
-            : new Time($this->attributes['created_at']);
-            
-        return $time->format('Y-m-d H:i:s');
+        $createdAt = $this->getCreatedAt();
+        return $createdAt ? $createdAt->format('d/m/Y H:i:s') : null;
     }
     
     /**
      * Lấy ngày cập nhật đã định dạng
-     * 
-     * @return string
+     *
+     * @return string|null
      */
-    public function getUpdatedAtFormatted(): string
+    public function getUpdatedAtFormatted(): ?string
     {
-        if (empty($this->attributes['updated_at'])) {
-            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
-        }
-        
-        $time = $this->attributes['updated_at'] instanceof Time 
-            ? $this->attributes['updated_at'] 
-            : new Time($this->attributes['updated_at']);
-            
-        return $time->format('Y-m-d H:i:s');
+        $updatedAt = $this->getUpdatedAt();
+        return $updatedAt ? $updatedAt->format('d/m/Y H:i:s') : null;
     }
     
     /**
      * Lấy ngày xóa đã định dạng
-     * 
-     * @return string
+     *
+     * @return string|null
      */
-    public function getDeletedAtFormatted(): string
+    public function getDeletedAtFormatted(): ?string
     {
-        if (empty($this->attributes['deleted_at'])) {
-            return '<span class="text-muted fst-italic">Chưa xóa</span>';
-        }
-        
-        $time = $this->attributes['deleted_at'] instanceof Time 
-            ? $this->attributes['deleted_at'] 
-            : new Time($this->attributes['deleted_at']);
-            
-        return $time->format('Y-m-d H:i:s');
+        $deletedAt = $this->getDeletedAt();
+        return $deletedAt ? $deletedAt->format('d/m/Y H:i:s') : null;
     }
     
     /**

@@ -105,9 +105,13 @@
                 <th>Tên diễn giả</th>
                 <th>Chức danh</th>
                 <th>Tổ chức</th>
-                <th>Giới thiệu</th>
-                <th>Ảnh đại diện</th>
-                <th>Thứ tự</th>
+                <th>Email</th>
+                <th>Điện thoại</th>
+                <th>Website</th>
+                <th>Chuyên môn</th>
+                <th>Thành tựu</th>
+                <th>Mạng xã hội</th>
+                <th>Trạng thái</th>
                 <th>Ngày tạo</th>
                 <th>Ngày cập nhật</th>
                 <?php if ($includeDeletedAt): ?>
@@ -120,16 +124,28 @@
             <tr>
                 <td class="text-center"><?= $index + 1 ?></td>
                 <td class="text-center"><?= $item->getId() ?></td>
-                <td class="text-center"><?= $item->getTenDienGia() ?></td>
-                <td class="text-center"><?= $item->getChucDanh() ?? '' ?></td>
-                <td class="text-center"><?= $item->getToChuc() ?? '' ?></td>
-                <td class="text-center"><?= $item->getGioiThieu() ?? '' ?></td>
-                <td class="text-center"><?= $item->getAvatar() ?? '' ?></td>
-                <td class="text-center"><?= $item->getThuTu() ?></td>
+                <td><?= $item->getTenDienGia() ?></td>
+                <td><?= $item->getChucDanh() ?></td>
+                <td><?= $item->getToChuc() ?></td>
+                <td><?= $item->getEmail() ?></td>
+                <td><?= $item->getDienThoai() ?></td>
+                <td><?= $item->getWebsite() ?></td>
+                <td><?= $item->getChuyenMon() ?></td>
+                <td><?= $item->getThanhTuu() ?></td>
+                <td><?= is_array($item->getMangXaHoi()) ? json_encode($item->getMangXaHoi(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '' ?></td>
+                <td class="text-center">
+                    <?php if ($item->getStatus()): ?>
+                        <span class="status-active">Hoạt động</span>
+                    <?php else: ?>
+                        <span class="status-inactive">Không hoạt động</span>
+                    <?php endif; ?>
+                </td>
                 <td class="text-center"><?= $item->getCreatedAtFormatted() ?></td>
                 <td class="text-center"><?= $item->getUpdatedAtFormatted() ?></td>
                 <?php if ($includeDeletedAt): ?>
-                <td class="text-center deleted"><?= $item->getDeletedAtFormatted() ?></td>
+                <td class="text-center deleted">
+                    <?= $item->getDeletedAtFormatted() ?>
+                </td>
                 <?php endif; ?>
             </tr>
             <?php endforeach; ?>

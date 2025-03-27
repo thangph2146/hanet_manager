@@ -58,7 +58,7 @@
                         <input type="hidden" name="page" value="1">
                         <input type="hidden" name="perPage" value="<?= $perPage ?>">
                         <div class="input-group search-box">
-                            <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm tên, chức danh, tổ chức..." value="<?= $keyword ?? '' ?>">
+                            <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
                             <button class="btn btn-outline-secondary btn-sm" type="submit">
                                 <i class='bx bx-search'></i>
                             </button>
@@ -91,9 +91,7 @@
             <div class="alert alert-info m-3">
                 <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
                 <div class="small">
-                    <?php if (!empty($keyword)): ?>
-                        <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
-                    <?php endif; ?>
+                    <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
                     <a href="<?= site_url($module_name) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>
             </div>
@@ -112,9 +110,10 @@
                             <th width="20%" class="align-middle">Tên diễn giả</th>
                             <th width="15%" class="align-middle">Chức danh</th>
                             <th width="15%" class="align-middle">Tổ chức</th>
-                            <th width="10%" class="align-middle">Thứ tự</th>
-                            <th width="15%" class="align-middle">Ngày tạo</th>
-                            <th width="15%" class="text-center align-middle">Thao tác</th>
+                            <th width="10%" class="align-middle">Email</th>
+                            <th width="10%" class="align-middle">Số điện thoại</th>
+                            <th width="10%" class="align-middle">Trạng thái</th>
+                            <th width="20%" class="text-center align-middle">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -130,10 +129,15 @@
                                     </td>
                                     <td><?= esc($item->getId()) ?></td>  
                                     <td><?= esc($item->getTenDienGia()) ?></td> 
-                                    <td><?= esc($item->getChucDanh()) ?? '<span class="text-muted fst-italic">Chưa có</span>' ?></td>
-                                    <td><?= esc($item->getToChuc()) ?? '<span class="text-muted fst-italic">Chưa có</span>' ?></td>
-                                    <td><?= esc($item->getThuTu()) ?></td>
-                                    <td><?= $item->getCreatedAtFormatted() ?></td>
+                                    <td><?= esc($item->getChucDanh()) ?></td>
+                                    <td><?= esc($item->getToChuc()) ?></td>
+                                    <td><?= esc($item->getEmail()) ?></td>
+                                    <td><?= esc($item->getDienThoai()) ?></td>
+                                    <td>
+                                        <span class="badge <?= $item->getStatus() ? 'bg-success' : 'bg-danger' ?>">
+                                            <?= $item->getStatus() ? 'Hoạt động' : 'Không hoạt động' ?>
+                                        </span>
+                                    </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <a href="<?= site_url($module_name . "/view/{$item->getId()}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
@@ -154,7 +158,7 @@
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="8" class="text-center py-3">
+                                <td colspan="9" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class="bx bx-folder-open"></i>
                                         <p>Không có dữ liệu</p>
@@ -175,7 +179,7 @@
                 </div>
                 <div class="col-sm-12 col-md-7">
                     <div class="d-flex justify-content-end align-items-center">
-                        <div class="me-2">
+                        <div class="me-2">  
                             <select id="perPageSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
                                 <option value="5" <?= $perPage == 5 ? 'selected' : '' ?>>5</option>
                                 <option value="10" <?= $perPage == 10 ? 'selected' : '' ?>>10</option>
@@ -235,7 +239,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> diễn giả đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> bản ghi đã chọn?</p>
                 <div class="alert alert-warning mt-3">
                     <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
                 </div>

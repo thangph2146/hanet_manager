@@ -88,6 +88,24 @@ trait RelationTrait
                     $item->deleted_at = null;
                 }
             }
+
+            // Thêm các thuộc tính đã định dạng
+            $item->ten_dien_gia = $item->getTenDienGia();
+            $item->chuc_danh = $item->getChucDanh();
+            $item->to_chuc = $item->getToChuc();
+            $item->gioi_thieu = $item->getGioiThieu();
+            $item->avatar = $item->getAvatar();
+            $item->email = $item->getEmail();
+            $item->dien_thoai = $item->getDienThoai();
+            $item->website = $item->getWebsite();
+            $item->chuyen_mon = $item->getChuyenMon();
+            $item->thanh_tuu = $item->getThanhTuu();
+            $item->mang_xa_hoi = $item->getMangXaHoi();
+            $item->status = $item->getStatus();
+            $item->created_at_formatted = $item->getCreatedAtFormatted();
+            $item->updated_at_formatted = $item->getUpdatedAtFormatted();
+            $item->deleted_at_formatted = $item->getDeletedAtFormatted();
+            $item->is_deleted = $item->isDeleted();
         }
 
         return $data;
@@ -101,8 +119,8 @@ trait RelationTrait
         return [
             'page' => (int)($request->getGet('page') ?? 1),
             'perPage' => (int)($request->getGet('perPage') ?? 10),
-            'sort' => $request->getGet('sort') ?? 'thu_tu',
-            'order' => $request->getGet('order') ?? 'ASC',
+            'sort' => $request->getGet('sort') ?? 'created_at',
+            'order' => $request->getGet('order') ?? 'DESC',
             'keyword' => $request->getGet('keyword') ?? '',
         ];
     }

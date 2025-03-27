@@ -62,6 +62,7 @@ class Autoload extends AutoloadConfig
         'App\Modules\thamgiasukien' => APPPATH . 'Modules/thamgiasukien',
         'App\Modules\sukien' => APPPATH . 'Modules/sukien',
         'App\Modules\sukiendiengia' => APPPATH . 'Modules/sukiendiengia',
+        'App\Modules\dangkysukien' => APPPATH . 'Modules/dangkysukien',
     ];
 
 

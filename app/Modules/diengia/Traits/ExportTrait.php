@@ -13,10 +13,59 @@ use CodeIgniter\I18n\Time;
 
 trait ExportTrait
 {
+    protected $export_title = 'DANH SÁCH DIỄN GIẢ';
+    protected $search_field = 'ten_dien_gia';
+    protected $search_order = 'DESC';
+    protected $header_title =  [
+        'STT' => 'A',
+        'ID' => 'B',
+        'Tên diễn giả' => 'C',
+        'Chức danh' => 'D',
+        'Tổ chức' => 'E',
+        'Email' => 'F',
+        'Điện thoại' => 'G',
+        'Website' => 'H',
+        'Giới thiệu' => 'I',
+        'Chuyên môn' => 'J',
+        'Thành tựu' => 'K',
+        'Mạng xã hội' => 'L',
+        'Trạng thái' => 'M',
+        'Ngày tạo' => 'N',
+        'Ngày cập nhật' => 'O'
+    ];
+    protected $header_title_deleted =  [
+        'Ngày xóa' => 'P'
+    ];
+
+    protected $excel_row = [
+        'A' => ['method' => null, 'align' => 'center'], // STT
+        'B' => ['method' => 'getId', 'align' => 'center'],
+        'C' => ['method' => 'getTenDienGia', 'align' => 'left'],
+        'D' => ['method' => 'getChucDanh', 'align' => 'left'],
+        'E' => ['method' => 'getToChuc', 'align' => 'left'],
+        'F' => ['method' => 'getEmail', 'align' => 'left'],
+        'G' => ['method' => 'getDienThoai', 'align' => 'left'],
+        'H' => ['method' => 'getWebsite', 'align' => 'left'],
+        'I' => ['method' => 'getGioiThieu', 'align' => 'left', 'wrap' => true],
+        'J' => ['method' => 'getChuyenMon', 'align' => 'left', 'wrap' => true],
+        'K' => ['method' => 'getThanhTuu', 'align' => 'left', 'wrap' => true],
+        'L' => ['method' => 'getMangXaHoi', 'align' => 'left', 'wrap' => true, 'json' => true],
+        'M' => ['method' => 'getStatus', 'align' => 'center', 'format' => 'status'],
+        'N' => ['method' => 'getCreatedAtFormatted', 'align' => 'center'],
+        'O' => ['method' => 'getUpdatedAtFormatted', 'align' => 'center'],
+        'P' => ['method' => 'getDeletedAtFormatted', 'align' => 'center']
+    ];
+
+    protected function getLastColumn()
+    {
+        $columns = array_keys($this->excel_row);
+        return end($columns);
+    }
+
     /**
      * Chuẩn bị tiêu chí tìm kiếm
      */
-    protected function prepareSearchCriteria($keyword, $includeDeleted = false)
+    protected function prepareSearchCriteria($keyword, $status, $includeDeleted = false)
     {
         $criteria = [];
         
@@ -36,10 +85,10 @@ trait ExportTrait
      */
     protected function prepareSearchOptions($sort, $order)
     {
-        // Nếu không có sort được chỉ định, mặc định là sắp xếp theo thứ tự
+        // Nếu không có sort được chỉ định, mặc định là sắp xếp theo thứ tự tăng dần
         if (empty($sort)) {
-            $sort = 'thu_tu';
-            $order = 'ASC';
+            $sort = $this->search_field;
+            $order = $this->search_order;
         }
 
         return [
@@ -67,20 +116,10 @@ trait ExportTrait
      */
     protected function prepareExcelHeaders($includeDeleted = false)
     {
-        $headers = [
-            'STT' => 'A',
-            'ID' => 'B',
-            'Tên diễn giả' => 'C',
-            'Chức danh' => 'D',
-            'Tổ chức' => 'E',
-            'Giới thiệu' => 'F',
-            'Thứ tự' => 'G',
-            'Ngày tạo' => 'H',
-            'Ngày cập nhật' => 'I',
-        ];
+        $headers = $this->header_title;
 
         if ($includeDeleted) {
-            $headers['Ngày xóa'] = 'J';
+            $headers = array_merge($headers, $this->header_title_deleted);
         }
 
         return $headers;
@@ -147,7 +186,7 @@ trait ExportTrait
         ];
 
         // Thêm tiêu đề
-        $sheet->setCellValue('A1', 'DANH SÁCH DIỄN GIẢ');
+        $sheet->setCellValue('A1', $this->export_title);
         $sheet->mergeCells('A1:' . end($headers) . '1');
         $sheet->getStyle('A1')->applyFromArray([
             'font' => ['bold' => true, 'size' => 14],
@@ -189,52 +228,52 @@ trait ExportTrait
         // Thêm dữ liệu
         $row++;
         foreach ($data as $index => $item) {
-            $sheet->setCellValue('A' . $row, $index + 1);
-            $sheet->setCellValue('B' . $row, $item->dien_gia_id);
-            $sheet->setCellValue('C' . $row, $item->ten_dien_gia);
-            $sheet->setCellValue('D' . $row, $item->chuc_danh);
-            $sheet->setCellValue('E' . $row, $item->to_chuc);
-            // Giới thiệu có thể khá dài nên giới hạn độ dài
-            $gioiThieu = !empty($item->gioi_thieu) ? (strlen($item->gioi_thieu) > 100 ? substr($item->gioi_thieu, 0, 100) . '...' : $item->gioi_thieu) : '';
-            $sheet->setCellValue('F' . $row, $gioiThieu);
-            $sheet->setCellValue('G' . $row, $item->thu_tu);
-            
-            try {
-                $createdAt = !empty($item->created_at) ? 
-                    ($item->created_at instanceof Time ? $item->created_at : Time::parse($item->created_at))->format('d/m/Y H:i:s') : '';
-                $sheet->setCellValue('H' . $row, $createdAt);
-                
-                $updatedAt = !empty($item->updated_at) ? 
-                    ($item->updated_at instanceof Time ? $item->updated_at : Time::parse($item->updated_at))->format('d/m/Y H:i:s') : '';
-                $sheet->setCellValue('I' . $row, $updatedAt);
-            } catch (\Exception $e) {
-                $sheet->setCellValue('H' . $row, !empty($item->created_at) ? $item->created_at : '');
-                $sheet->setCellValue('I' . $row, !empty($item->updated_at) ? $item->updated_at : '');
-            }
-
-            // Xử lý thời gian xóa
-            if ($includeDeleted) {
-                if (!empty($item->deleted_at)) {
-                    try {
-                        $deletedAt = $item->deleted_at instanceof Time ? 
-                            $item->deleted_at : 
-                            Time::parse($item->deleted_at);
-                        $sheet->setCellValue('J' . $row, $deletedAt->format('d/m/Y H:i:s'));
-                    } catch (\Exception $e) {
-                        $sheet->setCellValue('J' . $row, '');
-                    }
+            foreach ($this->excel_row as $col => $config) {
+                if ($col === 'A') {
+                    $value = $index + 1;
                 } else {
-                    $sheet->setCellValue('J' . $row, '');
+                    $method = $config['method'];
+                    $value = $method ? $item->$method() : '';
+                    
+                    // Xử lý định dạng đặc biệt
+                    if (isset($config['json']) && $config['json'] && is_array($value)) {
+                        $value = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                    } elseif (isset($config['format'])) {
+                        switch ($config['format']) {
+                            case 'status':
+                                $value = $value ? 'Hoạt động' : 'Không hoạt động';
+                                break;
+                        }
+                    }
+                }
+                
+                $sheet->setCellValue($col . $row, $value);
+                
+                // Áp dụng căn lề
+                if (isset($config['align'])) {
+                    $sheet->getStyle($col . $row)->getAlignment()
+                          ->setHorizontal($config['align'] === 'center' ? 
+                              Alignment::HORIZONTAL_CENTER : Alignment::HORIZONTAL_LEFT);
+                }
+                
+                // Áp dụng wrap text
+                if (isset($config['wrap']) && $config['wrap']) {
+                    $sheet->getStyle($col . $row)->getAlignment()->setWrapText(true);
                 }
             }
-
-            $sheet->getStyle('A' . $row . ':' . end($headers) . $row)->applyFromArray($contentStyle);
+            
+            // Áp dụng style cho hàng
+            $lastColumn = $this->getLastColumn();
+            $sheet->getStyle('A' . $row . ':' . $lastColumn . $row)
+                  ->applyFromArray($contentStyle);
+            
             $row++;
         }
 
         // Thêm tổng số bản ghi
         $sheet->setCellValue('A' . $row, 'Tổng số bản ghi: ' . count($data));
-        $sheet->mergeCells('A' . $row . ':' . end($headers) . $row);
+        $lastColumn = $this->getLastColumn();
+        $sheet->mergeCells('A' . $row . ':' . $lastColumn . $row);
         $sheet->getStyle('A' . $row)->applyFromArray([
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT],
             'font' => ['bold' => true],
@@ -247,7 +286,7 @@ trait ExportTrait
         ]);
 
         // Tự động điều chỉnh độ rộng cột
-        foreach (range('A', end($headers)) as $col) {
+        foreach (range('A', $lastColumn) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

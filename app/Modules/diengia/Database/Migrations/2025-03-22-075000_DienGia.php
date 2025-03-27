@@ -11,6 +11,8 @@ class DienGia extends Migration
         $this->forge->addField([
             'dien_gia_id' => [
                 'type' => 'INT',
+                'constraint' => 11,
+                'unsigned' => true,
                 'auto_increment' => true
             ],
             'ten_dien_gia' => [
@@ -37,14 +39,49 @@ class DienGia extends Migration
                 'constraint' => 255,
                 'null' => true
             ],
-            'thu_tu' => [
-                'type' => 'INT',
-                'default' => 0
+            'email' => [
+                'type' => 'VARCHAR',
+                'constraint' => 100,
+                'null' => true
             ],
-            
+            'dien_thoai' => [
+                'type' => 'VARCHAR',
+                'constraint' => 20,
+                'null' => true
+            ],
+            'website' => [
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+                'null' => true
+            ],
+            'nguoi_dung_id' => [
+                'type' => 'INT',
+                'constraint' => 11,
+                'unsigned' => true,
+                'null' => true
+            ],
+            'chuyen_mon' => [
+                'type' => 'TEXT',
+                'null' => true
+            ],
+            'thanh_tuu' => [
+                'type' => 'TEXT',
+                'null' => true
+            ],
+            'mang_xa_hoi' => [
+                'type' => 'JSON',
+                'null' => true
+            ],
+            'status' => [
+                'type' => 'TINYINT',
+                'constraint' => 1,
+                'default' => 1,
+                'null' => false
+            ],
             'created_at' => [
                 'type' => 'DATETIME',
-                'null' => true
+                'null' => true,
+                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
             ],
             'updated_at' => [
                 'type' => 'DATETIME',
@@ -59,11 +96,20 @@ class DienGia extends Migration
         // Thêm khóa chính
         $this->forge->addKey('dien_gia_id', true);
         
-        // Thêm chỉ mục cho ten_dien_gia
+        // Thêm chỉ mục cho các trường thường xuyên tìm kiếm
         $this->forge->addKey('ten_dien_gia', false, false, 'idx_ten_dien_gia');
+        $this->forge->addKey('email', false, false, 'idx_email');
+        $this->forge->addKey('status', false, false, 'idx_status');
         
+        // Thêm unique key cho email
+        $this->forge->addUniqueKey('email', 'uk_email');
+
         // Tạo bảng
-        $this->forge->createTable('dien_gia');
+        $this->forge->createTable('dien_gia', true, [
+            'ENGINE' => 'InnoDB',
+            'CHARACTER SET' => 'utf8mb4',
+            'COLLATE' => 'utf8mb4_general_ci'
+        ]);
     }
 
     public function down()

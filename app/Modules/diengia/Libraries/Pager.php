@@ -3,10 +3,10 @@
 namespace App\Modules\diengia\Libraries;
 
 /**
- * Lớp Pager - cung cấp chức năng phân trang cho module Diễn giả
+ * Lớp Pager - cung cấp chức năng phân trang cho module HeDaoTao
  * 
  * Lớp này thay thế cho \CodeIgniter\Pager\Pager mặc định để tùy chỉnh
- * cách hiển thị và xử lý phân trang riêng cho module Diễn giả.
+ * cách hiển thị và xử lý phân trang riêng cho module HeDaoTao.
  */
 class Pager
 {

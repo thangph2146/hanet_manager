@@ -31,7 +31,24 @@ class DienGia extends BaseController
     protected $title;
     protected $module_name = 'diengia';
     protected $controller_name = 'DienGia';
-    
+    protected $primary_key = 'dien_gia_id';
+    // Search
+    protected $field_sort = 'created_at';
+    protected $field_order = 'DESC';
+
+    // Export
+    protected $export_excel = 'danh_sach_dien_gia_excel';
+    protected $export_excel_title = 'DANH SÁCH DIỄN GIẢ (Excel)';
+
+    protected $export_pdf = 'danh_sach_dien_gia_pdf';
+    protected $export_pdf_title = 'DANH SÁCH DIỄN GIẢ (PDF)';
+
+    protected $export_excel_deleted = 'danh_sach_dien_gia_da_xoa_excel';
+    protected $export_excel_deleted_title = 'DANH SÁCH DIỄN GIẢ ĐÃ XÓA (Excel)';
+
+    protected $export_pdf_deleted = 'danh_sach_dien_gia_da_xoa_pdf';
+    protected $export_pdf_deleted_title = 'DANH SÁCH DIỄN GIẢ ĐÃ XÓA (PDF)';
+
     public function __construct()
     {
         // Khởi tạo session sớm
@@ -49,6 +66,27 @@ class DienGia extends BaseController
         $this->initializeRelationTrait();
     }
     
+    /**
+     * Lấy text cho sắp xếp
+     */
+    protected function getSortText($sort, $order)
+    {
+        $sortableFields = [
+            'dien_gia_id' => 'ID',
+            'ten_dien_gia' => 'Tên diễn giả',
+            'chuc_danh' => 'Chức danh',
+            'gioi_thieu' => 'Giới thiệu',
+            'to_chuc' => 'Tổ chức',
+            'email' => 'Email',
+            'dien_thoai' => 'Số điện thoại',
+            'status' => 'Trạng thái',
+            'created_at' => 'Ngày tạo'
+        ];
+
+        $field = $sortableFields[$sort] ?? $sort;
+        return "$field (" . ($order === 'DESC' ? 'Giảm dần' : 'Tăng dần') . ")";
+    }
+
     /**
      * Hiển thị danh sách tham gia sự kiện
      */
@@ -156,7 +194,7 @@ class DienGia extends BaseController
     public function view($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID diễn giả không hợp lệ', true);
+            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -192,7 +230,7 @@ class DienGia extends BaseController
     public function edit($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID diễn giả không hợp lệ', true);
+            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -200,7 +238,7 @@ class DienGia extends BaseController
         $data = $this->model->findWithRelations($id);
         
         if (empty($data)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu diễn giả', true);
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu khóa học', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -223,7 +261,7 @@ class DienGia extends BaseController
     public function update($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID diễn giả không hợp lệ', true);
+            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -231,13 +269,12 @@ class DienGia extends BaseController
         $existingRecord = $this->model->findWithRelations($id);
         
         if (empty($existingRecord)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu diễn giả', true);
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu khóa học', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
-        
         // Xử lý thời gian điểm danh
         if (!empty($data['thoi_gian_diem_danh'])) {
             try {
@@ -252,7 +289,7 @@ class DienGia extends BaseController
         }
     
         // Chuẩn bị quy tắc validation cho cập nhật
-        $this->model->prepareValidationRules('update', ['tham_gia_su_kien_id' => $id]);
+        $this->model->prepareValidationRules('update', [$this->primary_key => $id]);
         
         // Kiểm tra dữ liệu
         if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
@@ -281,13 +318,13 @@ class DienGia extends BaseController
     public function delete($id = null, $backToUrl = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID diễn giả không hợp lệ', true);
+            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Thực hiện xóa mềm (sử dụng deleted_at thay vì bin)
         if ($this->model->delete($id)) {
-            $this->alert->set('success', 'Đã xóa dữ liệu diễn giả thành công', true);
+            $this->alert->set('success', 'Đã xóa dữ liệu khóa học thành công', true);
         } else {
             $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
         }
@@ -310,15 +347,15 @@ class DienGia extends BaseController
         $params = $this->prepareSearchParams($this->request);
         $params = $this->processSearchParams($params);
         
-        // Ghi đè sort mặc định cho trang list deleted
-        $params['sort'] = $this->request->getGet('sort') ?? 'deleted_at';
-        $params['order'] = $this->request->getGet('order') ?? 'DESC';
-        
-        // Log chi tiết URL và tham số
-        log_message('debug', '[Controller:listdeleted] URL đầy đủ: ' . current_url() . '?' . http_build_query($_GET));
-        log_message('debug', '[Controller:listdeleted] Tham số request: ' . json_encode($_GET));
-        log_message('debug', '[Controller:listdeleted] Đã xử lý: page=' . $params['page'] . ', perPage=' . $params['perPage'] . 
-            ', sort=' . $params['sort'] . ', order=' . $params['order'] . ', keyword=' . $params['keyword']);
+        // Chuẩn bị thông tin log
+        $logInfo = [
+            'page' => $params['page'] ?? 1,
+            'perPage' => $params['perPage'] ?? 10,
+            'sort' => $params['sort'] ?? 'created_at',
+            'order' => $params['order'] ?? 'DESC',
+            'keyword' => $params['keyword'] ?? '',
+            'status' => $params['status'] ?? null
+        ];
         
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
@@ -355,7 +392,7 @@ class DienGia extends BaseController
         }
         
         $pager->setPath($this->module_name . '/listdeleted');
-        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'bac_hoc_id']);
+        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'bac_hoc_id']);
         $pager->setPerPage($params['perPage']);
         $pager->setCurrentPage($params['page']);
         
@@ -372,7 +409,7 @@ class DienGia extends BaseController
     public function restore($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID diễn giả không hợp lệ', true);
+            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
@@ -398,7 +435,7 @@ class DienGia extends BaseController
     public function permanentDelete($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID diễn giả không hợp lệ', true);
+            $this->alert->set('danger', 'ID không hợp lệ', true);
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
@@ -563,7 +600,93 @@ class DienGia extends BaseController
     }
     
     /**
-     * Khôi phục nhiều bản ghi
+     * Thay đổi trạng thái nhiều template
+     */
+    public function statusMultiple()
+    {
+        // Lấy dữ liệu từ POST request
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
+        
+        // Log thông tin chi tiết để debug
+        log_message('debug', '[statusMultiple] - Request Method: ' . $this->request->getMethod());
+        log_message('debug', '[statusMultiple] - POST data: ' . json_encode($_POST));
+        log_message('debug', '[statusMultiple] - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', '[statusMultiple] - Return URL: ' . ($returnUrl ?? 'None'));
+        log_message('debug', '[statusMultiple] - CSRF: ' . json_encode($this->request->getPost(csrf_token()))); 
+        log_message('debug', '[statusMultiple] - Server variables: ' . json_encode($_SERVER));
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để thay đổi trạng thái', true);
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl);
+        }
+        
+        // Khởi tạo biến đếm kết quả
+        $successCount = 0;
+        $errorCount = 0;
+        $errors = [];
+        
+        // Xử lý từng ID được chọn
+        foreach ($selectedItems as $id) {
+            try {
+                // Lấy thông tin hiện tại của bản ghi
+                $currentRecord = $this->model->find($id);
+                
+                if (!$currentRecord) {
+                    $errorCount++;
+                    $errors[] = "Không tìm thấy bản ghi với ID: $id";
+                    continue;
+                }
+                
+                // Đổi trạng thái ngược lại (0 -> 1 hoặc 1 -> 0)
+                $newStatus = $currentRecord->status == '1' ? '0' : '1';
+                
+                // Cập nhật trạng thái
+                $updateResult = $this->model->update($id, ['status' => $newStatus]);
+                
+                if ($updateResult) {
+                    $successCount++;
+                    log_message('debug', "[statusMultiple] - Successfully updated status for ID: $id to: $newStatus");
+                } else {
+                    $errorCount++;
+                    $errors[] = "Lỗi khi cập nhật trạng thái cho ID: $id";
+                    log_message('error', "[statusMultiple] - Failed to update status for ID: $id");
+                }
+            } catch (\Exception $e) {
+                $errorCount++;
+                $errors[] = "Lỗi khi xử lý ID: $id - " . $e->getMessage();
+                log_message('error', "[statusMultiple] - Error processing ID: $id - " . $e->getMessage());
+            }
+        }
+        
+        // Log kết quả cuối cùng
+        log_message('debug', "[statusMultiple] - Final Results - Success: $successCount, Errors: $errorCount");
+        if (!empty($errors)) {
+            log_message('error', "[statusMultiple] - Error Details: " . json_encode($errors));
+        }
+        
+        // Thiết lập thông báo kết quả
+        if ($successCount > 0) {
+            $message = "Đã cập nhật thành công trạng thái cho $successCount mục";
+            if ($errorCount > 0) {
+                $message .= " (có $errorCount mục lỗi)";
+            }
+            $this->alert->set('success', $message, true);
+        } else {
+            $this->alert->set('error', 'Không thể cập nhật trạng thái cho bất kỳ mục nào', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        log_message('debug', "[statusMultiple] - Redirecting to: " . ($redirectUrl ?: $this->moduleUrl));
+        
+        return redirect()->to($redirectUrl ?: $this->moduleUrl);
+    }
+    
+    /**
+     * Khôi phục nhiều bản ghi từ thùng rác
      */
     public function restoreMultiple()
     {
@@ -692,15 +815,15 @@ class DienGia extends BaseController
     }
     
     /**
-     * Xuất danh sách tham gia sự kiện ra file Excel
+     * Xuất danh sách diễn giả ra file Excel
      */
     public function exportExcel()
     {
         $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? 'dien_gia_id';
-        $order = $this->request->getGet('order') ?? 'ASC';
+        $sort = $this->request->getGet('sort') ?? $this->field_sort;
+        $order = $this->request->getGet('order') ?? $this->field_order;
 
-        $criteria = $this->prepareSearchCriteria($keyword);
+        $criteria = $this->prepareSearchCriteria($keyword, null);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
         $headers = $this->prepareExcelHeaders();
@@ -709,19 +832,19 @@ class DienGia extends BaseController
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
-        $this->createExcelFile($data, $headers, $filters, 'danh_sach_diengia');
+        $this->createExcelFile($data, $headers, $filters, $this->export_excel);
     }
 
     /**
-     * Xuất danh sách tham gia sự kiện ra file PDF
+     * Xuất danh sách diễn giả ra file PDF
      */
     public function exportPdf()
     {
         $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? 'dien_gia_id';
-        $order = $this->request->getGet('order') ?? 'ASC';
+        $sort = $this->request->getGet('sort') ?? $this->field_sort;
+        $order = $this->request->getGet('order') ?? $this->field_order;
 
-        $criteria = $this->prepareSearchCriteria($keyword);
+        $criteria = $this->prepareSearchCriteria($keyword, null);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
 
@@ -729,19 +852,19 @@ class DienGia extends BaseController
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
-        $this->createPdfFile($data, $filters, 'DANH SÁCH DIỄN GIẢ', 'danh_sach_diengia');
+        $this->createPdfFile($data, $filters, $this->export_pdf_title, $this->export_pdf);
     }
 
     /**
-     * Xuất danh sách tham gia sự kiện đã xóa ra file PDF
+     * Xuất danh sách diễn giả đã xóa ra file PDF
      */
     public function exportDeletedPdf()
     {
         $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? 'deleted_at';
-        $order = $this->request->getGet('order') ?? 'ASC';
+        $sort = $this->request->getGet('sort') ?? $this->field_sort;
+        $order = $this->request->getGet('order') ?? $this->field_order;
 
-        $criteria = $this->prepareSearchCriteria($keyword, true);
+        $criteria = $this->prepareSearchCriteria($keyword, null, true);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
 
@@ -750,19 +873,19 @@ class DienGia extends BaseController
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
         $filters['Trạng thái'] = 'Đã xóa';
 
-        $this->createPdfFile($data, $filters, 'DANH SÁCH DIỄN GIẢ ĐÃ XÓA', 'danh_sach_diengia_da_xoa', true);
+        $this->createPdfFile($data, $filters, $this->export_pdf_deleted_title, $this->export_pdf_deleted, true);
     }
 
     /**
-     * Xuất danh sách tham gia sự kiện đã xóa ra file Excel
+     * Xuất danh sách diễn giả đã xóa ra file Excel
      */
     public function exportDeletedExcel()
     {
         $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? 'deleted_at';
-        $order = $this->request->getGet('order') ?? 'DESC';
+        $sort = $this->request->getGet('sort') ?? $this->field_sort;
+        $order = $this->request->getGet('order') ?? $this->field_order;
 
-        $criteria = $this->prepareSearchCriteria($keyword, true);
+        $criteria = $this->prepareSearchCriteria($keyword, null, true);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
         $headers = $this->prepareExcelHeaders(true);
@@ -772,30 +895,10 @@ class DienGia extends BaseController
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
         $filters['Trạng thái'] = 'Đã xóa';
 
-        $this->createExcelFile($data, $headers, $filters, 'danh_sach_diengia_da_xoa', true);
+        $this->createExcelFile($data, $headers, $filters, $this->export_excel_deleted, true);
     }
 
-    /**
-     * Lấy text cho sắp xếp
-     */
-    protected function getSortText($sort, $order)
-    {
-        $sortFields = [
-            'dien_gia_id' => 'ID',
-            'ten_dien_gia' => 'Tên diễn giả',
-            'chuc_danh' => 'Chức danh',
-            'to_chuc' => 'Tổ chức',
-            'gioi_thieu' => 'Giới thiệu',
-            'avatar' => 'Ảnh đại diện',
-            'thu_tu' => 'Thứ tự',
-            'created_at' => 'Ngày tạo',
-            'updated_at' => 'Ngày cập nhật',
-            'deleted_at' => 'Ngày xóa',
-        ];
-
-        $field = $sortFields[$sort] ?? $sort;
-        return "$field (" . ($order === 'DESC' ? 'Giảm dần' : 'Tăng dần') . ")";
-    }
+    
 
     // Thêm vào phương thức này để hỗ trợ tìm kiếm các bản ghi đã xóa
     public function searchDeleted(array $criteria = [], array $options = [])
