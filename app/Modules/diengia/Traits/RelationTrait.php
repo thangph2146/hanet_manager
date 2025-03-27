@@ -122,6 +122,7 @@ trait RelationTrait
             'sort' => $request->getGet('sort') ?? 'created_at',
             'order' => $request->getGet('order') ?? 'DESC',
             'keyword' => $request->getGet('keyword') ?? '',
+            'status' => $request->getGet('status'),
         ];
     }
 
@@ -146,6 +147,10 @@ trait RelationTrait
         
         if (!empty($params['keyword'])) {
             $criteria['keyword'] = $params['keyword'];
+        }
+
+        if (isset($params['status']) && $params['status'] !== '') {
+            $criteria['status'] = (int)$params['status'];
         }
 
         return $criteria;

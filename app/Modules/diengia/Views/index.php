@@ -49,6 +49,12 @@
                             <i class='bx bx-trash'></i> Xóa mục đã chọn
                         </button>
                     </form>
+                    <form id="form-status-multiple" action="<?= site_url($module_name . '/statusMultiple') ?>" method="post" class="d-inline">       
+                        <?= csrf_field() ?>
+                        <button type="button" id="status-selected-multiple" class="btn btn-warning btn-sm me-2 text-white" disabled>
+                            <i class='bx bx-toggle-right'></i> Đổi trạng thái
+                        </button>
+                    </form>
                     <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
                         <i class='bx bx-trash'></i> Danh sách đã xóa
                     </a>
@@ -57,16 +63,24 @@
                     <form action="<?= site_url($module_name) ?>" method="get" id="search-form">
                         <input type="hidden" name="page" value="1">
                         <input type="hidden" name="perPage" value="<?= $perPage ?>">
-                        <div class="input-group search-box">
-                            <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
-                            <button class="btn btn-outline-secondary btn-sm" type="submit">
-                                <i class='bx bx-search'></i>
-                            </button>
-                            <?php if (!empty($keyword)): ?>
-                            <a href="<?= site_url($module_name) ?>" class="btn btn-outline-danger btn-sm">
-                                <i class='bx bx-x'></i>
-                            </a>
-                            <?php endif; ?>
+                        <div class="d-flex gap-2">
+                            <div class="input-group search-box">
+                                <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
+                                <button class="btn btn-outline-secondary btn-sm" type="submit">
+                                    <i class='bx bx-search'></i>
+                                </button>
+                                <select name="status" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả trạng thái</option>
+                                    <option value="1" <?= (isset($_GET['status']) && $_GET['status'] === '1') ? 'selected' : '' ?>>Hoạt động</option>
+                                    <option value="0" <?= (isset($_GET['status']) && $_GET['status'] === '0') ? 'selected' : '' ?>>Không hoạt động</option>
+                                </select>
+                                <?php if (!empty($keyword) || isset($_GET['status'])): ?>
+                                <a href="<?= site_url($module_name) ?>" class="btn btn-outline-danger btn-sm">
+                                    <i class='bx bx-x'></i>
+                                </a>
+                                <?php endif; ?>
+                            </div>
+                          
                         </div>
                     </form>
                 </div>
@@ -87,11 +101,16 @@
             </div>
         <?php endif; ?>
         
-        <?php if (!empty($keyword)): ?>
+        <?php if (!empty($keyword) || isset($_GET['status'])): ?>
             <div class="alert alert-info m-3">
                 <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
                 <div class="small">
-                    <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
+                    <?php if (!empty($keyword)): ?>
+                        <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['status'])): ?>
+                        <span class="badge bg-primary me-2">Trạng thái: <?= $_GET['status'] === '1' ? 'Hoạt động' : 'Không hoạt động' ?></span>
+                    <?php endif; ?>
                     <a href="<?= site_url($module_name) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>
             </div>
@@ -134,9 +153,17 @@
                                     <td><?= esc($item->getEmail()) ?></td>
                                     <td><?= esc($item->getDienThoai()) ?></td>
                                     <td>
-                                        <span class="badge <?= $item->getStatus() ? 'bg-success' : 'bg-danger' ?>">
-                                            <?= $item->getStatus() ? 'Hoạt động' : 'Không hoạt động' ?>
-                                        </span>
+                                        <form action="<?= site_url($module_name . '/statusMultiple') ?>" 
+                                            method="post" class="d-inline">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="selected_ids[]" value="<?= $item->getId() ?>">
+                                            <input type="hidden" name="return_url" value="<?= current_url() ?>">
+                                            <button type="submit" class="btn btn-sm <?= $item->getStatus() ? 'btn-success' : 'btn-danger' ?> status-toggle" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="<?= $item->getStatus() ? 'Đang hoạt động - Click để tắt' : 'Đang tắt - Click để bật' ?>">
+                                                <?= $item->getStatus() ? 'Hoạt động' : 'Không hoạt động' ?>
+                                            </button>
+                                        </form>
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
@@ -247,6 +274,28 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <button type="button" id="confirm-delete-multiple" class="btn btn-danger">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xác nhận thay đổi trạng thái nhiều -->
+<div class="modal fade" id="statusMultipleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Xác nhận thay đổi trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center icon-wrapper mb-3">
+                    <i class="bx bx-toggle-right text-warning" style="font-size: 4rem;"></i>
+                </div>
+                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-selected-count" class="fw-bold"></span> bản ghi đã chọn?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="confirm-status-multiple" class="btn btn-warning">Xác nhận</button>
             </div>
         </div>
     </div>

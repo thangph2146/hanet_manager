@@ -28,7 +28,7 @@ class DienGia extends BaseController
     protected $model;
     protected $alert;
     protected $moduleUrl;
-    protected $title;
+    protected $title = 'Diễn giả';
     protected $module_name = 'diengia';
     protected $controller_name = 'DienGia';
     protected $primary_key = 'dien_gia_id';
@@ -60,7 +60,6 @@ class DienGia extends BaseController
         
         // Thông tin module
         $this->moduleUrl = base_url($this->module_name);
-        $this->title = 'Diễn giả';
         
         // Khởi tạo các model quan hệ
         $this->initializeRelationTrait();
@@ -126,13 +125,12 @@ class DienGia extends BaseController
         if ($pager !== null) {
             $pager->setPath($this->module_name);
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'bac_hoc_id']);
+            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', $this->primary_key]);
             
             // Đảm bảo perPage và currentPage được thiết lập đúng
             $pager->setPerPage($params['perPage']);
             $pager->setCurrentPage($params['page']);
         }
-        
         // Chuẩn bị dữ liệu cho view
         $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
         // Hiển thị view
@@ -392,7 +390,7 @@ class DienGia extends BaseController
         }
         
         $pager->setPath($this->module_name . '/listdeleted');
-        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'bac_hoc_id']);
+        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', $this->primary_key]);
         $pager->setPerPage($params['perPage']);
         $pager->setCurrentPage($params['page']);
         

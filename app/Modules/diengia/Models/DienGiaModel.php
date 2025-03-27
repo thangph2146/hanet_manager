@@ -141,9 +141,13 @@ class DienGiaModel extends BaseModel
         if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
             $builder->where($this->table . '.deleted_at IS NOT NULL');
         } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa và đang hoạt động
+            // Mặc định chỉ lấy dữ liệu chưa xóa
             $builder->where($this->table . '.deleted_at IS NULL');
-            $builder->where($this->table . '.status', 1);
+        }
+        
+        // Xử lý lọc theo trạng thái
+        if (isset($criteria['status'])) {
+            $builder->where($this->table . '.status', $criteria['status']);
         }
         
         if (!empty($criteria['keyword'])) {
@@ -207,9 +211,13 @@ class DienGiaModel extends BaseModel
         if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
             $builder->where($this->table . '.deleted_at IS NOT NULL');
         } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa và đang hoạt động
+            // Mặc định chỉ lấy dữ liệu chưa xóa
             $builder->where($this->table . '.deleted_at IS NULL');
-            $builder->where($this->table . '.status', 1);
+        }
+        
+        // Xử lý lọc theo trạng thái
+        if (isset($criteria['status'])) {
+            $builder->where($this->table . '.status', $criteria['status']);
         }
         
         if (!empty($criteria['keyword'])) {
