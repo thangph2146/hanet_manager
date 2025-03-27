@@ -10,7 +10,7 @@ use CodeIgniter\I18n\Time;
 class SuKienDienGiaModel extends BaseModel
 {
     protected $table = 'su_kien_dien_gia';
-    protected $primaryKey = ['su_kien_id', 'dien_gia_id'];
+    protected $primaryKey = 'su_kien_dien_gia_id';
     protected $useAutoIncrement = false;
     
     protected $useSoftDeletes = true;
@@ -23,6 +23,7 @@ class SuKienDienGiaModel extends BaseModel
     protected $surroundCount = 2;
     
     protected $allowedFields = [
+        'su_kien_dien_gia_id',
         'su_kien_id',
         'dien_gia_id',
         'thu_tu',
@@ -36,8 +37,7 @@ class SuKienDienGiaModel extends BaseModel
     // Trường có thể tìm kiếm
     protected $searchableFields = [
         'su_kien_id',
-        'dien_gia_id',
-        'thu_tu'
+        'dien_gia_id'
     ];
     
     // Trường có thể lọc
@@ -55,7 +55,7 @@ class SuKienDienGiaModel extends BaseModel
     public $pager = null;
     
     /**
-     * Lấy tất cả bản ghi sự kiện diễn giả
+     * Lấy tất cả bản ghi liên kết sự kiện và diễn giả
      *
      * @param int $limit Số lượng bản ghi trên mỗi trang
      * @param int $offset Vị trí bắt đầu lấy dữ liệu
@@ -63,7 +63,7 @@ class SuKienDienGiaModel extends BaseModel
      * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAll($limit = 10, $offset = 0, $sort = 'thu_tu', $order = 'ASC')
+    public function getAll($limit = 10, $offset = 0, $sort = 'created_at', $order = 'DESC')
     {
         $this->builder = $this->db->table($this->table);
         $this->builder->select('*');
@@ -91,7 +91,63 @@ class SuKienDienGiaModel extends BaseModel
     }
     
     /**
-     * Lấy tất cả bản ghi sự kiện diễn giả đã xóa
+     * Lấy tất cả bản ghi đang hoạt động
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
+     */
+    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'created_at', string $order = 'DESC')
+    {
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        $this->builder->where('deleted_at IS NULL');
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
+        }
+        
+        $total = $this->countAllActive();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        if ($limit > 0) {
+            $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+            return $result ?: [];
+        }
+        
+        return $this->findAll();
+    }
+    
+    /**
+     * Đếm tổng số bản ghi đang hoạt động
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAllActive($conditions = [])
+    {
+        $builder = $this->builder();
+        $builder->where('deleted_at IS NULL');
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
+     * Lấy tất cả bản ghi liên kết đã xóa
      *
      * @param int $limit Số lượng bản ghi trên mỗi trang
      * @param int $offset Vị trí bắt đầu lấy dữ liệu
@@ -127,7 +183,7 @@ class SuKienDienGiaModel extends BaseModel
     }
 
     /**
-     * Đếm tổng số bản ghi sự kiện diễn giả
+     * Đếm tổng số bản ghi
      *
      * @param array $conditions Điều kiện bổ sung
      * @return int
@@ -147,7 +203,7 @@ class SuKienDienGiaModel extends BaseModel
     }
     
     /**
-     * Đếm tổng số bản ghi sự kiện diễn giả đã xóa
+     * Đếm tổng số bản ghi đã xóa
      *
      * @param array $conditions Điều kiện bổ sung
      * @return int
@@ -167,209 +223,148 @@ class SuKienDienGiaModel extends BaseModel
     }
     
     /**
-     * Lấy tất cả bản ghi chưa lưu trữ
-     *
-     * @param int $limit Số lượng bản ghi trên mỗi trang
-     * @param int $offset Vị trí bắt đầu lấy dữ liệu
-     * @param string $sort Trường sắp xếp
-     * @param string $order Thứ tự sắp xếp (ASC, DESC)
-     * @return array
-     */
-    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'thu_tu', string $order = 'ASC')
-    {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        $this->builder->where('deleted_at IS NULL');
-        
-        if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
-        }
-        
-        $total = $this->countAllActive();
-        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
-        
-        if ($this->pager === null) {
-            $this->pager = new Pager($total, $limit, $currentPage);
-        } else {
-            $this->pager->setTotal($total)
-                        ->setPerPage($limit)
-                        ->setCurrentPage($currentPage);
-        }
-        
-        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
-        return $result ?: [];
-    }
-    
-    /**
-     * Đếm tổng số bản ghi sự kiện diễn giả chưa lưu trữ
-     *
-     * @param array $conditions Điều kiện bổ sung
-     * @return int
-     */
-    public function countAllActive($conditions = [])
-    {
-        $builder = $this->builder();
-        $builder->where('deleted_at IS NULL');
-        
-        if (!empty($conditions)) {
-            $builder->where($conditions);
-        }
-        
-        return $builder->countAllResults();
-    }
-    
-    /**
-     * Tìm kiếm bản ghi
+     * Tìm kiếm liên kết sự kiện và diễn giả dựa vào các tiêu chí
      *
      * @param array $criteria Các tiêu chí tìm kiếm
-     * @param array $options Các tùy chọn tìm kiếm
+     * @param array $options Tùy chọn phân trang và sắp xếp
      * @return array
      */
     public function search(array $criteria = [], array $options = [])
     {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
+        $builder = $this->builder();
         
-        // Mặc định chỉ lấy bản ghi chưa xóa
-        $this->builder->where('deleted_at IS NULL');
+        // Xử lý withDeleted nếu cần
+        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+            $builder->where($this->table . '.deleted_at IS NOT NULL');
+        } else {
+            // Mặc định chỉ lấy dữ liệu chưa xóa
+            $builder->where($this->table . '.deleted_at IS NULL');
+        }
         
-        // Xử lý tìm kiếm theo từ khóa
-        if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
-            $keyword = $criteria['keyword'];
-            $this->builder->groupStart();
+        // Lọc theo ID sự kiện
+        if (!empty($criteria['su_kien_id'])) {
+            $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
+        }
+        
+        // Lọc theo ID diễn giả
+        if (!empty($criteria['dien_gia_id'])) {
+            $builder->where($this->table . '.dien_gia_id', $criteria['dien_gia_id']);
+        }
+        
+        // Lọc theo từ khóa
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
             
-            // Tìm kiếm trong các trường có thể tìm kiếm
-            foreach ($this->searchableFields as $field) {
-                $this->builder->orLike($field, $keyword);
-            }
-            $this->builder->groupEnd();
+            // Tìm kiếm theo ID
+            $builder->groupStart();
+            $builder->like($this->table . '.su_kien_dien_gia_id', $keyword);
+            $builder->orLike($this->table . '.su_kien_id', $keyword);
+            $builder->orLike($this->table . '.dien_gia_id', $keyword);
+            $builder->groupEnd();
         }
         
-        // Lọc theo sự kiện
-        if (isset($criteria['su_kien_id']) && !empty($criteria['su_kien_id'])) {
-            $this->builder->where('su_kien_id', $criteria['su_kien_id']);
-        }
-        
-        // Lọc theo diễn giả
-        if (isset($criteria['dien_gia_id']) && !empty($criteria['dien_gia_id'])) {
-            $this->builder->where('dien_gia_id', $criteria['dien_gia_id']);
-        }
-        
-        // Tổng số bản ghi phù hợp
-        $total = $this->countSearchResults($criteria);
-        
-        // Xử lý limit, offset
-        $limit = $options['limit'] ?? 10;
-        $offset = $options['offset'] ?? 0;
-        
-        if ($limit > 0) {
-            $this->builder->limit($limit, $offset);
-        }
-        
-        // Xử lý sắp xếp
+        // Xác định trường sắp xếp và thứ tự sắp xếp
         $sort = $options['sort'] ?? 'thu_tu';
         $order = $options['order'] ?? 'ASC';
         
-        if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
+        // Xử lý giới hạn và phân trang
+        $limit = $options['limit'] ?? 10;
+        $offset = $options['offset'] ?? 0;
+        
+        // Thực hiện truy vấn với phân trang
+        if ($limit > 0) {
+            $builder->limit($limit, $offset);
         }
         
-        // Cấu hình phân trang
-        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        // Sắp xếp kết quả
+        $builder->orderBy($sort, $order);
         
-        if ($this->pager === null) {
-            $this->pager = new Pager($total, $limit, $currentPage);
-        } else {
-            $this->pager->setTotal($total)
-                        ->setPerPage($limit)
-                        ->setCurrentPage($currentPage);
+        // Thực hiện truy vấn
+        $result = $builder->get()->getResult($this->returnType);
+        
+        // Thiết lập pager nếu cần
+        if ($limit > 0) {
+            $totalRows = $this->countSearchResults($criteria);
+            $this->pager = new Pager(
+                $totalRows,
+                $limit,
+                floor($offset / $limit) + 1
+            );
+            $this->pager->setSurroundCount($this->surroundCount ?? 2);
         }
         
-        $result = $this->builder->get()->getResult($this->returnType);
-        return $result ?: [];
+        return $result;
     }
     
     /**
-     * Đếm số lượng kết quả tìm kiếm
+     * Đếm tổng số kết quả tìm kiếm
      *
-     * @param array $criteria Các tiêu chí tìm kiếm
+     * @param array $criteria Tiêu chí tìm kiếm
      * @return int
      */
     public function countSearchResults(array $criteria = [])
     {
         $builder = $this->builder();
         
-        // Mặc định chỉ đếm bản ghi chưa xóa
-        $builder->where('deleted_at IS NULL');
+        // Xử lý withDeleted nếu cần
+        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+            $builder->where($this->table . '.deleted_at IS NOT NULL');
+        } else {
+            // Mặc định chỉ lấy dữ liệu chưa xóa
+            $builder->where($this->table . '.deleted_at IS NULL');
+        }
         
-        // Xử lý tìm kiếm theo từ khóa
-        if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
-            $keyword = $criteria['keyword'];
-            $builder->groupStart();
+        // Lọc theo ID sự kiện
+        if (!empty($criteria['su_kien_id'])) {
+            $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
+        }
+        
+        // Lọc theo ID diễn giả
+        if (!empty($criteria['dien_gia_id'])) {
+            $builder->where($this->table . '.dien_gia_id', $criteria['dien_gia_id']);
+        }
+        
+        // Lọc theo từ khóa
+        if (!empty($criteria['keyword'])) {
+            $keyword = trim($criteria['keyword']);
             
-            // Tìm kiếm trong các trường có thể tìm kiếm
-            foreach ($this->searchableFields as $field) {
-                $builder->orLike($field, $keyword);
-            }
+            // Tìm kiếm theo ID
+            $builder->groupStart();
+            $builder->like($this->table . '.su_kien_dien_gia_id', $keyword);
+            $builder->orLike($this->table . '.su_kien_id', $keyword);
+            $builder->orLike($this->table . '.dien_gia_id', $keyword);
             $builder->groupEnd();
-        }
-        
-        // Lọc theo sự kiện
-        if (isset($criteria['su_kien_id']) && !empty($criteria['su_kien_id'])) {
-            $builder->where('su_kien_id', $criteria['su_kien_id']);
-        }
-        
-        // Lọc theo diễn giả
-        if (isset($criteria['dien_gia_id']) && !empty($criteria['dien_gia_id'])) {
-            $builder->where('dien_gia_id', $criteria['dien_gia_id']);
         }
         
         return $builder->countAllResults();
     }
     
     /**
-     * Chuẩn bị quy tắc xác thực
-     *
-     * @param string $scenario Kịch bản xác thực ('insert', 'update')
+     * Chuẩn bị các quy tắc xác thực dựa trên tình huống
+     * 
+     * @param string $scenario Tình huống xác thực ('insert' hoặc 'update')
      * @param array $data Dữ liệu cần xác thực
-     * @return array
      */
     public function prepareValidationRules(string $scenario = 'insert', array $data = [])
     {
-        $rules = [
-            'su_kien_id' => [
-                'rules' => 'required',
-                'errors' => [
-                    'required' => 'ID sự kiện là bắt buộc',
-                ]
-            ],
-            'dien_gia_id' => [
-                'rules' => 'required',
-                'errors' => [
-                    'required' => 'ID diễn giả là bắt buộc',
-                ]
-            ],
-            'thu_tu' => [
-                'rules' => 'permit_empty|integer',
-                'errors' => [
-                    'integer' => 'Thứ tự phải là số nguyên',
-                ]
-            ]
-        ];
+        $entity = new SuKienDienGia();
+        $this->validationRules = $entity->getValidationRules();
+        $this->validationMessages = $entity->getValidationMessages();
         
-        return $rules;
+        // Loại trừ các trường timestamp
+        unset($this->validationRules['created_at']);
+        unset($this->validationRules['updated_at']);
+        unset($this->validationRules['deleted_at']);
     }
     
     /**
-     * Đặt số lượng liên kết hiển thị xung quanh trang hiện tại
-     *
-     * @param int $count
+     * Thiết lập số lượng liên kết trang hiển thị xung quanh trang hiện tại
+     * 
+     * @param int $count Số lượng liên kết trang hiển thị (mỗi bên)
      * @return $this
      */
     public function setSurroundCount(int $count)
     {
-        $this->surroundCount = $count;
-        
         if ($this->pager !== null) {
             $this->pager->setSurroundCount($count);
         }
@@ -378,8 +373,8 @@ class SuKienDienGiaModel extends BaseModel
     }
     
     /**
-     * Lấy đối tượng phân trang
-     *
+     * Lấy đối tượng phân trang 
+     * 
      * @return Pager|null
      */
     public function getPager()
@@ -388,201 +383,131 @@ class SuKienDienGiaModel extends BaseModel
     }
     
     /**
-     * Tìm bản ghi và các quan hệ
+     * Tìm bản ghi với các quan hệ
      *
-     * @param array|int $id
-     * @param array $relations Các quan hệ cần lấy
-     * @param bool $validate Có xác thực không tồn tại?
-     * @return object|null
+     * @param int $id ID bản ghi cần tìm
+     * @param array $relations Các quan hệ cần lấy theo
+     * @param bool $validate Có kiểm tra dữ liệu trước khi trả về không
+     * @return object|null Đối tượng tìm thấy hoặc null nếu không tìm thấy
      */
     public function findWithRelations($id, $relations = [], $validate = false)
     {
-        return $this->find($id, $validate);
+        // Trong trường hợp đơn giản, chúng ta chỉ gọi phương thức find
+        // Nhưng trong thực tế, có thể cần xử lý thêm các quan hệ
+        return $this->find($id);
     }
     
     /**
-     * Tìm kiếm bản ghi đã xóa
+     * Tìm kiếm các bản ghi đã xóa
      *
-     * @param array $criteria Các tiêu chí tìm kiếm
-     * @param array $options Các tùy chọn tìm kiếm
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @param array $options Tùy chọn tìm kiếm (limit, offset, sort, order)
      * @return array
      */
     public function searchDeleted(array $criteria = [], array $options = [])
     {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        $this->builder->where('deleted_at IS NOT NULL');
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
         
-        // Xử lý các tiêu chí tìm kiếm
-        if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
-            $keyword = $criteria['keyword'];
-            $this->builder->groupStart();
-            foreach ($this->searchableFields as $field) {
-                $this->builder->orLike($field, $keyword);
-            }
-            $this->builder->groupEnd();
-        }
+        // Đặt điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
         
-        return $this->processSearchOptionsAndGetResults($options);
+        // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
+        return $this->search($criteria, $options);
     }
     
     /**
-     * Đếm số lượng kết quả xóa
+     * Đếm số lượng bản ghi đã xóa theo tiêu chí tìm kiếm
      *
-     * @param array $criteria Các tiêu chí tìm kiếm
+     * @param array $criteria Tiêu chí tìm kiếm
      * @return int
      */
     public function countDeletedResults(array $criteria = [])
     {
+        // Đảm bảo withDeleted được thiết lập
+        $this->withDeleted();
+        
+        // Đặt điều kiện để chỉ đếm các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
+        return $this->countSearchResults($criteria);
+    }
+    
+    /**
+     * Lấy danh sách diễn giả theo sự kiện
+     *
+     * @param int $suKienId ID của sự kiện
+     * @return array
+     */
+    public function getDienGiaBySuKien(int $suKienId)
+    {
         $builder = $this->builder();
-        $builder->where('deleted_at IS NOT NULL');
+        $builder->select($this->table . '.*, dg.ten_dien_gia, dg.chuc_danh, dg.to_chuc, dg.avatar');
+        $builder->join('dien_gia dg', $this->table . '.dien_gia_id = dg.dien_gia_id', 'left');
+        $builder->where($this->table . '.su_kien_id', $suKienId);
+        $builder->where($this->table . '.deleted_at IS NULL');
+        $builder->orderBy($this->table . '.thu_tu', 'ASC');
         
-        // Xử lý các tiêu chí tìm kiếm
-        if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
-            $keyword = $criteria['keyword'];
-            $builder->groupStart();
-            foreach ($this->searchableFields as $field) {
-                $builder->orLike($field, $keyword);
-            }
-            $builder->groupEnd();
-        }
-        
-        return $builder->countAllResults();
+        return $builder->get()->getResult($this->returnType);
     }
     
     /**
-     * Xử lý trước khi chèn
+     * Lấy danh sách sự kiện theo diễn giả
      *
-     * @param array $data
+     * @param int $dienGiaId ID của diễn giả
      * @return array
      */
-    protected function beforeInsert(array $data): array
+    public function getSuKienByDienGia(int $dienGiaId)
     {
-        $data = parent::beforeInsert($data);
+        $builder = $this->builder();
+        $builder->select($this->table . '.*, sk.ten_su_kien, sk.mo_ta, sk.thoi_gian_bat_dau, sk.thoi_gian_ket_thuc');
+        $builder->join('su_kien sk', $this->table . '.su_kien_id = sk.su_kien_id', 'left');
+        $builder->where($this->table . '.dien_gia_id', $dienGiaId);
+        $builder->where($this->table . '.deleted_at IS NULL');
+        $builder->orderBy('sk.thoi_gian_bat_dau', 'DESC');
         
-        // Đảm bảo thu_tu có giá trị mặc định
-        if (!isset($data['data']['thu_tu'])) {
-            $data['data']['thu_tu'] = 0;
-        }
-        
-        return $data;
+        return $builder->get()->getResult($this->returnType);
     }
     
     /**
-     * Xử lý trước khi cập nhật
+     * Kiểm tra mối quan hệ giữa sự kiện và diễn giả đã tồn tại
      *
-     * @param array $data
-     * @return array
-     */
-    protected function beforeUpdate(array $data): array
-    {
-        $data = parent::beforeUpdate($data);
-        
-        // Đảm bảo thu_tu có giá trị hợp lệ nếu được cung cấp
-        if (isset($data['data']['thu_tu']) && !is_numeric($data['data']['thu_tu'])) {
-            $data['data']['thu_tu'] = 0;
-        }
-        
-        return $data;
-    }
-    
-    /**
-     * Định dạng ngày giờ
-     *
-     * @param string|null $datetime
-     * @return string|null
-     */
-    protected function formatDateTime(?string $datetime): ?string
-    {
-        if (empty($datetime)) {
-            return null;
-        }
-        
-        try {
-            if ($datetime instanceof Time) {
-                return $datetime->format('Y-m-d H:i:s');
-            }
-            
-            $time = new Time($datetime);
-            return $time->format('Y-m-d H:i:s');
-        } catch (\Exception $e) {
-            log_message('error', 'Error formatting datetime: ' . $e->getMessage());
-            return $datetime;
-        }
-    }
-    
-    /**
-     * Kiểm tra xem diễn giả có thuộc sự kiện không
-     *
-     * @param int $dienGiaId
-     * @param int $suKienId
+     * @param int $suKienId ID sự kiện
+     * @param int $dienGiaId ID diễn giả
      * @return bool
      */
-    public function isDienGiaInSuKien(int $dienGiaId, int $suKienId): bool
+    public function isExistsRelation(int $suKienId, int $dienGiaId): bool
     {
-        return $this->where([
-            'dien_gia_id' => $dienGiaId,
-            'su_kien_id' => $suKienId,
-            'deleted_at' => null
-        ])->first() !== null;
+        $builder = $this->builder();
+        $builder->where('su_kien_id', $suKienId);
+        $builder->where('dien_gia_id', $dienGiaId);
+        $builder->where('deleted_at IS NULL');
+        
+        return $builder->countAllResults() > 0;
     }
     
     /**
-     * Lấy tất cả diễn giả của một sự kiện
+     * Xóa mềm tất cả diễn giả trong một sự kiện
      *
-     * @param int $suKienId
-     * @return array
+     * @param int $suKienId ID sự kiện
+     * @return bool
      */
-    public function getDienGiaBySuKien(int $suKienId): array
+    public function deleteBySuKien(int $suKienId)
     {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->where('su_kien_id', $suKienId);
-        $this->builder->where('deleted_at IS NULL');
-        $this->builder->orderBy('thu_tu', 'ASC');
-        
-        $result = $this->builder->get()->getResult($this->returnType);
-        return $result ?: [];
+        $this->where('su_kien_id', $suKienId);
+        return $this->delete(null, true); // true để chỉ định xóa mềm
     }
     
     /**
-     * Lấy tất cả sự kiện của một diễn giả
+     * Xóa mềm tất cả sự kiện của một diễn giả
      *
-     * @param int $dienGiaId
-     * @return array
+     * @param int $dienGiaId ID diễn giả
+     * @return bool
      */
-    public function getSuKienByDienGia(int $dienGiaId): array
+    public function deleteByDienGia(int $dienGiaId)
     {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->where('dien_gia_id', $dienGiaId);
-        $this->builder->where('deleted_at IS NULL');
-        $this->builder->orderBy('thu_tu', 'ASC');
-        
-        $result = $this->builder->get()->getResult($this->returnType);
-        return $result ?: [];
-    }
-    
-    /**
-     * Xử lý các tùy chọn tìm kiếm và trả về kết quả
-     *
-     * @param array $options
-     * @return array
-     */
-    protected function processSearchOptionsAndGetResults(array $options = [])
-    {
-        $limit = $options['limit'] ?? 10;
-        $offset = $options['offset'] ?? 0;
-        $sort = $options['sort'] ?? 'thu_tu';
-        $order = $options['order'] ?? 'ASC';
-        
-        if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
-        }
-        
-        if ($limit > 0) {
-            $this->builder->limit($limit, $offset);
-        }
-        
-        $result = $this->builder->get()->getResult($this->returnType);
-        return $result ?: [];
+        $this->where('dien_gia_id', $dienGiaId);
+        return $this->delete(null, true); // true để chỉ định xóa mềm
     }
 } 

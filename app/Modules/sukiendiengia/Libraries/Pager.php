@@ -3,10 +3,10 @@
 namespace App\Modules\sukiendiengia\Libraries;
 
 /**
- * Lớp Pager - cung cấp chức năng phân trang cho module ThamGiaSuKien
+ * Lớp Pager - cung cấp chức năng phân trang cho module SuKienDienGia
  * 
  * Lớp này thay thế cho \CodeIgniter\Pager\Pager mặc định để tùy chỉnh
- * cách hiển thị và xử lý phân trang riêng cho module ThamGiaSuKien.
+ * cách hiển thị và xử lý phân trang riêng cho module SuKienDienGia.
  */
 class Pager
 {
@@ -295,134 +295,103 @@ class Pager
      */
     public function getPageURL(int $page)
     {
-        // Đảm bảo số trang nằm trong khoảng hợp lệ
+        // Đảm bảo $page nằm trong khoảng hợp lệ
         $page = max(1, min($page, $this->pageCount));
         
-        // Lấy path từ thiết lập hoặc URI hiện tại
-        if (empty($this->path)) {
-            // Nếu không có path được thiết lập, sử dụng URI hiện tại
-            $uri = service('uri');
-            $path = implode('/', $uri->getSegments());
-        } else {
-            // Sử dụng path đã được thiết lập
-            $path = $this->path;
-        }
+        // Xây dựng URL cơ sở
+        $url = $this->path ? site_url($this->path) : site_url();
         
-        // Log path được sử dụng
-        log_message('debug', '[Pager] Path được sử dụng: ' . $path);
+        // Lấy các tham số GET hiện tại
+        $params = $_GET;
         
-        // Lấy tất cả các tham số GET hiện tại
-        $query = $_GET;
-        
-        // Log các tham số GET hiện tại
-        log_message('debug', '[Pager] Tham số GET gốc: ' . json_encode($query));
-        
-        // Cập nhật tham số page
-        $query['page'] = $page;
-        
-        // Đảm bảo perPage luôn được giữ lại
-        if (!isset($query['perPage']) && $this->perPage != 10) {
-            $query['perPage'] = $this->perPage;
-        }
-        
-        // Đảm bảo các tham số quan trọng luôn được giữ lại
-        $importantParams = ['keyword', 'status', 'sort', 'order'];
-        foreach ($importantParams as $param) {
-            if (isset($_GET[$param])) {
-                // Xử lý đặc biệt cho trường hợp status=0
-                if ($param === 'status' && (string)$_GET[$param] === '0') {
-                    $query[$param] = '0';
-                    log_message('debug', '[Pager] Xử lý đặc biệt: giữ lại status=0');
-                } 
-                // Chỉ giữ lại tham số có giá trị hoặc giá trị rỗng có chủ đích
-                else if ($_GET[$param] !== '') {
-                    $query[$param] = $_GET[$param];
-                }
-            }
-        }
-        
-        // Lọc các tham số chỉ định trong only (nếu có)
+        // Nếu $only được chỉ định, chỉ giữ lại các tham số được yêu cầu
         if (!empty($this->only)) {
-            // Log thông tin only trước khi lọc
-            log_message('debug', '[Pager] Danh sách only: ' . json_encode($this->only));
-            
-            $newQuery = [];
+            $filteredParams = [];
             foreach ($this->only as $key) {
-                if (isset($query[$key])) {
-                    $newQuery[$key] = $query[$key];
+                if (isset($params[$key])) {
+                    $filteredParams[$key] = $params[$key];
                 }
             }
-            
-            // Luôn thêm tham số page vào danh sách được giữ lại
-            $newQuery['page'] = $page;
-            
-            // Log các tham số sau khi lọc qua only
-            log_message('debug', '[Pager] Tham số sau khi lọc qua only: ' . json_encode($newQuery));
-            
-            $query = $newQuery;
+            $params = $filteredParams;
         }
         
-        // Tạo query string từ các tham số
-        $queryString = http_build_query($query);
+        // Thêm tham số page
+        $params['page'] = $page;
         
-        // Kết hợp path và query string
-        $url = site_url($path);
-        if (!empty($queryString)) {
-            $url .= '?' . $queryString;
-        }
+        // Xây dựng query string
+        $queryString = http_build_query($params);
         
-        // Log URL cuối cùng 
-        log_message('debug', '[Pager] Tạo URL cho trang ' . $page . ': ' . $url);
-        
-        return $url;
+        return $url . '?' . $queryString;
     }
     
     /**
-     * Tạo danh sách các số trang để hiển thị
+     * Lấy danh sách các số trang cần hiển thị
      * 
-     * @return array Danh sách các số trang
+     * @return array
      */
     public function getPageNumbers()
     {
-        // Log thông tin request hiện tại để debug
-        if (isset($_GET['status']) && $_GET['status'] === '0') {
-            log_message('debug', 'Pager: Đang xử lý getPageNumbers với status=0');
-        }
+        // Tạo mảng chứa các số trang sẽ hiển thị
+        $pages = [];
         
-        // Nếu tổng số trang ít, hiển thị tất cả
-        if ($this->pageCount <= ($this->surroundCount * 2) + 3) {
-            return range(1, max(1, $this->pageCount));
-        }
-        
-        // Xác định phạm vi trang cần hiển thị
+        // Xác định khoảng hiển thị
         $start = max(1, $this->currentPage - $this->surroundCount);
         $end = min($this->pageCount, $this->currentPage + $this->surroundCount);
         
-        $pages = [];
-        
-        // Luôn hiển thị trang đầu tiên
-        $pages[] = 1;
-        
-        // Thêm dấu chấm lửng nếu cần
-        if ($start > 2) {
-            $pages[] = '...';
-        }
-        
-        // Thêm các trang ở giữa
-        for ($i = $start; $i <= $end; $i++) {
-            if ($i !== 1 && $i !== $this->pageCount) {
-                $pages[] = $i;
+        // Điều chỉnh khoảng để luôn hiển thị đủ số lượng trang
+        if ($end - $start + 1 < $this->surroundCount * 2 + 1) {
+            if ($start === 1) {
+                $end = min($this->pageCount, $start + $this->surroundCount * 2);
+            } elseif ($end === $this->pageCount) {
+                $start = max(1, $end - $this->surroundCount * 2);
             }
         }
         
-        // Thêm dấu chấm lửng nếu cần
-        if ($end < $this->pageCount - 1) {
-            $pages[] = '...';
+        // Luôn hiển thị trang đầu tiên
+        if ($start > 1) {
+            $pages[] = [
+                'page' => 1,
+                'url' => $this->getPageURL(1),
+                'isCurrent' => false
+            ];
+            
+            // Hiển thị dấu 3 chấm nếu cần
+            if ($start > 2) {
+                $pages[] = [
+                    'page' => '...',
+                    'url' => '',
+                    'isCurrent' => false,
+                    'isEllipsis' => true
+                ];
+            }
+        }
+        
+        // Hiển thị các trang trong khoảng
+        for ($i = $start; $i <= $end; $i++) {
+            $pages[] = [
+                'page' => $i,
+                'url' => $this->getPageURL($i),
+                'isCurrent' => ($i === $this->currentPage)
+            ];
         }
         
         // Luôn hiển thị trang cuối cùng
-        if ($this->pageCount > 1) {
-            $pages[] = $this->pageCount;
+        if ($end < $this->pageCount) {
+            // Hiển thị dấu 3 chấm nếu cần
+            if ($end < $this->pageCount - 1) {
+                $pages[] = [
+                    'page' => '...',
+                    'url' => '',
+                    'isCurrent' => false,
+                    'isEllipsis' => true
+                ];
+            }
+            
+            $pages[] = [
+                'page' => $this->pageCount,
+                'url' => $this->getPageURL($this->pageCount),
+                'isCurrent' => false
+            ];
         }
         
         return $pages;
@@ -574,57 +543,5 @@ class Pager
     public function hasMore(): bool
     {
         return $this->currentPage < $this->getLastPage();
-    }
-    
-    public function getOffset(): int
-    {
-        return ($this->currentPage - 1) * $this->perPage;
-    }
-    
-    public function getLinks(): array
-    {
-        $links = [];
-        $lastPage = $this->getLastPage();
-        
-        // Luôn hiển thị trang đầu
-        $links[] = 1;
-        
-        // Tính toán phạm vi trang xung quanh trang hiện tại
-        $start = max(2, $this->currentPage - $this->surroundCount);
-        $end = min($lastPage - 1, $this->currentPage + $this->surroundCount);
-        
-        // Thêm dấu ... nếu cần
-        if ($start > 2) {
-            $links[] = '...';
-        }
-        
-        // Thêm các trang ở giữa
-        for ($i = $start; $i <= $end; $i++) {
-            $links[] = $i;
-        }
-        
-        // Thêm dấu ... và trang cuối nếu cần
-        if ($end < $lastPage - 1) {
-            $links[] = '...';
-        }
-        
-        // Luôn hiển thị trang cuối nếu có nhiều hơn 1 trang
-        if ($lastPage > 1) {
-            $links[] = $lastPage;
-        }
-        
-        return $links;
-    }
-    
-    public function getInfo(): array
-    {
-        return [
-            'total' => $this->total,
-            'per_page' => $this->perPage,
-            'current_page' => $this->currentPage,
-            'last_page' => $this->getLastPage(),
-            'has_more' => $this->hasMore(),
-            'links' => $this->getLinks()
-        ];
     }
 } 

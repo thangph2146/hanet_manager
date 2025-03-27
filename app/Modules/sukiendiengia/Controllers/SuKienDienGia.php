@@ -4,7 +4,6 @@ namespace App\Modules\sukiendiengia\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\sukiendiengia\Models\SuKienDienGiaModel;
-use App\Libraries\Breadcrumb;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -27,42 +26,27 @@ class SuKienDienGia extends BaseController
     use RelationTrait;
     
     protected $model;
-    protected $breadcrumb;
     protected $alert;
     protected $moduleUrl;
-    protected $moduleName;
+    protected $title;
     protected $module_name = 'sukiendiengia';
-    protected $session;
-    protected $data;
-    protected $permission;
+    protected $controller_name = 'SuKienDienGia';
     
     public function __construct()
     {
         // Khởi tạo session sớm
         $this->session = service('session');
-        $data = [
-            'module_name' => $this->module_name,
-        ];
-        
+
         // Khởi tạo các thành phần cần thiết
-        $this->model = new ThamGiaSuKienModel();
-        $this->breadcrumb = new Breadcrumb();
+        $this->model = new SuKienDienGiaModel();
         $this->alert = new Alert();
         
         // Thông tin module
         $this->moduleUrl = base_url($this->module_name);
-        $this->moduleName = 'Tham Gia Sự Kiện';
+        $this->title = 'Sự kiện diễn giả';
         
-        // Khởi tạo data để truyền đến view
-        $this->data = [
-            'title' => $this->moduleName,
-            'moduleUrl' => $this->moduleUrl,
-            'moduleName' => $this->moduleName,
-        ];
-        
-        // Thêm breadcrumb cơ bản cho tất cả các trang trong controller này
-        $this->breadcrumb->add('Trang chủ', base_url())
-                        ->add($this->moduleName, $this->moduleUrl);
+        // Khởi tạo các model quan hệ
+        $this->initializeRelationTrait();
     }
     
     /**
@@ -70,9 +54,6 @@ class SuKienDienGia extends BaseController
      */
     public function index()
     {
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Danh sách', current_url());
-        
         // Lấy và xử lý tham số tìm kiếm
         $params = $this->prepareSearchParams($this->request);
         $params = $this->processSearchParams($params);
@@ -85,8 +66,7 @@ class SuKienDienGia extends BaseController
         $options = $this->buildSearchOptions($params);
         
         // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
-        $data = $this->model->search($criteria, $options);
-        
+        $pageData = $this->model->search($criteria, $options);
         // Lấy tổng số kết quả
         $pager = $this->model->getPager();
         $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($criteria);
@@ -108,7 +88,7 @@ class SuKienDienGia extends BaseController
         if ($pager !== null) {
             $pager->setPath($this->module_name);
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'nguoi_dung_id', 'su_kien_id', 'phuong_thuc_diem_danh']);
+            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'khoa_hoc_id']);
             
             // Đảm bảo perPage và currentPage được thiết lập đúng
             $pager->setPerPage($params['perPage']);
@@ -116,8 +96,7 @@ class SuKienDienGia extends BaseController
         }
         
         // Chuẩn bị dữ liệu cho view
-        $viewData = $this->prepareViewData($data, $pager, array_merge($params, ['total' => $total]));
-        
+        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
     }
@@ -127,17 +106,15 @@ class SuKienDienGia extends BaseController
      */
     public function new()
     {
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Thêm mới', current_url());
+        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
+        $viewData = $this->prepareFormData($this->module_name);
         
-        // Chuẩn bị dữ liệu cho view
-        $viewData = [
-            'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Thêm mới ' . $this->moduleName,
-            'validation' => $this->validator,
-            'moduleUrl' => $this->moduleUrl,
-            'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
-        ];
+        // Thêm dữ liệu cho view
+        $viewData['title'] = 'Thêm mới ' . $this->title;
+        $viewData['validation'] = $this->validator;
+        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
+        $viewData['action'] = site_url($this->module_name . '/create');
+        $viewData['method'] = 'POST';
         
         return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
     }
@@ -150,20 +127,6 @@ class SuKienDienGia extends BaseController
         // Lấy dữ liệu từ form
         $data = $this->request->getPost();
         
-        // Xử lý thời gian điểm danh nếu có
-        if (!empty($data['thoi_gian_diem_danh'])) {
-            try {
-                $time = Time::parse($data['thoi_gian_diem_danh']);
-                $data['thoi_gian_diem_danh'] = $time->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {
-                log_message('error', 'Lỗi parse thời gian điểm danh: ' . $e->getMessage());
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Thời gian điểm danh không hợp lệ');
-            }
-        }
-        
-        // Chuẩn bị quy tắc validation cho thêm mới
         $this->model->prepareValidationRules('insert');
         
         // Kiểm tra dữ liệu
@@ -171,26 +134,19 @@ class SuKienDienGia extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
-        // Kiểm tra xem người dùng đã tham gia sự kiện chưa
-        if ($this->model->isUserJoinedEvent($data['nguoi_dung_id'], $data['su_kien_id'])) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Người dùng này đã tham gia sự kiện được chọn.');
-        }
-        
         try {
             // Lưu dữ liệu trực tiếp
             if ($this->model->insert($data)) {
-                $this->alert->set('success', 'Thêm mới ' . $this->moduleName . ' thành công', true);
+                $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
-                throw new \RuntimeException('Không thể thêm mới ' . $this->moduleName);
+                throw new \RuntimeException('Không thể thêm mới ' . $this->title);
             }
         } catch (\Exception $e) {
-            log_message('error', '[ThamGiaSuKien::create] ' . $e->getMessage());
+            log_message('error', '[' . $this->controller_name . '::create] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->moduleName);
+                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title);
         }
     }
     
@@ -200,7 +156,7 @@ class SuKienDienGia extends BaseController
     public function view($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID tham gia sự kiện không hợp lệ', true);
+            $this->alert->set('danger', 'ID sự kiện diễn giả không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -208,26 +164,23 @@ class SuKienDienGia extends BaseController
         $this->initializeRelationTrait();
         
         // Lấy thông tin dữ liệu cơ bản
-        $thamGiaSuKien = $this->model->find($id);
+        $data = $this->model->find($id);
         
-        if (empty($thamGiaSuKien)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu tham gia sự kiện', true);
+        if (empty($data)) {
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu sự kiện diễn giả', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Xử lý dữ liệu và nạp các quan hệ
-        $processedData = $this->processData([$thamGiaSuKien]);
-        $thamGiaSuKien = $processedData[0] ?? $thamGiaSuKien;
-        
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Chi tiết', current_url());
+        $processedData = $this->processData([$data]);
+        $data = $processedData[0] ?? $data;
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
-            'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Chi tiết ' . $this->moduleName,
-            'thamGiaSuKien' => $thamGiaSuKien,
-            'moduleUrl' => $this->moduleUrl
+            'title' => 'Chi tiết ' . $this->title,
+            'data' => $data,
+            'moduleUrl' => $this->moduleUrl,
+            'module_name' => $this->module_name
         ];
         
         return view('App\Modules\\' . $this->module_name . '\Views\view', $viewData);
@@ -239,30 +192,27 @@ class SuKienDienGia extends BaseController
     public function edit($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID tham gia sự kiện không hợp lệ', true);
+            $this->alert->set('danger', 'ID sự kiện diễn giả không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Sử dụng phương thức findWithRelations từ model
-        $thamGiaSuKien = $this->model->findWithRelations($id);
+        $data = $this->model->findWithRelations($id);
         
-        if (empty($thamGiaSuKien)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu tham gia sự kiện', true);
+        if (empty($data)) {
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu sự kiện diễn giả', true);
             return redirect()->to($this->moduleUrl);
         }
         
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Chỉnh sửa', current_url());
+        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
+        $viewData = $this->prepareFormData($this->module_name, $data);
         
-        // Chuẩn bị dữ liệu cho view
-        $viewData = [
-            'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Chỉnh sửa ' . $this->moduleName,
-            'validation' => $this->validator,
-            'thamGiaSuKien' => $thamGiaSuKien,
-            'moduleUrl' => $this->moduleUrl,
-            'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
-        ];
+        // Thêm dữ liệu cho view
+        $viewData['title'] = 'Chỉnh sửa ' . $this->title;
+        $viewData['validation'] = $this->validator;
+        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
+        $viewData['action'] = site_url($this->module_name . '/update/' . $id);
+        $viewData['method'] = 'POST';
         
         return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
     }
@@ -273,7 +223,7 @@ class SuKienDienGia extends BaseController
     public function update($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID tham gia sự kiện không hợp lệ', true);
+            $this->alert->set('danger', 'ID sự kiện diễn giả không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -281,13 +231,14 @@ class SuKienDienGia extends BaseController
         $existingRecord = $this->model->findWithRelations($id);
         
         if (empty($existingRecord)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu tham gia sự kiện', true);
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu sự kiện diễn giả', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
-        
+        print_r($data);
+        die();
         // Xử lý thời gian điểm danh
         if (!empty($data['thoi_gian_diem_danh'])) {
             try {
@@ -312,16 +263,16 @@ class SuKienDienGia extends BaseController
         try {
             // Lưu dữ liệu trực tiếp
             if ($this->model->update($id, $data)) {
-                $this->alert->set('success', 'Cập nhật ' . $this->moduleName . ' thành công', true);
+                $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
-                throw new \RuntimeException('Không thể cập nhật ' . $this->moduleName);
+                throw new \RuntimeException('Không thể cập nhật ' . $this->title);
             }
         } catch (\Exception $e) {
-            log_message('error', '[ThamGiaSuKien::update] ' . $e->getMessage());
+            log_message('error', '[' . $this->controller_name . '::update] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->moduleName);
+                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title);
         }
     }
     
@@ -331,13 +282,12 @@ class SuKienDienGia extends BaseController
     public function delete($id = null, $backToUrl = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID tham gia sự kiện không hợp lệ', true);
+            $this->alert->set('danger', 'ID sự kiện diễn giả không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
-        // Thực hiện xóa mềm (sử dụng deleted_at thay vì bin)
         if ($this->model->delete($id)) {
-            $this->alert->set('success', 'Đã xóa dữ liệu tham gia sự kiện thành công', true);
+            $this->alert->set('success', 'Đã xóa dữ liệu thành công', true);
         } else {
             $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
         }
@@ -356,9 +306,6 @@ class SuKienDienGia extends BaseController
      */
     public function listdeleted()
     {
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Lịch sử xóa', current_url());
-        
         // Lấy và xử lý tham số tìm kiếm
         $params = $this->prepareSearchParams($this->request);
         $params = $this->processSearchParams($params);
@@ -388,10 +335,10 @@ class SuKienDienGia extends BaseController
         $this->model->withDeleted();
         
         // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
-        $data = $this->model->search($criteria, $options);
+        $pageData = $this->model->search($criteria, $options);
         
         // Xử lý dữ liệu và nạp các quan hệ
-        $data = $this->processData($data);
+        $pageData = $this->processData($pageData);
         
         // Lấy tổng số kết quả
         $total = $this->model->countSearchResults($criteria);
@@ -400,7 +347,7 @@ class SuKienDienGia extends BaseController
         $pager = $this->model->getPager();
         if ($pager === null) {
             // Tạo pager mới nếu getPager() trả về null
-            $pager = new \App\Modules\thamgiasukien\Libraries\Pager(
+            $pager = new \App\Modules\namhoc\Libraries\Pager(
                 $total,
                 $params['perPage'],
                 $params['page']
@@ -414,24 +361,7 @@ class SuKienDienGia extends BaseController
         $pager->setCurrentPage($params['page']);
         
         // Chuẩn bị dữ liệu cho view
-        $viewData = [
-            'data' => $data,
-            'pager' => $pager,
-            'currentPage' => $params['page'],
-            'perPage' => $params['perPage'],
-            'total' => $total,
-            'sort' => $params['sort'],
-            'order' => $params['order'],
-            'keyword' => $params['keyword'],
-            'status' => $params['status'],
-            'nguoi_dung_id' => $params['nguoi_dung_id'],
-            'su_kien_id' => $params['su_kien_id'],
-            'phuong_thuc_diem_danh' => $params['phuong_thuc_diem_danh'],
-            'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Lịch sử xóa ' . $this->moduleName,
-            'moduleUrl' => $this->moduleUrl,
-            'moduleName' => $this->moduleName
-        ];
+        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
         
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);
@@ -443,7 +373,7 @@ class SuKienDienGia extends BaseController
     public function restore($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID không hợp lệ', true);
+            $this->alert->set('danger', 'ID sự kiện diễn giả không hợp lệ', true);
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
@@ -469,7 +399,7 @@ class SuKienDienGia extends BaseController
     public function permanentDelete($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID không hợp lệ', true);
+            $this->alert->set('danger', 'ID sự kiện diễn giả không hợp lệ', true);
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
@@ -539,9 +469,8 @@ class SuKienDienGia extends BaseController
         
         // Nếu không phải AJAX, hiển thị trang tìm kiếm
         $viewData = [
-            'breadcrumb' => $this->breadcrumb->add('Tìm kiếm', current_url())->render(),
-            'title' => 'Tìm kiếm ' . $this->moduleName,
-            'templates' => $results,
+            'title' => 'Tìm kiếm ' . $this->title,
+            'data' => $results,
             'pager' => $this->model->pager,
             'keyword' => $keyword,
             'filters' => $filters,
@@ -856,13 +785,10 @@ class SuKienDienGia extends BaseController
     {
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
-        $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
-        $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
-        $su_kien_id = $this->request->getGet('su_kien_id');
-        $sort = $this->request->getGet('sort') ?? 'thoi_gian_diem_danh';
-        $order = $this->request->getGet('order') ?? 'DESC';
+        $sort = $this->request->getGet('sort') ?? 'su_kien_dien_gia_id';
+        $order = $this->request->getGet('order') ?? 'ASC';
 
-        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id);
+        $criteria = $this->prepareSearchCriteria($keyword, $status);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
         $headers = $this->prepareExcelHeaders();
@@ -870,12 +796,9 @@ class SuKienDienGia extends BaseController
         $filters = [];
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
         if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
-        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
-        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
-        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
-        $this->createExcelFile($data, $headers, $filters, 'danh_sach_tham_gia_su_kien');
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_su_kien_dien_gia');
     }
 
     /**
@@ -885,25 +808,19 @@ class SuKienDienGia extends BaseController
     {
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
-        $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
-        $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
-        $su_kien_id = $this->request->getGet('su_kien_id');
-        $sort = $this->request->getGet('sort') ?? 'thoi_gian_diem_danh';
-        $order = $this->request->getGet('order') ?? 'DESC';
+        $sort = $this->request->getGet('sort') ?? 'su_kien_dien_gia_id';
+        $order = $this->request->getGet('order') ?? 'ASC';
 
-        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id);
+        $criteria = $this->prepareSearchCriteria($keyword, $status);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
 
         $filters = [];
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
         if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
-        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
-        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
-        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
-        $this->createPdfFile($data, $filters, 'DANH SÁCH THAM GIA SỰ KIỆN', 'danh_sach_tham_gia_su_kien');
+        $this->createPdfFile($data, $filters, 'DANH SÁCH SỰ KIỆN DIỄN GIẢ', 'danh_sach_su_kien_dien_gia');
     }
 
     /**
@@ -913,26 +830,20 @@ class SuKienDienGia extends BaseController
     {
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
-        $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
-        $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
-        $su_kien_id = $this->request->getGet('su_kien_id');
         $sort = $this->request->getGet('sort') ?? 'deleted_at';
-        $order = $this->request->getGet('order') ?? 'DESC';
+        $order = $this->request->getGet('order') ?? 'ASC';
 
-        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id, true);
+        $criteria = $this->prepareSearchCriteria($keyword, $status, true);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
 
         $filters = [];
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
-        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
-        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
-        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
-        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
         $filters['Trạng thái'] = 'Đã xóa';
 
-        $this->createPdfFile($data, $filters, 'DANH SÁCH THAM GIA SỰ KIỆN ĐÃ XÓA', 'danh_sach_tham_gia_su_kien_da_xoa', true);
+        $this->createPdfFile($data, $filters, 'DANH SÁCH SỰ KIỆN DIỄN GIẢ ĐÃ XÓA', 'danh_sach_su_kien_dien_gia_da_xoa', true);
     }
 
     /**
@@ -942,27 +853,21 @@ class SuKienDienGia extends BaseController
     {
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
-        $phuong_thuc_diem_danh = $this->request->getGet('phuong_thuc_diem_danh');
-        $nguoi_dung_id = $this->request->getGet('nguoi_dung_id');
-        $su_kien_id = $this->request->getGet('su_kien_id');
         $sort = $this->request->getGet('sort') ?? 'deleted_at';
         $order = $this->request->getGet('order') ?? 'DESC';
 
-        $criteria = $this->prepareSearchCriteria($keyword, $status, $phuong_thuc_diem_danh, $nguoi_dung_id, $su_kien_id, true);
+        $criteria = $this->prepareSearchCriteria($keyword, $status, true);
         $options = $this->prepareSearchOptions($sort, $order);
         $data = $this->getExportData($criteria, $options);
         $headers = $this->prepareExcelHeaders(true);
 
         $filters = [];
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
-        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
-        if (!empty($phuong_thuc_diem_danh)) $filters['Phương thức điểm danh'] = $this->getPhuongThucDiemDanhText($phuong_thuc_diem_danh);
-        if (!empty($nguoi_dung_id)) $filters['Người dùng ID'] = $nguoi_dung_id;
-        if (!empty($su_kien_id)) $filters['Sự kiện ID'] = $su_kien_id;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
         $filters['Trạng thái'] = 'Đã xóa';
 
-        $this->createExcelFile($data, $headers, $filters, 'danh_sach_tham_gia_su_kien_da_xoa', true);
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_su_kien_dien_gia_da_xoa', true);
     }
 
     /**
@@ -971,14 +876,14 @@ class SuKienDienGia extends BaseController
     protected function getSortText($sort, $order)
     {
         $sortFields = [
-            'thoi_gian_diem_danh' => 'Thời gian điểm danh',
+            'su_kien_dien_gia_id' => 'ID',
+            'ten_su_kien' => 'Tên sự kiện',
+            'ten_dien_gia' => 'Tên diễn giả',
+            'thu_tu' => 'Thứ tự',
+            'status' => 'Trạng thái',
             'created_at' => 'Ngày tạo',
             'updated_at' => 'Ngày cập nhật',
             'deleted_at' => 'Ngày xóa',
-            'tham_gia_su_kien_id' => 'ID',
-            'nguoi_dung_id' => 'Người dùng ID',
-            'su_kien_id' => 'Sự kiện ID',
-            'status' => 'Trạng thái'
         ];
 
         $field = $sortFields[$sort] ?? $sort;

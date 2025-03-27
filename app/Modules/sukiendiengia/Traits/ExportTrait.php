@@ -16,7 +16,7 @@ trait ExportTrait
     /**
      * Chuẩn bị tiêu chí tìm kiếm
      */
-    protected function prepareSearchCriteria($keyword, $su_kien_id, $dien_gia_id, $includeDeleted = false)
+    protected function prepareSearchCriteria($keyword, $su_kien_id = null, $dien_gia_id = null, $includeDeleted = false)
     {
         $criteria = [];
         
@@ -44,9 +44,9 @@ trait ExportTrait
      */
     protected function prepareSearchOptions($sort, $order)
     {
-        // Nếu không có sort được chỉ định, mặc định là sắp xếp theo thứ tự
+        // Nếu không có sort được chỉ định, mặc định là sắp xếp theo ID
         if (empty($sort)) {
-            $sort = 'thu_tu';
+            $sort = 'su_kien_dien_gia_id';
             $order = 'ASC';
         }
 
@@ -62,10 +62,13 @@ trait ExportTrait
      */
     protected function getExportData($criteria, $options)
     {
-        if (isset($criteria['deleted']) && $criteria['deleted']) {
-            return $this->model->searchDeleted($criteria, $options);
-        }
-        return $this->model->search($criteria, $options);
+        // Lấy dữ liệu từ model
+        $data = isset($criteria['deleted']) && $criteria['deleted'] 
+            ? $this->model->searchDeleted($criteria, $options)
+            : $this->model->search($criteria, $options);
+
+        // Xử lý dữ liệu và nạp các quan hệ (nếu cần)
+        return $this->processData($data);
     }
 
     /**
@@ -75,15 +78,18 @@ trait ExportTrait
     {
         $headers = [
             'STT' => 'A',
-            'Sự kiện ID' => 'B',
-            'Diễn giả ID' => 'C',
-            'Thứ tự' => 'D',
-            'Ngày tạo' => 'E',
-            'Ngày cập nhật' => 'F'
+            'ID' => 'B',
+            'Sự kiện' => 'C',
+            'Diễn giả' => 'D',
+            'Chức danh' => 'E',
+            'Tổ chức' => 'F',
+            'Thứ tự' => 'G',
+            'Ngày tạo' => 'H',
+            'Ngày cập nhật' => 'I',
         ];
 
         if ($includeDeleted) {
-            $headers['Ngày xóa'] = 'G';
+            $headers['Ngày xóa'] = 'J';
         }
 
         return $headers;
@@ -150,7 +156,7 @@ trait ExportTrait
         ];
 
         // Thêm tiêu đề
-        $sheet->setCellValue('A1', 'DANH SÁCH SỰ KIỆN DIỄN GIẢ');
+        $sheet->setCellValue('A1', 'DANH SÁCH LIÊN KẾT SỰ KIỆN - DIỄN GIẢ');
         $sheet->mergeCells('A1:' . end($headers) . '1');
         $sheet->getStyle('A1')->applyFromArray([
             'font' => ['bold' => true, 'size' => 14],
@@ -193,51 +199,54 @@ trait ExportTrait
         $row++;
         foreach ($data as $index => $item) {
             $sheet->setCellValue('A' . $row, $index + 1);
-            $sheet->setCellValue('B' . $row, $item->su_kien_id);
-            $sheet->setCellValue('C' . $row, $item->dien_gia_id);
-            $sheet->setCellValue('D' . $row, $item->thu_tu ?? 0);
+            $sheet->setCellValue('B' . $row, $item->getId());
+            $sheet->setCellValue('C' . $row, !empty($item->ten_su_kien) ? $item->ten_su_kien : $item->getTenSuKien());
+            $sheet->setCellValue('D' . $row, !empty($item->ten_dien_gia) ? $item->ten_dien_gia : $item->getTenDienGia());
+            $sheet->setCellValue('E' . $row, !empty($item->chuc_danh) ? $item->chuc_danh : '');
+            $sheet->setCellValue('F' . $row, !empty($item->to_chuc) ? $item->to_chuc : '');
+            $sheet->setCellValue('G' . $row, $item->getThuTu());
             
-            // Xử lý ngày tạo
+            // Xử lý thời gian tạo
             if (!empty($item->created_at)) {
                 try {
                     $createdAt = $item->created_at instanceof Time ? 
                         $item->created_at : 
                         Time::parse($item->created_at);
-                    $sheet->setCellValue('E' . $row, $createdAt->format('d/m/Y H:i:s'));
+                    $sheet->setCellValue('H' . $row, $createdAt->format('d/m/Y H:i:s'));
                 } catch (\Exception $e) {
-                    $sheet->setCellValue('E' . $row, '');
+                    $sheet->setCellValue('H' . $row, '');
                 }
             } else {
-                $sheet->setCellValue('E' . $row, '');
+                $sheet->setCellValue('H' . $row, '');
             }
             
-            // Xử lý ngày cập nhật
+            // Xử lý thời gian cập nhật
             if (!empty($item->updated_at)) {
                 try {
                     $updatedAt = $item->updated_at instanceof Time ? 
                         $item->updated_at : 
                         Time::parse($item->updated_at);
-                    $sheet->setCellValue('F' . $row, $updatedAt->format('d/m/Y H:i:s'));
+                    $sheet->setCellValue('I' . $row, $updatedAt->format('d/m/Y H:i:s'));
                 } catch (\Exception $e) {
-                    $sheet->setCellValue('F' . $row, '');
+                    $sheet->setCellValue('I' . $row, '');
                 }
             } else {
-                $sheet->setCellValue('F' . $row, '');
+                $sheet->setCellValue('I' . $row, '');
             }
 
             // Xử lý thời gian xóa
-            if ($includeDeleted && isset($item->deleted_at)) {
+            if ($includeDeleted) {
                 if (!empty($item->deleted_at)) {
                     try {
                         $deletedAt = $item->deleted_at instanceof Time ? 
                             $item->deleted_at : 
                             Time::parse($item->deleted_at);
-                        $sheet->setCellValue('G' . $row, $deletedAt->format('d/m/Y H:i:s'));
+                        $sheet->setCellValue('J' . $row, $deletedAt->format('d/m/Y H:i:s'));
                     } catch (\Exception $e) {
-                        $sheet->setCellValue('G' . $row, '');
+                        $sheet->setCellValue('J' . $row, '');
                     }
                 } else {
-                    $sheet->setCellValue('G' . $row, '');
+                    $sheet->setCellValue('J' . $row, '');
                 }
             }
 
@@ -288,7 +297,7 @@ trait ExportTrait
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'title' => $title,
-            'date' => Time::now()->format('d/m/Y H:i:s'),
+            'date' => Time::now()->format('d/m/Y'),
             'filters' => $this->formatFilters($filters),
             'data' => $data,
             'includeDeletedAt' => $includeDeleted,

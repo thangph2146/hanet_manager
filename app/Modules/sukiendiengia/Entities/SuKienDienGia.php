@@ -17,45 +17,73 @@ class SuKienDienGia extends BaseEntity
     ];
     
     protected $casts = [
+        'su_kien_dien_gia_id' => 'int',
         'su_kien_id' => 'int',
         'dien_gia_id' => 'int',
-        'thu_tu' => 'int'
-    ];
-    
-    // Định nghĩa các trường là khóa ngoại
-    protected $foreignKeys = [
-        'su_kien_id' => 'su_kien.su_kien_id',
-        'dien_gia_id' => 'dien_gia.dien_gia_id'
+        'thu_tu' => 'int',
+        'created_at' => 'timestamp',
+        'updated_at' => 'timestamp',
+        'deleted_at' => 'timestamp'
     ];
     
     // Định nghĩa các chỉ mục
     protected $indexes = [
-        'idx_dien_gia_id' => ['dien_gia_id'],
-        'idx_su_kien_id' => ['su_kien_id']
+        'idx_su_kien_id' => ['su_kien_id'],
+        'idx_dien_gia_id' => ['dien_gia_id']
     ];
     
-    protected $hiddenFields = [
-        'deleted_at',
+    // Định nghĩa các ràng buộc unique
+    protected $uniqueKeys = [
+        'uk_su_kien_dien_gia' => ['su_kien_id', 'dien_gia_id']
     ];
     
     // Các quy tắc xác thực cụ thể cho SuKienDienGia
     protected $validationRules = [
-        'su_kien_id' => 'required',
-        'dien_gia_id' => 'required',
-        'thu_tu' => 'permit_empty|integer'
+        'su_kien_dien_gia_id' => [
+            'rules' => 'required|integer',
+            'label' => 'ID sự kiện diễn giả'
+        ],
+        'su_kien_id' => [
+            'rules' => 'required|integer',
+            'label' => 'ID sự kiện'
+        ],
+        'dien_gia_id' => [
+            'rules' => 'required|integer',
+            'label' => 'ID diễn giả'
+        ],
+        'thu_tu' => [
+            'rules' => 'permit_empty|integer',
+            'label' => 'Thứ tự'
+        ]
     ];
     
     protected $validationMessages = [
+        'su_kien_dien_gia_id' => [
+            'required' => '{field} là bắt buộc',
+            'integer' => '{field} phải là số nguyên'
+        ],
         'su_kien_id' => [
-            'required' => 'ID sự kiện là bắt buộc',
+            'required' => '{field} là bắt buộc',
+            'integer' => '{field} phải là số nguyên'
         ],
         'dien_gia_id' => [
-            'required' => 'ID diễn giả là bắt buộc',
+            'required' => '{field} là bắt buộc',
+            'integer' => '{field} phải là số nguyên'
         ],
         'thu_tu' => [
-            'integer' => 'Thứ tự phải là số nguyên'
+            'integer' => '{field} phải là số nguyên'
         ]
     ];
+    
+    /**
+     * Lấy ID của sự kiện diễn giả
+     *
+     * @return int
+     */
+    public function getId(): int
+    {
+        return (int)($this->attributes['su_kien_dien_gia_id'] ?? 0);
+    }
     
     /**
      * Lấy ID sự kiện
@@ -88,101 +116,117 @@ class SuKienDienGia extends BaseEntity
     }
     
     /**
-     * Đặt thứ tự
+     * Lấy tên sự kiện dựa trên su_kien_id
      *
-     * @param int $thuTu
-     * @return $this
+     * @return string
      */
-    public function setThuTu(int $thuTu)
+    public function getTenSuKien(): string
     {
-        $this->attributes['thu_tu'] = $thuTu;
-        return $this;
+        $suKienId = $this->getSuKienId();
+        if (empty($suKienId)) {
+            return '';
+        }
+        
+        // Sử dụng database connection để truy vấn thông tin từ bảng su_kien
+        $db = \Config\Database::connect();
+        $builder = $db->table('su_kien');
+        $result = $builder->select('ten_su_kien')
+                         ->where('su_kien_id', $suKienId)
+                         ->get()
+                         ->getRow();
+        
+        return $result ? $result->ten_su_kien : '';
     }
     
     /**
-     * Kiểm tra xem đối tượng đã bị xóa chưa
+     * Lấy tên diễn giả dựa trên dien_gia_id
+     *
+     * @return string
+     */
+    public function getTenDienGia(): string
+    {
+        $dienGiaId = $this->getDienGiaId();
+        if (empty($dienGiaId)) {
+            return '';
+        }
+        
+        // Sử dụng database connection để truy vấn thông tin từ bảng dien_gia
+        $db = \Config\Database::connect();
+        $builder = $db->table('dien_gia');
+        $result = $builder->select('ten_dien_gia')
+                         ->where('dien_gia_id', $dienGiaId)
+                         ->get()
+                         ->getRow();
+        
+        return $result ? $result->ten_dien_gia : '';
+    }
+    
+    /**
+     * Kiểm tra xem bản ghi đã bị xóa chưa
      *
      * @return bool
      */
     public function isDeleted(): bool
     {
-        return isset($this->attributes['deleted_at']) && !empty($this->attributes['deleted_at']);
+        return !empty($this->attributes['deleted_at']);
     }
     
     /**
-     * Lấy thời gian tạo được định dạng
-     *
-     * @param string $format Định dạng ngày tháng
+     * Lấy ngày tạo đã định dạng
+     * 
      * @return string
      */
-    public function getCreatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    public function getCreatedAtFormatted(): string
     {
         if (empty($this->attributes['created_at'])) {
             return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
         }
         
-        if ($this->attributes['created_at'] instanceof Time) {
-            return $this->attributes['created_at']->format($format);
-        }
-        
-        try {
-            $time = new Time($this->attributes['created_at']);
-            return $time->format($format);
-        } catch (\Exception $e) {
-            return '<span class="text-muted fst-italic">Lỗi định dạng</span>';
-        }
+        $time = $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
-     * Lấy thời gian cập nhật được định dạng
-     *
-     * @param string $format Định dạng ngày tháng
+     * Lấy ngày cập nhật đã định dạng
+     * 
      * @return string
      */
-    public function getUpdatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    public function getUpdatedAtFormatted(): string
     {
         if (empty($this->attributes['updated_at'])) {
             return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
         }
         
-        if ($this->attributes['updated_at'] instanceof Time) {
-            return $this->attributes['updated_at']->format($format);
-        }
-        
-        try {
-            $time = new Time($this->attributes['updated_at']);
-            return $time->format($format);
-        } catch (\Exception $e) {
-            return '<span class="text-muted fst-italic">Lỗi định dạng</span>';
-        }
+        $time = $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
-     * Lấy thời gian xóa được định dạng
-     *
-     * @param string $format Định dạng ngày tháng
+     * Lấy ngày xóa đã định dạng
+     * 
      * @return string
      */
-    public function getDeletedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    public function getDeletedAtFormatted(): string
     {
         if (empty($this->attributes['deleted_at'])) {
             return '<span class="text-muted fst-italic">Chưa xóa</span>';
         }
         
-        if ($this->attributes['deleted_at'] instanceof Time) {
-            return $this->attributes['deleted_at']->format($format);
-        }
-        
-        try {
-            $time = new Time($this->attributes['deleted_at']);
-            return $time->format($format);
-        } catch (\Exception $e) {
-            return '<span class="text-muted fst-italic">Lỗi định dạng</span>';
-        }
+        $time = $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
+            
+        return $time->format('Y-m-d H:i:s');
     }
     
     /**
-     * Lấy quy tắc xác thực
+     * Lấy các quy tắc xác thực
      *
      * @return array
      */
@@ -192,7 +236,7 @@ class SuKienDienGia extends BaseEntity
     }
     
     /**
-     * Lấy thông báo xác thực
+     * Lấy các thông báo xác thực
      *
      * @return array
      */
@@ -200,21 +244,4 @@ class SuKienDienGia extends BaseEntity
     {
         return $this->validationMessages;
     }
-    
-    /**
-     * Cập nhật thuộc tính từ một mảng dữ liệu
-     *
-     * @param array $data
-     * @return $this
-     */
-    public function setAttributes(array $data)
-    {
-        foreach ($data as $key => $value) {
-            if (array_key_exists($key, $this->attributes) || in_array($key, array_keys($this->casts))) {
-                $this->attributes[$key] = $value;
-            }
-        }
-        
-        return $this;
-    }
-}
+} 

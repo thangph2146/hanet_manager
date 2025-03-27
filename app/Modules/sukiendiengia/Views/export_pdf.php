@@ -102,12 +102,13 @@
             <tr>
                 <th class="text-center">STT</th>
                 <th>ID</th>
-                <th>Người dùng ID</th>
-                <th>Sự kiện ID</th>
-                <th>Thời gian điểm danh</th>
-                <th>Phương thức điểm danh</th>
-                <th>Ghi chú</th>
-                <th>Trạng thái</th>
+                <th>Sự kiện</th>   
+                <th>Diễn giả</th>
+                <th>Chức danh</th>
+                <th>Tổ chức</th>
+                <th>Thứ tự</th>
+                <th>Ngày tạo</th>
+                <th>Ngày cập nhật</th>
                 <?php if ($includeDeletedAt): ?>
                 <th>Ngày xóa</th>
                 <?php endif; ?>
@@ -117,39 +118,45 @@
             <?php foreach ($data as $index => $item): ?>
             <tr>
                 <td class="text-center"><?= $index + 1 ?></td>
-                <td class="text-center"><?= $item->tham_gia_su_kien_id ?></td>
-                <td class="text-center"><?= $item->nguoi_dung_id ?></td>
-                <td class="text-center"><?= $item->su_kien_id ?></td>
-                <td><?= !empty($item->thoi_gian_diem_danh) ? 
-                    ($item->thoi_gian_diem_danh instanceof \CodeIgniter\I18n\Time ? 
-                        $item->thoi_gian_diem_danh->format('d/m/Y H:i:s') : 
-                        date('d/m/Y H:i:s', strtotime($item->thoi_gian_diem_danh))) : 
-                    'Chưa điểm danh' ?></td>
+                <td class="text-center"><?= $item->getId() ?></td>
+                <td><?= !empty($item->ten_su_kien) ? $item->ten_su_kien : $item->getTenSuKien() ?></td>
+                <td><?= !empty($item->ten_dien_gia) ? $item->ten_dien_gia : $item->getTenDienGia() ?></td>
+                <td><?= !empty($item->chuc_danh) ? $item->chuc_danh : '' ?></td>
+                <td><?= !empty($item->to_chuc) ? $item->to_chuc : '' ?></td>
+                <td class="text-center"><?= $item->getThuTu() ?></td>
                 <td class="text-center">
-                    <?php
-                    switch ($item->phuong_thuc_diem_danh) {
-                        case 'qr_code':
-                            echo 'QR Code';
-                            break;
-                        case 'face_id':
-                            echo 'Face ID';
-                            break;
-                        default:
-                            echo 'Thủ công';
-                    }
-                    ?>
+                    <?php if (!empty($item->created_at)): ?>
+                        <?php try {
+                            $createdAt = $item->created_at instanceof \CodeIgniter\I18n\Time ? 
+                                $item->created_at : \CodeIgniter\I18n\Time::parse($item->created_at);
+                            echo $createdAt->format('d/m/Y H:i:s');
+                        } catch (\Exception $e) {
+                            echo '';
+                        } ?>
+                    <?php endif; ?>
                 </td>
-                <td><?= $item->ghi_chu ?? '' ?></td>
-                <td class="text-center <?= $item->status == 1 ? 'status-active' : 'status-inactive' ?>">
-                    <?= $item->status == 1 ? 'Hoạt động' : 'Không hoạt động' ?>
+                <td class="text-center">
+                    <?php if (!empty($item->updated_at)): ?>
+                        <?php try {
+                            $updatedAt = $item->updated_at instanceof \CodeIgniter\I18n\Time ? 
+                                $item->updated_at : \CodeIgniter\I18n\Time::parse($item->updated_at);
+                            echo $updatedAt->format('d/m/Y H:i:s');
+                        } catch (\Exception $e) {
+                            echo '';
+                        } ?>
+                    <?php endif; ?>
                 </td>
                 <?php if ($includeDeletedAt): ?>
                 <td class="text-center deleted">
-                    <?= !empty($item->deleted_at) ? 
-                        ($item->deleted_at instanceof \CodeIgniter\I18n\Time ? 
-                            $item->deleted_at->format('d/m/Y H:i:s') : 
-                            date('d/m/Y H:i:s', strtotime($item->deleted_at))) : 
-                        '' ?>
+                    <?php if (!empty($item->deleted_at)): ?>
+                        <?php try {
+                            $deletedAt = $item->deleted_at instanceof \CodeIgniter\I18n\Time ? 
+                                $item->deleted_at : \CodeIgniter\I18n\Time::parse($item->deleted_at);
+                            echo $deletedAt->format('d/m/Y H:i:s');
+                        } catch (\Exception $e) {
+                            echo '';
+                        } ?>
+                    <?php endif; ?>
                 </td>
                 <?php endif; ?>
             </tr>

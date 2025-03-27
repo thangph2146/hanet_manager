@@ -338,6 +338,63 @@ class SukienModel extends Model
     }
     
     /**
+     * Lấy tất cả bản ghi đang hoạt động
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
+     */
+    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'created_at', string $order = 'DESC')
+    {
+        // Trong triển khai thực tế, sẽ truy vấn từ cơ sở dữ liệu
+        $builder = $this->builder();
+        $builder->select('*');
+        $builder->where('status', 1);
+        $builder->where('deleted_at IS NULL');
+        
+        if ($sort && $order) {
+            $builder->orderBy($sort, $order);
+        }
+        
+        $result = [];
+        
+        if ($limit > 0) {
+            $result = $builder->limit($limit, $offset)->get()->getResult();
+        } else {
+            $result = $builder->get()->getResult();
+        }
+        
+        // Nếu không có dữ liệu từ database, sử dụng mock data
+        if (empty($result)) {
+            // Lọc các sự kiện có status = 1 và deleted_at = null
+            $filteredEvents = array_filter($this->mockEvents, function($event) {
+                return isset($event['status']) && $event['status'] == 1 && empty($event['deleted_at']);
+            });
+            
+            // Sắp xếp theo trường được chỉ định
+            usort($filteredEvents, function($a, $b) use ($sort, $order) {
+                if (!isset($a[$sort]) || !isset($b[$sort])) {
+                    return 0;
+                }
+                
+                $comparison = $a[$sort] <=> $b[$sort];
+                return $order === 'DESC' ? -$comparison : $comparison;
+            });
+            
+            // Giới hạn số lượng kết quả nếu cần
+            if ($limit > 0) {
+                $filteredEvents = array_slice($filteredEvents, $offset, $limit);
+            }
+            
+            return $filteredEvents;
+        }
+        
+        return $result;
+    }
+    
+    /**
      * Lấy sự kiện theo ID
      */
     public function getEventById($id)
