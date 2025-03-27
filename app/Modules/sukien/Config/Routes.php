@@ -1,37 +1,39 @@
 <?php
 
-$routes->group('su-kien', ['namespace' => 'App\Modules\sukien\Controllers'], function ($routes) {
-    $routes->get('/', 'Sukien::index');
-    $routes->get('list', 'Sukien::list');
-    
-    // Sử dụng slug thay vì ID cho trang chi tiết
-    $routes->get('detail/(:num)', 'Sukien::redirectToSlug/$1'); // Redirect từ ID sang slug
-    $routes->get('detail/(:segment)', 'Sukien::detail/$1'); // Sử dụng segment thay vì any để hỗ trợ slug
-    
-    // Sử dụng slug cho danh mục
-    $routes->get('loai/(:segment)', 'Sukien::category/$1');
-    
-    // Các route xử lý đăng ký và check-in/check-out
-    $routes->post('register', 'Sukien::register');
-    $routes->post('checkin', 'Sukien::checkin');
-    $routes->post('checkout', 'Sukien::checkout');
-    
-    // Các route cho admin (sẽ triển khai sau)
-    $routes->group('admin', function ($routes) {
-        $routes->get('events', 'Admin\Events::index');
-        $routes->get('events/new', 'Admin\Events::new');
-        $routes->post('events', 'Admin\Events::create');
-        $routes->get('events/edit/(:num)', 'Admin\Events::edit/$1');
-        $routes->post('events/update/(:num)', 'Admin\Events::update/$1');
-        $routes->get('events/delete/(:num)', 'Admin\Events::delete/$1');
-        
-        $routes->get('registrations', 'Admin\Registrations::index');
-        $routes->get('registrations/event/(:num)', 'Admin\Registrations::byEvent/$1');
-    });
+namespace Config;
 
-    // Route cho AJAX lấy chế độ xem sự kiện
-    $routes->post('su-kien/get-events-view', 'SukienController::getEventsView');
-    
-    // Sitemap cho SEO
-    $routes->get('sitemap.xml', 'Sitemap::index');
-});
+// Create a new instance of our RouteCollection class.
+$routes = Services::routes();
+$module_name = 'sukien';
+$controller_name = 'SuKien';
+// Định nghĩa routes cho module Nganh
+$routes->group($module_name, ['namespace' => 'App\Modules\\' . $module_name . '\Controllers'], 
+function ($routes) use ($controller_name) {
+    $routes->get('/', $controller_name . '::index');
+    $routes->get('dashboard', $controller_name . '::dashboard');
+    $routes->get('statistics', $controller_name . '::statistics');
+    $routes->get('listdeleted', $controller_name . '::listdeleted');
+    $routes->get('new', $controller_name . '::new');
+    $routes->post('create', $controller_name . '::create');
+    $routes->get('edit/(:num)', $controller_name . '::edit/$1');
+    $routes->post('update/(:num)', $controller_name . '::update/$1');
+    $routes->get('delete/(:num)', $controller_name . '::delete/$1');
+    $routes->post('delete/(:num)', $controller_name . '::delete/$1');
+    $routes->get('restore/(:num)', $controller_name . '::restore/$1');
+    $routes->post('restore/(:num)', $controller_name . '::restore/$1');
+    $routes->post('purge/(:num)', $controller_name . '::purge/$1');
+    $routes->post('status/(:num)', $controller_name . '::status/$1');
+    $routes->post('deleteMultiple', $controller_name . '::deleteMultiple');
+    $routes->post('restoreMultiple', $controller_name . '::restoreMultiple');
+    $routes->get('permanentDelete/(:num)', $controller_name . '::permanentDelete/$1');
+    $routes->post('permanentDelete/(:num)', $controller_name . '::permanentDelete/$1');
+    $routes->post('permanentDeleteMultiple', $controller_name . '::permanentDeleteMultiple');
+    $routes->post('deletePermanentMultiple', $controller_name . '::deletePermanentMultiple');
+    $routes->post('statusMultiple', $controller_name . '::statusMultiple');
+    $routes->get('deleted', $controller_name . '::deleted');
+    $routes->get('view/(:num)', $controller_name . '::view/$1');
+    $routes->get('exportPdf', $controller_name . '::exportPdf');
+    $routes->get('exportExcel', $controller_name . '::exportExcel');
+    $routes->get('exportDeletedPdf', $controller_name . '::exportDeletedPdf');
+    $routes->get('exportDeletedExcel', $controller_name . '::exportDeletedExcel');
+}); 

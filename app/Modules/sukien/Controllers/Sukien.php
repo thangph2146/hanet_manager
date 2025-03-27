@@ -3,465 +3,981 @@
 namespace App\Modules\sukien\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\sukien\Models\SukienModel;
-use App\Modules\sukien\Models\LoaiSukienModel;
-use App\Modules\sukien\Models\DangKySukienModel;
-use App\Modules\sukien\Models\CheckinSukienModel;
-use App\Modules\sukien\Models\CheckoutSukienModel;
+use App\Modules\sukien\Models\SuKienModel;
+use App\Libraries\Alert;
+use CodeIgniter\Database\Exceptions\DataException;
+use CodeIgniter\HTTP\ResponseInterface;
+use CodeIgniter\API\ResponseTrait;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use CodeIgniter\I18n\Time;
+use App\Modules\sukien\Traits\ExportTrait;
+use App\Modules\sukien\Traits\RelationTrait;
 
-class Sukien extends BaseController
+class SuKien extends BaseController
 {
-    protected $sukienModel;
-    protected $loaiSukienModel;
-    protected $dangKySukienModel;
-    protected $checkinModel;
-    protected $checkoutModel;
+    use ResponseTrait;
+    use ExportTrait;
+    use RelationTrait;
+    
+    protected $model;
+    protected $alert;
+    protected $moduleUrl;
+    protected $title;
+    protected $module_name = 'sukien';
+    protected $controller_name = 'SuKien';
     
     public function __construct()
     {
-        $this->sukienModel = new SukienModel();
-        $this->loaiSukienModel = new LoaiSukienModel();
-        $this->dangKySukienModel = new DangKySukienModel();
-        $this->checkinModel = new CheckinSukienModel();
-        $this->checkoutModel = new CheckoutSukienModel();
+        // Khởi tạo session sớm
+        $this->session = service('session');
+
+        // Khởi tạo các thành phần cần thiết
+        $this->model = new SuKienModel();
+        $this->alert = new Alert();
+        
+        // Thông tin module
+        $this->moduleUrl = base_url($this->module_name);
+        $this->title = 'Sự kiện';
+        
+        // Khởi tạo các model quan hệ
+        $this->initializeRelationTrait();
     }
     
+    /**
+     * Hiển thị danh sách tham gia sự kiện
+     */
     public function index()
     {
-        // Lấy 3 sự kiện sắp tới (hiển thị ở carousel)
-        $featured_events = $this->sukienModel->getFeaturedEvents();
+        // Lấy và xử lý tham số tìm kiếm
+        $params = $this->prepareSearchParams($this->request);
+        $params = $this->processSearchParams($params);
         
-        // Lấy 6 sự kiện sắp diễn ra gần nhất (dành cho phần upcoming events)
-        $upcoming_events = $this->sukienModel->getUpcomingEvents(6);
+        // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
+        $this->model->setSurroundCount(3);
         
-        // Thêm số lượng đăng ký và số lượt xem cho các sự kiện
-        foreach ($featured_events as &$event) {
-            if (isset($event['id_su_kien'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
-                $event['registration_count'] = count($registrations);
-            } else {
-                $event['registration_count'] = 0;
-            }
+        // Xây dựng tiêu chí và tùy chọn tìm kiếm
+        $criteria = $this->buildSearchCriteria($params);
+        $options = $this->buildSearchOptions($params);
+        
+        // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
+        $pageData = $this->model->search($criteria, $options);
+        // Lấy tổng số kết quả
+        $pager = $this->model->getPager();
+        $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($criteria);
+        
+        // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
+        $pageCount = ceil($total / $params['perPage']);
+        if ($total > 0 && $params['page'] > $pageCount) {
+            // Tạo URL mới với trang cuối cùng
+            $redirectParams = $_GET;
+            $redirectParams['page'] = $pageCount;
+            $redirectUrl = site_url($this->module_name) . '?' . http_build_query($redirectParams);
+            
+            // Chuyển hướng đến trang cuối cùng
+            return redirect()->to($redirectUrl);
         }
         
-        foreach ($upcoming_events as &$event) {
-            if (isset($event['id_su_kien'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
-                $event['registration_count'] = count($registrations);
-            } else {
-                $event['registration_count'] = 0;
-            }
+        // Lấy pager từ model và thiết lập các tham số
+        $pager = $this->model->getPager();
+        if ($pager !== null) {
+            $pager->setPath($this->module_name);
+            // Thêm tất cả các tham số cần giữ lại khi chuyển trang
+            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'khoa_hoc_id']);
+            
+            // Đảm bảo perPage và currentPage được thiết lập đúng
+            $pager->setPerPage($params['perPage']);
+            $pager->setCurrentPage($params['page']);
         }
-        
-        // Tìm sự kiện sắp diễn ra gần nhất
-        $job_fair_event = null;
-        $current_time = time();
-        
-        // Lọc các sự kiện chưa kết thúc và sắp xếp theo thời gian bắt đầu
-        $valid_events = array_filter($upcoming_events, function($event) use ($current_time) {
-            $event_start_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_bat_dau']);
-            $event_end_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_ket_thuc']);
-            return $event_end_time > $current_time;
-        });
-        
-        // Sắp xếp theo thời gian bắt đầu
-        usort($valid_events, function($a, $b) {
-            $time_a = strtotime($a['ngay_to_chuc'] . ' ' . $a['gio_bat_dau']);
-            $time_b = strtotime($b['ngay_to_chuc'] . ' ' . $b['gio_bat_dau']);
-            return $time_a - $time_b;
-        });
-        
-        // Lấy sự kiện gần nhất
-        if (!empty($valid_events)) {
-            $job_fair_event = reset($valid_events);
-            
-            // Kiểm tra xem sự kiện đã bắt đầu chưa
-            $event_start_time = strtotime($job_fair_event['ngay_to_chuc'] . ' ' . $job_fair_event['gio_bat_dau']);
-            
-            // Nếu sự kiện đã bắt đầu, tìm sự kiện tiếp theo
-            if ($current_time > $event_start_time) {
-                // Bỏ qua sự kiện hiện tại và lấy sự kiện tiếp theo
-                next($valid_events);
-                $next_event = current($valid_events);
-                if ($next_event) {
-                    $job_fair_event = $next_event;
-                }
-            }
-            
-            // Thêm thông tin đăng ký cho sự kiện nổi bật
-            if ($job_fair_event && isset($job_fair_event['id_su_kien'])) {
-                $registrations = $this->sukienModel->getRegistrations($job_fair_event['id_su_kien']);
-                $job_fair_event['registration_count'] = count($registrations);
-            }
-        }
-        
-        // Lấy thông tin counter
-        $stats = [
-            'total_events' => $this->sukienModel->getTotalEvents(),
-            'total_participants' => $this->sukienModel->getTotalParticipants(),
-            'total_speakers' => $this->sukienModel->getTotalSpeakers(),
-            'founding_year' => 1976 // Năm thành lập trường
-        ];
-        
-        // Dữ liệu mẫu cho diễn giả
-        $speakers = $this->sukienModel->getSpeakers();
-        
-        // Chuẩn bị dữ liệu SEO
-        $data = [
-            'title' => 'Sự Kiện Đại Học Ngân Hàng TP.HCM',
-            'description' => 'Trang thông tin sự kiện của Trường Đại học Ngân hàng TP.HCM',
-            'keywords' => 'sự kiện, hội thảo, workshop, ngân hàng, đại học',
-            'upcoming_events' => $upcoming_events,
-            'job_fair_event' => $job_fair_event,
-            'stats' => $stats,
-            'speakers' => $speakers
-        ];
-        
-        return view('App\Modules\sukien\Views\welcome', $data);
-    }
-
-    public function list()
-    {
-        // Lấy thông tin tìm kiếm nếu có
-        $search = $this->request->getGet('search');
-        $page = (int)$this->request->getGet('page') ?? 1;
-        $per_page = 9; // Số sự kiện mỗi trang
         
         // Chuẩn bị dữ liệu cho view
-        $data = [];
-        
-        // Lấy danh sách loại sự kiện từ LoaiSukienModel thay vì SukienModel
-        $data['event_types'] = $this->loaiSukienModel->getAllEventTypes();
-        
-        // Xử lý tìm kiếm
-        if (!empty($search)) {
-            // Tìm kiếm sự kiện theo từ khóa
-            $events = $this->sukienModel->searchEvents($search);
-            $data['search'] = $search;
-            
-            // Chuẩn bị dữ liệu SEO
-            $data['meta_title'] = 'Tìm kiếm: ' . $search . ' - Sự Kiện HUB';
-            $data['meta_description'] = 'Kết quả tìm kiếm cho "' . $search . '" - Sự kiện tại Trường Đại học Ngân hàng TP.HCM';
-            $data['meta_keywords'] = $search . ', sự kiện hub, tìm kiếm sự kiện';
-        } else {
-            // Lấy tất cả sự kiện
-            $events = $this->sukienModel->getAllEvents();
-            
-            // Chuẩn bị dữ liệu SEO
-            $data['meta_title'] = 'Danh Sách Sự Kiện - Đại Học Ngân Hàng TP.HCM';
-            $data['meta_description'] = 'Khám phá tất cả các sự kiện tại Trường Đại học Ngân hàng TP.HCM. Hội thảo, workshop, ngày hội việc làm và nhiều hoạt động khác.';
-            $data['meta_keywords'] = 'sự kiện hub, danh sách sự kiện, đại học ngân hàng, hội thảo, workshop';
-        }
-        
-        // Thêm số lượng đăng ký cho mỗi sự kiện
-        foreach ($events as &$event) {
-            if (isset($event['id_su_kien'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
-                $event['registration_count'] = count($registrations);
-            } else {
-                $event['registration_count'] = 0;
-            }
-        }
-        
-        // Xử lý phân trang
-        $total_events = count($events);
-        $total_pages = ceil($total_events / $per_page);
-        
-        if ($page < 1) $page = 1;
-        if ($page > $total_pages && $total_pages > 0) $page = $total_pages;
-        
-        // Phân trang thủ công
-        $offset = ($page - 1) * $per_page;
-        $data['events'] = array_slice($events, $offset, $per_page);
-        
-        // Thông tin phân trang
-        $data['pager'] = [
-            'total_pages' => $total_pages,
-            'current_page' => $page,
-            'has_previous' => $page > 1,
-            'has_next' => $page < $total_pages,
-            'previous_page' => $page - 1,
-            'next_page' => $page + 1
-        ];
-        
-        // Thiết lập canonical URL
-        $current_url = current_url();
-        $query_string = $this->request->getUri()->getQuery();
-        $base_url = $query_string ? $current_url . '?' . $query_string : $current_url;
-        
-        // Loại bỏ tham số page từ URL canonical nếu trang là 1
-        if ($page === 1 && strpos($query_string, 'page=') !== false) {
-            $query_params = [];
-            parse_str($query_string, $query_params);
-            unset($query_params['page']);
-            $base_url = $current_url;
-            if (!empty($query_params)) {
-                $base_url .= '?' . http_build_query($query_params);
-            }
-        }
-        
-        $data['canonical_url'] = $base_url;
-        
-        return view('App\Modules\sukien\Views\list', $data);
+        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
+        // Hiển thị view
+        return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
     }
-
+    
     /**
-     * Phương thức mới: Chuyển hướng từ ID sang slug
+     * Hiển thị form thêm mới
      */
-    public function redirectToSlug($id)
+    public function new()
     {
-        // Lấy thông tin sự kiện từ ID
-        $event = $this->sukienModel->getEventById($id);
+        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
+        $viewData = $this->prepareFormData($this->module_name);
         
-        if (empty($event)) {
-            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
-        }
+        // Thêm dữ liệu cho view
+        $viewData['title'] = 'Thêm mới ' . $this->title;
+        $viewData['validation'] = $this->validator;
+        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
+        $viewData['action'] = site_url($this->module_name . '/create');
+        $viewData['method'] = 'POST';
         
-        // Chuyển hướng đến URL với slug
-        return redirect()->to('/su-kien/detail/' . $event['slug'], 301);
-    }
-
-    public function detail($slug)
-    {
-        // Lấy thông tin sự kiện từ slug
-        $event = $this->sukienModel->getEventBySlug($slug);
-        
-        if (empty($event)) {
-            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
-        }
-        
-        // Kiểm tra xem URL hiện tại có khớp với slug không, nếu không thì redirect
-        $current_slug = $this->request->getUri()->getSegment(3);
-        if ($current_slug !== $slug) {
-            return redirect()->to('/su-kien/detail/' . $slug, 301);
-        }
-        
-        // Tăng số lượt xem cho sự kiện
-        $this->sukienModel->incrementViews($event['id_su_kien']);
-        
-        // Lấy danh sách người đăng ký sự kiện
-        $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
-        
-        // Lấy số lượng người đăng ký   
-        $registrationCount = count($registrations);
-        
-        // Lấy số lượng người đã tham gia
-        $attendedCount = 0;
-        foreach ($registrations as $reg) {
-            if ($reg['da_tham_gia'] == 1) {
-                $attendedCount++;
-            }
-        }
-        
-        // Lấy các sự kiện liên quan (cùng loại)
-        $related_events = $this->sukienModel->getRelatedEvents($event['id_su_kien'], $event['loai_su_kien'], 3);
-        
-        // Thêm số lượng đăng ký cho sự kiện liên quan
-        foreach ($related_events as &$related) {
-            if (isset($related['id_su_kien'])) {
-                $relatedRegistrations = $this->sukienModel->getRegistrations($related['id_su_kien']);
-                $related['registration_count'] = count($relatedRegistrations);
-            } else {
-                $related['registration_count'] = 0;
-            }
-        }
-        
-        // Lấy lịch trình sự kiện
-        $event_schedule = $this->sukienModel->getEventSchedule($event['id_su_kien']);
-        
-        // Chuẩn bị dữ liệu có cấu trúc cho SEO
-        $structured_data = $this->generateEventStructuredData($event);
-        
-        // Chuẩn bị dữ liệu SEO
-        $seo_data = [
-            'meta_title' => $event['ten_su_kien'] . ' - Sự Kiện HUB',
-            'meta_description' => $this->truncate($event['mo_ta_su_kien'], 160),
-            'meta_keywords' => $event['keywords'] ?? ($event['ten_su_kien'] . ', ' . $event['loai_su_kien'] . ', sự kiện hub, đại học ngân hàng'),
-            'og_image' => base_url($event['hinh_anh']),
-            'structured_data' => $structured_data,
-            'canonical_url' => site_url('su-kien/detail/' . $slug)
-        ];
-        
-        return view('App\Modules\sukien\Views\detail', array_merge(
-            [
-                'event' => $event, 
-                'related_events' => $related_events,
-                'registrations' => $registrations,
-                'registrationCount' => $registrationCount,
-                'attendedCount' => $attendedCount,
-                'participants' => $registrations,
-                'event_schedule' => $event_schedule
-            ], 
-            $seo_data
-        ));
+        return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
     }
     
-    public function category($category_slug)
+    /**
+     * Xử lý thêm mới dữ liệu
+     */
+    public function create()
     {
-        // Lấy thông tin loại sự kiện từ slug
-        $category = $this->loaiSukienModel->getEventTypeBySlug($category_slug);
+        // Lấy dữ liệu từ form
+        $data = $this->request->getPost();
         
-        if (empty($category)) {
-            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy danh mục');
+        $this->model->prepareValidationRules('insert');
+        
+        // Kiểm tra dữ liệu
+        if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
-        $category_name = $category['loai_su_kien'];
-        
-        // Lấy sự kiện thuộc danh mục đã chọn
-        $events = $this->sukienModel->getEventsByCategory($category_name);
-        
-        // Thêm số lượng đăng ký cho mỗi sự kiện
-        foreach ($events as &$event) {
-            if (isset($event['id_su_kien'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
-                $event['registration_count'] = count($registrations);
+        try {
+            // Lưu dữ liệu trực tiếp
+            if ($this->model->insert($data)) {
+                $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
+                return redirect()->to($this->moduleUrl);
             } else {
-                $event['registration_count'] = 0;
+                throw new \RuntimeException('Không thể thêm mới ' . $this->title);
+            }
+        } catch (\Exception $e) {
+            log_message('error', '[' . $this->controller_name . '::create] ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title);
+        }
+    }
+    
+    /**
+     * Hiển thị chi tiết
+     */
+    public function view($id = null)
+    {
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID sự kiện không hợp lệ', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Đảm bảo các model relationship được khởi tạo
+        $this->initializeRelationTrait();
+        
+        // Lấy thông tin dữ liệu cơ bản
+        $data = $this->model->find($id);
+        
+        if (empty($data)) {
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu sự kiện', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Xử lý dữ liệu và nạp các quan hệ
+        $processedData = $this->processData([$data]);
+        $data = $processedData[0] ?? $data;
+        
+        // Chuẩn bị dữ liệu cho view
+        $viewData = [
+            'title' => 'Chi tiết ' . $this->title,
+            'data' => $data,
+            'moduleUrl' => $this->moduleUrl,
+            'module_name' => $this->module_name
+        ];
+        
+        return view('App\Modules\\' . $this->module_name . '\Views\view', $viewData);
+    }
+    
+    /**
+     * Hiển thị form chỉnh sửa
+     */
+    public function edit($id = null)
+    {
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID sự kiện không hợp lệ', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Sử dụng phương thức findWithRelations từ model
+        $data = $this->model->findWithRelations($id);
+        
+        if (empty($data)) {
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu sự kiện', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
+        $viewData = $this->prepareFormData($this->module_name, $data);
+        
+        // Thêm dữ liệu cho view
+        $viewData['title'] = 'Chỉnh sửa ' . $this->title;
+        $viewData['validation'] = $this->validator;
+        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
+        $viewData['action'] = site_url($this->module_name . '/update/' . $id);
+        $viewData['method'] = 'POST';
+        
+        return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
+    }
+    
+    /**
+     * Xử lý cập nhật dữ liệu
+     */
+    public function update($id = null)
+    {
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID sự kiện không hợp lệ', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Lấy thông tin sự kiện với relationship
+        $existingRecord = $this->model->findWithRelations($id);
+        
+        if (empty($existingRecord)) {
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu sự kiện', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Xác thực dữ liệu gửi lên
+        $data = $this->request->getPost();
+        
+        // Xử lý thời gian
+        $timeFields = ['thoi_gian_bat_dau', 'thoi_gian_ket_thuc', 'bat_dau_dang_ky', 'ket_thuc_dang_ky', 'han_huy_dang_ky', 'gio_bat_dau', 'gio_ket_thuc'];
+        foreach ($timeFields as $field) {
+            if (!empty($data[$field])) {
+                try {
+                    $time = Time::parse($data[$field]);
+                    $data[$field] = $time->format('Y-m-d H:i:s');
+                } catch (\Exception $e) {
+                    log_message('error', 'Lỗi xử lý thời gian ' . $field . ': ' . $e->getMessage());
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', 'Thời gian ' . $field . ' không hợp lệ');
+                }
             }
         }
         
-        // Lấy danh sách loại sự kiện
-        $event_types = $this->loaiSukienModel->getAllEventTypes();
+        // Xử lý dữ liệu boolean
+        $booleanFields = ['cho_phep_check_in', 'cho_phep_check_out', 'yeu_cau_face_id', 'cho_phep_checkin_thu_cong', 'tu_dong_xac_nhan_svgv', 'yeu_cau_duyet_khach'];
+        foreach ($booleanFields as $field) {
+            $data[$field] = isset($data[$field]) ? (bool)$data[$field] : false;
+        }
+    
+        // Chuẩn bị quy tắc validation cho cập nhật
+        $this->model->prepareValidationRules('update', ['su_kien_id' => $id]);
         
-        // Chuẩn bị dữ liệu SEO
-        $data = [
-            'events' => $events,
-            'category' => $category_name,
-            'event_types' => $event_types,
-            'meta_title' => 'Sự Kiện ' . $category_name . ' - Đại Học Ngân Hàng TP.HCM',
-            'meta_description' => 'Khám phá các sự kiện ' . $category_name . ' tại Trường Đại học Ngân hàng TP.HCM. Cập nhật các ' . strtolower($category_name) . ' mới nhất.',
-            'meta_keywords' => 'sự kiện ' . strtolower($category_name) . ', ' . strtolower($category_name) . ' hub, đại học ngân hàng',
-            'canonical_url' => site_url('su-kien/loai/' . $category_slug)
-        ];
+        // Kiểm tra dữ liệu
+        if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
         
-        return view('App\Modules\sukien\Views\list', $data);
+        try {
+            // Lưu dữ liệu trực tiếp
+            if ($this->model->update($id, $data)) {
+                $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
+                return redirect()->to($this->moduleUrl);
+            } else {
+                throw new \RuntimeException('Không thể cập nhật ' . $this->title);
+            }
+        } catch (\Exception $e) {
+            log_message('error', '[' . $this->controller_name . '::update] ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title);
+        }
     }
     
-    public function register()
+    /**
+     * Xóa mềm (chuyển vào thùng rác)
+     */
+    public function delete($id = null, $backToUrl = null)
     {
-        // Xử lý đăng ký sự kiện
-        if ($this->request->getMethod() === 'post') {
-            // Quy tắc validation
-            $rules = [
-                'id_su_kien' => 'required|numeric',
-                'ho_ten' => 'required|min_length[3]|max_length[255]',
-                'email' => 'required|valid_email',
-                'so_dien_thoai' => 'required|numeric|min_length[10]|max_length[15]',
-                'ma_sinh_vien' => 'permit_empty|alpha_numeric|min_length[5]|max_length[20]',
-            ];
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID sự kiện không hợp lệ', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Kiểm tra xem sự kiện có tồn tại không trước khi xóa
+        $suKien = $this->model->find($id);
+        if (empty($suKien)) {
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu sự kiện', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        if ($this->model->delete($id)) {
+            $this->alert->set('success', 'Đã xóa sự kiện thành công', true);
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa sự kiện', true);
+        }
+        
+        // Lấy URL trả về từ tham số truy vấn hoặc từ tham số đường dẫn
+        $returnUrl = $this->request->getGet('return_url') ?? $backToUrl;
+        
+        // Xử lý URL chuyển hướng
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        
+        return redirect()->to($redirectUrl);
+    }
+    
+    /**
+     * Hiển thị danh sách sự kiện đã xóa
+     */
+    public function listdeleted()
+    {
+        // Lấy và xử lý tham số tìm kiếm
+        $params = $this->prepareSearchParams($this->request);
+        $params = $this->processSearchParams($params);
+        
+        // Ghi đè sort mặc định cho trang list deleted
+        $params['sort'] = $this->request->getGet('sort') ?? 'deleted_at';
+        $params['order'] = $this->request->getGet('order') ?? 'DESC';
+        
+        // Log chi tiết URL và tham số
+        log_message('debug', '[Controller:listdeleted] URL đầy đủ: ' . current_url() . '?' . http_build_query($_GET));
+        log_message('debug', '[Controller:listdeleted] Tham số request: ' . json_encode($_GET));
+        log_message('debug', '[Controller:listdeleted] Đã xử lý: page=' . $params['page'] . ', perPage=' . $params['perPage'] . 
+            ', sort=' . $params['sort'] . ', order=' . $params['order'] . ', keyword=' . $params['keyword'] . 
+            ', status=' . $params['status']);
+        
+        // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
+        $this->model->setSurroundCount(3);
+        
+        // Xây dựng tiêu chí và tùy chọn tìm kiếm
+        $criteria = $this->buildSearchCriteria($params);
+        $options = $this->buildSearchOptions($params);
+        
+        // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Đảm bảo withDeleted được thiết lập
+        $this->model->withDeleted();
+        
+        // Lấy dữ liệu sự kiện đã xóa và thông tin phân trang
+        $pageData = $this->model->search($criteria, $options);
+        
+        // Xử lý dữ liệu và nạp các quan hệ
+        $pageData = $this->processData($pageData);
+        
+        // Lấy tổng số kết quả
+        $total = $this->model->countSearchResults($criteria);
+        
+        // Lấy pager từ model và thiết lập các tham số
+        $pager = $this->model->getPager();
+        if ($pager === null) {
+            // Tạo pager mới nếu getPager() trả về null
+            $pager = new \App\Modules\sukien\Libraries\Pager(
+                $total,
+                $params['perPage'],
+                $params['page']
+            );
+            $pager->setSurroundCount(3);
+        }
+        
+        $pager->setPath($this->module_name . '/listdeleted');
+        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'loai_su_kien_id', 'nguoi_tao_id']);
+        $pager->setPerPage($params['perPage']);
+        $pager->setCurrentPage($params['page']);
+        
+        // Chuẩn bị dữ liệu cho view
+        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
+        
+        // Hiển thị view
+        return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);
+    }
+    
+    /**
+     * Khôi phục từ thùng rác
+     */
+    public function restore($id = null)
+    {
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID sự kiện không hợp lệ', true);
+            return redirect()->to($this->moduleUrl . '/listdeleted');
+        }
+        
+        // Kiểm tra sự kiện có tồn tại trong thùng rác không
+        $this->model->withDeleted();
+        $suKien = $this->model->find($id);
+        
+        if (empty($suKien) || !$suKien->isDeleted()) {
+            $this->alert->set('danger', 'Không tìm thấy sự kiện trong thùng rác', true);
+            return redirect()->to($this->moduleUrl . '/listdeleted');
+        }
+        
+        // Lấy URL trả về từ form hoặc từ HTTP_REFERER
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
+        log_message('debug', 'Restore - Return URL: ' . ($returnUrl ?? 'None'));
+        
+        // Khôi phục bản ghi bằng cách đặt deleted_at thành NULL
+        if ($this->model->update($id, ['deleted_at' => null])) {
+            $this->alert->set('success', 'Đã khôi phục sự kiện từ thùng rác', true);
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra khi khôi phục sự kiện', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+    }
+    
+    /**
+     * Xóa vĩnh viễn một bản ghi
+     */
+    public function permanentDelete($id = null)
+    {
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID sự kiện không hợp lệ', true);
+            return redirect()->to($this->moduleUrl . '/listdeleted');
+        }
+        
+        // Kiểm tra sự kiện có tồn tại trong thùng rác không
+        $this->model->withDeleted();
+        $suKien = $this->model->find($id);
+        
+        if (empty($suKien)) {
+            $this->alert->set('danger', 'Không tìm thấy sự kiện', true);
+            return redirect()->to($this->moduleUrl . '/listdeleted');
+        }
+        
+        // Lấy URL trả về từ form hoặc từ HTTP_REFERER
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
+        log_message('debug', 'PermanentDelete - Return URL: ' . ($returnUrl ?? 'None'));
+        
+        if ($this->model->delete($id, true)) { // true = xóa vĩnh viễn
+            $this->alert->set('success', 'Đã xóa vĩnh viễn sự kiện', true);
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa vĩnh viễn sự kiện', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+    }
+    
+    /**
+     * Tìm kiếm template
+     */
+    public function search()
+    {
+        // Lấy dữ liệu từ request
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
+        
+        // Chuẩn bị tiêu chí tìm kiếm
+        $criteria = [
+            'keyword' => $keyword
+        ];
+        
+        // Thêm bộ lọc nếu có
+        $filters = [];
+        if ($status !== null && $status !== '') {
+            $filters['status'] = (int)$status;
+        }
+        
+        // Chỉ thêm vào criteria nếu có bộ lọc
+        if (!empty($filters)) {
+            $criteria['filters'] = $filters;
+        }
+        
+        // Thiết lập tùy chọn
+        $options = [
+            'sort_field' => $this->request->getGet('sort') ?? 'updated_at',
+            'sort_direction' => $this->request->getGet('order') ?? 'DESC',
+            'limit' => (int)($this->request->getGet('length') ?? 10),
+            'offset' => (int)($this->request->getGet('start') ?? 0)
+        ];
+        
+        // Thực hiện tìm kiếm
+        $results = $this->model->search($criteria, $options);
+        
+        // Tổng số kết quả
+        $totalRecords = $this->model->countSearchResults($criteria);
+        
+        // Nếu yêu cầu là AJAX (từ DataTables)
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'draw' => $this->request->getGet('draw'),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $totalRecords,
+                'data' => $results
+            ]);
+        }
+        
+        // Nếu không phải AJAX, hiển thị trang tìm kiếm
+        $viewData = [
+            'title' => 'Tìm kiếm ' . $this->title,
+            'data' => $results,
+            'pager' => $this->model->pager,
+            'keyword' => $keyword,
+            'filters' => $filters,
+            'moduleUrl' => $this->moduleUrl
+        ];
+        
+        return view('App\Modules\\' . $this->module_name . '\Views\search', $viewData);
+    }
+    
+    /**
+     * Xóa nhiều template (chuyển vào thùng rác)
+     */
+    public function deleteMultiple()
+    {
+        // Lấy các ID được chọn và URL trả về
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url');
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để xóa', true);
             
-            // Thông báo lỗi tùy chỉnh
-            $messages = [
-                'id_su_kien' => [
-                    'required' => 'Không tìm thấy thông tin sự kiện',
-                    'numeric' => 'Thông tin sự kiện không hợp lệ'
-                ],
-                'ho_ten' => [
-                    'required' => 'Vui lòng nhập họ tên',
-                    'min_length' => 'Họ tên phải có ít nhất 3 ký tự',
-                    'max_length' => 'Họ tên không được vượt quá 255 ký tự'
-                ],
-                'email' => [
-                    'required' => 'Vui lòng nhập email',
-                    'valid_email' => 'Email không hợp lệ'
-                ],
-                'so_dien_thoai' => [
-                    'required' => 'Vui lòng nhập số điện thoại',
-                    'numeric' => 'Số điện thoại chỉ được chứa số',
-                    'min_length' => 'Số điện thoại phải có ít nhất 10 số',
-                    'max_length' => 'Số điện thoại không được vượt quá 15 số'
-                ],
-                'ma_sinh_vien' => [
-                    'alpha_numeric' => 'Mã sinh viên chỉ được chứa chữ cái và số',
-                    'min_length' => 'Mã sinh viên phải có ít nhất 5 ký tự',
-                    'max_length' => 'Mã sinh viên không được vượt quá 20 ký tự'
-                ]
-            ];
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl);
+        }
+        
+        // Log để debug
+        log_message('debug', 'DeleteMultiple - POST data: ' . json_encode($_POST));
+        log_message('debug', 'DeleteMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', 'DeleteMultiple - Return URL: ' . ($returnUrl ?? 'None'));
+        
+        $successCount = 0;
+        
+        // Đảm bảo $selectedItems là mảng
+        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
+        
+        foreach ($idArray as $id) {
+            if ($this->model->delete($id)) {
+                $successCount++;
+            }
+        }
+        
+        if ($successCount > 0) {
+            $this->alert->set('success', "Đã chuyển $successCount dữ liệu vào thùng rác", true);
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa dữ liệu', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl);
+    }
+    
+    /**
+     * Xử lý URL trả về, loại bỏ domain nếu cần
+     * 
+     * @param string|null $returnUrl URL trả về
+     * @return string URL đích đã được xử lý
+     */
+    private function processReturnUrl($returnUrl)
+    {
+        // Mặc định là URL module
+        $redirectUrl = $this->moduleUrl . '/listdeleted';
+        
+        if (!empty($returnUrl)) {
+            // Giải mã URL
+            $decodedUrl = urldecode($returnUrl);
+            log_message('debug', 'Return URL sau khi giải mã: ' . $decodedUrl);
             
-            if ($this->validate($rules, $messages)) {
-                // Dữ liệu hợp lệ, xử lý đăng ký
-                $data = [
-                    'id_su_kien' => $this->request->getPost('id_su_kien'),
-                    'ho_ten' => $this->request->getPost('ho_ten'),
-                    'email' => $this->request->getPost('email'),
-                    'so_dien_thoai' => $this->request->getPost('so_dien_thoai'),
-                    'ma_sinh_vien' => $this->request->getPost('ma_sinh_vien'),
-                    'thoi_gian_dang_ky' => date('Y-m-d H:i:s')
-                ];
+            // Kiểm tra nếu URL chứa domain, chỉ lấy phần path và query
+            if (strpos($decodedUrl, 'http') === 0) {
+                $urlParts = parse_url($decodedUrl);
+                $path = $urlParts['path'] ?? '';
+                $query = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
+                $decodedUrl = $path . $query;
+            }
+            
+            // Xử lý đường dẫn tương đối
+            if (strpos($decodedUrl, '/') === 0) {
+                $decodedUrl = substr($decodedUrl, 1);
+            }
+            
+            // Log cho debug
+            log_message('debug', 'URL sau khi xử lý: ' . $decodedUrl);
+            
+            // Cập nhật URL đích
+            $redirectUrl = $decodedUrl;
+        }
+        
+        return $redirectUrl;
+    }
+    
+    /**
+     * Thay đổi trạng thái nhiều template
+     */
+    public function statusMultiple()
+    {
+        // Lấy dữ liệu từ POST request
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
+        
+        // Log thông tin chi tiết để debug
+        log_message('debug', '[statusMultiple] - Request Method: ' . $this->request->getMethod());
+        log_message('debug', '[statusMultiple] - POST data: ' . json_encode($_POST));
+        log_message('debug', '[statusMultiple] - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', '[statusMultiple] - Return URL: ' . ($returnUrl ?? 'None'));
+        log_message('debug', '[statusMultiple] - CSRF: ' . json_encode($this->request->getPost(csrf_token()))); 
+        log_message('debug', '[statusMultiple] - Server variables: ' . json_encode($_SERVER));
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để thay đổi trạng thái', true);
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl);
+        }
+        
+        // Khởi tạo biến đếm kết quả
+        $successCount = 0;
+        $errorCount = 0;
+        $errors = [];
+        
+        // Xử lý từng ID được chọn
+        foreach ($selectedItems as $id) {
+            try {
+                // Lấy thông tin hiện tại của bản ghi
+                $currentRecord = $this->model->find($id);
                 
-                // Mô phỏng đăng ký thành công
-                // Trong thực tế sẽ lưu vào database
-                $event = $this->sukienModel->getEvent($data['id_su_kien']);
-                
-                // Chuyển hướng với thông báo thành công
-                $success_message = 'Bạn đã đăng ký thành công sự kiện: ' . $event['ten_su_kien'];
-                return redirect()->to('/su-kien/detail/' . $event['slug'])->with('success', $success_message);
-            } else {
-                // Dữ liệu không hợp lệ, quay lại với thông báo lỗi
-                $event_id = $this->request->getPost('id_su_kien');
-                $event = $this->sukienModel->getEvent($event_id);
-                
-                if (!$event) {
-                    return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+                if (!$currentRecord) {
+                    $errorCount++;
+                    $errors[] = "Không tìm thấy bản ghi với ID: $id";
+                    continue;
                 }
                 
-                return redirect()->to('/su-kien/detail/' . $event['slug'])->with('error', $this->validator->listErrors());
+                // Đổi trạng thái ngược lại (0 -> 1 hoặc 1 -> 0)
+                $newStatus = $currentRecord->status == '1' ? '0' : '1';
+                
+                // Cập nhật trạng thái
+                $updateResult = $this->model->update($id, ['status' => $newStatus]);
+                
+                if ($updateResult) {
+                    $successCount++;
+                    log_message('debug', "[statusMultiple] - Successfully updated status for ID: $id to: $newStatus");
+                } else {
+                    $errorCount++;
+                    $errors[] = "Lỗi khi cập nhật trạng thái cho ID: $id";
+                    log_message('error', "[statusMultiple] - Failed to update status for ID: $id");
+                }
+            } catch (\Exception $e) {
+                $errorCount++;
+                $errors[] = "Lỗi khi xử lý ID: $id - " . $e->getMessage();
+                log_message('error', "[statusMultiple] - Error processing ID: $id - " . $e->getMessage());
+            }
+        }
+        
+        // Log kết quả cuối cùng
+        log_message('debug', "[statusMultiple] - Final Results - Success: $successCount, Errors: $errorCount");
+        if (!empty($errors)) {
+            log_message('error', "[statusMultiple] - Error Details: " . json_encode($errors));
+        }
+        
+        // Thiết lập thông báo kết quả
+        if ($successCount > 0) {
+            $message = "Đã cập nhật thành công trạng thái cho $successCount mục";
+            if ($errorCount > 0) {
+                $message .= " (có $errorCount mục lỗi)";
+            }
+            $this->alert->set('success', $message, true);
+        } else {
+            $this->alert->set('error', 'Không thể cập nhật trạng thái cho bất kỳ mục nào', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        log_message('debug', "[statusMultiple] - Redirecting to: " . ($redirectUrl ?: $this->moduleUrl));
+        
+        return redirect()->to($redirectUrl ?: $this->moduleUrl);
+    }
+    
+    /**
+     * Khôi phục nhiều bản ghi từ thùng rác
+     */
+    public function restoreMultiple()
+    {
+        // Lấy các ID được chọn từ form và URL trả về
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
+        
+        // Log thông tin để debug
+        log_message('debug', 'RestoreMultiple - POST data: ' . json_encode($_POST));
+        log_message('debug', 'RestoreMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', 'RestoreMultiple - Return URL: ' . ($returnUrl ?? 'None'));
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để khôi phục', true);
+            
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+        }
+        
+        $successCount = 0;
+        $failCount = 0;
+        $errorMessages = [];
+        
+        // Đảm bảo $selectedItems là mảng
+        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
+        
+        // Log thông tin mảng ID để debug
+        log_message('debug', 'RestoreMultiple - ID Array: ' . json_encode($idArray));
+        log_message('debug', 'RestoreMultiple - Số lượng ID cần khôi phục: ' . count($idArray));
+        
+        foreach ($idArray as $id) {
+            log_message('debug', 'RestoreMultiple - Đang khôi phục ID: ' . $id);
+            
+            try {
+                // Khôi phục bằng cách đặt deleted_at thành NULL
+                if ($this->model->update($id, ['deleted_at' => null])) {
+                    $successCount++;
+                    log_message('debug', 'RestoreMultiple - Khôi phục thành công ID: ' . $id);
+                } else {
+                    $failCount++;
+                    $errors = $this->model->errors() ? json_encode($this->model->errors()) : 'Unknown error';
+                    log_message('error', 'RestoreMultiple - Lỗi khôi phục dữ liệu ID: ' . $id . ', Errors: ' . $errors);
+                    $errorMessages[] = "Lỗi khôi phục dữ liệu ID: {$id}";
+                }
+            } catch (\Exception $e) {
+                $failCount++;
+                log_message('error', 'RestoreMultiple - Ngoại lệ khi khôi phục ID: ' . $id . ', Error: ' . $e->getMessage());
+                $errorMessages[] = "Lỗi khôi phục ID: {$id} - " . $e->getMessage();
+            }
+        }
+        
+        // Tổng kết kết quả
+        log_message('info', "RestoreMultiple - Kết quả: Thành công: {$successCount}, Thất bại: {$failCount}");
+        
+        if ($successCount > 0) {
+            if ($failCount > 0) {
+                $this->alert->set('warning', "Đã khôi phục {$successCount} dữ liệu, nhưng có {$failCount} dữ liệu không thể khôi phục", true);
+            } else {
+                $this->alert->set('success', "Đã khôi phục {$successCount} dữ liệu từ thùng rác", true);
             }
         } else {
-            // Không cho phép truy cập trực tiếp
-            return redirect()->to('/su-kien/list');
+            $this->alert->set('danger', 'Có lỗi xảy ra, không thể khôi phục dữ liệu nào', true);
+            // Log chi tiết lỗi
+            if (!empty($errorMessages)) {
+                log_message('error', 'RestoreMultiple - Chi tiết lỗi: ' . json_encode($errorMessages));
+            }
         }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
     }
     
     /**
-     * Tạo dữ liệu có cấu trúc cho sự kiện theo schema.org
+     * Xóa vĩnh viễn nhiều bản ghi
      */
-    private function generateEventStructuredData($event)
+    public function permanentDeleteMultiple()
     {
-        $startDate = date('c', strtotime($event['ngay_to_chuc'])); // Định dạng ISO 8601
-        $endDate = date('c', strtotime($event['ngay_to_chuc'] . ' +' . ($event['thoi_gian'] ?: 2) . ' hours'));
+        // Lấy các ID được chọn từ form và URL trả về
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
         
-        $structured_data = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Event',
-            'name' => $event['ten_su_kien'],
-            'description' => $event['mo_ta_su_kien'],
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-            'location' => [
-                '@type' => 'Place',
-                'name' => $event['dia_diem'],
-                'address' => [
-                    '@type' => 'PostalAddress',
-                    'addressLocality' => 'Hồ Chí Minh',
-                    'addressCountry' => 'VN'
-                ]
-            ],
-            'organizer' => [
-                '@type' => 'Organization',
-                'name' => 'Trường Đại học Ngân hàng TP.HCM',
-                'url' => 'https://hub.edu.vn'
-            ],
-            'image' => base_url($event['hinh_anh']),
-            'url' => site_url('su-kien/detail/' . $event['slug'])
+        // Log thông tin để debug
+        log_message('debug', 'PermanentDeleteMultiple - POST data: ' . json_encode($_POST));
+        log_message('debug', 'PermanentDeleteMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', 'PermanentDeleteMultiple - Return URL: ' . ($returnUrl ?? 'None'));
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để xóa vĩnh viễn', true);
+            
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+        }
+        
+        $successCount = 0;
+        
+        // Đảm bảo $selectedItems là mảng
+        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
+        
+        // Log thông tin mảng ID để debug
+        log_message('debug', 'PermanentDeleteMultiple - ID Array: ' . json_encode($idArray));
+        log_message('debug', 'PermanentDeleteMultiple - Số lượng ID cần xóa vĩnh viễn: ' . count($idArray));
+        
+        foreach ($idArray as $id) {
+            log_message('debug', 'PermanentDeleteMultiple - Đang xóa vĩnh viễn ID: ' . $id);
+            
+            if ($this->model->delete($id, true)) { // true = xóa vĩnh viễn
+                $successCount++;
+                log_message('debug', 'PermanentDeleteMultiple - Xóa vĩnh viễn thành công ID: ' . $id);
+            } else {
+                log_message('error', 'PermanentDeleteMultiple - Lỗi xóa vĩnh viễn ID: ' . $id);
+            }
+        }
+        
+        if ($successCount > 0) {
+            $this->alert->set('success', "Đã xóa vĩnh viễn $successCount dữ liệu", true);
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa dữ liệu', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+    }
+    
+    /**
+     * Xuất danh sách tham gia sự kiện ra file Excel
+     */
+    public function exportExcel()
+    {
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'su_kien_id';
+        $order = $this->request->getGet('order') ?? 'ASC';
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+        $headers = $this->prepareExcelHeaders();
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
+
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_su_kien');
+    }
+
+    /**
+     * Xuất danh sách tham gia sự kiện ra file PDF
+     */
+    public function exportPdf()
+    {
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'su_kien_id';
+        $order = $this->request->getGet('order') ?? 'ASC';
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
+
+        $this->createPdfFile($data, $filters, 'DANH SÁCH SỰ KIỆN', 'danh_sach_su_kien');
+    }
+
+    /**
+     * Xuất danh sách tham gia sự kiện đã xóa ra file PDF
+     */
+    public function exportDeletedPdf()
+    {
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'deleted_at';
+        $order = $this->request->getGet('order') ?? 'ASC';
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status, true);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
+        $filters['Trạng thái'] = 'Đã xóa';
+
+        $this->createPdfFile($data, $filters, 'DANH SÁCH SỰ KIỆN ĐÃ XÓA', 'danh_sach_su_kien_da_xoa', true);
+    }
+
+    /**
+     * Xuất danh sách tham gia sự kiện đã xóa ra file Excel
+     */
+    public function exportDeletedExcel()
+    {
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'deleted_at';
+        $order = $this->request->getGet('order') ?? 'DESC';
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status, true);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+        $headers = $this->prepareExcelHeaders(true);
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
+        $filters['Trạng thái'] = 'Đã xóa';
+
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_su_kien_da_xoa', true);
+    }
+
+    /**
+     * Lấy text cho sắp xếp
+     */
+    protected function getSortText($sort, $order)
+    {
+        $sortFields = [
+            'su_kien_id' => 'ID',
+            'ten_su_kien' => 'Tên sự kiện',
+            'mo_ta' => 'Mô tả',
+            'mo_ta_su_kien' => 'Mô tả sự kiện',
+            'chi_tiet_su_kien' => 'Chi tiết sự kiện',
+            'thoi_gian_bat_dau' => 'Thời gian bắt đầu',
+            'thoi_gian_ket_thuc' => 'Thời gian kết thúc',
+            'dia_diem' => 'Địa điểm',
+            'dia_chi_cu_the' => 'Địa chỉ cụ thể',
+            'toa_do_gps' => 'Tọa độ GPS',
+            'loai_su_kien_id' => 'Loại sự kiện',
+            'nguoi_tao_id' => 'Người tạo',
+            'ma_qr_code' => 'Mã QR',
+            'status' => 'Trạng thái',
+            'tong_dang_ky' => 'Tổng đăng ký',
+            'tong_check_in' => 'Tổng check-in',
+            'tong_check_out' => 'Tổng check-out',
+            'cho_phep_check_in' => 'Cho phép check-in',
+            'cho_phep_check_out' => 'Cho phép check-out',
+            'yeu_cau_face_id' => 'Yêu cầu Face ID',
+            'cho_phep_checkin_thu_cong' => 'Cho phép check-in thủ công',
+            'tu_dong_xac_nhan_svgv' => 'Tự động xác nhận SV/GV',
+            'yeu_cau_duyet_khach' => 'Yêu cầu duyệt khách',
+            'bat_dau_dang_ky' => 'Bắt đầu đăng ký',
+            'ket_thuc_dang_ky' => 'Kết thúc đăng ký',
+            'han_huy_dang_ky' => 'Hạn hủy đăng ký',
+            'gio_bat_dau' => 'Giờ bắt đầu',
+            'gio_ket_thuc' => 'Giờ kết thúc',
+            'so_luong_tham_gia' => 'Số lượng tham gia',
+            'so_luong_dien_gia' => 'Số lượng diễn giả',
+            'gioi_han_loai_nguoi_dung' => 'Giới hạn loại người dùng',
+            'tu_khoa_su_kien' => 'Từ khóa sự kiện',
+            'hashtag' => 'Hashtag',
+            'slug' => 'Slug',
+            'so_luot_xem' => 'Số lượt xem',
+            'lich_trinh' => 'Lịch trình',
+            'version' => 'Phiên bản',
+            'created_at' => 'Ngày tạo',
+            'updated_at' => 'Ngày cập nhật',
+            'deleted_at' => 'Ngày xóa',
         ];
+
+        $field = $sortFields[$sort] ?? $sort;
+        return "$field (" . ($order === 'DESC' ? 'Giảm dần' : 'Tăng dần') . ")";
+    }
+
+    // Thêm vào phương thức này để hỗ trợ tìm kiếm các bản ghi đã xóa
+    public function searchDeleted(array $criteria = [], array $options = [])
+    {
+        // Đảm bảo withDeleted được thiết lập
+        $this->model->withDeleted();
         
-        return json_encode($structured_data);
+        // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
+        
+        // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
+        return $this->model->search($criteria, $options);
     }
     
-    /**
-     * Hàm cắt chuỗi theo độ dài và giữ nguyên từ
-     */
-    private function truncate($string, $length = 100, $append = "...")
+    // Đếm số lượng bản ghi đã xóa theo tiêu chí tìm kiếm
+    public function countDeletedResults(array $criteria = [])
     {
-        $string = trim($string);
+        // Đảm bảo withDeleted được thiết lập
+        $this->model->withDeleted();
         
-        if (strlen($string) > $length) {
-            $string = wordwrap($string, $length);
-            $string = explode("\n", $string, 2);
-            $string = $string[0] . $append;
-        }
+        // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
+        $criteria['deleted'] = true;
         
-        return $string;
+        // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
+        return $this->model->countSearchResults($criteria);
     }
 } 

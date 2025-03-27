@@ -263,6 +263,24 @@ function nav_config() {
                 'title' => 'Quản lý Sự Kiện'
             ],
             [
+                'title' => 'Quản lý Sự Kiện',
+                'icon' => 'bx bx-calendar-event',
+                'submenu' => [
+                    [
+                        'title' => 'Danh Sách Sự Kiện',
+                        'url' => site_url('sukien')
+                    ],
+                    [
+                        'title' => 'Danh sách Sự Kiện bị xóa',
+                        'url' => site_url('sukien/listdeleted')
+                    ],
+                    [
+                        'title' => 'Thêm Sự Kiện mới',
+                        'url' => site_url('sukien/new')
+                    ]
+                ]
+            ],
+            [
                 'title' => 'Quản lý Loại Sự Kiện',
                 'icon' => 'bx bx-calendar-event',
                 'submenu' => [
