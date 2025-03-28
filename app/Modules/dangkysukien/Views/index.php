@@ -63,7 +63,7 @@
                                 <button class="btn btn-outline-secondary btn-sm" type="submit">
                                     <i class='bx bx-search'></i>
                                 </button>
-                                <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['sukien_id']) || isset($_GET['loai_nguoi_dang_ky']) || isset($_GET['hinh_thuc_tham_gia'])): ?>
+                                <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['sukien_id']) || isset($_GET['loai_nguoi_dang_ky']) || isset($_GET['hinh_thuc_tham_gia']) || isset($_GET['da_check_in']) || isset($_GET['da_check_out']) || isset($_GET['attendance_status']) || isset($_GET['diem_danh_bang'])): ?>
                                 <a href="<?= site_url($module_name) ?>" class="btn btn-outline-danger btn-sm">
                                     <i class='bx bx-x'></i>
                                 </a>
@@ -77,15 +77,15 @@
                                     <option value="<?= $suKien->su_kien_id ?>" <?= (isset($_GET['sukien_id']) && $_GET['sukien_id'] == $suKien->su_kien_id) ? 'selected' : '' ?>><?= esc($suKien->ten_su_kien) ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                
+
                                 <!-- Bộ lọc loại người đăng ký -->
                                 <select name="loai_nguoi_dang_ky" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
-                                    <option value="">Tất cả loại người đăng ký</option>
+                                    <option value="">Tất cả loại</option>
                                     <option value="khach" <?= (isset($_GET['loai_nguoi_dang_ky']) && $_GET['loai_nguoi_dang_ky'] === 'khach') ? 'selected' : '' ?>>Khách mời</option>
                                     <option value="sinh_vien" <?= (isset($_GET['loai_nguoi_dang_ky']) && $_GET['loai_nguoi_dang_ky'] === 'sinh_vien') ? 'selected' : '' ?>>Sinh viên</option>
                                     <option value="giang_vien" <?= (isset($_GET['loai_nguoi_dang_ky']) && $_GET['loai_nguoi_dang_ky'] === 'giang_vien') ? 'selected' : '' ?>>Giảng viên</option>
                                 </select>
-                                
+
                                 <!-- Bộ lọc trạng thái -->
                                 <select name="status" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
                                     <option value="">Tất cả trạng thái</option>
@@ -93,13 +93,44 @@
                                     <option value="0" <?= (isset($_GET['status']) && $_GET['status'] === '0') ? 'selected' : '' ?>>Chờ xác nhận</option>
                                     <option value="-1" <?= (isset($_GET['status']) && $_GET['status'] === '-1') ? 'selected' : '' ?>>Đã hủy</option>
                                 </select>
-                                
-                                <!-- Bộ lọc hình thức tham gia -->
+
+                                <!-- Bộ lọc hình thức -->
                                 <select name="hinh_thuc_tham_gia" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
                                     <option value="">Tất cả hình thức</option>
                                     <option value="offline" <?= (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] === 'offline') ? 'selected' : '' ?>>Trực tiếp</option>
                                     <option value="online" <?= (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] === 'online') ? 'selected' : '' ?>>Trực tuyến</option>
                                     <option value="hybrid" <?= (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] === 'hybrid') ? 'selected' : '' ?>>Kết hợp</option>
+                                </select>
+
+                                <!-- Bộ lọc trạng thái điểm danh -->
+                                <select name="attendance_status" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả trạng thái điểm danh</option>
+                                    <option value="not_attended" <?= (isset($_GET['attendance_status']) && $_GET['attendance_status'] === 'not_attended') ? 'selected' : '' ?>>Chưa tham dự</option>
+                                    <option value="partial" <?= (isset($_GET['attendance_status']) && $_GET['attendance_status'] === 'partial') ? 'selected' : '' ?>>Tham dự một phần</option>
+                                    <option value="full" <?= (isset($_GET['attendance_status']) && $_GET['attendance_status'] === 'full') ? 'selected' : '' ?>>Tham dự đầy đủ</option>
+                                </select>
+
+                                <!-- Bộ lọc phương thức điểm danh -->
+                                <select name="diem_danh_bang" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả phương thức điểm danh</option>
+                                    <option value="qr_code" <?= (isset($_GET['diem_danh_bang']) && $_GET['diem_danh_bang'] === 'qr_code') ? 'selected' : '' ?>>Mã QR</option>
+                                    <option value="face_id" <?= (isset($_GET['diem_danh_bang']) && $_GET['diem_danh_bang'] === 'face_id') ? 'selected' : '' ?>>Nhận diện khuôn mặt</option>
+                                    <option value="manual" <?= (isset($_GET['diem_danh_bang']) && $_GET['diem_danh_bang'] === 'manual') ? 'selected' : '' ?>>Thủ công</option>
+                                    <option value="none" <?= (isset($_GET['diem_danh_bang']) && $_GET['diem_danh_bang'] === 'none') ? 'selected' : '' ?>>Chưa điểm danh</option>
+                                </select>
+
+                                <!-- Bộ lọc trạng thái check-in -->
+                                <select name="da_check_in" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả trạng thái check-in</option>
+                                    <option value="1" <?= (isset($_GET['da_check_in']) && $_GET['da_check_in'] === '1') ? 'selected' : '' ?>>Đã check-in</option>
+                                    <option value="0" <?= (isset($_GET['da_check_in']) && $_GET['da_check_in'] === '0') ? 'selected' : '' ?>>Chưa check-in</option>
+                                </select>
+
+                                <!-- Bộ lọc trạng thái check-out -->
+                                <select name="da_check_out" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả trạng thái check-out</option>
+                                    <option value="1" <?= (isset($_GET['da_check_out']) && $_GET['da_check_out'] === '1') ? 'selected' : '' ?>>Đã check-out</option>
+                                    <option value="0" <?= (isset($_GET['da_check_out']) && $_GET['da_check_out'] === '0') ? 'selected' : '' ?>>Chưa check-out</option>
                                 </select>
                             </div>
                         </div>
@@ -122,13 +153,14 @@
             </div>
         <?php endif; ?>
         
-        <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['sukien_id']) || isset($_GET['loai_nguoi_dang_ky']) || isset($_GET['hinh_thuc_tham_gia'])): ?>
+        <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['sukien_id']) || isset($_GET['loai_nguoi_dang_ky']) || isset($_GET['hinh_thuc_tham_gia']) || isset($_GET['da_check_in']) || isset($_GET['da_check_out']) || isset($_GET['attendance_status']) || isset($_GET['diem_danh_bang'])): ?>
             <div class="alert alert-info m-3">
                 <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
                 <div class="small">
                     <?php if (!empty($keyword)): ?>
                         <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
                     <?php endif; ?>
+
                     <?php if (isset($_GET['sukien_id']) && $_GET['sukien_id'] !== ''): ?>
                         <span class="badge bg-primary me-2">Sự kiện: 
                             <?php 
@@ -143,18 +175,20 @@
                             ?>
                         </span>
                     <?php endif; ?>
+
                     <?php if (isset($_GET['loai_nguoi_dang_ky']) && $_GET['loai_nguoi_dang_ky'] !== ''): ?>
                         <span class="badge bg-primary me-2">Loại người đăng ký: 
                             <?php 
-                                $loai_map = [
+                                $loai_nguoi_dang_ky_map = [
                                     'khach' => 'Khách mời',
                                     'sinh_vien' => 'Sinh viên',
                                     'giang_vien' => 'Giảng viên'
                                 ];
-                                echo $loai_map[$_GET['loai_nguoi_dang_ky']] ?? $_GET['loai_nguoi_dang_ky'];
+                                echo $loai_nguoi_dang_ky_map[$_GET['loai_nguoi_dang_ky']] ?? $_GET['loai_nguoi_dang_ky'];
                             ?>
                         </span>
                     <?php endif; ?>
+
                     <?php if (isset($_GET['status']) && $_GET['status'] !== ''): ?>
                         <span class="badge bg-primary me-2">Trạng thái: 
                             <?php 
@@ -167,6 +201,7 @@
                             ?>
                         </span>
                     <?php endif; ?>
+
                     <?php if (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] !== ''): ?>
                         <span class="badge bg-primary me-2">Hình thức: 
                             <?php 
@@ -179,6 +214,58 @@
                             ?>
                         </span>
                     <?php endif; ?>
+
+                    <?php if (isset($_GET['da_check_in']) && $_GET['da_check_in'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Trạng thái check-in: 
+                            <?php 
+                                $da_check_in_map = [
+                                    '1' => 'Đã check-in',
+                                    '0' => 'Chưa check-in'
+                                ];
+                                echo $da_check_in_map[$_GET['da_check_in']] ?? $_GET['da_check_in'];
+                            ?>
+                        </span>
+                    <?php endif; ?>
+
+                    <?php if (isset($_GET['da_check_out']) && $_GET['da_check_out'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Trạng thái check-out: 
+                            <?php 
+                                $da_check_out_map = [
+                                    '1' => 'Đã check-out',
+                                    '0' => 'Chưa check-out'
+                                ];
+                                echo $da_check_out_map[$_GET['da_check_out']] ?? $_GET['da_check_out'];
+                            ?>
+                        </span>
+                    <?php endif; ?>
+
+                    <?php if (isset($_GET['attendance_status']) && $_GET['attendance_status'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Trạng thái điểm danh: 
+                            <?php 
+                                $attendance_status_map = [
+                                    'not_attended' => 'Chưa tham dự',
+                                    'partial' => 'Tham dự một phần',
+                                    'full' => 'Tham dự đầy đủ'
+                                ];
+                                echo $attendance_status_map[$_GET['attendance_status']] ?? $_GET['attendance_status'];
+                            ?>
+                        </span>
+                    <?php endif; ?>
+
+                    <?php if (isset($_GET['diem_danh_bang']) && $_GET['diem_danh_bang'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Phương thức điểm danh: 
+                            <?php 
+                                $diem_danh_bang_map = [
+                                    'qr_code' => 'Mã QR',
+                                    'face_id' => 'Nhận diện khuôn mặt',
+                                    'manual' => 'Thủ công',
+                                    'none' => 'Chưa điểm danh'
+                                ];
+                                echo $diem_danh_bang_map[$_GET['diem_danh_bang']] ?? $_GET['diem_danh_bang'];
+                            ?>
+                        </span>
+                    <?php endif; ?>
+
                     <a href="<?= site_url($module_name) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>
             </div>

@@ -23,6 +23,8 @@ function ($routes) use ($controller_name) {
     $routes->post('restore/(:num)', $controller_name . '::restore/$1');
     $routes->post('purge/(:num)', $controller_name . '::purge/$1');
     $routes->post('status/(:num)', $controller_name . '::status/$1');
+    $routes->get('updateStatus/(:num)/(:any)', $controller_name . '::updateStatus/$1/$2');
+    $routes->post('updateStatus/(:num)/(:any)', $controller_name . '::updateStatus/$1/$2');
     $routes->post('deleteMultiple', $controller_name . '::deleteMultiple');
     $routes->post('restoreMultiple', $controller_name . '::restoreMultiple');
     $routes->get('permanentDelete/(:num)', $controller_name . '::permanentDelete/$1');

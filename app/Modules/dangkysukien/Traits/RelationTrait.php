@@ -130,10 +130,14 @@ trait RelationTrait
             'sort' => $request->getGet('sort') ?? 'created_at',
             'order' => $request->getGet('order') ?? 'DESC',
             'keyword' => $request->getGet('keyword') ?? '',
+            'sukien_id' => $request->getGet('sukien_id'),
+            'loai_nguoi_dang_ky' => $request->getGet('loai_nguoi_dang_ky'),
             'status' => $request->getGet('status'),
-            'su_kien_id' => $request->getGet('su_kien_id'),
-            'bat_buoc_dien' => $request->getGet('bat_buoc_dien'),
-            'hien_thi_cong_khai' => $request->getGet('hien_thi_cong_khai'),
+            'hinh_thuc_tham_gia' => $request->getGet('hinh_thuc_tham_gia'),
+            'attendance_status' => $request->getGet('attendance_status'),
+            'diem_danh_bang' => $request->getGet('diem_danh_bang'),
+            'da_check_in' => $request->getGet('da_check_in'),
+            'da_check_out' => $request->getGet('da_check_out')
         ];
     }
 
@@ -160,21 +164,36 @@ trait RelationTrait
             $criteria['keyword'] = $params['keyword'];
         }
 
+        if (!empty($params['sukien_id'])) {
+            $criteria['sukien_id'] = (int)$params['sukien_id'];
+        }
+
+        if (!empty($params['loai_nguoi_dang_ky'])) {
+            $criteria['loai_nguoi_dang_ky'] = $params['loai_nguoi_dang_ky'];
+        }
+
         if (isset($params['status']) && $params['status'] !== '') {
             $criteria['status'] = (int)$params['status'];
         }
-        
-        // Thêm các tham số lọc mới
-        if (!empty($params['su_kien_id'])) {
-            $criteria['su_kien_id'] = (int)$params['su_kien_id'];
+
+        if (!empty($params['hinh_thuc_tham_gia'])) {
+            $criteria['hinh_thuc_tham_gia'] = $params['hinh_thuc_tham_gia'];
         }
-        
-        if (isset($params['bat_buoc_dien']) && $params['bat_buoc_dien'] !== '') {
-            $criteria['bat_buoc_dien'] = (int)$params['bat_buoc_dien'];
+
+        if (!empty($params['attendance_status'])) {
+            $criteria['attendance_status'] = $params['attendance_status'];
         }
-        
-        if (isset($params['hien_thi_cong_khai']) && $params['hien_thi_cong_khai'] !== '') {
-            $criteria['hien_thi_cong_khai'] = (int)$params['hien_thi_cong_khai'];
+
+        if (!empty($params['diem_danh_bang'])) {
+            $criteria['diem_danh_bang'] = $params['diem_danh_bang'];
+        }
+
+        if (isset($params['da_check_in']) && $params['da_check_in'] !== '') {
+            $criteria['da_check_in'] = (bool)$params['da_check_in'];
+        }
+
+        if (isset($params['da_check_out']) && $params['da_check_out'] !== '') {
+            $criteria['da_check_out'] = (bool)$params['da_check_out'];
         }
 
         return $criteria;

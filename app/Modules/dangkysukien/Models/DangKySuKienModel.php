@@ -735,4 +735,148 @@ class DangKySuKienModel extends BaseModel
         
         return $builder->countAllResults();
     }
+    
+    /**
+     * Xóa nhiều bản ghi và tính toán lại vị trí trang
+     *
+     * @param array $ids Mảng ID cần xóa
+     * @param array $currentParams Các tham số hiện tại (page, perPage, filters)
+     * @return array Kết quả xóa và thông tin trang mới
+     */
+    public function deleteMultiple(array $ids, array $currentParams = []): array
+    {
+        $successCount = 0;
+        
+        // Xóa các bản ghi
+        foreach ($ids as $id) {
+            if ($this->delete($id)) {
+                $successCount++;
+            }
+        }
+        
+        // Tính toán lại vị trí trang
+        $currentPage = $currentParams['page'] ?? 1;
+        $perPage = $currentParams['perPage'] ?? 10;
+        
+        // Lấy tổng số bản ghi còn lại với các điều kiện lọc
+        $criteria = $this->buildSearchCriteria($currentParams);
+        $totalItems = $this->countSearchResults($criteria);
+        
+        // Tính tổng số trang mới
+        $totalPages = ceil($totalItems / $perPage);
+        
+        // Nếu trang hiện tại lớn hơn tổng số trang mới và có trang
+        if ($currentPage > $totalPages && $totalPages > 0) {
+            $currentPage = $totalPages;
+        }
+        
+        return [
+            'success' => $successCount > 0,
+            'success_count' => $successCount,
+            'total_items' => $totalItems,
+            'total_pages' => $totalPages,
+            'current_page' => $currentPage
+        ];
+    }
+    
+    /**
+     * Khôi phục nhiều bản ghi và tính toán lại vị trí trang
+     *
+     * @param array $ids Mảng ID cần khôi phục
+     * @param array $currentParams Các tham số hiện tại (page, perPage, filters)
+     * @return array Kết quả khôi phục và thông tin trang mới
+     */
+    public function restoreMultiple(array $ids, array $currentParams = []): array
+    {
+        $successCount = 0;
+        
+        // Khôi phục các bản ghi
+        foreach ($ids as $id) {
+            if ($this->restore($id)) {
+                $successCount++;
+            }
+        }
+        
+        // Tính toán lại vị trí trang
+        $currentPage = $currentParams['page'] ?? 1;
+        $perPage = $currentParams['perPage'] ?? 10;
+        
+        // Lấy tổng số bản ghi còn lại với các điều kiện lọc
+        $criteria = $this->buildSearchCriteria($currentParams);
+        $totalItems = $this->countSearchResults($criteria);
+        
+        // Tính tổng số trang mới
+        $totalPages = ceil($totalItems / $perPage);
+        
+        // Nếu trang hiện tại lớn hơn tổng số trang mới và có trang
+        if ($currentPage > $totalPages && $totalPages > 0) {
+            $currentPage = $totalPages;
+        }
+        
+        return [
+            'success' => $successCount > 0,
+            'success_count' => $successCount,
+            'total_items' => $totalItems,
+            'total_pages' => $totalPages,
+            'current_page' => $currentPage
+        ];
+    }
+    
+    /**
+     * Xây dựng tiêu chí tìm kiếm từ các tham số
+     *
+     * @param array $params Các tham số tìm kiếm
+     * @return array Tiêu chí tìm kiếm
+     */
+    protected function buildSearchCriteria(array $params): array
+    {
+        $criteria = [];
+        
+        // Xử lý từ khóa tìm kiếm
+        if (!empty($params['keyword'])) {
+            $criteria['keyword'] = $params['keyword'];
+        }
+        
+        // Xử lý lọc theo sự kiện
+        if (isset($params['sukien_id']) && $params['sukien_id'] !== '') {
+            $criteria['sukien_id'] = (int)$params['sukien_id'];
+        }
+        
+        // Xử lý lọc theo loại người đăng ký
+        if (isset($params['loai_nguoi_dang_ky']) && $params['loai_nguoi_dang_ky'] !== '') {
+            $criteria['loai_nguoi_dang_ky'] = $params['loai_nguoi_dang_ky'];
+        }
+        
+        // Xử lý lọc theo trạng thái
+        if (isset($params['status']) && $params['status'] !== '') {
+            $criteria['status'] = $params['status'];
+        }
+        
+        // Xử lý lọc theo hình thức tham gia
+        if (isset($params['hinh_thuc_tham_gia']) && $params['hinh_thuc_tham_gia'] !== '') {
+            $criteria['hinh_thuc_tham_gia'] = $params['hinh_thuc_tham_gia'];
+        }
+        
+        // Xử lý lọc theo trạng thái điểm danh
+        if (isset($params['attendance_status']) && $params['attendance_status'] !== '') {
+            $criteria['attendance_status'] = $params['attendance_status'];
+        }
+        
+        // Xử lý lọc theo phương thức điểm danh
+        if (isset($params['diem_danh_bang']) && $params['diem_danh_bang'] !== '') {
+            $criteria['diem_danh_bang'] = $params['diem_danh_bang'];
+        }
+        
+        // Xử lý lọc theo trạng thái check-in
+        if (isset($params['da_check_in']) && $params['da_check_in'] !== '') {
+            $criteria['da_check_in'] = $params['da_check_in'];
+        }
+        
+        // Xử lý lọc theo trạng thái check-out
+        if (isset($params['da_check_out']) && $params['da_check_out'] !== '') {
+            $criteria['da_check_out'] = $params['da_check_out'];
+        }
+        
+        return $criteria;
+    }
 } 

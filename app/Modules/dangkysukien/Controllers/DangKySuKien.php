@@ -57,10 +57,14 @@ class DangKySuKien extends BaseController
         'perPage', 
         'sort', 
         'order', 
-        'status', 
         'sukien_id',
-        'dien_gia_id',  
-        'hien_thi_cong_khai',
+        'loai_nguoi_dang_ky',
+        'status',
+        'hinh_thuc_tham_gia',
+        'attendance_status',
+        'diem_danh_bang',
+        'da_check_in',
+        'da_check_out'
     ];
 
     public function __construct()
@@ -414,25 +418,40 @@ class DangKySuKien extends BaseController
             return redirect()->to($redirectUrl);
         }
 
-        $successCount = 0;
-        
         // Đảm bảo $selectedItems là mảng
         $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
         
-        foreach ($idArray as $id) {
-            if ($this->model->delete($id)) {
-                $successCount++;
-            }
-        }
+        // Lấy các tham số hiện tại
+        $currentParams = $this->prepareSearchParams($this->request);
         
-        if ($successCount > 0) {
-            $this->alert->set('success', "Đã chuyển $successCount dữ liệu vào thùng rác", true);
+        // Thực hiện xóa nhiều và lấy kết quả
+        $result = $this->model->deleteMultiple($idArray, $currentParams);
+        
+        if ($result['success']) {
+            $this->alert->set('success', "Đã chuyển {$result['success_count']} dữ liệu vào thùng rác", true);
         } else {
             $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa dữ liệu', true);
         }
         
-        // Chuyển hướng đến URL đích đã xử lý
-        $redirectUrl = $this->processReturnUrl($returnUrl);
+        // Xử lý URL trả về với trang hiện tại
+        if (!empty($returnUrl)) {
+            $parsedUrl = parse_url($returnUrl);
+            $query = [];
+            
+            // Giữ lại các tham số query hiện có
+            if (isset($parsedUrl['query'])) {
+                parse_str($parsedUrl['query'], $query);
+            }
+            
+            // Cập nhật trang hiện tại
+            $query['page'] = $result['current_page'];
+            
+            // Tái tạo URL với các tham số đã cập nhật
+            $redirectUrl = $this->buildUrl($parsedUrl, $query);
+        } else {
+            $redirectUrl = $this->moduleUrl;
+        }
+        
         return redirect()->to($redirectUrl);
     }
     
@@ -473,9 +492,8 @@ class DangKySuKien extends BaseController
         // Chuẩn bị dữ liệu cho view
         $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
         
-        // Thêm danh sách sự kiện và diễn giả để hiển thị tên thay vì ID
+        // Thêm danh sách sự kiện để hiển thị tên thay vì ID
         $viewData['suKienList'] = $this->suKienModel->findAll();
-        $viewData['dienGiaList'] = $this->dienGiaModel->findAll();
         
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);
@@ -528,29 +546,41 @@ class DangKySuKien extends BaseController
             return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
         }
         
-        $successCount = 0;
-        
         // Đảm bảo $selectedItems là mảng
         $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
         
-        foreach ($idArray as $id) {
-            try {
-                if ($this->model->restore($id)) {
-                    $successCount++;
-                }
-            } catch (\Exception $e) {
-            }
-        }
+        // Lấy các tham số hiện tại
+        $currentParams = $this->prepareSearchParams($this->request);
         
-        if ($successCount > 0) {
-            $this->alert->set('success', "Đã khôi phục $successCount dữ liệu từ thùng rác", true);
+        // Thực hiện khôi phục nhiều và lấy kết quả
+        $result = $this->model->restoreMultiple($idArray, $currentParams);
+        
+        if ($result['success']) {
+            $this->alert->set('success', "Đã khôi phục {$result['success_count']} dữ liệu từ thùng rác", true);
         } else {
             $this->alert->set('danger', 'Có lỗi xảy ra, không thể khôi phục dữ liệu', true);
         }
         
-        // Chuyển hướng đến URL đích đã xử lý
-        $redirectUrl = $this->processReturnUrl($returnUrl);
-        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+        // Xử lý URL trả về với trang hiện tại
+        if (!empty($returnUrl)) {
+            $parsedUrl = parse_url($returnUrl);
+            $query = [];
+            
+            // Giữ lại các tham số query hiện có
+            if (isset($parsedUrl['query'])) {
+                parse_str($parsedUrl['query'], $query);
+            }
+            
+            // Cập nhật trang hiện tại
+            $query['page'] = $result['current_page'];
+            
+            // Tái tạo URL với các tham số đã cập nhật
+            $redirectUrl = $this->buildUrl($parsedUrl, $query);
+        } else {
+            $redirectUrl = $this->moduleUrl . '/listdeleted';
+        }
+        
+        return redirect()->to($redirectUrl);
     }
     
     /**
@@ -587,12 +617,13 @@ class DangKySuKien extends BaseController
      */
     public function updateStatus($id = null, $status = null)
     {
-        if (empty($id) || empty($status)) {
+        if (empty($id) || !isset($status)) {
             $this->alert->set('danger', 'Thông tin không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
+
         // Cập nhật trạng thái thông qua model
-        if ($this->model->updateTrangThaiThamGia($id, $status)) {
+        if ($this->model->updateStatus($id, (int)$status)) {
             $this->alert->set('success', 'Cập nhật trạng thái thành công', true);
         } else {
             $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật trạng thái', true);
@@ -727,5 +758,50 @@ class DangKySuKien extends BaseController
         $fieldText = isset($sortFields[$sort]) ? $sortFields[$sort] : $sort;
         
         return "$fieldText ($orderText)";
+    }
+
+    /**
+     * Xử lý URL trả về
+     * 
+     * @param string|null $returnUrl URL trả về
+     * @return string URL đã xử lý
+     */
+    protected function processReturnUrl($returnUrl = null)
+    {
+        if (empty($returnUrl)) {
+            return $this->moduleUrl;
+        }
+
+        // Kiểm tra URL có phải là URL nội bộ không
+        $baseUrl = base_url();
+        if (strpos($returnUrl, $baseUrl) !== 0) {
+            return $this->moduleUrl;
+        }
+
+        return $returnUrl;
+    }
+
+    /**
+     * Tái tạo URL từ các thành phần đã phân tích
+     *
+     * @param array $parsedUrl Mảng chứa các thành phần của URL đã phân tích
+     * @param array $query Các tham số query string
+     * @return string URL đã được tái tạo
+     */
+    protected function buildUrl(array $parsedUrl, array $query = []): string
+    {
+        $scheme = $parsedUrl['scheme'] ?? '';
+        $host = $parsedUrl['host'] ?? '';
+        $path = $parsedUrl['path'] ?? '';
+        
+        // Tạo URL cơ bản
+        $url = $scheme . '/' . $host . $path;
+        
+        // Thêm query string nếu có
+        if (!empty($query)) {
+            $url .= '?' . http_build_query($query);
+        }
+        
+        return $url;
     }
 }
