@@ -4,6 +4,8 @@ namespace App\Modules\sukiendiengia\Entities;
 
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
+use App\Modules\sukien\Entities\SuKien;
+use App\Modules\diengia\Entities\DienGia;
 
 class SuKienDienGia extends BaseEntity
 {
@@ -161,6 +163,270 @@ class SuKienDienGia extends BaseEntity
         return (int)($this->attributes['dien_gia_id'] ?? 0);
     }
     
+    /**
+     * Get the speaker name
+     * 
+     * @return string
+     */
+    public function getTenDienGia(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia) {
+            return $dienGia->getTenDienGia();
+        }
+        
+        return "Unknown Speaker";
+    }
+    
+    /**
+     * Get the display name combining event name and speaker name
+     * 
+     * @return string
+     */
+    public function getTenSuKienDienGia(){
+        $suKienId = $this->getSuKienId();
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instances to find data instead of trying to use find() on entity objects
+        $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        
+        $suKien = $suKienModel->find($suKienId);
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($suKien && $dienGia) {
+            return $suKien->getTenSuKien() . " - " . $dienGia->getTenDienGia();
+        }
+        
+        return "Unknown Event - Unknown Speaker";
+    }
+
+    /**
+     * Get the speaker position/title
+     * 
+     * @return string
+     */
+    public function getChucDanh(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getChucDanh')) {
+            return $dienGia->getChucDanh();
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Get the organization of the speaker
+     * 
+     * @return string
+     */
+    public function getToChuc(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getToChuc')) {
+            return $dienGia->getToChuc();
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Get the speaker introduction
+     * 
+     * @return string
+     */
+    public function getGioiThieu(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getGioiThieu')) {
+            return $dienGia->getGioiThieu();
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Get the speaker avatar
+     * 
+     * @return string
+     */
+    public function getAvatar(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getAvatar')) {
+            return $dienGia->getAvatar();
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Get the speaker email
+     * 
+     * @return string
+     */
+    public function getEmail(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getEmail')) {
+            return $dienGia->getEmail();
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Get the speaker phone number
+     * 
+     * @return string
+     */
+    public function getDienThoai(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getDienThoai')) {
+            return $dienGia->getDienThoai();
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Get the speaker website
+     * 
+     * @return string
+     */
+    public function getWebsite(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getWebsite')) {
+            return $dienGia->getWebsite();
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Get the speaker specialization
+     * 
+     * @return string
+     */
+    public function getChuyenMon(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getChuyenMon')) {
+            return $dienGia->getChuyenMon();
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Get the speaker achievements
+     * 
+     * @return string
+     */
+    public function getThanhTuu(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getThanhTuu')) {
+            return $dienGia->getThanhTuu();
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Get the speaker social media profiles
+     * 
+     * @return array|string
+     */
+    public function getMangXaHoi(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getMangXaHoi')) {
+            return $dienGia->getMangXaHoi();
+        }
+        
+        return "";
+    }
+    
+    /**
+     * Get the speaker status
+     * 
+     * @return string|int
+     */
+    public function getStatus(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to find data
+        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGia = $dienGiaModel->find($dienGiaId);
+        
+        if ($dienGia && method_exists($dienGia, 'getStatus')) {
+            return $dienGia->getStatus();
+        }
+        
+        return 1; // Assuming 1 is active
+    }
+    
+    /**
+     * Get number of events the speaker is participating in
+     * 
+     * @return int
+     */
+    public function getSoSuKienThamGia(){
+        $dienGiaId = $this->getDienGiaId();
+        
+        // Use model instance to count
+        $suKienDienGiaModel = new \App\Modules\sukiendiengia\Models\SuKienDienGiaModel();
+        return $suKienDienGiaModel->where('dien_gia_id', $dienGiaId)->countAllResults();
+    }
+
     /**
      * Lấy thứ tự
      *
@@ -446,4 +712,4 @@ class SuKienDienGia extends BaseEntity
         
         return $trangThaiMap[$trangThai] ?? 'Chờ xác nhận';
     }
-} 
+}
