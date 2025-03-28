@@ -102,17 +102,19 @@
             <tr>
                 <th class="text-center">STT</th>
                 <th>ID</th>
-                <th>Tên diễn giả</th>
-                <th>Chức danh</th>
-                <th>Tổ chức</th>
+                <th>Tên sự kiện</th>
+                <th>Họ tên</th>
                 <th>Email</th>
                 <th>Điện thoại</th>
-                <th>Website</th>
-                <th>Chuyên môn</th>
-                <th>Thành tựu</th>
-                <th>Mạng xã hội</th>
-                <th>Số sự kiện</th>
+                <th>Loại người đăng ký</th>
+                <th>Hình thức tham gia</th>
+                <th>Ngày đăng ký</th>
                 <th>Trạng thái</th>
+                <th>Trạng thái tham dự</th>
+                <th>Số phút tham dự</th>
+                <th>Phương thức điểm danh</th>
+                <th>Đã check-in</th>
+                <th>Đã check-out</th>
                 <th>Ngày tạo</th>
                 <th>Ngày cập nhật</th>
                 <?php if ($includeDeletedAt): ?>
@@ -125,36 +127,27 @@
             <tr>
                 <td class="text-center"><?= $index + 1 ?></td>
                 <td class="text-center"><?= $item->getId() ?></td>
-                <td><?= $item->getTenDienGia() ?></td>
-                <td><?= $item->getChucDanh() ?></td>
-                <td><?= $item->getToChuc() ?></td>
+                <td><?php 
+                    $suKien = $item->getSuKien();
+                    echo $suKien ? $suKien->ten_su_kien : '';
+                ?></td>
+                <td><?= $item->getHoTen() ?></td>
                 <td><?= $item->getEmail() ?></td>
                 <td><?= $item->getDienThoai() ?></td>
-                <td><?= $item->getWebsite() ?></td>
-                <td><?= $item->getChuyenMon() ?></td>
-                <td><?= $item->getThanhTuu() ?></td>
-                <td>
-                    <?php if (is_array($item->getMangXaHoi()) && !empty($item->getMangXaHoi())): ?>
-                        <?php foreach ($item->getMangXaHoi() as $platform => $url): ?>
-                            <div><strong><?= ucfirst($platform) ?>:</strong> <?= $url ?></div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <?= is_array($item->getMangXaHoi()) ? '' : $item->getMangXaHoi() ?>
-                    <?php endif; ?>
-                </td>
-                <td class="text-center"><?= $item->getSoSuKienThamGia() ?></td>
-                <td class="text-center">
-                    <?php if ($item->getStatus()): ?>
-                        <span class="status-active">Hoạt động</span>
-                    <?php else: ?>
-                        <span class="status-inactive">Không hoạt động</span>
-                    <?php endif; ?>
-                </td>
-                <td class="text-center"><?= $item->getCreatedAtFormatted() ?></td>
-                <td class="text-center"><?= $item->getUpdatedAtFormatted() ?></td>
+                <td><?= $item->getLoaiNguoiDangKyText() ?></td>
+                <td><?= $item->getHinhThucThamGiaText() ?></td>
+                <td class="text-center"><?= $item->getNgayDangKyFormatted() ?></td>
+                <td class="text-center"><?= $item->getStatusText() ?></td>
+                <td class="text-center"><?= $item->getAttendanceStatusText() ?></td>
+                <td class="text-center"><?= $item->getAttendanceMinutes() ?></td>
+                <td class="text-center"><?= $item->getDiemDanhBangText() ?></td>
+                <td class="text-center"><?= $item->isDaCheckIn() ? 'Có' : 'Không' ?></td>
+                <td class="text-center"><?= $item->isDaCheckOut() ? 'Có' : 'Không' ?></td>
+                <td class="text-center"><?= $item->getCreatedAt() ? date('d/m/Y H:i:s', strtotime($item->getCreatedAt())) : '' ?></td>
+                <td class="text-center"><?= $item->getUpdatedAt() ? date('d/m/Y H:i:s', strtotime($item->getUpdatedAt())) : '' ?></td>
                 <?php if ($includeDeletedAt): ?>
                 <td class="text-center deleted">
-                    <?= $item->getDeletedAtFormatted() ?>
+                    <?= $item->getDeletedAt() ? date('d/m/Y H:i:s', strtotime($item->getDeletedAt())) : '' ?>
                 </td>
                 <?php endif; ?>
             </tr>

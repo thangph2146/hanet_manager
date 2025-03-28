@@ -3,14 +3,14 @@
 <?php include __DIR__ . '/master_scripts.php'; ?>
 <?= page_css('view', $module_name) ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CHI TIẾT SỰ KIỆN DIỄN GIẢ<?= $this->endSection() ?>
+<?= $this->section('title') ?>CHI TIẾT ĐĂNG KÝ SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Chi tiết sự kiện diễn giả',
+    'title' => 'Chi tiết đăng ký sự kiện',
     'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Sự kiện Diễn giả', 'url' => site_url($module_name)],
+        ['title' => 'Quản lý đăng ký sự kiện', 'url' => site_url($module_name)],
         ['title' => 'Chi tiết', 'active' => true]
     ],
     'actions' => [
@@ -22,7 +22,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Chi tiết sự kiện diễn giả ID: <?= esc($data->getId()) ?></h5>
+        <h5 class="card-title mb-0">Chi tiết đăng ký sự kiện ID: <?= esc($data->getId()) ?></h5>
         <div class="d-flex gap-2">  
             <a href="<?= site_url($module_name . '/edit/' . $data->getId()) ?>" class="btn btn-sm btn-primary">
                 <i class="bx bx-edit me-1"></i> Chỉnh sửa
@@ -55,50 +55,23 @@
                         <td><?= esc($data->getId()) ?></td>
                     </tr>
                     <tr>
-                        <th>Tên diễn giả</th>
+                        <th>Tên sự kiện</th>
                         <td>
-                            <?php if (!empty($data->getTenDienGia())): ?>
-                                <?= esc($data->getTenDienGia()) ?>
+                            <?php 
+                                $suKien = $data->getSuKien();
+                                if ($suKien): 
+                            ?>
+                                <?= esc($suKien->ten_su_kien) ?>
                             <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
+                                <span class="text-muted fst-italic">Không tìm thấy</span>
                             <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
-                        <th>Chức danh</th>
+                        <th>Họ tên</th>
                         <td>
-                            <?php if (!empty($data->getChucDanh())): ?>
-                                <?= esc($data->getChucDanh()) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Tổ chức</th>
-                        <td>
-                            <?php if (!empty($data->getToChuc())): ?>
-                                <?= esc($data->getToChuc()) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Giới thiệu</th>
-                        <td>
-                            <?php if (!empty($data->getGioiThieu())): ?>
-                                <?= nl2br(esc($data->getGioiThieu())) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Ảnh đại diện</th>
-                        <td>
-                            <?php if (!empty($data->getAvatar())): ?>
-                                <img src="<?= base_url('uploads/diengia/' . $data->getAvatar()) ?>" alt="Ảnh đại diện" class="img-thumbnail" style="max-width: 200px;">
+                            <?php if (!empty($data->getHoTen())): ?>
+                                <?= esc($data->getHoTen()) ?>
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa cập nhật</span>
                             <?php endif; ?>
@@ -115,7 +88,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Số điện thoại</th>
+                        <th>Điện thoại</th>
                         <td>
                             <?php if (!empty($data->getDienThoai())): ?>
                                 <?= esc($data->getDienThoai()) ?>
@@ -125,92 +98,62 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Website</th>
-                        <td>
-                            <?php if (!empty($data->getWebsite())): ?>
-                                <a href="<?= esc($data->getWebsite()) ?>" target="_blank"><?= esc($data->getWebsite()) ?></a>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
+                        <th>Loại người đăng ký</th>
+                        <td><?= esc($data->getLoaiNguoiDangKyText()) ?></td>
                     </tr>
                     <tr>
-                        <th>Chuyên môn</th>
-                        <td>
-                            <?php if (!empty($data->getChuyenMon())): ?>
-                                <?= nl2br(esc($data->getChuyenMon())) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
+                        <th>Hình thức tham gia</th>
+                        <td><?= esc($data->getHinhThucThamGiaText()) ?></td>
                     </tr>
                     <tr>
-                        <th>Thành tựu</th>
-                        <td>
-                            <?php if (!empty($data->getThanhTuu())): ?>
-                                <?= nl2br(esc($data->getThanhTuu())) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Mạng xã hội</th>
-                        <td>
-                            <?php if (!empty($data->getMangXaHoi())): ?>
-                                <?php foreach ($data->getMangXaHoi() as $platform => $url): ?>
-                                    <div><strong><?= ucfirst($platform) ?>:</strong> <a href="<?= esc($url) ?>" target="_blank"><?= esc($url) ?></a></div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Số sự kiện tham gia</th>
-                        <td>
-                            <?php if ($data->getSoSuKienThamGia() > 0): ?>
-                                <span class="badge bg-info"><?= esc($data->getSoSuKienThamGia()) ?></span>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa tham gia sự kiện nào</span>
-                            <?php endif; ?>
-                        </td>
+                        <th>Ngày đăng ký</th>
+                        <td><?= $data->getNgayDangKyFormatted() ?></td>
                     </tr>
                     <tr>
                         <th>Trạng thái</th>
                         <td>
-                            <?php if ($data->getStatus()): ?>
-                                <span class="badge bg-success">Hoạt động</span>
-                            <?php else: ?>
-                                <span class="badge bg-danger">Không hoạt động</span>
-                            <?php endif; ?>
+                            <?php
+                                $status = $data->getStatus();
+                                if ($status == 1) echo '<span class="badge bg-success">Đã xác nhận</span>';
+                                elseif ($status == 0) echo '<span class="badge bg-warning">Chờ xác nhận</span>';
+                                elseif ($status == -1) echo '<span class="badge bg-danger">Đã hủy</span>';
+                                else echo '<span class="badge bg-secondary">Không xác định</span>';
+                            ?>
                         </td>
+                    </tr>
+                    <tr>
+                        <th>Trạng thái tham dự</th>
+                        <td><?= esc($data->getAttendanceStatusText()) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Số phút tham dự</th>
+                        <td><?= $data->getAttendanceMinutes() ?> phút</td>
+                    </tr>
+                    <tr>
+                        <th>Phương thức điểm danh</th>
+                        <td><?= esc($data->getDiemDanhBangText()) ?></td>
+                    </tr>
+                    <tr>
+                        <th>Đã check-in</th>
+                        <td><?= $data->isDaCheckIn() ? '<span class="badge bg-success">Có</span>' : '<span class="badge bg-danger">Không</span>' ?></td>
+                    </tr>
+                    <tr>
+                        <th>Đã check-out</th>
+                        <td><?= $data->isDaCheckOut() ? '<span class="badge bg-success">Có</span>' : '<span class="badge bg-danger">Không</span>' ?></td>
                     </tr>
                     <tr>
                         <th>Ngày tạo</th>
-                        <td>
-                            <?php if (!empty($data->getCreatedAtFormatted())): ?>
-                                <?= $data->getCreatedAtFormatted() ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
+                        <td><?= $data->getCreatedAt() ? date('d/m/Y H:i:s', strtotime($data->getCreatedAt())) : '' ?></td>
                     </tr>
                     <tr>
-                        <th>Cập nhật lần cuối</th>
-                        <td>
-                            <?php if (!empty($data->getUpdatedAtFormatted())): ?>
-                                <?= $data->getUpdatedAtFormatted() ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
+                        <th>Ngày cập nhật</th>
+                        <td><?= $data->getUpdatedAt() ? date('d/m/Y H:i:s', strtotime($data->getUpdatedAt())) : '' ?></td>
                     </tr>
                     <tr>
                         <th>Ngày xóa</th>
                         <td>
-                            <?php if (!empty($data->getDeletedAtFormatted())): ?>
-                                <?= $data->getDeletedAtFormatted() ?>
+                            <?php if ($data->getDeletedAt()): ?>
+                                <span class="text-danger"><?= date('d/m/Y H:i:s', strtotime($data->getDeletedAt())) ?></span>
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa xóa</span>
                             <?php endif; ?>
@@ -231,7 +174,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn xóa diễn giả <strong><?= esc($data->getTenDienGia()) ?></strong> không?
+                Bạn có chắc chắn muốn xóa đăng ký sự kiện của <strong><?= esc($data->getHoTen()) ?></strong> không?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>

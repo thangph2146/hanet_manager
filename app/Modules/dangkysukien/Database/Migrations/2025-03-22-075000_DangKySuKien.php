@@ -14,7 +14,7 @@ class DangKySuKien extends Migration
                 'constraint' => 11,
                 'auto_increment' => true
             ],
-            'sukien_id' => [
+            'su_kien_id' => [
                 'type' => 'INT',
                 'constraint' => 11,
                 'null' => false
@@ -45,6 +45,7 @@ class DangKySuKien extends Migration
             'ngay_dang_ky' => [
                 'type' => 'DATETIME',
                 'null' => true,
+                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
             ],
             'ma_xac_nhan' => [
                 'type' => 'VARCHAR',
@@ -159,7 +160,7 @@ class DangKySuKien extends Migration
         $this->forge->addKey('dangky_sukien_id', true);
         
         // Thêm các chỉ mục
-        $this->forge->addKey('sukien_id', false, false, 'idx_sukien_id');
+        $this->forge->addKey('su_kien_id', false, false, 'idx_sukien_id');
         $this->forge->addKey('email', false, false, 'idx_email');
         $this->forge->addKey('ho_ten', false, false, 'idx_ho_ten');
         $this->forge->addKey('status', false, false, 'idx_status');
@@ -170,10 +171,10 @@ class DangKySuKien extends Migration
         $this->forge->addKey('checkout_sukien_id', false, false, 'idx_checkout_sukien_id');
         
         // Thêm chỉ mục unique
-        $this->forge->addUniqueKey(['sukien_id', 'email'], 'idx_sukien_email');
+        $this->forge->addUniqueKey(['su_kien_id', 'email'], 'idx_sukien_email');
         
         // Thêm khóa ngoại
-        $this->forge->addForeignKey('sukien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
+        $this->forge->addForeignKey('su_kien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('checkin_sukien_id', 'checkin_sukien', 'checkin_sukien_id', 'SET NULL', 'CASCADE');
         $this->forge->addForeignKey('checkout_sukien_id', 'checkout_sukien', 'checkout_sukien_id', 'SET NULL', 'CASCADE');
         
@@ -188,6 +189,12 @@ class DangKySuKien extends Migration
 
     public function down()
     {
+        // Xóa khóa ngoại trước
+        $this->db->query('ALTER TABLE dangky_sukien DROP FOREIGN KEY dangky_sukien_su_kien_id_foreign');
+        $this->db->query('ALTER TABLE dangky_sukien DROP FOREIGN KEY dangky_sukien_checkin_sukien_id_foreign');
+        $this->db->query('ALTER TABLE dangky_sukien DROP FOREIGN KEY dangky_sukien_checkout_sukien_id_foreign');
+        
+        // Sau đó xóa bảng
         $this->forge->dropTable('dangky_sukien');
     }
 } 

@@ -4,7 +4,6 @@ namespace App\Modules\dangkysukien\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\dangkysukien\Models\DangKySuKienModel;
-use App\Modules\diengia\Models\DienGiaModel;
 use App\Modules\sukien\Models\SuKienModel;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
@@ -57,7 +56,7 @@ class DangKySuKien extends BaseController
         'perPage', 
         'sort', 
         'order', 
-        'sukien_id',
+        'su_kien_id',
         'loai_nguoi_dang_ky',
         'status',
         'hinh_thuc_tham_gia',
@@ -250,9 +249,8 @@ class DangKySuKien extends BaseController
             return redirect()->to($this->moduleUrl);
         }
         
-        // Lấy thông tin sự kiện và diễn giả thông qua model
+        // Lấy thông tin sự kiện thông qua model
         $data->suKien = $this->suKienModel->find($data->getSuKienId());
-        $data->dienGia = $this->dienGiaModel->find($data->getDienGiaId());
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
@@ -288,7 +286,6 @@ class DangKySuKien extends BaseController
         
         // Lấy danh sách sự kiện và diễn giả từ model
         $viewData['suKienList'] = $this->suKienModel->findAll();
-        $viewData['dienGiaList'] = $this->dienGiaModel->findAll();
         
         // Thêm dữ liệu cho view
         $viewData['title'] = 'Chỉnh sửa ' . $this->title;
@@ -714,11 +711,24 @@ class DangKySuKien extends BaseController
         $sort = $this->request->getGet('sort') ?? $this->field_sort;
         $order = $this->request->getGet('order') ?? $this->field_order;
 
+        // Lấy danh sách sự kiện
+        $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+        $suKienList = $suKienModel->findAll();
+
+        // Thiết lập danh sách sự kiện cho trait
+        $this->setSuKienList($suKienList);
+
+        // Chuẩn bị tiêu chí tìm kiếm
         $criteria = $this->prepareSearchCriteria($keyword, $status, true);
         $options = $this->prepareSearchOptions($sort, $order);
+
+        // Lấy dữ liệu
         $data = $this->getExportData($criteria, $options);
+
+        // Chuẩn bị headers
         $headers = $this->prepareExcelHeaders(true);
 
+        // Chuẩn bị filters
         $filters = [];
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
         if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  

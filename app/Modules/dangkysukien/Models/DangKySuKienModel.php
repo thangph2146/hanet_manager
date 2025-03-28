@@ -23,7 +23,7 @@ class DangKySuKienModel extends BaseModel
     protected $surroundCount = 2;
     
     protected $allowedFields = [
-        'sukien_id',
+        'su_kien_id',
         'email',
         'ho_ten',
         'dien_thoai',
@@ -68,7 +68,7 @@ class DangKySuKienModel extends BaseModel
     
     // Trường có thể lọc
     protected $filterableFields = [
-        'sukien_id',
+        'su_kien_id',
         'loai_nguoi_dang_ky',
         'status',
         'da_check_in',
@@ -161,8 +161,8 @@ class DangKySuKienModel extends BaseModel
         }
         
         // Xử lý lọc theo sự kiện
-        if (isset($criteria['sukien_id'])) {
-            $builder->where($this->table . '.sukien_id', $criteria['sukien_id']);
+        if (isset($criteria['su_kien_id'])) {
+            $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
         }
         
         // Xử lý lọc theo loại người đăng ký
@@ -267,8 +267,8 @@ class DangKySuKienModel extends BaseModel
         }
         
         // Xử lý lọc theo sự kiện
-        if (isset($criteria['sukien_id'])) {
-            $builder->where($this->table . '.sukien_id', $criteria['sukien_id']);
+        if (isset($criteria['su_kien_id'])) {
+            $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
         }
         
         // Xử lý lọc theo loại người đăng ký
@@ -332,9 +332,141 @@ class DangKySuKienModel extends BaseModel
      */
     public function prepareValidationRules(string $scenario = 'insert', array $data = [])
     {
-        $entity = new DangKySuKien();
-        $this->validationRules = $entity->getValidationRules();
-        $this->validationMessages = $entity->getValidationMessages();
+        $this->validationRules = [
+            'su_kien_id' => [
+                'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id]',
+                'label' => 'ID sự kiện'
+            ],
+            'email' => [
+                'rules' => 'required|valid_email|max_length[100]',
+                'label' => 'Email'
+            ],
+            'ho_ten' => [
+                'rules' => 'required|min_length[2]|max_length[100]',
+                'label' => 'Họ tên'
+            ],
+            'dien_thoai' => [
+                'rules' => 'permit_empty|min_length[10]|max_length[20]',
+                'label' => 'Điện thoại'
+            ],
+            'loai_nguoi_dang_ky' => [
+                'rules' => 'required|in_list[khach,sinh_vien,giang_vien]',
+                'label' => 'Loại người đăng ký'
+            ],
+            'status' => [
+                'rules' => 'required|in_list[-1,0,1]',
+                'label' => 'Trạng thái'
+            ],
+            'hinh_thuc_tham_gia' => [
+                'rules' => 'required|in_list[offline,online,hybrid]',
+                'label' => 'Hình thức tham gia'
+            ],
+            'attendance_status' => [
+                'rules' => 'permit_empty|in_list[not_attended,partial,full]',
+                'label' => 'Trạng thái tham dự'
+            ],
+            'attendance_minutes' => [
+                'rules' => 'permit_empty|integer|greater_than_equal_to[0]',
+                'label' => 'Số phút tham dự'
+            ],
+            'diem_danh_bang' => [
+                'rules' => 'permit_empty|in_list[none,qr_code,face_id,manual]',
+                'label' => 'Phương thức điểm danh'
+            ],
+            'don_vi_to_chuc' => [
+                'rules' => 'permit_empty|max_length[100]',
+                'label' => 'Đơn vị tổ chức'
+            ],
+            'nguon_gioi_thieu' => [
+                'rules' => 'permit_empty|max_length[100]',
+                'label' => 'Nguồn giới thiệu'
+            ],
+            'ly_do_tham_du' => [
+                'rules' => 'permit_empty|max_length[500]',
+                'label' => 'Lý do tham dự'
+            ],
+            'noi_dung_gop_y' => [
+                'rules' => 'permit_empty|max_length[1000]',
+                'label' => 'Nội dung góp ý'
+            ],
+            'face_verified' => [
+                'rules' => 'permit_empty|in_list[0,1]',
+                'label' => 'Xác thực khuôn mặt'
+            ],
+            'da_check_in' => [
+                'rules' => 'permit_empty|in_list[0,1]',
+                'label' => 'Trạng thái check-in'
+            ],
+            'da_check_out' => [
+                'rules' => 'permit_empty|in_list[0,1]',
+                'label' => 'Trạng thái check-out'
+            ]
+        ];
+
+        $this->validationMessages = [
+            'su_kien_id' => [
+                'required' => 'Vui lòng chọn sự kiện',
+                'integer' => 'ID sự kiện không hợp lệ',
+                'is_not_unique' => 'Sự kiện không tồn tại'
+            ],
+            'email' => [
+                'required' => 'Vui lòng nhập email',
+                'valid_email' => 'Email không hợp lệ',
+                'max_length' => 'Email không được vượt quá 100 ký tự'
+            ],
+            'ho_ten' => [
+                'required' => 'Vui lòng nhập họ tên',
+                'min_length' => 'Họ tên phải có ít nhất 2 ký tự',
+                'max_length' => 'Họ tên không được vượt quá 100 ký tự'
+            ],
+            'dien_thoai' => [
+                'min_length' => 'Số điện thoại phải có ít nhất 10 ký tự',
+                'max_length' => 'Số điện thoại không được vượt quá 20 ký tự'
+            ],
+            'loai_nguoi_dang_ky' => [
+                'required' => 'Vui lòng chọn loại người đăng ký',
+                'in_list' => 'Loại người đăng ký không hợp lệ'
+            ],
+            'status' => [
+                'required' => 'Vui lòng chọn trạng thái',
+                'in_list' => 'Trạng thái không hợp lệ'
+            ],
+            'hinh_thuc_tham_gia' => [
+                'required' => 'Vui lòng chọn hình thức tham gia',
+                'in_list' => 'Hình thức tham gia không hợp lệ'
+            ],
+            'attendance_status' => [
+                'in_list' => 'Trạng thái tham dự không hợp lệ'
+            ],
+            'attendance_minutes' => [
+                'integer' => 'Số phút tham dự phải là số nguyên',
+                'greater_than_equal_to' => 'Số phút tham dự không được âm'
+            ],
+            'diem_danh_bang' => [
+                'in_list' => 'Phương thức điểm danh không hợp lệ'
+            ],
+            'don_vi_to_chuc' => [
+                'max_length' => 'Đơn vị tổ chức không được vượt quá 100 ký tự'
+            ],
+            'nguon_gioi_thieu' => [
+                'max_length' => 'Nguồn giới thiệu không được vượt quá 100 ký tự'
+            ],
+            'ly_do_tham_du' => [
+                'max_length' => 'Lý do tham dự không được vượt quá 500 ký tự'
+            ],
+            'noi_dung_gop_y' => [
+                'max_length' => 'Nội dung góp ý không được vượt quá 1000 ký tự'
+            ],
+            'face_verified' => [
+                'in_list' => 'Trạng thái xác thực khuôn mặt không hợp lệ'
+            ],
+            'da_check_in' => [
+                'in_list' => 'Trạng thái check-in không hợp lệ'
+            ],
+            'da_check_out' => [
+                'in_list' => 'Trạng thái check-out không hợp lệ'
+            ]
+        ];
         
         // Loại trừ các trường timestamp và primary key khi thêm mới
         unset($this->validationRules['created_at']);
@@ -344,17 +476,17 @@ class DangKySuKienModel extends BaseModel
         // Nếu là cập nhật, thêm kiểm tra xem email đã tồn tại chưa (trừ bản ghi hiện tại)
         if ($scenario === 'update' && isset($data['dangky_sukien_id'])) {
             $this->validationRules['email']['rules'] = sprintf(
-                'required|valid_email|is_unique[%s.email,sukien_id,%s,dangky_sukien_id,%s]',
+                'required|valid_email|is_unique[%s.email,su_kien_id,%s,dangky_sukien_id,%s]',
                 $this->table,
-                $data['sukien_id'] ?? 0,
+                $data['su_kien_id'] ?? 0,
                 $data['dangky_sukien_id']
             );
         } else {
             // Khi thêm mới, kiểm tra email không trùng cho cùng sự kiện
             $this->validationRules['email']['rules'] = sprintf(
-                'required|valid_email|is_unique[%s.email,sukien_id,%s]',
+                'required|valid_email|is_unique[%s.email,su_kien_id,%s]',
                 $this->table,
-                $data['sukien_id'] ?? 0
+                $data['su_kien_id'] ?? 0
             );
         }
     }
@@ -394,7 +526,7 @@ class DangKySuKienModel extends BaseModel
     public function getRegistrationsByEvent(int $suKienId, array $options = [])
     {
         $builder = $this->builder();
-        $builder->where($this->table . '.sukien_id', $suKienId);
+        $builder->where($this->table . '.su_kien_id', $suKienId);
         $builder->where($this->table . '.deleted_at IS NULL');
         
         // Lọc theo trạng thái
@@ -441,7 +573,7 @@ class DangKySuKienModel extends BaseModel
     public function countRegistrationsByEvent(int $suKienId, array $options = [])
     {
         $builder = $this->builder();
-        $builder->where($this->table . '.sukien_id', $suKienId);
+        $builder->where($this->table . '.su_kien_id', $suKienId);
         $builder->where($this->table . '.deleted_at IS NULL');
         
         // Lọc theo trạng thái
@@ -477,7 +609,7 @@ class DangKySuKienModel extends BaseModel
     public function findByEmailAndEvent(string $email, int $suKienId)
     {
         return $this->where('email', $email)
-                   ->where('sukien_id', $suKienId)
+                   ->where('su_kien_id', $suKienId)
                    ->first();
     }
     
@@ -625,8 +757,8 @@ class DangKySuKienModel extends BaseModel
         $builder->where($this->table . '.deleted_at IS NOT NULL');
         
         // Xử lý lọc theo sự kiện
-        if (isset($criteria['sukien_id'])) {
-            $builder->where($this->table . '.sukien_id', $criteria['sukien_id']);
+        if (isset($criteria['su_kien_id'])) {
+            $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
         }
         
         // Xử lý lọc theo loại người đăng ký
@@ -704,8 +836,8 @@ class DangKySuKienModel extends BaseModel
         $builder->where($this->table . '.deleted_at IS NOT NULL');
         
         // Xử lý lọc theo sự kiện
-        if (isset($criteria['sukien_id'])) {
-            $builder->where($this->table . '.sukien_id', $criteria['sukien_id']);
+        if (isset($criteria['su_kien_id'])) {
+            $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
         }
         
         // Xử lý lọc theo loại người đăng ký
@@ -838,8 +970,8 @@ class DangKySuKienModel extends BaseModel
         }
         
         // Xử lý lọc theo sự kiện
-        if (isset($params['sukien_id']) && $params['sukien_id'] !== '') {
-            $criteria['sukien_id'] = (int)$params['sukien_id'];
+        if (isset($params['su_kien_id']) && $params['su_kien_id'] !== '') {
+            $criteria['su_kien_id'] = (int)$params['su_kien_id'];
         }
         
         // Xử lý lọc theo loại người đăng ký

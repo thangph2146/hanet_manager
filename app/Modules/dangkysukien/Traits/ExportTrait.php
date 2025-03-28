@@ -16,6 +16,7 @@ trait ExportTrait
     protected $export_title = 'DANH SÁCH ĐĂNG KÝ SỰ KIỆN';
     protected $search_field = 'ngay_dang_ky';
     protected $search_order = 'DESC';
+    protected $suKienList = [];
     protected $header_title = [
         'STT' => 'A',
         'ID' => 'B',
@@ -42,29 +43,27 @@ trait ExportTrait
     protected $excel_row = [
         'A' => ['method' => null, 'align' => 'center'], // STT
         'B' => ['method' => 'getId', 'align' => 'center'],
-        'C' => ['method' => 'getTenSuKien', 'align' => 'left'],
+        'C' => ['method' => 'getSuKienName', 'align' => 'left'],
         'D' => ['method' => 'getHoTen', 'align' => 'left'],
         'E' => ['method' => 'getEmail', 'align' => 'left'],
         'F' => ['method' => 'getDienThoai', 'align' => 'left'],
         'G' => ['method' => 'getLoaiNguoiDangKyText', 'align' => 'left'],
         'H' => ['method' => 'getHinhThucThamGiaText', 'align' => 'left'],
-        'I' => ['method' => 'getNgayDangKyFormatted', 'align' => 'center'],
+        'I' => ['method' => 'getNgayDangKy', 'align' => 'center'],
         'J' => ['method' => 'getStatusText', 'align' => 'center'],
         'K' => ['method' => 'getAttendanceStatusText', 'align' => 'center'],
-        'L' => ['method' => 'getAttendanceTimeFormatted', 'align' => 'center'],
+        'L' => ['method' => 'getAttendanceMinutes', 'align' => 'center'],
         'M' => ['method' => 'getDiemDanhBangText', 'align' => 'center'],
         'N' => ['method' => 'isDaCheckIn', 'align' => 'center', 'format' => 'boolean'],
         'O' => ['method' => 'isDaCheckOut', 'align' => 'center', 'format' => 'boolean'],
-        'P' => ['method' => 'getCreatedAtFormatted', 'align' => 'center'],
-        'Q' => ['method' => 'getUpdatedAtFormatted', 'align' => 'center'],
-        'R' => ['method' => 'getDeletedAtFormatted', 'align' => 'center']
+        'P' => ['method' => 'getCreatedAt', 'align' => 'center'],
+        'Q' => ['method' => 'getUpdatedAt', 'align' => 'center'],
     ];
 
-    protected function getLastColumn()
-    {
-        $columns = array_keys($this->excel_row);
-        return end($columns);
-    }
+    protected $excel_row_deleted = [
+        'R' => ['method' => 'getDeletedAt', 'align' => 'center'],
+    ];
+
 
     /**
      * Chuẩn bị tiêu chí tìm kiếm
@@ -193,7 +192,8 @@ trait ExportTrait
 
         // Thêm tiêu đề
         $sheet->setCellValue('A1', $this->export_title);
-        $sheet->mergeCells('A1:' . end($headers) . '1');
+        $lastHeader = end($headers);
+        $sheet->mergeCells('A1:' . $lastHeader . '1');
         $sheet->getStyle('A1')->applyFromArray([
             'font' => ['bold' => true, 'size' => 14],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
@@ -201,7 +201,7 @@ trait ExportTrait
 
         // Thêm ngày xuất
         $sheet->setCellValue('A2', 'Ngày xuất: ' . Time::now()->format('d/m/Y H:i:s'));
-        $sheet->mergeCells('A2:' . end($headers) . '2');
+        $sheet->mergeCells('A2:' . $lastHeader . '2');
         $sheet->getStyle('A2')->applyFromArray([
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT],
             'font' => ['italic' => true],
@@ -234,12 +234,32 @@ trait ExportTrait
         // Thêm dữ liệu
         $row++;
         foreach ($data as $index => $item) {
-            foreach ($this->excel_row as $col => $config) {
+            // Kết hợp excel_row và excel_row_deleted nếu includeDeleted = true
+            $excel_rows = $includeDeleted ? array_merge($this->excel_row, $this->excel_row_deleted) : $this->excel_row;
+            
+            foreach ($excel_rows as $col => $config) {
                 if ($col === 'A') {
                     $value = $index + 1;
                 } else {
                     $method = $config['method'];
-                    $value = $method ? $item->$method() : '';
+                    if ($method === 'getSuKienName') {
+                        // Tìm tên sự kiện từ danh sách suKienList
+                        $suKienName = '';
+                        foreach ($this->suKienList as $suKien) {
+                            if ($suKien->su_kien_id == $item->getSuKienId()) {
+                                $suKienName = $suKien->ten_su_kien;
+                                break;
+                            }
+                        }
+                        $value = $suKienName;
+                    } else {
+                        $value = $method ? $item->$method() : '';
+                        
+                        // Xử lý định dạng ngày tháng
+                        if (in_array($method, ['getCreatedAt', 'getUpdatedAt', 'getDeletedAt', 'getNgayDangKy'])) {
+                            $value = $value ? date('d/m/Y H:i:s', strtotime($value)) : '';
+                        }
+                    }
                     
                     // Xử lý định dạng đặc biệt
                     if (isset($config['format'])) {
@@ -270,8 +290,7 @@ trait ExportTrait
             }
             
             // Áp dụng style cho hàng
-            $lastColumn = $this->getLastColumn();
-            $sheet->getStyle('A' . $row . ':' . $lastColumn . $row)
+            $sheet->getStyle('A' . $row . ':' . $lastHeader . $row)
                   ->applyFromArray($contentStyle);
             
             $row++;
@@ -279,8 +298,7 @@ trait ExportTrait
 
         // Thêm tổng số bản ghi
         $sheet->setCellValue('A' . $row, 'Tổng số bản ghi: ' . count($data));
-        $lastColumn = $this->getLastColumn();
-        $sheet->mergeCells('A' . $row . ':' . $lastColumn . $row);
+        $sheet->mergeCells('A' . $row . ':' . $lastHeader . $row);
         $sheet->getStyle('A' . $row)->applyFromArray([
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT],
             'font' => ['bold' => true],
@@ -293,7 +311,7 @@ trait ExportTrait
         ]);
 
         // Tự động điều chỉnh độ rộng cột
-        foreach (range('A', $lastColumn) as $col) {
+        foreach (range('A', $lastHeader) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -384,5 +402,14 @@ trait ExportTrait
         
         $this->alert->set('danger', 'Loại xuất dữ liệu không hợp lệ', true);
         return redirect()->to($this->moduleUrl);
+    }
+
+    /**
+     * Thiết lập danh sách sự kiện
+     */
+    public function setSuKienList($list)
+    {
+        $this->suKienList = $list;
+        return $this;
     }
 } 

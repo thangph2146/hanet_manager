@@ -58,7 +58,7 @@ class DangKySuKienSeeder extends Seeder
             
             // Đảm bảo không trùng lặp email cho cùng một sự kiện
             $exists = $this->db->table('dangky_sukien')
-                ->where('sukien_id', $suKienId)
+                ->where('su_kien_id', $suKienId)
                 ->where('email', $email)
                 ->where('deleted_at IS NULL')
                 ->countAllResults();
@@ -129,7 +129,7 @@ class DangKySuKienSeeder extends Seeder
             }
             
             $data[] = [
-                'sukien_id' => $suKienId,
+                'su_kien_id' => $suKienId,
                 'email' => $email,
                 'ho_ten' => $hoTen,
                 'dien_thoai' => '0' . rand(900000000, 999999999),

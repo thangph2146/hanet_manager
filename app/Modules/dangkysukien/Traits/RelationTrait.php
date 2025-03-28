@@ -130,7 +130,7 @@ trait RelationTrait
             'sort' => $request->getGet('sort') ?? 'created_at',
             'order' => $request->getGet('order') ?? 'DESC',
             'keyword' => $request->getGet('keyword') ?? '',
-            'sukien_id' => $request->getGet('sukien_id'),
+            'su_kien_id' => $request->getGet('su_kien_id'),
             'loai_nguoi_dang_ky' => $request->getGet('loai_nguoi_dang_ky'),
             'status' => $request->getGet('status'),
             'hinh_thuc_tham_gia' => $request->getGet('hinh_thuc_tham_gia'),
@@ -164,8 +164,8 @@ trait RelationTrait
             $criteria['keyword'] = $params['keyword'];
         }
 
-        if (!empty($params['sukien_id'])) {
-            $criteria['sukien_id'] = (int)$params['sukien_id'];
+        if (!empty($params['su_kien_id'])) {
+            $criteria['su_kien_id'] = (int)$params['su_kien_id'];
         }
 
         if (!empty($params['loai_nguoi_dang_ky'])) {

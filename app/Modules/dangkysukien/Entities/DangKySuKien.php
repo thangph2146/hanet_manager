@@ -22,7 +22,7 @@ class DangKySuKien extends BaseEntity
     
     protected $casts = [
         'dangky_sukien_id' => 'int',
-        'sukien_id' => 'int',
+        'su_kien_id' => 'int',
         'status' => 'int',
         'face_verified' => 'boolean',
         'da_check_in' => 'boolean',
@@ -83,7 +83,7 @@ class DangKySuKien extends BaseEntity
     ];
     
     protected $validationMessages = [
-        'sukien_id' => [
+        'su_kien_id' => [
             'required' => '{field} là bắt buộc',
             'integer' => '{field} phải là số nguyên',
             'is_not_unique' => '{field} không tồn tại trong hệ thống'
@@ -141,7 +141,7 @@ class DangKySuKien extends BaseEntity
      */
     public function getSuKienId(): int
     {
-        return (int)($this->attributes['sukien_id'] ?? 0);
+        return (int)($this->attributes['su_kien_id'] ?? 0);
     }
     
     /**
