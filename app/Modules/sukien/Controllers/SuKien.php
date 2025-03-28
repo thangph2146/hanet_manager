@@ -363,50 +363,6 @@ class SuKienDienGia extends BaseController
     }
     
     /**
-     * Xóa nhiều template (chuyển vào thùng rác)
-     */
-    public function deleteMultiple()
-    {
-        // Lấy các ID được chọn và URL trả về
-        $selectedItems = $this->request->getPost('selected_ids');
-        $returnUrl = $this->request->getPost('return_url');
-        
-        if (empty($selectedItems)) {
-            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để xóa', true);
-            
-            // Chuyển hướng đến URL đích đã xử lý
-            $redirectUrl = $this->processReturnUrl($returnUrl);
-            return redirect()->to($redirectUrl);
-        }
-        
-        // Log để debug
-        log_message('debug', 'DeleteMultiple - POST data: ' . json_encode($_POST));
-        log_message('debug', 'DeleteMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
-        log_message('debug', 'DeleteMultiple - Return URL: ' . ($returnUrl ?? 'None'));
-        
-        $successCount = 0;
-        
-        // Đảm bảo $selectedItems là mảng
-        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
-        
-        foreach ($idArray as $id) {
-            if ($this->model->delete($id)) {
-                $successCount++;
-            }
-        }
-        
-        if ($successCount > 0) {
-            $this->alert->set('success', "Đã chuyển $successCount dữ liệu vào thùng rác", true);
-        } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa dữ liệu', true);
-        }
-        
-        // Chuyển hướng đến URL đích đã xử lý
-        $redirectUrl = $this->processReturnUrl($returnUrl);
-        return redirect()->to($redirectUrl);
-    }
-    
-    /**
      * Hiển thị danh sách đã xóa
      */
     public function listdeleted()

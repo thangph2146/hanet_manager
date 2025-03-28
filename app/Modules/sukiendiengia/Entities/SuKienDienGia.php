@@ -8,9 +8,11 @@ use CodeIgniter\I18n\Time;
 class SuKienDienGia extends BaseEntity
 {
     protected $tableName = 'su_kien_dien_gia';
-    protected $primaryKey = ['su_kien_id', 'dien_gia_id'];
+    protected $primaryKey = 'su_kien_dien_gia_id';
     
     protected $dates = [
+        'thoi_gian_trinh_bay',
+        'thoi_gian_ket_thuc',
         'created_at',
         'updated_at',
         'deleted_at'
@@ -21,68 +23,122 @@ class SuKienDienGia extends BaseEntity
         'su_kien_id' => 'int',
         'dien_gia_id' => 'int',
         'thu_tu' => 'int',
+        'thoi_luong_phut' => 'int',
+        'tai_lieu_dinh_kem' => 'json',
+        'hien_thi_cong_khai' => 'boolean',
         'created_at' => 'timestamp',
         'updated_at' => 'timestamp',
         'deleted_at' => 'timestamp'
     ];
     
-    // Định nghĩa các chỉ mục
-    protected $indexes = [
-        'idx_su_kien_id' => ['su_kien_id'],
-        'idx_dien_gia_id' => ['dien_gia_id']
-    ];
-    
     // Định nghĩa các ràng buộc unique
     protected $uniqueKeys = [
-        'uk_su_kien_dien_gia' => ['su_kien_id', 'dien_gia_id']
+        'uk_sukien_diengia' => ['su_kien_id', 'dien_gia_id']
     ];
     
     // Các quy tắc xác thực cụ thể cho SuKienDienGia
     protected $validationRules = [
-        'su_kien_dien_gia_id' => [
-            'rules' => 'required|integer',
-            'label' => 'ID sự kiện diễn giả'
-        ],
         'su_kien_id' => [
-            'rules' => 'required|integer',
+            'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id]',
             'label' => 'ID sự kiện'
         ],
         'dien_gia_id' => [
-            'rules' => 'required|integer',
+            'rules' => 'required|integer|is_not_unique[dien_gia.dien_gia_id]',
             'label' => 'ID diễn giả'
         ],
         'thu_tu' => [
-            'rules' => 'permit_empty|integer',
+            'rules' => 'permit_empty|integer|greater_than_equal_to[0]',
             'label' => 'Thứ tự'
+        ],
+        'vai_tro' => [
+            'rules' => 'permit_empty|max_length[100]',
+            'label' => 'Vai trò'
+        ],
+        'mo_ta' => [
+            'rules' => 'permit_empty',
+            'label' => 'Mô tả'
+        ],
+        'thoi_gian_trinh_bay' => [
+            'rules' => 'permit_empty|valid_date',
+            'label' => 'Thời gian trình bày'
+        ],
+        'thoi_gian_ket_thuc' => [
+            'rules' => 'permit_empty|valid_date',
+            'label' => 'Thời gian kết thúc'
+        ],
+        'thoi_luong_phut' => [
+            'rules' => 'permit_empty|integer|greater_than_equal_to[0]',
+            'label' => 'Thời lượng (phút)'
+        ],
+        'tieu_de_trinh_bay' => [
+            'rules' => 'permit_empty|max_length[255]',
+            'label' => 'Tiêu đề trình bày'
+        ],
+        'tai_lieu_dinh_kem' => [
+            'rules' => 'permit_empty',
+            'label' => 'Tài liệu đính kèm'
+        ],
+        'trang_thai_tham_gia' => [
+            'rules' => 'permit_empty|in_list[xac_nhan,cho_xac_nhan,tu_choi,khong_lien_he_duoc]',
+            'label' => 'Trạng thái tham gia'
+        ],
+        'hien_thi_cong_khai' => [
+            'rules' => 'permit_empty|in_list[0,1]',
+            'label' => 'Hiển thị công khai'
+        ],
+        'ghi_chu' => [
+            'rules' => 'permit_empty',
+            'label' => 'Ghi chú'
         ]
     ];
     
     protected $validationMessages = [
-        'su_kien_dien_gia_id' => [
-            'required' => '{field} là bắt buộc',
-            'integer' => '{field} phải là số nguyên'
-        ],
         'su_kien_id' => [
             'required' => '{field} là bắt buộc',
-            'integer' => '{field} phải là số nguyên'
+            'integer' => '{field} phải là số nguyên',
+            'is_not_unique' => '{field} không tồn tại trong hệ thống'
         ],
         'dien_gia_id' => [
             'required' => '{field} là bắt buộc',
-            'integer' => '{field} phải là số nguyên'
+            'integer' => '{field} phải là số nguyên',
+            'is_not_unique' => '{field} không tồn tại trong hệ thống'
         ],
         'thu_tu' => [
-            'integer' => '{field} phải là số nguyên'
+            'integer' => '{field} phải là số nguyên',
+            'greater_than_equal_to' => '{field} không được nhỏ hơn 0'
+        ],
+        'vai_tro' => [
+            'max_length' => '{field} không được vượt quá 100 ký tự'
+        ],
+        'thoi_gian_trinh_bay' => [
+            'valid_date' => '{field} không hợp lệ'
+        ],
+        'thoi_gian_ket_thuc' => [
+            'valid_date' => '{field} không hợp lệ'
+        ],
+        'thoi_luong_phut' => [
+            'integer' => '{field} phải là số nguyên',
+            'greater_than_equal_to' => '{field} không được nhỏ hơn 0'
+        ],
+        'tieu_de_trinh_bay' => [
+            'max_length' => '{field} không được vượt quá 255 ký tự'
+        ],
+        'trang_thai_tham_gia' => [
+            'in_list' => '{field} không hợp lệ'
+        ],
+        'hien_thi_cong_khai' => [
+            'in_list' => '{field} không hợp lệ'
         ]
     ];
     
     /**
-     * Lấy ID của sự kiện diễn giả
+     * Lấy ID
      *
      * @return int
      */
     public function getId(): int
     {
-        return (int)($this->attributes['su_kien_dien_gia_id'] ?? 0);
+        return (int)($this->attributes[$this->primaryKey] ?? 0);
     }
     
     /**
@@ -116,49 +172,173 @@ class SuKienDienGia extends BaseEntity
     }
     
     /**
-     * Lấy tên sự kiện dựa trên su_kien_id
+     * Lấy vai trò
      *
-     * @return string
+     * @return string|null
      */
-    public function getTenSuKien(): string
+    public function getVaiTro(): ?string
     {
-        $suKienId = $this->getSuKienId();
-        if (empty($suKienId)) {
-            return '';
-        }
-        
-        // Sử dụng database connection để truy vấn thông tin từ bảng su_kien
-        $db = \Config\Database::connect();
-        $builder = $db->table('su_kien');
-        $result = $builder->select('ten_su_kien')
-                         ->where('su_kien_id', $suKienId)
-                         ->get()
-                         ->getRow();
-        
-        return $result ? $result->ten_su_kien : '';
+        return $this->attributes['vai_tro'] ?? null;
     }
     
     /**
-     * Lấy tên diễn giả dựa trên dien_gia_id
+     * Lấy mô tả
+     *
+     * @return string|null
+     */
+    public function getMoTa(): ?string
+    {
+        return $this->attributes['mo_ta'] ?? null;
+    }
+    
+    /**
+     * Lấy thời gian trình bày
+     *
+     * @return Time|null
+     */
+    public function getThoiGianTrinhBay(): ?Time
+    {
+        if (empty($this->attributes['thoi_gian_trinh_bay'])) {
+            return null;
+        }
+        
+        return $this->attributes['thoi_gian_trinh_bay'] instanceof Time 
+            ? $this->attributes['thoi_gian_trinh_bay'] 
+            : new Time($this->attributes['thoi_gian_trinh_bay']);
+    }
+    
+    /**
+     * Lấy thời gian kết thúc
+     *
+     * @return Time|null
+     */
+    public function getThoiGianKetThuc(): ?Time
+    {
+        if (empty($this->attributes['thoi_gian_ket_thuc'])) {
+            return null;
+        }
+        
+        return $this->attributes['thoi_gian_ket_thuc'] instanceof Time 
+            ? $this->attributes['thoi_gian_ket_thuc'] 
+            : new Time($this->attributes['thoi_gian_ket_thuc']);
+    }
+    
+    /**
+     * Lấy thời lượng (phút)
+     *
+     * @return int|null
+     */
+    public function getThoiLuongPhut(): ?int
+    {
+        return isset($this->attributes['thoi_luong_phut']) ? (int)$this->attributes['thoi_luong_phut'] : null;
+    }
+    
+    /**
+     * Lấy tiêu đề trình bày
+     *
+     * @return string|null
+     */
+    public function getTieuDeTrinhBay(): ?string
+    {
+        return $this->attributes['tieu_de_trinh_bay'] ?? null;
+    }
+    
+    /**
+     * Lấy tài liệu đính kèm
+     *
+     * @return array|null
+     */
+    public function getTaiLieuDinhKem(): ?array
+    {
+        $taiLieu = $this->attributes['tai_lieu_dinh_kem'] ?? null;
+        
+        if (is_string($taiLieu)) {
+            return json_decode($taiLieu, true);
+        }
+        
+        return $taiLieu;
+    }
+    
+    /**
+     * Lấy trạng thái tham gia
      *
      * @return string
      */
-    public function getTenDienGia(): string
+    public function getTrangThaiThamGia(): string
     {
-        $dienGiaId = $this->getDienGiaId();
-        if (empty($dienGiaId)) {
-            return '';
+        return $this->attributes['trang_thai_tham_gia'] ?? 'cho_xac_nhan';
+    }
+    
+    /**
+     * Lấy trạng thái hiển thị công khai
+     *
+     * @return bool
+     */
+    public function getHienThiCongKhai(): bool
+    {
+        return (bool)($this->attributes['hien_thi_cong_khai'] ?? true);
+    }
+    
+    /**
+     * Lấy ghi chú
+     *
+     * @return string|null
+     */
+    public function getGhiChu(): ?string
+    {
+        return $this->attributes['ghi_chu'] ?? null;
+    }
+    
+    /**
+     * Lấy ngày tạo
+     *
+     * @return Time|null
+     */
+    public function getCreatedAt(): ?Time
+    {
+        $created = $this->attributes['created_at'] ?? null;
+        
+        if (empty($created)) {
+            return null;
         }
         
-        // Sử dụng database connection để truy vấn thông tin từ bảng dien_gia
-        $db = \Config\Database::connect();
-        $builder = $db->table('dien_gia');
-        $result = $builder->select('ten_dien_gia')
-                         ->where('dien_gia_id', $dienGiaId)
-                         ->get()
-                         ->getRow();
+        if ($created instanceof Time) {
+            return $created;
+        }
         
-        return $result ? $result->ten_dien_gia : '';
+        return new Time($created);
+    }
+    
+    /**
+     * Lấy ngày cập nhật
+     *
+     * @return Time|null
+     */
+    public function getUpdatedAt(): ?Time
+    {
+        if (empty($this->attributes['updated_at'])) {
+            return null;
+        }
+        
+        return $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+    }
+    
+    /**
+     * Lấy ngày xóa
+     *
+     * @return Time|null
+     */
+    public function getDeletedAt(): ?Time
+    {
+        if (empty($this->attributes['deleted_at'])) {
+            return null;
+        }
+        
+        return $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
     }
     
     /**
@@ -172,57 +352,60 @@ class SuKienDienGia extends BaseEntity
     }
     
     /**
-     * Lấy ngày tạo đã định dạng
-     * 
-     * @return string
+     * Lấy thời gian trình bày đã định dạng
+     *
+     * @param string $format Định dạng thời gian
+     * @return string|null
      */
-    public function getCreatedAtFormatted(): string
+    public function getThoiGianTrinhBayFormatted(string $format = 'd/m/Y H:i'): ?string
     {
-        if (empty($this->attributes['created_at'])) {
-            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
-        }
-        
-        $time = $this->attributes['created_at'] instanceof Time 
-            ? $this->attributes['created_at'] 
-            : new Time($this->attributes['created_at']);
-            
-        return $time->format('Y-m-d H:i:s');
+        $time = $this->getThoiGianTrinhBay();
+        return $time ? $time->format($format) : null;
+    }
+    
+    /**
+     * Lấy thời gian kết thúc đã định dạng
+     *
+     * @param string $format Định dạng thời gian
+     * @return string|null
+     */
+    public function getThoiGianKetThucFormatted(string $format = 'd/m/Y H:i'): ?string
+    {
+        $time = $this->getThoiGianKetThuc();
+        return $time ? $time->format($format) : null;
+    }
+    
+    /**
+     * Lấy ngày tạo đã định dạng
+     *
+     * @return string|null
+     */
+    public function getCreatedAtFormatted(): ?string
+    {
+        $createdAt = $this->getCreatedAt();
+        return $createdAt ? $createdAt->format('d/m/Y H:i:s') : null;
     }
     
     /**
      * Lấy ngày cập nhật đã định dạng
-     * 
-     * @return string
+     *
+     * @return string|null
      */
-    public function getUpdatedAtFormatted(): string
+    public function getUpdatedAtFormatted(): ?string
     {
-        if (empty($this->attributes['updated_at'])) {
-            return '<span class="text-muted fst-italic">Chưa cập nhật</span>';
-        }
-        
-        $time = $this->attributes['updated_at'] instanceof Time 
-            ? $this->attributes['updated_at'] 
-            : new Time($this->attributes['updated_at']);
-            
-        return $time->format('Y-m-d H:i:s');
+        $updatedAt = $this->getUpdatedAt();
+        return $updatedAt ? $updatedAt->format('d/m/Y H:i:s') : null;
     }
     
     /**
      * Lấy ngày xóa đã định dạng
-     * 
-     * @return string
+     *
+     * @return string|null
      */
-    public function getDeletedAtFormatted(): string
+    public function getDeletedAtFormatted(): ?string
     {
-        if (empty($this->attributes['deleted_at'])) {
-            return '<span class="text-muted fst-italic">Chưa xóa</span>';
-        }
-        
-        $time = $this->attributes['deleted_at'] instanceof Time 
-            ? $this->attributes['deleted_at'] 
-            : new Time($this->attributes['deleted_at']);
-            
-        return $time->format('Y-m-d H:i:s');
+        $deletedAt = $this->getDeletedAt();
+        return $deletedAt ? $deletedAt->format('d/m/Y H:i:s') : null;
     }
     
     /**
@@ -243,5 +426,24 @@ class SuKienDienGia extends BaseEntity
     public function getValidationMessages(): array
     {
         return $this->validationMessages;
+    }
+    
+    /**
+     * Lấy thông tin tên trạng thái tham gia để hiển thị
+     *
+     * @return string
+     */
+    public function getTrangThaiThamGiaText(): string
+    {
+        $trangThai = $this->getTrangThaiThamGia();
+        
+        $trangThaiMap = [
+            'xac_nhan' => 'Đã xác nhận',
+            'cho_xac_nhan' => 'Chờ xác nhận',
+            'tu_choi' => 'Từ chối',
+            'khong_lien_he_duoc' => 'Không liên hệ được'
+        ];
+        
+        return $trangThaiMap[$trangThai] ?? 'Chờ xác nhận';
     }
 } 
