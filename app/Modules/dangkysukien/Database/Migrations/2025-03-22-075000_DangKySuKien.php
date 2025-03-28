@@ -44,7 +44,7 @@ class DangKySuKien extends Migration
             ],
             'ngay_dang_ky' => [
                 'type' => 'DATETIME',
-                'null' => true
+                'null' => true,
             ],
             'ma_xac_nhan' => [
                 'type' => 'VARCHAR',
@@ -142,7 +142,8 @@ class DangKySuKien extends Migration
             ],
             'created_at' => [
                 'type' => 'DATETIME',
-                'null' => true
+                'null' => true,
+                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP')
             ],
             'updated_at' => [
                 'type' => 'DATETIME',
@@ -157,7 +158,7 @@ class DangKySuKien extends Migration
         // Thêm khóa chính
         $this->forge->addKey('dangky_sukien_id', true);
         
-        // Thêm các chỉ mục (index)
+        // Thêm các chỉ mục
         $this->forge->addKey('sukien_id', false, false, 'idx_sukien_id');
         $this->forge->addKey('email', false, false, 'idx_email');
         $this->forge->addKey('ho_ten', false, false, 'idx_ho_ten');
@@ -173,9 +174,8 @@ class DangKySuKien extends Migration
         
         // Thêm khóa ngoại
         $this->forge->addForeignKey('sukien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
-        // Tạm thời bỏ các khóa ngoại này vì bảng có thể chưa tồn tại
-        // $this->forge->addForeignKey('checkin_sukien_id', 'checkin_sukien', 'checkin_sukien_id', 'SET NULL', 'CASCADE');
-        // $this->forge->addForeignKey('checkout_sukien_id', 'checkout_sukien', 'checkout_sukien_id', 'SET NULL', 'CASCADE');
+        $this->forge->addForeignKey('checkin_sukien_id', 'checkin_sukien', 'checkin_sukien_id', 'SET NULL', 'CASCADE');
+        $this->forge->addForeignKey('checkout_sukien_id', 'checkout_sukien', 'checkout_sukien_id', 'SET NULL', 'CASCADE');
         
         // Tạo bảng
         $this->forge->createTable('dangky_sukien', true, [
@@ -184,15 +184,10 @@ class DangKySuKien extends Migration
             'COLLATE' => 'utf8mb4_unicode_ci',
             'COMMENT' => 'Bảng lưu trữ thông tin đăng ký sự kiện'
         ]);
-        
-        // Thêm giá trị mặc định CURRENT_TIMESTAMP cho các trường datetime
-        $this->db->query("ALTER TABLE `dangky_sukien` MODIFY `ngay_dang_ky` DATETIME NULL DEFAULT CURRENT_TIMESTAMP");
-        $this->db->query("ALTER TABLE `dangky_sukien` MODIFY `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP");
     }
 
     public function down()
     {
-        // Xóa bảng
         $this->forge->dropTable('dangky_sukien');
     }
 } 

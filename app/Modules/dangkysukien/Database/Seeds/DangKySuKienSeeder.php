@@ -9,13 +9,37 @@ class DangKySuKienSeeder extends Seeder
 {
     public function run()
     {
-        // Lấy danh sách sự kiện từ bảng su_kien (giả định có ít nhất 3 sự kiện)
-        $suKienList = $this->db->table('su_kien')->limit(5)->get()->getResultArray();
+        // Kiểm tra các bảng liên quan có tồn tại không
+        $requiredTables = ['su_kien', 'checkin_sukien', 'checkout_sukien'];
+        foreach ($requiredTables as $table) {
+            if (!$this->db->tableExists($table)) {
+                echo "Bảng {$table} chưa tồn tại. Vui lòng chạy migration trước.\n";
+                return;
+            }
+        }
+
+        // Lấy danh sách sự kiện từ bảng su_kien
+        $suKienList = $this->db->table('su_kien')
+            ->where('deleted_at IS NULL')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
         
         if (empty($suKienList)) {
             echo "Cần phải có dữ liệu trong bảng su_kien trước khi chạy seeder này.\n";
             return;
         }
+
+        // Lấy danh sách check-in và check-out để tạo khóa ngoại
+        $checkinList = $this->db->table('checkin_sukien')
+            ->where('deleted_at IS NULL')
+            ->get()
+            ->getResultArray();
+        
+        $checkoutList = $this->db->table('checkout_sukien')
+            ->where('deleted_at IS NULL')
+            ->get()
+            ->getResultArray();
         
         $data = [];
         $now = Time::now();
@@ -30,16 +54,17 @@ class DangKySuKienSeeder extends Seeder
             $firstName = $this->getRandomFirstName();
             $lastName = $this->getRandomLastName();
             $hoTen = $lastName . ' ' . $firstName;
-            $email = strtolower(str_replace(' ', '', $firstName)) . '.' . strtolower(str_replace(' ', '', $lastName)) . '@example.com';
+            $email = strtolower(str_replace(' ', '', $firstName)) . '.' . strtolower(str_replace(' ', '', $lastName)) . rand(100, 999) . '@example.com';
             
             // Đảm bảo không trùng lặp email cho cùng một sự kiện
             $exists = $this->db->table('dangky_sukien')
                 ->where('sukien_id', $suKienId)
                 ->where('email', $email)
+                ->where('deleted_at IS NULL')
                 ->countAllResults();
             
             if ($exists > 0) {
-                $email = strtolower(str_replace(' ', '', $firstName)) . '.' . strtolower(str_replace(' ', '', $lastName)) . rand(100, 999) . '@example.com';
+                $email = strtolower(str_replace(' ', '', $firstName)) . '.' . strtolower(str_replace(' ', '', $lastName)) . rand(1000, 9999) . '@example.com';
             }
             
             // Tạo thông tin trạng thái đăng ký
@@ -82,12 +107,26 @@ class DangKySuKienSeeder extends Seeder
             
             // Các thông tin bổ sung
             $thongTinDangKy = json_encode([
-                'nganh_hoc' => $loaiNguoiDangKy == 'sinh_vien' ? $this->getRandomNganhHoc() : null,
-                'khoa' => $loaiNguoiDangKy == 'sinh_vien' ? rand(1, 5) : null,
-                'ma_sinh_vien' => $loaiNguoiDangKy == 'sinh_vien' ? 'SV' . rand(10000, 99999) : null,
-                'bo_mon' => $loaiNguoiDangKy == 'giang_vien' ? $this->getRandomBoMon() : null,
-                'quan_tam' => $this->getRandomQuanTam()
+                'dietary_restrictions' => rand(0, 1) == 1 ? ['Không', 'Ăn chay', 'Dị ứng'][array_rand(['Không', 'Ăn chay', 'Dị ứng'])] : null,
+                'special_needs' => rand(0, 1) == 1 ? $this->getRandomSpecialNeeds() : null,
+                'accommodation_needed' => rand(0, 1) == 1
             ]);
+            
+            $ngayDangKy = $now->subDays(rand(5, 15));
+
+            // Chọn check-in và check-out ngẫu nhiên nếu có
+            $checkinSukienId = null;
+            $checkoutSukienId = null;
+            
+            if ($daCheckIn && !empty($checkinList)) {
+                $checkin = $checkinList[array_rand($checkinList)];
+                $checkinSukienId = $checkin['checkin_sukien_id'];
+            }
+            
+            if ($daCheckOut && !empty($checkoutList)) {
+                $checkout = $checkoutList[array_rand($checkoutList)];
+                $checkoutSukienId = $checkout['checkout_sukien_id'];
+            }
             
             $data[] = [
                 'sukien_id' => $suKienId,
@@ -95,7 +134,7 @@ class DangKySuKienSeeder extends Seeder
                 'ho_ten' => $hoTen,
                 'dien_thoai' => '0' . rand(900000000, 999999999),
                 'loai_nguoi_dang_ky' => $loaiNguoiDangKy,
-                'ngay_dang_ky' => $now->subDays(rand(5, 15))->toDateTimeString(),
+                'ngay_dang_ky' => $ngayDangKy->toDateTimeString(),
                 'ma_xac_nhan' => strtoupper(substr(md5(uniqid()), 0, 8)),
                 'status' => $status,
                 'noi_dung_gop_y' => rand(0, 1) == 1 ? $this->getRandomNoiDungGopY() : null,
@@ -105,8 +144,8 @@ class DangKySuKienSeeder extends Seeder
                 'face_verified' => $daCheckIn && $diemDanhBang == 'face_id',
                 'da_check_in' => $daCheckIn,
                 'da_check_out' => $daCheckOut,
-                'checkin_sukien_id' => $daCheckIn ? rand(1, 100) : null,
-                'checkout_sukien_id' => $daCheckOut ? rand(1, 100) : null,
+                'checkin_sukien_id' => $checkinSukienId,
+                'checkout_sukien_id' => $checkoutSukienId,
                 'thoi_gian_duyet' => $thoiGianDuyet,
                 'thoi_gian_huy' => $thoiGianHuy,
                 'ly_do_huy' => $lyDoHuy,
@@ -116,19 +155,25 @@ class DangKySuKienSeeder extends Seeder
                 'diem_danh_bang' => $diemDanhBang,
                 'thong_tin_dang_ky' => $thongTinDangKy,
                 'ly_do_tham_du' => $this->getRandomLyDoThamDu(),
-                'created_at' => $now->subDays(rand(5, 15))->toDateTimeString(),
-                'updated_at' => $now->subDays(rand(1, 4))->toDateTimeString()
+                'created_at' => $ngayDangKy->toDateTimeString(),
+                'updated_at' => $now->subDays(rand(1, 4))->toDateTimeString(),
+                'deleted_at' => null
             ];
         }
         
         // Thêm dữ liệu vào bảng dangky_sukien
         if (!empty($data)) {
-            // Xóa dữ liệu cũ (nếu có)
-            $this->db->table('dangky_sukien')->emptyTable();
-            
-            // Thêm dữ liệu mới
-            $this->db->table('dangky_sukien')->insertBatch($data);
-            echo "Đã tạo " . count($data) . " bản ghi đăng ký sự kiện.\n";
+            try {
+                // Xóa dữ liệu cũ (nếu có)
+                $this->db->table('dangky_sukien')->emptyTable();
+                
+                // Thêm dữ liệu mới
+                $this->db->table('dangky_sukien')->insertBatch($data);
+                echo "Đã tạo " . count($data) . " bản ghi đăng ký sự kiện.\n";
+            } catch (\Exception $e) {
+                echo "Lỗi khi thêm dữ liệu: " . $e->getMessage() . "\n";
+                return;
+            }
         }
         
         echo "Seeder DangKySuKienSeeder đã được chạy thành công!\n";
@@ -145,24 +190,15 @@ class DangKySuKienSeeder extends Seeder
         return $names[array_rand($names)];
     }
     
-    private function getRandomNganhHoc() {
-        $nganh = ['Công nghệ thông tin', 'Quản trị kinh doanh', 'Kế toán', 'Ngôn ngữ Anh', 'Marketing', 'Luật', 'Kinh tế', 'Xây dựng', 'Y khoa', 'Điện tử viễn thông'];
-        return $nganh[array_rand($nganh)];
-    }
-    
-    private function getRandomBoMon() {
-        $boMon = ['Toán ứng dụng', 'Khoa học máy tính', 'Kinh tế học', 'Ngôn ngữ học', 'Vật lý', 'Hóa học', 'Sinh học', 'Lịch sử', 'Địa lý', 'Văn học'];
-        return $boMon[array_rand($boMon)];
-    }
-    
-    private function getRandomQuanTam() {
-        $quanTam = ['Công nghệ', 'Khởi nghiệp', 'Tài chính', 'Giáo dục', 'Môi trường', 'Nghệ thuật', 'Thể thao', 'Du lịch', 'Sức khỏe', 'Truyền thông'];
-        $count = rand(1, 3);
-        $result = [];
-        for ($i = 0; $i < $count; $i++) {
-            $result[] = $quanTam[array_rand($quanTam)];
-        }
-        return array_unique($result);
+    private function getRandomSpecialNeeds() {
+        $needs = [
+            'Cần hỗ trợ người khuyết tật',
+            'Cần phiên dịch ngôn ngữ',
+            'Cần chỗ đỗ xe gần địa điểm',
+            'Cần hỗ trợ đi lại',
+            'Cần chế độ ăn đặc biệt'
+        ];
+        return $needs[array_rand($needs)];
     }
     
     private function getRandomNguonGioiThieu() {
