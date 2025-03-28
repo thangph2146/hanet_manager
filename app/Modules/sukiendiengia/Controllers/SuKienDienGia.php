@@ -172,6 +172,15 @@ class SuKienDienGia extends BaseController
         // Lấy dữ liệu từ form
         $data = $this->request->getPost();
         
+        // Xử lý định dạng thời gian bằng cách sử dụng phương thức formatDateTime từ model
+        if (!empty($data['thoi_gian_trinh_bay'])) {
+            $data['thoi_gian_trinh_bay'] = $this->model->formatDateTime($data['thoi_gian_trinh_bay']);
+        }
+        
+        if (!empty($data['thoi_gian_ket_thuc'])) {
+            $data['thoi_gian_ket_thuc'] = $this->model->formatDateTime($data['thoi_gian_ket_thuc']);
+        }
+        
         // Kiểm tra xem mối quan hệ đã tồn tại chưa
         if (!empty($data['su_kien_id']) && !empty($data['dien_gia_id'])) {
             if ($this->model->isRelationExists($data['su_kien_id'], $data['dien_gia_id'])) {
@@ -188,6 +197,23 @@ class SuKienDienGia extends BaseController
         }
         
         try {
+            // Xử lý tài liệu đính kèm nếu có
+            $files = $this->request->getFiles();
+            $hasValidFiles = false;
+            
+            if (!empty($files['tai_lieu_dinh_kem'])) {
+                $uploadedFiles = $files['tai_lieu_dinh_kem'];
+                if (is_array($uploadedFiles) && !empty($uploadedFiles[0]) && $uploadedFiles[0]->isValid()) {
+                    $data['tai_lieu_dinh_kem'] = $this->uploadFiles($uploadedFiles);
+                    $hasValidFiles = true;
+                }
+            }
+            
+            // Nếu không có tệp hợp lệ, đặt tai_lieu_dinh_kem là JSON rỗng []
+            if (!$hasValidFiles) {
+                $data['tai_lieu_dinh_kem'] = json_encode([]);
+            }
+            
             // Lưu dữ liệu thông qua model
             if ($this->model->insert($data)) {
                 $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
@@ -196,9 +222,10 @@ class SuKienDienGia extends BaseController
                 throw new \RuntimeException('Không thể thêm mới ' . $this->title);
             }
         } catch (\Exception $e) {
+            log_message('error', 'Lỗi thêm mới sự kiện diễn giả: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title);
+                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title . ': ' . $e->getMessage());
         }
     }
     
@@ -294,6 +321,15 @@ class SuKienDienGia extends BaseController
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
         
+        // Xử lý định dạng thời gian bằng cách sử dụng phương thức formatDateTime từ model
+        if (!empty($data['thoi_gian_trinh_bay'])) {
+            $data['thoi_gian_trinh_bay'] = $this->model->formatDateTime($data['thoi_gian_trinh_bay']);
+        }
+        
+        if (!empty($data['thoi_gian_ket_thuc'])) {
+            $data['thoi_gian_ket_thuc'] = $this->model->formatDateTime($data['thoi_gian_ket_thuc']);
+        }
+  
         // Kiểm tra xem mối quan hệ đã tồn tại chưa (nếu có thay đổi)
         if (!empty($data['su_kien_id']) && !empty($data['dien_gia_id']) && 
             ($data['su_kien_id'] != $existingRecord->getSuKienId() || $data['dien_gia_id'] != $existingRecord->getDienGiaId())) {
@@ -311,6 +347,19 @@ class SuKienDienGia extends BaseController
         }
         
         try {
+            // Xử lý tài liệu đính kèm nếu có
+            $files = $this->request->getFiles();
+            if (!empty($files['tai_lieu_dinh_kem'])) {
+                $uploadedFiles = $files['tai_lieu_dinh_kem'];
+                // Chỉ cập nhật khi có tệp hợp lệ được tải lên
+                if (is_array($uploadedFiles) && !empty($uploadedFiles[0]) && $uploadedFiles[0]->isValid()) {
+                    $data['tai_lieu_dinh_kem'] = $this->uploadFiles($uploadedFiles);
+                }
+            } else {
+                // Nếu không có tệp mới, bỏ qua trường này để tránh ghi đè thành NULL
+                unset($data['tai_lieu_dinh_kem']);
+            }
+            
             // Lưu dữ liệu thông qua model
             if ($this->model->update($id, $data)) {
                 $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
@@ -319,9 +368,10 @@ class SuKienDienGia extends BaseController
                 throw new \RuntimeException('Không thể cập nhật ' . $this->title);
             }
         } catch (\Exception $e) {
+            log_message('error', 'Lỗi cập nhật sự kiện diễn giả: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title);
+                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title . ': ' . $e->getMessage());
         }
     }
     
@@ -560,136 +610,94 @@ class SuKienDienGia extends BaseController
     }
     
     /**
-     * Xuất danh sách ra file Excel
+     * Xuất danh sách tham gia sự kiện ra file Excel
      */
     public function exportExcel()
     {
         $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? $this->field_sort;
-        $order = $this->request->getGet('order') ?? $this->field_order;
-        $trangThaiThamGia = $this->request->getGet('trang_thai_tham_gia');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? 'phong_khoa_id';
+        $order = $this->request->getGet('order') ?? 'ASC';
 
-        // Xây dựng tiêu chí tìm kiếm
-        $criteria = [
-            'keyword' => $keyword
-        ];
-        
-        if (!empty($trangThaiThamGia)) {
-            $criteria['trang_thai_tham_gia'] = $trangThaiThamGia;
-        }
-        
-        // Tùy chọn tìm kiếm
-        $options = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả dữ liệu
-        ];
+        $criteria = $this->prepareSearchCriteria($keyword, $status);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+        $headers = $this->prepareExcelHeaders();
 
-        // Lấy dữ liệu từ model
-        $data = $this->model->search($criteria, $options);
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
-        // Xử lý dữ liệu và xuất Excel
-        $this->exportData($data, 'excel', $criteria);
+        $this->createExcelFile($data, $headers, $filters, 'danh_sach_phong_khoa');
     }
 
     /**
-     * Xuất danh sách ra file PDF
+     * Xuất danh sách tham gia sự kiện ra file PDF
      */
     public function exportPdf()
     {
         $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status'); 
         $sort = $this->request->getGet('sort') ?? $this->field_sort;
         $order = $this->request->getGet('order') ?? $this->field_order;
-        $trangThaiThamGia = $this->request->getGet('trang_thai_tham_gia');
 
-        // Xây dựng tiêu chí tìm kiếm
-        $criteria = [
-            'keyword' => $keyword
-        ];
-        
-        if (!empty($trangThaiThamGia)) {
-            $criteria['trang_thai_tham_gia'] = $trangThaiThamGia;
-        }
-        
-        // Tùy chọn tìm kiếm
-        $options = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả dữ liệu
-        ];
+        $criteria = $this->prepareSearchCriteria($keyword, $status);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
 
-        // Lấy dữ liệu từ model
-        $data = $this->model->search($criteria, $options);
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
-        // Xử lý dữ liệu và xuất PDF
-        $this->exportData($data, 'pdf', $criteria);
+        $this->createPdfFile($data, $filters, $this->export_excel, $this->export_excel_title);
     }
 
     /**
-     * Xuất danh sách đã xóa ra file Excel
-     */
-    public function exportDeletedExcel()
-    {
-        $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? 'deleted_at';
-        $order = $this->request->getGet('order') ?? 'DESC';
-        $trangThaiThamGia = $this->request->getGet('trang_thai_tham_gia');
-
-        // Xây dựng tiêu chí tìm kiếm
-        $criteria = [
-            'keyword' => $keyword,
-            'deleted' => true
-        ];
-        
-        if (!empty($trangThaiThamGia)) {
-            $criteria['trang_thai_tham_gia'] = $trangThaiThamGia;
-        }
-        
-        // Tùy chọn tìm kiếm
-        $options = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả dữ liệu
-        ];
-
-        // Lấy dữ liệu từ model
-        $data = $this->model->searchDeleted($criteria, $options);
-
-        // Xử lý dữ liệu và xuất Excel
-        $this->exportData($data, 'excel', $criteria, true);
-    }
-
-    /**
-     * Xuất danh sách đã xóa ra file PDF
+     * Xuất danh sách tham gia sự kiện đã xóa ra file PDF
      */
     public function exportDeletedPdf()
     {
         $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? 'deleted_at';
-        $order = $this->request->getGet('order') ?? 'DESC';
-        $trangThaiThamGia = $this->request->getGet('trang_thai_tham_gia');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? $this->field_sort;
+        $order = $this->request->getGet('order') ?? $this->field_order;
 
-        // Xây dựng tiêu chí tìm kiếm
-        $criteria = [
-            'keyword' => $keyword,
-            'deleted' => true
-        ];
-        
-        if (!empty($trangThaiThamGia)) {
-            $criteria['trang_thai_tham_gia'] = $trangThaiThamGia;
-        }
-        
-        // Tùy chọn tìm kiếm
-        $options = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả dữ liệu
-        ];
+        $criteria = $this->prepareSearchCriteria($keyword, $status, true);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
 
-        // Lấy dữ liệu từ model
-        $data = $this->model->searchDeleted($criteria, $options);
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';      
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
+        $filters['Trạng thái'] = 'Đã xóa';
 
-        // Xử lý dữ liệu và xuất PDF
-        $this->exportData($data, 'pdf', $criteria, true);
+        $this->createPdfFile($data, $filters, $this->export_excel_deleted, $this->export_excel_deleted_title);
+    }
+
+    /**
+     * Xuất danh sách tham gia sự kiện đã xóa ra file Excel
+     */
+    public function exportDeletedExcel()
+    {
+        $keyword = $this->request->getGet('keyword');
+        $status = $this->request->getGet('status');
+        $sort = $this->request->getGet('sort') ?? $this->field_sort;
+        $order = $this->request->getGet('order') ?? $this->field_order;
+
+        $criteria = $this->prepareSearchCriteria($keyword, $status, true);
+        $options = $this->prepareSearchOptions($sort, $order);
+        $data = $this->getExportData($criteria, $options);
+        $headers = $this->prepareExcelHeaders(true);
+
+        $filters = [];
+        if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
+        if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
+        if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
+        $filters['Trạng thái'] = 'Đã xóa';
+
+        $this->createExcelFile($data, $headers, $filters, $this->export_excel_deleted, true);
     }
 }

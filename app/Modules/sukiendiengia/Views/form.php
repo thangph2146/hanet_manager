@@ -15,8 +15,18 @@ $dien_gia_id = isset($data) ? $data->getDienGiaId() : '';
 $thu_tu = isset($data) ? $data->getThuTu() : '';
 $vai_tro = isset($data) ? $data->getVaiTro() : '';
 $mo_ta = isset($data) ? $data->getMoTa() : '';
-$thoi_gian_trinh_bay = isset($data) ? $data->getThoiGianTrinhBayFormatted('Y-m-d\TH:i') : '';
-$thoi_gian_ket_thuc = isset($data) ? $data->getThoiGianKetThucFormatted('Y-m-d\TH:i') : '';
+
+// Đảm bảo định dạng thời gian theo chuẩn ISO 8601 cho input datetime-local
+$thoi_gian_trinh_bay = '';
+if (isset($data) && $data->getThoiGianTrinhBay()) {
+    $thoi_gian_trinh_bay = $data->getThoiGianTrinhBay()->format('Y-m-d\TH:i');
+}
+
+$thoi_gian_ket_thuc = '';
+if (isset($data) && $data->getThoiGianKetThuc()) {
+    $thoi_gian_ket_thuc = $data->getThoiGianKetThuc()->format('Y-m-d\TH:i');
+}
+
 $thoi_luong_phut = isset($data) ? $data->getThoiLuongPhut() : '';
 $tieu_de_trinh_bay = isset($data) ? $data->getTieuDeTrinhBay() : '';
 $tai_lieu_dinh_kem = isset($data) ? $data->getTaiLieuDinhKem() : [];
@@ -218,7 +228,12 @@ $ghi_chu = old('ghi_chu', $ghi_chu);
                     <input type="datetime-local" 
                            class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_trinh_bay') ? 'is-invalid' : '' ?>" 
                            id="thoi_gian_trinh_bay" name="thoi_gian_trinh_bay"
-                           value="<?= esc($thoi_gian_trinh_bay) ?>">
+                           value="<?= esc($thoi_gian_trinh_bay) ?>"
+                           step="60">
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Định dạng: YYYY-MM-DDThh:mm theo giờ 24h (VD: 2023-12-31T14:30)
+                    </div>
                     <?php if (isset($validation) && $validation->hasError('thoi_gian_trinh_bay')): ?>
                         <div class="invalid-feedback">
                             <?= $validation->getError('thoi_gian_trinh_bay') ?>
@@ -234,7 +249,12 @@ $ghi_chu = old('ghi_chu', $ghi_chu);
                     <input type="datetime-local" 
                            class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_ket_thuc') ? 'is-invalid' : '' ?>" 
                            id="thoi_gian_ket_thuc" name="thoi_gian_ket_thuc"
-                           value="<?= esc($thoi_gian_ket_thuc) ?>">
+                           value="<?= esc($thoi_gian_ket_thuc) ?>"
+                           step="60">
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Định dạng: YYYY-MM-DDThh:mm theo giờ 24h (VD: 2023-12-31T16:30)
+                    </div>
                     <?php if (isset($validation) && $validation->hasError('thoi_gian_ket_thuc')): ?>
                         <div class="invalid-feedback">
                             <?= $validation->getError('thoi_gian_ket_thuc') ?>
@@ -300,8 +320,9 @@ $ghi_chu = old('ghi_chu', $ghi_chu);
                     <select class="form-select <?= isset($validation) && $validation->hasError('trang_thai_tham_gia') ? 'is-invalid' : '' ?>" 
                             id="trang_thai_tham_gia" name="trang_thai_tham_gia">
                         <option value="cho_xac_nhan" <?= $trang_thai_tham_gia == 'cho_xac_nhan' ? 'selected' : '' ?>>Chờ xác nhận</option>
-                        <option value="da_xac_nhan" <?= $trang_thai_tham_gia == 'da_xac_nhan' ? 'selected' : '' ?>>Đã xác nhận</option>
-                        <option value="huy_bo" <?= $trang_thai_tham_gia == 'huy_bo' ? 'selected' : '' ?>>Hủy bỏ</option>
+                        <option value="xac_nhan" <?= $trang_thai_tham_gia == 'xac_nhan' ? 'selected' : '' ?>>Đã xác nhận</option>
+                        <option value="tu_choi" <?= $trang_thai_tham_gia == 'tu_choi' ? 'selected' : '' ?>>Từ chối</option>
+                        <option value="khong_lien_he_duoc" <?= $trang_thai_tham_gia == 'khong_lien_he_duoc' ? 'selected' : '' ?>>Không liên hệ được</option>
                     </select>
                     <?php if (isset($validation) && $validation->hasError('trang_thai_tham_gia')): ?>
                         <div class="invalid-feedback">
@@ -376,11 +397,69 @@ $ghi_chu = old('ghi_chu', $ghi_chu);
                     event.preventDefault();
                     event.stopPropagation();
                 }
+                
+                // Kiểm tra thêm thời gian trình bày và thời gian kết thúc
+                const thoiGianTrinhBay = document.getElementById('thoi_gian_trinh_bay').value;
+                const thoiGianKetThuc = document.getElementById('thoi_gian_ket_thuc').value;
+                
+                if (thoiGianTrinhBay && thoiGianKetThuc) {
+                    const startDate = new Date(thoiGianTrinhBay);
+                    const endDate = new Date(thoiGianKetThuc);
+                    
+                    if (startDate > endDate) {
+                        event.preventDefault();
+                        alert('Thời gian kết thúc phải lớn hơn hoặc bằng thời gian trình bày');
+                        document.getElementById('thoi_gian_ket_thuc').classList.add('is-invalid');
+                    }
+                }
+                
+                // Định dạng thời gian theo chuẩn 24 giờ trước khi submit
+                if (thoiGianTrinhBay) {
+                    const startDate = new Date(thoiGianTrinhBay);
+                    const formattedStart = startDate.getFullYear() + '-' + 
+                                        String(startDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                        String(startDate.getDate()).padStart(2, '0') + 'T' + 
+                                        String(startDate.getHours()).padStart(2, '0') + ':' + 
+                                        String(startDate.getMinutes()).padStart(2, '0');
+                    document.getElementById('thoi_gian_trinh_bay').value = formattedStart;
+                }
+                
+                if (thoiGianKetThuc) {
+                    const endDate = new Date(thoiGianKetThuc);
+                    const formattedEnd = endDate.getFullYear() + '-' + 
+                                      String(endDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                      String(endDate.getDate()).padStart(2, '0') + 'T' + 
+                                      String(endDate.getHours()).padStart(2, '0') + ':' + 
+                                      String(endDate.getMinutes()).padStart(2, '0');
+                    document.getElementById('thoi_gian_ket_thuc').value = formattedEnd;
+                }
+                
                 form.classList.add('was-validated');
             }, false);
         });
         
         // Tự động focus vào trường đầu tiên
         document.getElementById('su_kien_id').focus();
+        
+        // Xử lý sự kiện thay đổi thời gian
+        const thoiGianTrinhBayInput = document.getElementById('thoi_gian_trinh_bay');
+        const thoiGianKetThucInput = document.getElementById('thoi_gian_ket_thuc');
+        const thoiLuongPhutInput = document.getElementById('thoi_luong_phut');
+        
+        // Cập nhật thời lượng khi thời gian thay đổi
+        function updateThoiLuong() {
+            const startTime = thoiGianTrinhBayInput.value ? new Date(thoiGianTrinhBayInput.value) : null;
+            const endTime = thoiGianKetThucInput.value ? new Date(thoiGianKetThucInput.value) : null;
+            
+            if (startTime && endTime && startTime <= endTime) {
+                // Tính thời lượng phút
+                const diffMs = endTime - startTime;
+                const diffMinutes = Math.round(diffMs / 60000);
+                thoiLuongPhutInput.value = diffMinutes;
+            }
+        }
+        
+        thoiGianTrinhBayInput.addEventListener('change', updateThoiLuong);
+        thoiGianKetThucInput.addEventListener('change', updateThoiLuong);
     });
 </script>

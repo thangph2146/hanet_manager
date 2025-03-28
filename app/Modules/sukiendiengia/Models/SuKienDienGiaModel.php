@@ -280,10 +280,49 @@ class SuKienDienGiaModel extends BaseModel
         unset($this->validationRules['updated_at']);
         unset($this->validationRules['deleted_at']);
         
-        // Loại bỏ validation cho su_kien_dien_gia_id trong mọi trường hợp
-        unset($this->validationRules['su_kien_dien_gia_id']);
+        // Loại trừ các trường thời gian vì sẽ được xử lý thủ công trong controller
+        unset($this->validationRules['thoi_gian_trinh_bay']);
+        unset($this->validationRules['thoi_gian_ket_thuc']);
     }
     
+    /**
+     * Chuyển đổi định dạng thời gian từ HTML (Y-m-d\TH:i) sang định dạng cơ sở dữ liệu (Y-m-d H:i:s)
+     *
+     * @param string|null $datetimeString Chuỗi thời gian theo định dạng HTML
+     * @return string|null Chuỗi thời gian theo định dạng cơ sở dữ liệu
+     */
+    public function formatDateTime(?string $datetimeString): ?string
+    {
+        if (empty($datetimeString)) {
+            return null;
+        }
+        
+        // Chuyển đổi từ '2025-03-28T12:12' sang '2025-03-28 12:12:00'
+        try {
+            $datetime = \DateTime::createFromFormat('Y-m-d\TH:i', $datetimeString);
+            if ($datetime) {
+                return $datetime->format('Y-m-d H:i:s');
+            }
+            
+            // Thử với định dạng khác nếu không phù hợp
+            $datetime = \DateTime::createFromFormat('Y-m-d H:i', $datetimeString);
+            if ($datetime) {
+                return $datetime->format('Y-m-d H:i:s');
+            }
+            
+            // Nếu là timestamp đầy đủ
+            $datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $datetimeString);
+            if ($datetime) {
+                return $datetimeString;
+            }
+        } catch (\Exception $e) {
+            // Ghi log lỗi nếu cần
+            log_message('error', 'Lỗi chuyển đổi thời gian: ' . $e->getMessage());
+        }
+        
+        return $datetimeString;
+    }
+
     /**
      * Thiết lập số lượng liên kết trang hiển thị xung quanh trang hiện tại
      * 

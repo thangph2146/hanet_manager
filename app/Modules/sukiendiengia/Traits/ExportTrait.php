@@ -324,7 +324,7 @@ trait ExportTrait
         $viewData = [
             'title' => $title,
             'date' => Time::now()->format('d/m/Y'),
-            'filters' => $this->formatFilters($filters),
+            'filters' => $this->formatFilters($filters, true),
             'data' => $data,
             'includeDeletedAt' => $includeDeleted,
             'total_records' => count($data)
@@ -343,19 +343,68 @@ trait ExportTrait
     }
 
     /**
-     * Format filters để hiển thị trong PDF
+     * Format filters để hiển thị trong báo cáo
+     * 
+     * @param array $filters Mảng các bộ lọc cần định dạng
+     * @param bool $forHTML True nếu định dạng cho HTML, False nếu trả về mảng cho Excel
+     * @return string|array Chuỗi HTML hoặc mảng tùy theo tham số $forHTML
      */
-    protected function formatFilters($filters)
+    protected function formatFilters($filters, $forHTML = false)
     {
         if (empty($filters)) {
-            return '';
+            return $forHTML ? '' : [];
         }
 
         $formatted = [];
         foreach ($filters as $key => $value) {
-            $formatted[] = "$key: $value";
+            if ($forHTML) {
+                $formatted[] = "$key: $value";
+            } else {
+                $formatted[$key] = $value;
+            }
         }
 
-        return implode('<br>', $formatted);
+        return $forHTML ? implode('<br>', $formatted) : $formatted;
+    }
+
+    /**
+     * Xử lý xuất dữ liệu ra file Excel hoặc PDF
+     *
+     * @param array $data Dữ liệu cần xuất
+     * @param string $type Loại file (excel hoặc pdf)
+     * @param array $criteria Tiêu chí tìm kiếm đã sử dụng
+     * @param bool $isDeleted Có phải dữ liệu đã xóa không
+     * @return \CodeIgniter\HTTP\ResponseInterface
+     */
+    protected function exportData($data, $type = 'excel', $criteria = [], $isDeleted = false)
+    {
+        // Định dạng tiêu đề
+        $title = $isDeleted ? 'DANH SÁCH SỰ KIỆN DIỄN GIẢ ĐÃ XÓA' : 'DANH SÁCH SỰ KIỆN DIỄN GIẢ';
+        
+        // Tạo tên file dựa trên loại và thời gian
+        $filename = 'su_kien_dien_gia_' . ($isDeleted ? 'deleted_' : '') . date('YmdHis');
+        
+        // Định dạng bộ lọc cho báo cáo - định dạng khác nhau dựa trên loại xuất
+        if ($type === 'excel') {
+            // Chuẩn bị bộ lọc dạng mảng cho Excel
+            $filters = $this->formatFilters($criteria, false);
+            
+            // Chuẩn bị headers cho Excel
+            $headers = $this->prepareExcelHeaders($isDeleted);
+            
+            // Tạo và xuất file Excel
+            return $this->createExcelFile($data, $headers, $filters, $filename, $isDeleted);
+            
+        } elseif ($type === 'pdf') {
+            // Chuẩn bị bộ lọc dạng HTML cho PDF
+            $filters = $this->formatFilters($criteria, true);
+            
+            // Tạo và xuất file PDF
+            return $this->createPdfFile($data, $filters, $title, $filename, $isDeleted);
+        }
+        
+        // Trường hợp không hợp lệ, quay về trang danh sách
+        $this->alert->set('danger', 'Loại xuất dữ liệu không hợp lệ', true);
+        return redirect()->to($this->moduleUrl);
     }
 } 
