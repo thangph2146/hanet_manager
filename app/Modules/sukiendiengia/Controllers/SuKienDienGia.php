@@ -616,8 +616,8 @@ class SuKienDienGia extends BaseController
     {
         $keyword = $this->request->getGet('keyword');
         $status = $this->request->getGet('status');
-        $sort = $this->request->getGet('sort') ?? 'phong_khoa_id';
-        $order = $this->request->getGet('order') ?? 'ASC';
+        $sort = $this->request->getGet('sort') ?? $this->field_sort;
+        $order = $this->request->getGet('order') ?? $this->field_order;
 
         $criteria = $this->prepareSearchCriteria($keyword, $status);
         $options = $this->prepareSearchOptions($sort, $order);
@@ -629,7 +629,7 @@ class SuKienDienGia extends BaseController
         if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
-        $this->createExcelFile($data, $headers, $filters, 'danh_sach_phong_khoa');
+        $this->createExcelFile($data, $headers, $filters, $this->export_excel, false);
     }
 
     /**
@@ -699,5 +699,37 @@ class SuKienDienGia extends BaseController
         $filters['Trạng thái'] = 'Đã xóa';
 
         $this->createExcelFile($data, $headers, $filters, $this->export_excel_deleted, true);
+    }
+
+    /**
+     * Lấy văn bản mô tả cho trường sắp xếp
+     *
+     * @param string $sort Trường sắp xếp
+     * @param string $order Hướng sắp xếp
+     * @return string Văn bản mô tả
+     */
+    protected function getSortText($sort, $order = 'ASC')
+    {
+        $sortFields = [
+            'su_kien_dien_gia_id' => 'ID',
+            'su_kien_id' => 'Sự kiện',
+            'dien_gia_id' => 'Diễn giả',
+            'thu_tu' => 'Thứ tự',
+            'vai_tro' => 'Vai trò',
+            'thoi_gian_trinh_bay' => 'Thời gian trình bày',
+            'thoi_gian_ket_thuc' => 'Thời gian kết thúc',
+            'thoi_luong_phut' => 'Thời lượng',
+            'tieu_de_trinh_bay' => 'Tiêu đề',
+            'trang_thai_tham_gia' => 'Trạng thái tham gia',
+            'hien_thi_cong_khai' => 'Hiển thị công khai',
+            'created_at' => 'Ngày tạo',
+            'updated_at' => 'Ngày cập nhật',
+            'deleted_at' => 'Ngày xóa'
+        ];
+        
+        $orderText = $order == 'ASC' ? 'tăng dần' : 'giảm dần';
+        $fieldText = isset($sortFields[$sort]) ? $sortFields[$sort] : $sort;
+        
+        return "$fieldText ($orderText)";
     }
 }

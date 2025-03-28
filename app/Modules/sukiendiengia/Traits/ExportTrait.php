@@ -42,21 +42,22 @@ trait ExportTrait
     protected $excel_row = [
         'A' => ['method' => null, 'align' => 'center'], // STT
         'B' => ['method' => 'getId', 'align' => 'center'],
-        'C' => ['method' => 'getTenDienGia', 'align' => 'left'],
-        'D' => ['method' => 'getChucDanh', 'align' => 'left'],
-        'E' => ['method' => 'getToChuc', 'align' => 'left'],
-        'F' => ['method' => 'getEmail', 'align' => 'left'],
-        'G' => ['method' => 'getDienThoai', 'align' => 'left'],
-        'H' => ['method' => 'getWebsite', 'align' => 'left'],
-        'I' => ['method' => 'getGioiThieu', 'align' => 'left', 'wrap' => true],
-        'J' => ['method' => 'getChuyenMon', 'align' => 'left', 'wrap' => true],
-        'K' => ['method' => 'getThanhTuu', 'align' => 'left', 'wrap' => true],
-        'L' => ['method' => 'getMangXaHoi', 'align' => 'left', 'wrap' => true, 'json' => true],
-        'M' => ['method' => 'getSoSuKienThamGia', 'align' => 'center'],
-        'N' => ['method' => 'getStatus', 'align' => 'center', 'format' => 'status'],
-        'O' => ['method' => 'getCreatedAtFormatted', 'align' => 'center'],
-        'P' => ['method' => 'getUpdatedAtFormatted', 'align' => 'center'],
-        'Q' => ['method' => 'getDeletedAtFormatted', 'align' => 'center']
+        'C' => ['method' => 'getTenSuKienDienGia', 'align' => 'left'],
+        'D' => ['method' => 'getTenDienGia', 'align' => 'left'],
+        'E' => ['method' => 'getChucDanh', 'align' => 'left'],
+        'F' => ['method' => 'getToChuc', 'align' => 'left'],
+        'G' => ['method' => 'getEmail', 'align' => 'left'],
+        'H' => ['method' => 'getDienThoai', 'align' => 'left'],
+        'I' => ['method' => 'getWebsite', 'align' => 'left'],
+        'J' => ['method' => 'getGioiThieu', 'align' => 'left', 'wrap' => true],
+        'K' => ['method' => 'getChuyenMon', 'align' => 'left', 'wrap' => true],
+        'L' => ['method' => 'getThanhTuu', 'align' => 'left', 'wrap' => true],
+        'M' => ['method' => 'getMangXaHoi', 'align' => 'left', 'wrap' => true, 'json' => true],
+        'N' => ['method' => 'getSoSuKienThamGia', 'align' => 'center'],
+        'O' => ['method' => 'getStatus', 'align' => 'center', 'format' => 'status'],
+        'P' => ['method' => 'getCreatedAtFormatted', 'align' => 'center'],
+        'Q' => ['method' => 'getUpdatedAtFormatted', 'align' => 'center'],
+        'R' => ['method' => 'getDeletedAtFormatted', 'align' => 'center']
     ];
 
     protected function getLastColumn()
