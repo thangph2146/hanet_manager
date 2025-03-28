@@ -389,6 +389,24 @@ function nav_config() {
                 ]
             ],
             [
+                'title' => 'Quản lý Form Đăng Ký Sự Kiện',
+                'icon' => 'bx bx-calendar-event',
+                'submenu' => [
+                    [
+                        'title' => 'Danh Sách Form Đăng Ký Sự Kiện',
+                        'url' => site_url('formdangkysukien')
+                    ],
+                    [
+                        'title' => 'Danh sách Form Đăng Ký Sự Kiện bị xóa',
+                        'url' => site_url('formdangkysukien/listdeleted')
+                    ],
+                    [
+                        'title' => 'Thêm Form Đăng Ký Sự Kiện mới',
+                        'url' => site_url('formdangkysukien/new')
+                    ]
+                ]
+            ],
+            [
                 'type' => 'label',
                 'title' => 'Quản lý Thiết Bị'
             ],

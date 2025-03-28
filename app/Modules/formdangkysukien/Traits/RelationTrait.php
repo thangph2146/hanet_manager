@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\sukiendiengia\Traits;
+namespace App\Modules\formdangkysukien\Traits;
 
 use CodeIgniter\I18n\Time;
 
@@ -8,19 +8,16 @@ trait RelationTrait
 {
     protected $fields = [
         'ten_form' => 'getTenForm',
+        'su_kien_id' => 'getSuKienId',
         'mo_ta' => 'getMoTa',
-        'ten_su_kien' => 'getTenSuKien',
-        'count_fields' => 'countFields',
-        'count_required_fields' => 'countRequiredFields',
-        'bat_buoc_dien' => 'getBatBuocDien',
+        'cau_truc_form' => 'getCauTrucForm',
         'hien_thi_cong_khai' => 'getHienThiCongKhai',
+        'bat_buoc_dien' => 'getBatBuocDien',
         'so_lan_su_dung' => 'getSoLanSuDung',
         'status' => 'getStatus',
-        'status_text' => 'getStatusText',
-        'created_at_formatted' => 'getCreatedAt',
-        'updated_at_formatted' => 'getUpdatedAt',
-        'deleted_at_formatted' => 'getDeletedAt',
-        'is_deleted' => 'isDeleted',
+        'created_at_formatted' => 'getCreatedAtFormatted',
+        'updated_at_formatted' => 'getUpdatedAtFormatted',
+        'deleted_at_formatted' => 'getDeletedAtFormatted',
     ];
 
     /**
@@ -105,14 +102,9 @@ trait RelationTrait
                 }
             }
 
-            // Thêm các thuộc tính đã định dạng vào các thuộc tính mới
+            // Thêm các thuộc tính đã định dạng
             foreach ($this->fields as $key => $value) {
-                // Kiểm tra phương thức tồn tại trước khi gọi
-                if (method_exists($item, $value)) {
-                    // Thêm trực tiếp như một thuộc tính của đối tượng
-                    // thay vì cố gắng sửa đổi mảng attributes được bảo vệ
-                    $item->$key = $item->$value();
-                }
+                $item->$key = $item->$value();
             }
         }
 
@@ -132,7 +124,8 @@ trait RelationTrait
             'keyword' => $request->getGet('keyword') ?? '',
             'status' => $request->getGet('status'),
             'su_kien_id' => $request->getGet('su_kien_id'),
-            'bat_buoc_dien' => $request->getGet('bat_buoc_dien'),
+            'dien_gia_id' => $request->getGet('dien_gia_id'),
+            'trang_thai_tham_gia' => $request->getGet('trang_thai_tham_gia'),
             'hien_thi_cong_khai' => $request->getGet('hien_thi_cong_khai'),
         ];
     }
@@ -169,8 +162,12 @@ trait RelationTrait
             $criteria['su_kien_id'] = (int)$params['su_kien_id'];
         }
         
-        if (isset($params['bat_buoc_dien']) && $params['bat_buoc_dien'] !== '') {
-            $criteria['bat_buoc_dien'] = (int)$params['bat_buoc_dien'];
+        if (!empty($params['dien_gia_id'])) {
+            $criteria['dien_gia_id'] = (int)$params['dien_gia_id'];
+        }
+        
+        if (!empty($params['trang_thai_tham_gia'])) {
+            $criteria['trang_thai_tham_gia'] = $params['trang_thai_tham_gia'];
         }
         
         if (isset($params['hien_thi_cong_khai']) && $params['hien_thi_cong_khai'] !== '') {
