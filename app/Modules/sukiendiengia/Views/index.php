@@ -57,12 +57,36 @@
                     <form action="<?= site_url($module_name) ?>" method="get" id="search-form">
                         <input type="hidden" name="page" value="1">
                         <input type="hidden" name="perPage" value="<?= $perPage ?>">
-                        <div class="d-flex gap-2">
+                        <div class="d-flex flex-column gap-2">
                             <div class="input-group search-box">
                                 <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
                                 <button class="btn btn-outline-secondary btn-sm" type="submit">
                                     <i class='bx bx-search'></i>
                                 </button>
+                                <?php if (!empty($keyword) || isset($_GET['trang_thai_tham_gia']) || isset($_GET['su_kien_id']) || isset($_GET['dien_gia_id']) || isset($_GET['hien_thi_cong_khai'])): ?>
+                                <a href="<?= site_url($module_name) ?>" class="btn btn-outline-danger btn-sm">
+                                    <i class='bx bx-x'></i>
+                                </a>
+                                <?php endif; ?>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <!-- Bộ lọc sự kiện -->
+                                <select name="su_kien_id" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả sự kiện</option>
+                                    <?php foreach ($suKienList as $suKien): ?>
+                                    <option value="<?= $suKien->su_kien_id ?>" <?= (isset($_GET['su_kien_id']) && $_GET['su_kien_id'] == $suKien->su_kien_id) ? 'selected' : '' ?>><?= esc($suKien->ten_su_kien) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                
+                                <!-- Bộ lọc diễn giả -->
+                                <select name="dien_gia_id" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả diễn giả</option>
+                                    <?php foreach ($dienGiaList as $dienGia): ?>
+                                    <option value="<?= $dienGia->dien_gia_id ?>" <?= (isset($_GET['dien_gia_id']) && $_GET['dien_gia_id'] == $dienGia->dien_gia_id) ? 'selected' : '' ?>><?= esc($dienGia->ten_dien_gia) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                
+                                <!-- Bộ lọc trạng thái tham gia -->
                                 <select name="trang_thai_tham_gia" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
                                     <option value="">Tất cả trạng thái</option>
                                     <option value="xac_nhan" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'xac_nhan') ? 'selected' : '' ?>>Đã xác nhận</option>
@@ -70,13 +94,14 @@
                                     <option value="tu_choi" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'tu_choi') ? 'selected' : '' ?>>Từ chối</option>
                                     <option value="khong_lien_he_duoc" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'khong_lien_he_duoc') ? 'selected' : '' ?>>Không liên hệ được</option>
                                 </select>
-                                <?php if (!empty($keyword) || isset($_GET['trang_thai_tham_gia'])): ?>
-                                <a href="<?= site_url($module_name) ?>" class="btn btn-outline-danger btn-sm">
-                                    <i class='bx bx-x'></i>
-                                </a>
-                                <?php endif; ?>
+                                
+                                <!-- Bộ lọc hiển thị công khai -->
+                                <select name="hien_thi_cong_khai" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả hiển thị</option>
+                                    <option value="1" <?= (isset($_GET['hien_thi_cong_khai']) && $_GET['hien_thi_cong_khai'] === '1') ? 'selected' : '' ?>>Hiển thị công khai</option>
+                                    <option value="0" <?= (isset($_GET['hien_thi_cong_khai']) && $_GET['hien_thi_cong_khai'] === '0') ? 'selected' : '' ?>>Không hiển thị công khai</option>
+                                </select>
                             </div>
-                          
                         </div>
                     </form>
                 </div>
@@ -97,14 +122,42 @@
             </div>
         <?php endif; ?>
         
-        <?php if (!empty($keyword) || isset($_GET['trang_thai_tham_gia'])): ?>
+        <?php if (!empty($keyword) || isset($_GET['trang_thai_tham_gia']) || isset($_GET['su_kien_id']) || isset($_GET['dien_gia_id']) || isset($_GET['hien_thi_cong_khai'])): ?>
             <div class="alert alert-info m-3">
                 <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
                 <div class="small">
                     <?php if (!empty($keyword)): ?>
                         <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
                     <?php endif; ?>
-                    <?php if (isset($_GET['trang_thai_tham_gia'])): ?>
+                    <?php if (isset($_GET['su_kien_id']) && $_GET['su_kien_id'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Sự kiện: 
+                            <?php 
+                                $ten_su_kien = '';
+                                foreach ($suKienList as $suKien) {
+                                    if ($suKien->su_kien_id == $_GET['su_kien_id']) {
+                                        $ten_su_kien = $suKien->ten_su_kien;
+                                        break;
+                                    }
+                                }
+                                echo esc($ten_su_kien);
+                            ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['dien_gia_id']) && $_GET['dien_gia_id'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Diễn giả: 
+                            <?php 
+                                $ten_dien_gia = '';
+                                foreach ($dienGiaList as $dienGia) {
+                                    if ($dienGia->dien_gia_id == $_GET['dien_gia_id']) {
+                                        $ten_dien_gia = $dienGia->ten_dien_gia;
+                                        break;
+                                    }
+                                }
+                                echo esc($ten_dien_gia);
+                            ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] !== ''): ?>
                         <span class="badge bg-primary me-2">Trạng thái: 
                             <?php 
                                 $trang_thai_map = [
@@ -115,6 +168,11 @@
                                 ];
                                 echo $trang_thai_map[$_GET['trang_thai_tham_gia']] ?? $_GET['trang_thai_tham_gia'];
                             ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['hien_thi_cong_khai'])): ?>
+                        <span class="badge bg-primary me-2">Hiển thị: 
+                            <?= $_GET['hien_thi_cong_khai'] === '1' ? 'Hiển thị công khai' : 'Không hiển thị công khai' ?>
                         </span>
                     <?php endif; ?>
                     <a href="<?= site_url($module_name) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>

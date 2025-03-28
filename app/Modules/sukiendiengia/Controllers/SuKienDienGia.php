@@ -53,6 +53,17 @@ class SuKienDienGia extends BaseController
     protected $export_pdf_deleted = 'danh_sach_su_kien_dien_gia_da_xoa_pdf';
     protected $export_pdf_deleted_title = 'DANH SÁCH SỰ KIỆN DIỄN GIẢ ĐÃ XÓA (PDF)';
 
+    protected $pager_only = [
+        'keyword', 
+        'perPage', 
+        'sort', 
+        'order', 
+        'trang_thai_tham_gia', 
+        'su_kien_id',
+        'dien_gia_id',  
+        'hien_thi_cong_khai',
+    ];
+
     public function __construct()
     {
         // Khởi tạo session sớm
@@ -69,29 +80,9 @@ class SuKienDienGia extends BaseController
         
         // Khởi tạo các model quan hệ
         $this->initializeRelationTrait();
+      
     }
     
-    /**
-     * Lấy text cho sắp xếp
-     */
-    protected function getSortText($sort, $order)
-    {
-        $sortableFields = [
-            'su_kien_dien_gia_id' => 'ID',
-            'su_kien_id' => 'Sự kiện',
-            'dien_gia_id' => 'Diễn giả',
-            'thu_tu' => 'Thứ tự',
-            'vai_tro' => 'Vai trò',
-            'thoi_gian_trinh_bay' => 'Thời gian trình bày',
-            'thoi_luong_phut' => 'Thời lượng (phút)',
-            'trang_thai_tham_gia' => 'Trạng thái tham gia',
-            'hien_thi_cong_khai' => 'Hiển thị công khai',
-            'created_at' => 'Ngày tạo'
-        ];
-
-        $field = $sortableFields[$sort] ?? $sort;
-        return "$field (" . ($order === 'DESC' ? 'Giảm dần' : 'Tăng dần') . ")";
-    }
 
     /**
      * Hiển thị danh sách tham gia sự kiện
@@ -133,7 +124,7 @@ class SuKienDienGia extends BaseController
         if ($pager !== null) {
             $pager->setPath($this->module_name);
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'trang_thai_tham_gia', 'perPage', 'sort', 'order', $this->primary_key]);
+            $pager->setOnly($this->pager_only);
             
             // Đảm bảo perPage và currentPage được thiết lập đúng
             $pager->setPerPage($params['perPage']);
@@ -205,7 +196,6 @@ class SuKienDienGia extends BaseController
                 throw new \RuntimeException('Không thể thêm mới ' . $this->title);
             }
         } catch (\Exception $e) {
-            log_message('error', '[' . $this->controller_name . '::create] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title);
@@ -329,7 +319,6 @@ class SuKienDienGia extends BaseController
                 throw new \RuntimeException('Không thể cập nhật ' . $this->title);
             }
         } catch (\Exception $e) {
-            log_message('error', '[' . $this->controller_name . '::update] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title);
@@ -378,12 +367,7 @@ class SuKienDienGia extends BaseController
             $redirectUrl = $this->processReturnUrl($returnUrl);
             return redirect()->to($redirectUrl);
         }
-        
-        // Log để debug
-        log_message('debug', 'DeleteMultiple - POST data: ' . json_encode($_POST));
-        log_message('debug', 'DeleteMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
-        log_message('debug', 'DeleteMultiple - Return URL: ' . ($returnUrl ?? 'None'));
-        
+
         $successCount = 0;
         
         // Đảm bảo $selectedItems là mảng
@@ -415,16 +399,6 @@ class SuKienDienGia extends BaseController
         $params = $this->prepareSearchParams($this->request);
         $params = $this->processSearchParams($params);
         
-        // Chuẩn bị thông tin log
-        $logInfo = [
-            'page' => $params['page'] ?? 1,
-            'perPage' => $params['perPage'] ?? 10,
-            'sort' => $params['sort'] ?? 'deleted_at',
-            'order' => $params['order'] ?? 'DESC',
-            'keyword' => $params['keyword'] ?? '',
-            'trang_thai_tham_gia' => $params['trang_thai_tham_gia'] ?? null
-        ];
-        
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
         
@@ -432,7 +406,7 @@ class SuKienDienGia extends BaseController
         $criteria = $this->buildSearchCriteria($params);
         $options = $this->buildSearchOptions($params);
         
-        // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
+        // Thiết lập cờ để lấy các bản ghi đã xóa
         $criteria['deleted'] = true;
         
         // Lấy dữ liệu đã xóa thông qua model
@@ -445,7 +419,7 @@ class SuKienDienGia extends BaseController
         $pager = $this->model->getPager();
         if ($pager !== null) {
             $pager->setPath($this->module_name . '/listdeleted');
-            $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'trang_thai_tham_gia', $this->primary_key]);
+            $pager->setOnly($this->pager_only);
             $pager->setPerPage($params['perPage']);
             $pager->setCurrentPage($params['page']);
         }
@@ -483,7 +457,6 @@ class SuKienDienGia extends BaseController
                 $this->alert->set('danger', 'Có lỗi xảy ra khi khôi phục dữ liệu', true);
             }
         } catch (\Exception $e) {
-            log_message('error', '[' . $this->controller_name . '::restore] ' . $e->getMessage());
             $this->alert->set('danger', 'Có lỗi xảy ra khi khôi phục dữ liệu', true);
         }
         
@@ -509,11 +482,6 @@ class SuKienDienGia extends BaseController
             return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
         }
         
-        // Log để debug
-        log_message('debug', 'RestoreMultiple - POST data: ' . json_encode($_POST));
-        log_message('debug', 'RestoreMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
-        log_message('debug', 'RestoreMultiple - Return URL: ' . ($returnUrl ?? 'None'));
-        
         $successCount = 0;
         
         // Đảm bảo $selectedItems là mảng
@@ -525,7 +493,6 @@ class SuKienDienGia extends BaseController
                     $successCount++;
                 }
             } catch (\Exception $e) {
-                log_message('error', '[' . $this->controller_name . '::restoreMultiple] ' . $e->getMessage());
             }
         }
         
@@ -561,7 +528,6 @@ class SuKienDienGia extends BaseController
                 $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
             }
         } catch (\Exception $e) {
-            log_message('error', '[' . $this->controller_name . '::permanentDelete] ' . $e->getMessage());
             $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
         }
         
@@ -579,14 +545,6 @@ class SuKienDienGia extends BaseController
             $this->alert->set('danger', 'Thông tin không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
-        
-        // Kiểm tra status hợp lệ
-        $allowedStatuses = ['xac_nhan', 'cho_xac_nhan', 'tu_choi', 'khong_lien_he_duoc'];
-        if (!in_array($status, $allowedStatuses)) {
-            $this->alert->set('danger', 'Trạng thái không hợp lệ', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
         // Cập nhật trạng thái thông qua model
         if ($this->model->updateTrangThaiThamGia($id, $status)) {
             $this->alert->set('success', 'Cập nhật trạng thái thành công', true);
@@ -733,106 +691,5 @@ class SuKienDienGia extends BaseController
 
         // Xử lý dữ liệu và xuất PDF
         $this->exportData($data, 'pdf', $criteria, true);
-    }
-    
-    /**
-     * Xử lý URL trả về, loại bỏ domain nếu cần
-     * 
-     * @param string|null $returnUrl URL trả về
-     * @return string URL đích đã được xử lý
-     */
-    private function processReturnUrl($returnUrl)
-    {
-        // Mặc định là URL module
-        $redirectUrl = $this->moduleUrl;
-        
-        if (!empty($returnUrl)) {
-            // Giải mã URL
-            $decodedUrl = urldecode($returnUrl);
-            
-            // Kiểm tra nếu URL chứa domain, chỉ lấy phần path và query
-            if (strpos($decodedUrl, 'http') === 0) {
-                $urlParts = parse_url($decodedUrl);
-                $path = $urlParts['path'] ?? '';
-                $query = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
-                $decodedUrl = $path . $query;
-            }
-            
-            // Xử lý đường dẫn tương đối
-            if (strpos($decodedUrl, '/') === 0) {
-                $decodedUrl = substr($decodedUrl, 1);
-            }
-            
-            // Cập nhật URL đích
-            $redirectUrl = $decodedUrl;
-        }
-        
-        return $redirectUrl;
-    }
-    
-    /**
-     * Phương thức hỗ trợ xuất dữ liệu
-     */
-    private function exportData($data, $type, $criteria, $isDeleted = false)
-    {
-        // Lấy danh sách sự kiện và diễn giả từ model
-        $suKienList = $this->suKienModel->findAll();
-        $dienGiaList = $this->dienGiaModel->findAll();
-        
-        // Chuẩn bị dữ liệu đã được format
-        $formattedData = [];
-        foreach ($data as $item) {
-            // Tìm tên sự kiện và diễn giả từ ID
-            $suKienName = '';
-            $dienGiaName = '';
-            
-            foreach ($suKienList as $suKien) {
-                if ($suKien->su_kien_id == $item->su_kien_id) {
-                    $suKienName = $suKien->ten_su_kien;
-                    break;
-                }
-            }
-            
-            foreach ($dienGiaList as $dienGia) {
-                if ($dienGia->dien_gia_id == $item->dien_gia_id) {
-                    $dienGiaName = $dienGia->ten_dien_gia;
-                    break;
-                }
-            }
-            
-            // Định dạng trạng thái tham gia
-            $trangThaiText = $item->getTrangThaiThamGiaText();
-            
-            // Thêm vào dữ liệu đã format
-            $formattedData[] = [
-                'ID' => $item->su_kien_dien_gia_id,
-                'Sự kiện' => $suKienName,
-                'Diễn giả' => $dienGiaName,
-                'Thứ tự' => $item->thu_tu,
-                'Vai trò' => $item->vai_tro,
-                'Thời gian trình bày' => $item->getThoiGianTrinhBayFormatted(),
-                'Thời lượng (phút)' => $item->thoi_luong_phut,
-                'Tiêu đề trình bày' => $item->tieu_de_trinh_bay,
-                'Trạng thái tham gia' => $trangThaiText,
-                'Hiển thị công khai' => $item->hien_thi_cong_khai ? 'Có' : 'Không'
-            ];
-        }
-        
-        // Tiêu đề file
-        $title = $isDeleted ? 
-            ($type === 'pdf' ? $this->export_pdf_deleted_title : $this->export_excel_deleted_title) : 
-            ($type === 'pdf' ? $this->export_pdf_title : $this->export_excel_title);
-        
-        // Tên file
-        $filename = $isDeleted ? 
-            ($type === 'pdf' ? $this->export_pdf_deleted : $this->export_excel_deleted) : 
-            ($type === 'pdf' ? $this->export_pdf : $this->export_excel);
-        
-        // Xuất dữ liệu
-        if ($type === 'pdf') {
-            $this->exportToPdf($formattedData, $title, $filename);
-        } else {
-            $this->exportToExcel($formattedData, $title, $filename);
-        }
     }
 }

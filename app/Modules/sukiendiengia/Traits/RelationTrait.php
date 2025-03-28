@@ -130,6 +130,10 @@ trait RelationTrait
             'order' => $request->getGet('order') ?? 'DESC',
             'keyword' => $request->getGet('keyword') ?? '',
             'status' => $request->getGet('status'),
+            'su_kien_id' => $request->getGet('su_kien_id'),
+            'dien_gia_id' => $request->getGet('dien_gia_id'),
+            'trang_thai_tham_gia' => $request->getGet('trang_thai_tham_gia'),
+            'hien_thi_cong_khai' => $request->getGet('hien_thi_cong_khai'),
         ];
     }
 
@@ -158,6 +162,23 @@ trait RelationTrait
 
         if (isset($params['status']) && $params['status'] !== '') {
             $criteria['status'] = (int)$params['status'];
+        }
+        
+        // Thêm các tham số lọc mới
+        if (!empty($params['su_kien_id'])) {
+            $criteria['su_kien_id'] = (int)$params['su_kien_id'];
+        }
+        
+        if (!empty($params['dien_gia_id'])) {
+            $criteria['dien_gia_id'] = (int)$params['dien_gia_id'];
+        }
+        
+        if (!empty($params['trang_thai_tham_gia'])) {
+            $criteria['trang_thai_tham_gia'] = $params['trang_thai_tham_gia'];
+        }
+        
+        if (isset($params['hien_thi_cong_khai']) && $params['hien_thi_cong_khai'] !== '') {
+            $criteria['hien_thi_cong_khai'] = (int)$params['hien_thi_cong_khai'];
         }
 
         return $criteria;

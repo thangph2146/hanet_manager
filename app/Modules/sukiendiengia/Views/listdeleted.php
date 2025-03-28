@@ -4,14 +4,14 @@
 <?= page_css('table') ?>
 <?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>THÙNG RÁC - DIỄN GIẢ<?= $this->endSection() ?>
+<?= $this->section('title') ?>THÙNG RÁC - DIỄN GIẢ THAM GIA SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thùng rác - Diễn giả',
+	'title' => 'Thùng rác - Diễn giả tham gia sự kiện',
 	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Diễn giả', 'url' => site_url($module_name)],
+		['title' => 'Quản lý Diễn giả tham gia sự kiện', 'url' => site_url($module_name)],
 		['title' => 'Thùng rác', 'active' => true]
 	],
 	'actions' => [
@@ -23,7 +23,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách diễn giả đã xóa</h5>
+        <h5 class="card-title mb-0">Danh sách diễn giả tham gia sự kiện đã xóa</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -44,7 +44,7 @@
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
                     <a href="<?= site_url($module_name) ?>" class="btn btn-outline-primary btn-sm">
-                        <i class='bx bx-arrow-back'></i> Danh sách diễn giả
+                        <i class='bx bx-arrow-back'></i> Danh sách diễn giả tham gia sự kiện
                     </a>
                     <form id="form-restore-multiple" action="<?= site_url($module_name . '/restoreMultiple') ?>" method="post" class="d-inline">
                         <?= csrf_field() ?>
@@ -64,16 +64,51 @@
                     <form action="<?= site_url($module_name . '/listdeleted') ?>" method="get" id="search-form">
                         <input type="hidden" name="page" value="1">
                         <input type="hidden" name="perPage" value="<?= $perPage ?>">
-                        <div class="input-group search-box">
-                            <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
-                            <button class="btn btn-outline-secondary btn-sm" type="submit">
-                                <i class='bx bx-search'></i>
-                            </button>
-                            <?php if (!empty($keyword)): ?>
-                            <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
-                                <i class='bx bx-x'></i>
-                            </a>
-                            <?php endif; ?>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="input-group search-box">
+                                <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
+                                <button class="btn btn-outline-secondary btn-sm" type="submit">
+                                    <i class='bx bx-search'></i>
+                                </button>
+                                <?php if (!empty($keyword) || isset($_GET['trang_thai_tham_gia']) || isset($_GET['su_kien_id']) || isset($_GET['dien_gia_id']) || isset($_GET['hien_thi_cong_khai'])): ?>
+                                <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
+                                    <i class='bx bx-x'></i>
+                                </a>
+                                <?php endif; ?>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <!-- Bộ lọc sự kiện -->
+                                <select name="su_kien_id" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả sự kiện</option>
+                                    <?php foreach ($suKienList as $suKien): ?>
+                                    <option value="<?= $suKien->su_kien_id ?>" <?= (isset($_GET['su_kien_id']) && $_GET['su_kien_id'] == $suKien->su_kien_id) ? 'selected' : '' ?>><?= esc($suKien->ten_su_kien) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                
+                                <!-- Bộ lọc diễn giả -->
+                                <select name="dien_gia_id" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả diễn giả</option>
+                                    <?php foreach ($dienGiaList as $dienGia): ?>
+                                    <option value="<?= $dienGia->dien_gia_id ?>" <?= (isset($_GET['dien_gia_id']) && $_GET['dien_gia_id'] == $dienGia->dien_gia_id) ? 'selected' : '' ?>><?= esc($dienGia->ten_dien_gia) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                
+                                <!-- Bộ lọc trạng thái tham gia -->
+                                <select name="trang_thai_tham_gia" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả trạng thái</option>
+                                    <option value="xac_nhan" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'xac_nhan') ? 'selected' : '' ?>>Đã xác nhận</option>
+                                    <option value="cho_xac_nhan" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'cho_xac_nhan') ? 'selected' : '' ?>>Chờ xác nhận</option>
+                                    <option value="tu_choi" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'tu_choi') ? 'selected' : '' ?>>Từ chối</option>
+                                    <option value="khong_lien_he_duoc" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'khong_lien_he_duoc') ? 'selected' : '' ?>>Không liên hệ được</option>
+                                </select>
+                                
+                                <!-- Bộ lọc hiển thị công khai -->
+                                <select name="hien_thi_cong_khai" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả hiển thị</option>
+                                    <option value="1" <?= (isset($_GET['hien_thi_cong_khai']) && $_GET['hien_thi_cong_khai'] === '1') ? 'selected' : '' ?>>Hiển thị công khai</option>
+                                    <option value="0" <?= (isset($_GET['hien_thi_cong_khai']) && $_GET['hien_thi_cong_khai'] === '0') ? 'selected' : '' ?>>Không hiển thị công khai</option>
+                                </select>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -94,11 +129,59 @@
             </div>
         <?php endif; ?>
         
-        <?php if (!empty($keyword)): ?>
+        <?php if (!empty($keyword) || isset($_GET['trang_thai_tham_gia']) || isset($_GET['su_kien_id']) || isset($_GET['dien_gia_id']) || isset($_GET['hien_thi_cong_khai'])): ?>
             <div class="alert alert-info m-3">
                 <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
                 <div class="small">
-                    <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
+                    <?php if (!empty($keyword)): ?>
+                        <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['su_kien_id']) && $_GET['su_kien_id'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Sự kiện: 
+                            <?php 
+                                $ten_su_kien = '';
+                                foreach ($suKienList as $suKien) {
+                                    if ($suKien->su_kien_id == $_GET['su_kien_id']) {
+                                        $ten_su_kien = $suKien->ten_su_kien;
+                                        break;
+                                    }
+                                }
+                                echo esc($ten_su_kien);
+                            ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['dien_gia_id']) && $_GET['dien_gia_id'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Diễn giả: 
+                            <?php 
+                                $ten_dien_gia = '';
+                                foreach ($dienGiaList as $dienGia) {
+                                    if ($dienGia->dien_gia_id == $_GET['dien_gia_id']) {
+                                        $ten_dien_gia = $dienGia->ten_dien_gia;
+                                        break;
+                                    }
+                                }
+                                echo esc($ten_dien_gia);
+                            ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Trạng thái: 
+                            <?php 
+                                $trang_thai_map = [
+                                    'xac_nhan' => 'Đã xác nhận',
+                                    'cho_xac_nhan' => 'Chờ xác nhận',
+                                    'tu_choi' => 'Từ chối',
+                                    'khong_lien_he_duoc' => 'Không liên hệ được'
+                                ];
+                                echo $trang_thai_map[$_GET['trang_thai_tham_gia']] ?? $_GET['trang_thai_tham_gia'];
+                            ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['hien_thi_cong_khai'])): ?>
+                        <span class="badge bg-primary me-2">Hiển thị: 
+                            <?= $_GET['hien_thi_cong_khai'] === '1' ? 'Hiển thị công khai' : 'Không hiển thị công khai' ?>
+                        </span>
+                    <?php endif; ?>
                     <a href="<?= site_url($module_name . '/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>
             </div>
@@ -115,11 +198,12 @@
                                 </div>
                             </th>
                             <th width="5%" class="align-middle">ID</th>
-                            <th width="20%" class="align-middle">Tên diễn giả</th>
-                            <th width="15%" class="align-middle">Chức danh</th>
-                            <th width="15%" class="align-middle">Tổ chức</th>
-                            <th width="10%" class="align-middle">Email</th>
-                            <th width="10%" class="align-middle">Số sự kiện</th>
+                            <th width="15%" class="align-middle">Sự kiện</th>
+                            <th width="15%" class="align-middle">Diễn giả</th>
+                            <th width="5%" class="align-middle">Thứ tự</th>
+                            <th width="10%" class="align-middle">Vai trò</th>
+                            <th width="15%" class="align-middle">Thời gian trình bày</th>
+                            <th width="10%" class="align-middle">Thời lượng</th>
                             <th width="10%" class="align-middle">Trạng thái</th>
                             <th width="10%" class="text-center align-middle">Thao tác</th>
                         </tr>
@@ -127,6 +211,25 @@
                     <tbody>
                         <?php if (!empty($processedData)) : ?>
                             <?php foreach ($processedData as $item) : ?>
+                                <?php 
+                                    // Tìm tên sự kiện và diễn giả từ danh sách 
+                                    $suKienName = '';
+                                    $dienGiaName = '';
+                                    
+                                    foreach ($suKienList as $suKien) {
+                                        if ($suKien->su_kien_id == $item->getSuKienId()) {
+                                            $suKienName = $suKien->ten_su_kien;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    foreach ($dienGiaList as $dienGia) {
+                                        if ($dienGia->dien_gia_id == $item->getDienGiaId()) {
+                                            $dienGiaName = $dienGia->ten_dien_gia;
+                                            break;
+                                        }
+                                    }
+                                ?>
                                 <tr>
                                     <td class="text-center">
                                         <div class="form-check">
@@ -136,35 +239,46 @@
                                         </div>
                                     </td>
                                     <td><?= esc($item->getId()) ?></td>  
-                                    <td><?= esc($item->getTenDienGia()) ?></td> 
-                                    <td><?= esc($item->getChucDanh()) ?></td>
-                                    <td><?= esc($item->getToChuc()) ?></td>
-                                    <td><?= esc($item->getEmail()) ?></td>
+                                    <td><?= esc($suKienName) ?></td> 
+                                    <td><?= esc($dienGiaName) ?></td>
+                                    <td><?= esc($item->getThuTu()) ?></td>
+                                    <td><?= esc($item->getVaiTro()) ?></td>
                                     <td>
-                                        <?php if ($item->getSoSuKienThamGia() > 0): ?>
-                                            <span class="badge bg-info"><?= esc($item->getSoSuKienThamGia()) ?></span>
+                                        <?php if ($item->getThoiGianTrinhBay()): ?>
+                                            <?= esc($item->getThoiGianTrinhBayFormatted()) ?>
                                         <?php else: ?>
-                                            <span class="text-muted">0</span>
+                                            <span class="text-muted">Chưa xác định</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php if ($item->getStatus()): ?>
-                                            <span class="badge bg-success">Hoạt động</span>
+                                        <?php if ($item->getThoiLuongPhut()): ?>
+                                            <?= esc($item->getThoiLuongPhut()) ?> phút
                                         <?php else: ?>
-                                            <span class="badge bg-danger">Không hoạt động</span>
+                                            <span class="text-muted">Chưa xác định</span>
                                         <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php
+                                            $trang_thai = $item->getTrangThaiThamGia();
+                                            $badge_class = '';
+                                            if ($trang_thai == 'xac_nhan') $badge_class = 'bg-success';
+                                            elseif ($trang_thai == 'cho_xac_nhan') $badge_class = 'bg-warning';
+                                            elseif ($trang_thai == 'tu_choi') $badge_class = 'bg-danger';
+                                            else $badge_class = 'bg-secondary';
+                                        ?>
+                                        <span class="badge <?= $badge_class ?>"><?= $item->getTrangThaiThamGiaText() ?></span>
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <button type="button" class="btn btn-success btn-sm btn-restore w-100 h-100" 
                                                     data-id="<?= $item->getId() ?>" 
-                                                    data-name="<?= esc($item->getTenDienGia()) ?>"
+                                                    data-name="diễn giả <?= esc($dienGiaName) ?> trong sự kiện <?= esc($suKienName) ?>"
                                                     data-bs-toggle="tooltip" title="Khôi phục">
                                                 <i class="bx bx-revision"></i>
                                             </button>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
                                                     data-id="<?= $item->getId() ?>" 
-                                                    data-name="<?= esc($item->getTenDienGia()) ?>"
+                                                    data-name="diễn giả <?= esc($dienGiaName) ?> trong sự kiện <?= esc($suKienName) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa vĩnh viễn">
                                                 <i class="bx bx-trash"></i>
                                             </button>
@@ -174,7 +288,7 @@
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="9" class="text-center py-3">
+                                <td colspan="10" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class="bx bx-folder-open"></i>
                                         <p>Không có dữ liệu</p>
@@ -227,7 +341,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-revision text-success" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn khôi phục diễn giả:</p>
+                <p class="text-center">Bạn có chắc chắn muốn khôi phục:</p>
                 <p class="text-center fw-bold" id="restore-item-name"></p>
             </div>
             <div class="modal-footer">
@@ -252,7 +366,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn diễn giả:</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn:</p>
                 <p class="text-center fw-bold" id="delete-item-name"></p>
                 <div class="alert alert-danger mt-3">
                     <i class="bx bx-info-circle me-1"></i> Cảnh báo: Dữ liệu sẽ bị xóa vĩnh viễn và không thể khôi phục!

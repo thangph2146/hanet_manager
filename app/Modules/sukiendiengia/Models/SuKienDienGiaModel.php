@@ -432,6 +432,9 @@ class SuKienDienGiaModel extends BaseModel
      */
     public function searchDeleted(array $criteria = [], array $options = [])
     {
+        // Đảm bảo withDeleted được thiết lập để tìm kiếm cả các bản ghi đã xóa
+        $this->withDeleted();
+        
         $builder = $this->builder();
         
         // Chỉ lấy dữ liệu đã xóa
@@ -445,6 +448,16 @@ class SuKienDienGiaModel extends BaseModel
         // Xử lý lọc theo diễn giả
         if (isset($criteria['dien_gia_id'])) {
             $builder->where($this->table . '.dien_gia_id', $criteria['dien_gia_id']);
+        }
+        
+        // Xử lý lọc theo trạng thái tham gia
+        if (isset($criteria['trang_thai_tham_gia'])) {
+            $builder->where($this->table . '.trang_thai_tham_gia', $criteria['trang_thai_tham_gia']);
+        }
+        
+        // Xử lý lọc theo hiển thị công khai
+        if (isset($criteria['hien_thi_cong_khai'])) {
+            $builder->where($this->table . '.hien_thi_cong_khai', $criteria['hien_thi_cong_khai']);
         }
         
         if (!empty($criteria['keyword'])) {
@@ -502,6 +515,9 @@ class SuKienDienGiaModel extends BaseModel
      */
     public function countDeletedSearchResults(array $criteria = [])
     {
+        // Đảm bảo withDeleted được thiết lập để tìm kiếm cả các bản ghi đã xóa
+        $this->withDeleted();
+        
         $builder = $this->builder();
         
         // Chỉ đếm bản ghi đã xóa
@@ -515,6 +531,16 @@ class SuKienDienGiaModel extends BaseModel
         // Xử lý lọc theo diễn giả
         if (isset($criteria['dien_gia_id'])) {
             $builder->where($this->table . '.dien_gia_id', $criteria['dien_gia_id']);
+        }
+        
+        // Xử lý lọc theo trạng thái tham gia
+        if (isset($criteria['trang_thai_tham_gia'])) {
+            $builder->where($this->table . '.trang_thai_tham_gia', $criteria['trang_thai_tham_gia']);
+        }
+        
+        // Xử lý lọc theo hiển thị công khai
+        if (isset($criteria['hien_thi_cong_khai'])) {
+            $builder->where($this->table . '.hien_thi_cong_khai', $criteria['hien_thi_cong_khai']);
         }
         
         if (!empty($criteria['keyword'])) {
