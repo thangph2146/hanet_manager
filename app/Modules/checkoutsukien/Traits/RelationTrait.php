@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\checkinsukien\Traits;
+namespace App\Modules\checkoutsukien\Traits;
 
 use CodeIgniter\I18n\Time;
 

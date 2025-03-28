@@ -4,8 +4,8 @@ namespace App\Modules\checkinsukien\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\checkinsukien\Models\CheckInSuKienModel;
-use App\Modules\diengia\Models\DienGiaModel;
 use App\Modules\sukien\Models\SuKienModel;
+use App\Modules\dangkysukien\Models\DangKySuKienModel;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -27,12 +27,14 @@ class CheckInSuKien extends BaseController
     use ExportTrait;
     use RelationTrait;
     
+    protected $module_name = 'checkinsukien';
+    protected $moduleUrl;
     protected $model;
     protected $suKienModel;
+    protected $dangKySuKienModel;
     protected $alert;
-    protected $moduleUrl;
+    protected $session;
     protected $title = 'Check In Sự Kiện';
-    protected $module_name = 'checkinsukien';
     protected $controller_name = 'CheckInSuKien';
     protected $primary_key = 'checkin_sukien_id';
     // Search
@@ -69,8 +71,9 @@ class CheckInSuKien extends BaseController
         $this->session = service('session');
 
         // Khởi tạo các thành phần cần thiết
-        $this->model = new DangKySuKienModel();
+        $this->model = new CheckInSuKienModel();
         $this->suKienModel = new SuKienModel();
+        $this->dangKySuKienModel = new DangKySuKienModel();
         $this->alert = new Alert();
         
         // Thông tin module

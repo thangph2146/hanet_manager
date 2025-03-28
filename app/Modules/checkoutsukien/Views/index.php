@@ -4,14 +4,14 @@
 <?= page_css('table') ?>
 <?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>DANH SÁCH ĐĂNG KÝ SỰ KIỆN<?= $this->endSection() ?>
+<?= $this->section('title') ?>DANH SÁCH CHECK-OUT SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Danh sách đăng ký sự kiện',
+	'title' => 'Danh sách check-out sự kiện',
 	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý đăng ký sự kiện', 'url' => site_url($module_name)],
+		['title' => 'Quản lý check-out sự kiện', 'url' => site_url($module_name)],
 		['title' => 'Danh sách', 'active' => true]
 	],
 	'actions' => [
@@ -23,7 +23,7 @@
 <?= $this->section('content') ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách đăng ký sự kiện</h5>
+        <h5 class="card-title mb-0">Danh sách check-out sự kiện</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -63,7 +63,7 @@
                                 <button class="btn btn-outline-secondary btn-sm" type="submit">
                                     <i class='bx bx-search'></i>
                                 </button>
-                                <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['sukien_id']) || isset($_GET['loai_nguoi_dang_ky']) || isset($_GET['hinh_thuc_tham_gia'])): ?>
+                                <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['sukien_id']) || isset($_GET['checkout_type']) || isset($_GET['hinh_thuc_tham_gia'])): ?>
                                 <a href="<?= site_url($module_name) ?>" class="btn btn-outline-danger btn-sm">
                                     <i class='bx bx-x'></i>
                                 </a>
@@ -78,20 +78,22 @@
                                     <?php endforeach; ?>
                                 </select>
                                 
-                                <!-- Bộ lọc loại người đăng ký -->
-                                <select name="loai_nguoi_dang_ky" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
-                                    <option value="">Tất cả loại người đăng ký</option>
-                                    <option value="khach" <?= (isset($_GET['loai_nguoi_dang_ky']) && $_GET['loai_nguoi_dang_ky'] === 'khach') ? 'selected' : '' ?>>Khách mời</option>
-                                    <option value="sinh_vien" <?= (isset($_GET['loai_nguoi_dang_ky']) && $_GET['loai_nguoi_dang_ky'] === 'sinh_vien') ? 'selected' : '' ?>>Sinh viên</option>
-                                    <option value="giang_vien" <?= (isset($_GET['loai_nguoi_dang_ky']) && $_GET['loai_nguoi_dang_ky'] === 'giang_vien') ? 'selected' : '' ?>>Giảng viên</option>
+                                <!-- Bộ lọc loại check-out -->
+                                <select name="checkout_type" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả loại check-out</option>
+                                    <option value="face_id" <?= (isset($_GET['checkout_type']) && $_GET['checkout_type'] === 'face_id') ? 'selected' : '' ?>>Nhận diện khuôn mặt</option>
+                                    <option value="manual" <?= (isset($_GET['checkout_type']) && $_GET['checkout_type'] === 'manual') ? 'selected' : '' ?>>Thủ công</option>
+                                    <option value="qr_code" <?= (isset($_GET['checkout_type']) && $_GET['checkout_type'] === 'qr_code') ? 'selected' : '' ?>>Mã QR</option>
+                                    <option value="auto" <?= (isset($_GET['checkout_type']) && $_GET['checkout_type'] === 'auto') ? 'selected' : '' ?>>Tự động</option>
+                                    <option value="online" <?= (isset($_GET['checkout_type']) && $_GET['checkout_type'] === 'online') ? 'selected' : '' ?>>Trực tuyến</option>
                                 </select>
                                 
                                 <!-- Bộ lọc trạng thái -->
                                 <select name="status" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
                                     <option value="">Tất cả trạng thái</option>
-                                    <option value="1" <?= (isset($_GET['status']) && $_GET['status'] === '1') ? 'selected' : '' ?>>Đã xác nhận</option>
-                                    <option value="0" <?= (isset($_GET['status']) && $_GET['status'] === '0') ? 'selected' : '' ?>>Chờ xác nhận</option>
-                                    <option value="-1" <?= (isset($_GET['status']) && $_GET['status'] === '-1') ? 'selected' : '' ?>>Đã hủy</option>
+                                    <option value="1" <?= (isset($_GET['status']) && $_GET['status'] === '1') ? 'selected' : '' ?>>Hoạt động</option>
+                                    <option value="0" <?= (isset($_GET['status']) && $_GET['status'] === '0') ? 'selected' : '' ?>>Vô hiệu</option>
+                                    <option value="2" <?= (isset($_GET['status']) && $_GET['status'] === '2') ? 'selected' : '' ?>>Đang xử lý</option>
                                 </select>
                                 
                                 <!-- Bộ lọc hình thức tham gia -->
@@ -99,7 +101,6 @@
                                     <option value="">Tất cả hình thức</option>
                                     <option value="offline" <?= (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] === 'offline') ? 'selected' : '' ?>>Trực tiếp</option>
                                     <option value="online" <?= (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] === 'online') ? 'selected' : '' ?>>Trực tuyến</option>
-                                    <option value="hybrid" <?= (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] === 'hybrid') ? 'selected' : '' ?>>Kết hợp</option>
                                 </select>
                             </div>
                         </div>
@@ -122,7 +123,7 @@
             </div>
         <?php endif; ?>
         
-        <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['sukien_id']) || isset($_GET['loai_nguoi_dang_ky']) || isset($_GET['hinh_thuc_tham_gia'])): ?>
+        <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['sukien_id']) || isset($_GET['checkout_type']) || isset($_GET['hinh_thuc_tham_gia'])): ?>
             <div class="alert alert-info m-3">
                 <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
                 <div class="small">
@@ -143,15 +144,17 @@
                             ?>
                         </span>
                     <?php endif; ?>
-                    <?php if (isset($_GET['loai_nguoi_dang_ky']) && $_GET['loai_nguoi_dang_ky'] !== ''): ?>
-                        <span class="badge bg-primary me-2">Loại người đăng ký: 
+                    <?php if (isset($_GET['checkout_type']) && $_GET['checkout_type'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Loại check-out: 
                             <?php 
                                 $loai_map = [
-                                    'khach' => 'Khách mời',
-                                    'sinh_vien' => 'Sinh viên',
-                                    'giang_vien' => 'Giảng viên'
+                                    'face_id' => 'Nhận diện khuôn mặt',
+                                    'manual' => 'Thủ công',
+                                    'qr_code' => 'Mã QR',
+                                    'auto' => 'Tự động',
+                                    'online' => 'Trực tuyến'
                                 ];
-                                echo $loai_map[$_GET['loai_nguoi_dang_ky']] ?? $_GET['loai_nguoi_dang_ky'];
+                                echo $loai_map[$_GET['checkout_type']] ?? $_GET['checkout_type'];
                             ?>
                         </span>
                     <?php endif; ?>
@@ -159,9 +162,9 @@
                         <span class="badge bg-primary me-2">Trạng thái: 
                             <?php 
                                 $status_map = [
-                                    '1' => 'Đã xác nhận',
-                                    '0' => 'Chờ xác nhận',
-                                    '-1' => 'Đã hủy'
+                                    '1' => 'Hoạt động',
+                                    '0' => 'Vô hiệu',
+                                    '2' => 'Đang xử lý'
                                 ];
                                 echo $status_map[$_GET['status']] ?? $_GET['status'];
                             ?>
@@ -172,8 +175,7 @@
                             <?php 
                                 $hinh_thuc_map = [
                                     'offline' => 'Trực tiếp',
-                                    'online' => 'Trực tuyến',
-                                    'hybrid' => 'Kết hợp'
+                                    'online' => 'Trực tuyến'
                                 ];
                                 echo $hinh_thuc_map[$_GET['hinh_thuc_tham_gia']] ?? $_GET['hinh_thuc_tham_gia'];
                             ?>
@@ -197,8 +199,8 @@
                             <th width="15%" class="align-middle">Sự kiện</th>
                             <th width="15%" class="align-middle">Họ tên</th>
                             <th width="15%" class="align-middle">Email</th>
-                            <th width="10%" class="align-middle">Điện thoại</th>
-                            <th width="10%" class="align-middle">Loại</th>
+                            <th width="10%" class="align-middle">Thời gian check-out</th>
+                            <th width="10%" class="align-middle">Loại check-out</th>
                             <th width="10%" class="align-middle">Hình thức</th>
                             <th width="10%" class="align-middle">Trạng thái</th>
                             <th width="10%" class="text-center align-middle">Thao tác</th>
@@ -230,8 +232,8 @@
                                     <td><?= esc($suKienName) ?></td> 
                                     <td><?= esc($item->getHoTen()) ?></td>
                                     <td><?= esc($item->getEmail()) ?></td>
-                                    <td><?= esc($item->getDienThoai()) ?></td>
-                                    <td><?= esc($item->getLoaiNguoiDangKyText()) ?></td>
+                                    <td><?= esc($item->getThoiGianCheckOutFormatted()) ?></td>
+                                    <td><?= esc($item->getCheckoutTypeText()) ?></td>
                                     <td><?= esc($item->getHinhThucThamGiaText()) ?></td>
                                     <td>
                                         <div class="dropdown">
@@ -239,8 +241,8 @@
                                                 <?php
                                                     $status = $item->getStatus();
                                                     if ($status == 1) echo 'btn-success';
-                                                    elseif ($status == 0) echo 'btn-warning';
-                                                    elseif ($status == -1) echo 'btn-danger';
+                                                    elseif ($status == 0) echo 'btn-danger';
+                                                    elseif ($status == 2) echo 'btn-warning';
                                                     else echo 'btn-secondary';
                                                 ?>"
                                                     type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -249,15 +251,15 @@
                                             <ul class="dropdown-menu">
                                                 <li><a class="dropdown-item <?= $status == 1 ? 'active' : '' ?>" 
                                                     href="<?= site_url($module_name . '/updateStatus/' . $item->getId() . '/1?return_url=' . current_url()) ?>">
-                                                    Đã xác nhận
+                                                    Hoạt động
                                                 </a></li>
                                                 <li><a class="dropdown-item <?= $status == 0 ? 'active' : '' ?>"
                                                     href="<?= site_url($module_name . '/updateStatus/' . $item->getId() . '/0?return_url=' . current_url()) ?>">
-                                                    Chờ xác nhận
+                                                    Vô hiệu
                                                 </a></li>
-                                                <li><a class="dropdown-item <?= $status == -1 ? 'active' : '' ?>"
-                                                    href="<?= site_url($module_name . '/updateStatus/' . $item->getId() . '/-1?return_url=' . current_url()) ?>">
-                                                    Đã hủy
+                                                <li><a class="dropdown-item <?= $status == 2 ? 'active' : '' ?>"
+                                                    href="<?= site_url($module_name . '/updateStatus/' . $item->getId() . '/2?return_url=' . current_url()) ?>">
+                                                    Đang xử lý
                                                 </a></li>
                                             </ul>
                                         </div>
@@ -272,7 +274,7 @@
                                             </a>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
                                                     data-id="<?= $item->getId() ?>" 
-                                                    data-name="đăng ký của <?= esc($item->getHoTen()) ?> cho sự kiện <?= esc($suKienName) ?>"
+                                                    data-name="check-out của <?= esc($item->getHoTen()) ?> cho sự kiện <?= esc($suKienName) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa">
                                                 <i class="bx bx-trash"></i>
                                             </button>

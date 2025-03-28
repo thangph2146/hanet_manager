@@ -4,7 +4,7 @@ namespace App\Modules\checkoutsukien\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\checkoutsukien\Models\CheckOutSuKienModel;
-use App\Modules\diengia\Models\DienGiaModel;
+use App\Modules\dangkysukien\Models\DangKySuKienModel;
 use App\Modules\sukien\Models\SuKienModel;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
@@ -69,7 +69,7 @@ class CheckOutSuKien extends BaseController
         $this->session = service('session');
 
         // Khởi tạo các thành phần cần thiết
-        $this->model = new DangKySuKienModel();
+        $this->model = new CheckOutSuKienModel();
         $this->suKienModel = new SuKienModel();
         $this->alert = new Alert();
         
@@ -78,7 +78,6 @@ class CheckOutSuKien extends BaseController
         
         // Khởi tạo các model quan hệ
         $this->initializeRelationTrait();
-      
     }
     
 
