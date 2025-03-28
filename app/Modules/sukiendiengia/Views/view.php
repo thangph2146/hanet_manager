@@ -3,14 +3,14 @@
 <?php include __DIR__ . '/master_scripts.php'; ?>
 <?= page_css('view', $module_name) ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CHI TIẾT DIỄN GIẢ<?= $this->endSection() ?>
+<?= $this->section('title') ?>CHI TIẾT SỰ KIỆN DIỄN GIẢ<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Chi tiết diễn giả',
+    'title' => 'Chi tiết sự kiện diễn giả',
     'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Diễn giả', 'url' => site_url($module_name)],
+        ['title' => 'Quản lý Sự kiện Diễn giả', 'url' => site_url($module_name)],
         ['title' => 'Chi tiết', 'active' => true]
     ],
     'actions' => [
@@ -22,7 +22,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Chi tiết diễn giả ID: <?= esc($data->getId()) ?></h5>
+        <h5 class="card-title mb-0">Chi tiết sự kiện diễn giả ID: <?= esc($data->getId()) ?></h5>
         <div class="d-flex gap-2">  
             <a href="<?= site_url($module_name . '/edit/' . $data->getId()) ?>" class="btn btn-sm btn-primary">
                 <i class="bx bx-edit me-1"></i> Chỉnh sửa

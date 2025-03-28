@@ -493,6 +493,54 @@ class SuKienDienGia extends BaseController
     }
     
     /**
+     * Khôi phục nhiều dữ liệu từ thùng rác
+     */
+    public function restoreMultiple()
+    {
+        // Lấy các ID được chọn và URL trả về
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url');
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để khôi phục', true);
+            
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+        }
+        
+        // Log để debug
+        log_message('debug', 'RestoreMultiple - POST data: ' . json_encode($_POST));
+        log_message('debug', 'RestoreMultiple - Selected Items: ' . (is_array($selectedItems) ? json_encode($selectedItems) : $selectedItems));
+        log_message('debug', 'RestoreMultiple - Return URL: ' . ($returnUrl ?? 'None'));
+        
+        $successCount = 0;
+        
+        // Đảm bảo $selectedItems là mảng
+        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
+        
+        foreach ($idArray as $id) {
+            try {
+                if ($this->model->restore($id)) {
+                    $successCount++;
+                }
+            } catch (\Exception $e) {
+                log_message('error', '[' . $this->controller_name . '::restoreMultiple] ' . $e->getMessage());
+            }
+        }
+        
+        if ($successCount > 0) {
+            $this->alert->set('success', "Đã khôi phục $successCount dữ liệu từ thùng rác", true);
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra, không thể khôi phục dữ liệu', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+    }
+    
+    /**
      * Xóa vĩnh viễn một bản ghi
      */
     public function permanentDelete($id = null)
@@ -787,4 +835,4 @@ class SuKienDienGia extends BaseController
             $this->exportToExcel($formattedData, $title, $filename);
         }
     }
-} 
+}
