@@ -79,6 +79,7 @@ class DienGia extends BaseController
             'email' => 'Email',
             'dien_thoai' => 'Số điện thoại',
             'status' => 'Trạng thái',
+            'so_su_kien_tham_gia' => 'Số sự kiện tham gia',
             'created_at' => 'Ngày tạo'
         ];
 

@@ -167,6 +167,16 @@
                         </td>
                     </tr>
                     <tr>
+                        <th>Số sự kiện tham gia</th>
+                        <td>
+                            <?php if ($data->getSoSuKienThamGia() > 0): ?>
+                                <span class="badge bg-info"><?= esc($data->getSoSuKienThamGia()) ?></span>
+                            <?php else: ?>
+                                <span class="text-muted fst-italic">Chưa tham gia sự kiện nào</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
                         <th>Trạng thái</th>
                         <td>
                             <?php if ($data->getStatus()): ?>

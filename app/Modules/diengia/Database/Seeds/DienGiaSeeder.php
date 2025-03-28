@@ -20,7 +20,6 @@ class DienGiaSeeder extends Seeder
                 'email' => 'nguyenvana@vnu.edu.vn',
                 'dien_thoai' => '0912345678',
                 'website' => 'https://vnu.edu.vn/nguyenvana',
-                'nguoi_dung_id' => 1,
                 'chuyen_mon' => 'Công nghệ thông tin, Trí tuệ nhân tạo, Học máy, Xử lý ngôn ngữ tự nhiên',
                 'thanh_tuu' => "- Giải thưởng Khoa học Công nghệ Quốc gia 2020\n- Hơn 50 bài báo khoa học quốc tế\n- 5 bằng sáng chế\n- Chủ nhiệm 3 đề tài cấp Nhà nước\n- Giảng viên xuất sắc 5 năm liền",
                 'mang_xa_hoi' => json_encode([
@@ -30,6 +29,7 @@ class DienGiaSeeder extends Seeder
                     'researchgate' => 'https://www.researchgate.net/profile/nguyenvana'
                 ]),
                 'status' => 1,
+                'so_su_kien_tham_gia' => 8,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
@@ -43,7 +43,6 @@ class DienGiaSeeder extends Seeder
                 'email' => 'tranthib@hust.edu.vn',
                 'dien_thoai' => '0912345679',
                 'website' => 'https://hust.edu.vn/tranthib',
-                'nguoi_dung_id' => 2,
                 'chuyen_mon' => 'Khoa học máy tính, Trí tuệ nhân tạo, Xử lý ngôn ngữ tự nhiên, Hệ thống thông minh',
                 'thanh_tuu' => "- Giải thưởng Khoa học Công nghệ Quốc gia 2021\n- Hơn 30 bài báo khoa học quốc tế\n- 3 bằng sáng chế\n- Chủ nhiệm 2 đề tài cấp Bộ\n- Giảng viên xuất sắc 3 năm liền",
                 'mang_xa_hoi' => json_encode([
@@ -53,6 +52,7 @@ class DienGiaSeeder extends Seeder
                     'researchgate' => 'https://www.researchgate.net/profile/tranthib'
                 ]),
                 'status' => 1,
+                'so_su_kien_tham_gia' => 5,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
@@ -66,7 +66,6 @@ class DienGiaSeeder extends Seeder
                 'email' => 'levanc@ioit.ac.vn',
                 'dien_thoai' => '0912345680',
                 'website' => 'https://ioit.ac.vn/levanc',
-                'nguoi_dung_id' => 3,
                 'chuyen_mon' => 'Bảo mật thông tin, An ninh mạng, Mật mã học, Phát hiện xâm nhập',
                 'thanh_tuu' => "- Giải thưởng An toàn thông tin 2022\n- Hơn 20 bài báo khoa học quốc tế\n- 2 bằng sáng chế\n- Chủ nhiệm 1 đề tài cấp Nhà nước\n- Tham gia 5 dự án bảo mật cấp quốc gia",
                 'mang_xa_hoi' => json_encode([
@@ -76,6 +75,7 @@ class DienGiaSeeder extends Seeder
                     'researchgate' => 'https://www.researchgate.net/profile/levanc'
                 ]),
                 'status' => 1,
+                'so_su_kien_tham_gia' => 6,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
@@ -89,7 +89,6 @@ class DienGiaSeeder extends Seeder
                 'email' => 'phamthid@fpt.edu.vn',
                 'dien_thoai' => '0912345681',
                 'website' => 'https://fpt.edu.vn/phamthid',
-                'nguoi_dung_id' => 4,
                 'chuyen_mon' => 'Phát triển phần mềm, Công nghệ Web, UI/UX Design, Mobile Development',
                 'thanh_tuu' => "- Giải thưởng Sản phẩm CNTT xuất sắc 2023\n- Hơn 10 dự án phần mềm thương mại\n- 1 bằng sáng chế\n- Chủ nhiệm 2 đề tài cấp trường\n- Giảng viên xuất sắc 2 năm liền",
                 'mang_xa_hoi' => json_encode([
@@ -99,6 +98,7 @@ class DienGiaSeeder extends Seeder
                     'stackoverflow' => 'https://stackoverflow.com/users/phamthid'
                 ]),
                 'status' => 1,
+                'so_su_kien_tham_gia' => 3,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
@@ -112,7 +112,6 @@ class DienGiaSeeder extends Seeder
                 'email' => 'hoangvane@uit.edu.vn',
                 'dien_thoai' => '0912345682',
                 'website' => 'https://uit.edu.vn/hoangvane',
-                'nguoi_dung_id' => 5,
                 'chuyen_mon' => 'Hệ thống thông tin, Quản trị dữ liệu, Khoa học dữ liệu, Phân tích dữ liệu lớn',
                 'thanh_tuu' => "- Giải thưởng Khoa học Công nghệ Quốc gia 2019\n- Hơn 40 bài báo khoa học quốc tế\n- 4 bằng sáng chế\n- Chủ nhiệm 2 đề tài cấp Nhà nước\n- Giảng viên xuất sắc 4 năm liền",
                 'mang_xa_hoi' => json_encode([
@@ -122,6 +121,7 @@ class DienGiaSeeder extends Seeder
                     'researchgate' => 'https://www.researchgate.net/profile/hoangvane'
                 ]),
                 'status' => 1,
+                'so_su_kien_tham_gia' => 9,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
@@ -135,7 +135,6 @@ class DienGiaSeeder extends Seeder
                 'email' => 'dothif@hus.edu.vn',
                 'dien_thoai' => '0912345683',
                 'website' => 'https://hus.edu.vn/dothif',
-                'nguoi_dung_id' => 6,
                 'chuyen_mon' => 'Toán học, Lý thuyết tính toán, Toán học ứng dụng, Tối ưu hóa',
                 'thanh_tuu' => "- Giải thưởng Khoa học Công nghệ Quốc gia 2022\n- Hơn 25 bài báo khoa học quốc tế\n- 2 bằng sáng chế\n- Chủ nhiệm 1 đề tài cấp Nhà nước\n- Giảng viên xuất sắc 3 năm liền",
                 'mang_xa_hoi' => json_encode([
@@ -145,6 +144,7 @@ class DienGiaSeeder extends Seeder
                     'researchgate' => 'https://www.researchgate.net/profile/dothif'
                 ]),
                 'status' => 1,
+                'so_su_kien_tham_gia' => 4,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
@@ -158,7 +158,6 @@ class DienGiaSeeder extends Seeder
                 'email' => 'vuvang@irt.vn',
                 'dien_thoai' => '0912345684',
                 'website' => 'https://irt.vn/vuvang',
-                'nguoi_dung_id' => 7,
                 'chuyen_mon' => 'Điện tử viễn thông, Mạng không dây, IoT, Công nghệ 5G',
                 'thanh_tuu' => "- Giải thưởng Khoa học Công nghệ Quốc gia 2021\n- Hơn 15 bài báo khoa học quốc tế\n- 1 bằng sáng chế\n- Chủ nhiệm 1 đề tài cấp Bộ\n- Tham gia 3 dự án cấp quốc gia",
                 'mang_xa_hoi' => json_encode([
@@ -168,6 +167,7 @@ class DienGiaSeeder extends Seeder
                     'researchgate' => 'https://www.researchgate.net/profile/vuvang'
                 ]),
                 'status' => 1,
+                'so_su_kien_tham_gia' => 5,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
@@ -181,7 +181,6 @@ class DienGiaSeeder extends Seeder
                 'email' => 'buithih@haui.edu.vn',
                 'dien_thoai' => '0912345685',
                 'website' => 'https://haui.edu.vn/buithih',
-                'nguoi_dung_id' => 8,
                 'chuyen_mon' => 'Công nghệ phần mềm, Phát triển ứng dụng, Lập trình hướng đối tượng, Kiểm thử phần mềm',
                 'thanh_tuu' => "- Giải thưởng Sản phẩm CNTT xuất sắc 2022\n- Hơn 8 dự án phần mềm thương mại\n- Chủ nhiệm 1 đề tài cấp trường\n- Giảng viên xuất sắc 2 năm liền\n- Đào tạo hơn 500 lập trình viên",
                 'mang_xa_hoi' => json_encode([
@@ -191,6 +190,7 @@ class DienGiaSeeder extends Seeder
                     'stackoverflow' => 'https://stackoverflow.com/users/buithih'
                 ]),
                 'status' => 1,
+                'so_su_kien_tham_gia' => 2,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
@@ -204,7 +204,6 @@ class DienGiaSeeder extends Seeder
                 'email' => 'ngovani@utc.edu.vn',
                 'dien_thoai' => '0912345686',
                 'website' => 'https://utc.edu.vn/ngovani',
-                'nguoi_dung_id' => 9,
                 'chuyen_mon' => 'Hệ thống nhúng, IoT, Vi xử lý, Điều khiển tự động',
                 'thanh_tuu' => "- Giải thưởng Khoa học Công nghệ Quốc gia 2020\n- Hơn 35 bài báo khoa học quốc tế\n- 3 bằng sáng chế\n- Chủ nhiệm 2 đề tài cấp Nhà nước\n- Giảng viên xuất sắc 5 năm liền",
                 'mang_xa_hoi' => json_encode([
@@ -214,6 +213,7 @@ class DienGiaSeeder extends Seeder
                     'researchgate' => 'https://www.researchgate.net/profile/ngovani'
                 ]),
                 'status' => 1,
+                'so_su_kien_tham_gia' => 7,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null
@@ -227,7 +227,6 @@ class DienGiaSeeder extends Seeder
                 'email' => 'duongthik@tmu.edu.vn',
                 'dien_thoai' => '0912345687',
                 'website' => 'https://tmu.edu.vn/duongthik',
-                'nguoi_dung_id' => 10,
                 'chuyen_mon' => 'Thương mại điện tử, Marketing số, Quản trị thương mại điện tử, Phân tích dữ liệu kinh doanh',
                 'thanh_tuu' => "- Giải thưởng Khoa học Công nghệ Quốc gia 2021\n- Hơn 20 bài báo khoa học quốc tế\n- 1 bằng sáng chế\n- Chủ nhiệm 1 đề tài cấp Bộ\n- Giảng viên xuất sắc 3 năm liền",
                 'mang_xa_hoi' => json_encode([
@@ -237,6 +236,7 @@ class DienGiaSeeder extends Seeder
                     'researchgate' => 'https://www.researchgate.net/profile/duongthik'
                 ]),
                 'status' => 1,
+                'so_su_kien_tham_gia' => 5,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
                 'deleted_at' => null

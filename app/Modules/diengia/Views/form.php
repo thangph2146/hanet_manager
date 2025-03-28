@@ -21,7 +21,7 @@ $thanh_tuu = isset($data) ? $data->getThanhTuu() : '';
 $mang_xa_hoi = isset($data) ? $data->getMangXaHoi() : [];
 $status = isset($data) ? $data->getStatus() : 1;
 $id = isset($data) ? $data->getId() : '';
-$nguoi_dung_id = isset($data) ? $data->getNguoiDungId() : '';
+$so_su_kien_tham_gia = isset($data) ? $data->getSoSuKienThamGia() : 0;
 
 // Set default values for form action and method
 $action = isset($action) ? $action : site_url($module_name . '/create');
@@ -43,7 +43,7 @@ $chuyen_mon = old('chuyen_mon', $chuyen_mon);
 $thanh_tuu = old('thanh_tuu', $thanh_tuu);
 $mang_xa_hoi = old('mang_xa_hoi', $mang_xa_hoi);
 $status = old('status', $status);
-$nguoi_dung_id = old('nguoi_dung_id', $nguoi_dung_id);
+$so_su_kien_tham_gia = old('so_su_kien_tham_gia', $so_su_kien_tham_gia);
 ?>
 
 <!-- Form chính -->
@@ -304,32 +304,26 @@ $nguoi_dung_id = old('nguoi_dung_id', $nguoi_dung_id);
                     </div>
                 </div>
 
-                <!-- nguoi_dung_id -->
+                <!-- so_su_kien_tham_gia - Chỉ hiển thị khi chỉnh sửa, không cho phép thay đổi -->
+                <?php if ($isUpdate): ?>
                 <div class="col-md-12">
-                    <label for="nguoi_dung_id" class="form-label fw-semibold">
-                        Người dùng <span class="text-danger">*</span>
+                    <label for="so_su_kien_tham_gia" class="form-label fw-semibold">
+                        Số sự kiện tham gia
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-user-circle'></i></span>
-                        <input type="number" 
-                               class="form-control <?= isset($validation) && $validation->hasError('nguoi_dung_id') ? 'is-invalid' : '' ?>" 
-                               id="nguoi_dung_id" name="nguoi_dung_id"
-                               value="<?= esc($nguoi_dung_id) ?>"
-                               placeholder="Nhập ID người dùng"
-                               required>
-                        <?php if (isset($validation) && $validation->hasError('nguoi_dung_id')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('nguoi_dung_id') ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng nhập ID người dùng</div>
-                        <?php endif; ?>
+                        <span class="input-group-text bg-light"><i class='bx bx-calendar-event'></i></span>
+                        <input type="text" 
+                               class="form-control" 
+                               id="so_su_kien_tham_gia"
+                               value="<?= esc($so_su_kien_tham_gia) ?>"
+                               readonly>
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        ID người dùng là bắt buộc và phải là số nguyên
+                        Số sự kiện tham gia được cập nhật tự động và không thể chỉnh sửa trực tiếp
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <!-- mang_xa_hoi -->
                 <div class="col-md-12">

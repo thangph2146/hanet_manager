@@ -18,8 +18,8 @@ class DienGia extends BaseEntity
     
     protected $casts = [
         'dien_gia_id' => 'int',
-        'nguoi_dung_id' => 'int',
         'status' => 'boolean',
+        'so_su_kien_tham_gia' => 'int',
         'mang_xa_hoi' => 'json',
         'created_at' => 'timestamp',
         'updated_at' => 'timestamp',
@@ -29,6 +29,7 @@ class DienGia extends BaseEntity
     // Định nghĩa các chỉ mục
     protected $indexes = [
         'idx_ten_dien_gia' => ['ten_dien_gia'],
+        'idx_to_chuc' => ['to_chuc'],
         'idx_email' => ['email'],
         'idx_status' => ['status']
     ];
@@ -72,10 +73,6 @@ class DienGia extends BaseEntity
             'rules' => 'permit_empty|valid_url|max_length[255]',
             'label' => 'Website'
         ],
-        'nguoi_dung_id' => [
-            'rules' => 'permit_empty|integer|is_not_unique[users.id]',
-            'label' => 'Người dùng'
-        ],
         'chuyen_mon' => [
             'rules' => 'permit_empty',
             'label' => 'Chuyên môn'
@@ -91,6 +88,10 @@ class DienGia extends BaseEntity
         'status' => [
             'rules' => 'required|in_list[0,1]',
             'label' => 'Trạng thái'
+        ],
+        'so_su_kien_tham_gia' => [
+            'rules' => 'permit_empty|integer|greater_than_equal_to[0]',
+            'label' => 'Số sự kiện tham gia'
         ]
     ];
     
@@ -120,13 +121,13 @@ class DienGia extends BaseEntity
             'valid_url' => '{field} không hợp lệ',
             'max_length' => '{field} không được vượt quá 255 ký tự'
         ],
-        'nguoi_dung_id' => [
-            'integer' => '{field} phải là số nguyên',
-            'is_not_unique' => '{field} không tồn tại trong hệ thống'
-        ],
         'status' => [
             'required' => '{field} là bắt buộc',
             'in_list' => '{field} không hợp lệ'
+        ],
+        'so_su_kien_tham_gia' => [
+            'integer' => '{field} phải là số nguyên',
+            'greater_than_equal_to' => '{field} không được nhỏ hơn 0'
         ]
     ];
     
@@ -221,16 +222,6 @@ class DienGia extends BaseEntity
     }
     
     /**
-     * Lấy ID người dùng
-     *
-     * @return int|null
-     */
-    public function getNguoiDungId(): ?int
-    {
-        return $this->attributes['nguoi_dung_id'] ? (int)$this->attributes['nguoi_dung_id'] : null;
-    }
-    
-    /**
      * Lấy chuyên môn
      *
      * @return string|null
@@ -257,15 +248,13 @@ class DienGia extends BaseEntity
      */
     public function getMangXaHoi(): ?array
     {
-        if (empty($this->attributes['mang_xa_hoi'])) {
-            return null;
+        $mangXaHoi = $this->attributes['mang_xa_hoi'] ?? null;
+        
+        if (is_string($mangXaHoi)) {
+            return json_decode($mangXaHoi, true);
         }
         
-        if (is_string($this->attributes['mang_xa_hoi'])) {
-            return json_decode($this->attributes['mang_xa_hoi'], true);
-        }
-        
-        return $this->attributes['mang_xa_hoi'];
+        return $mangXaHoi;
     }
     
     /**
@@ -275,7 +264,17 @@ class DienGia extends BaseEntity
      */
     public function getStatus(): bool
     {
-        return (bool)($this->attributes['status'] ?? true);
+        return (bool)($this->attributes['status'] ?? 1);
+    }
+    
+    /**
+     * Lấy số sự kiện tham gia
+     *
+     * @return int
+     */
+    public function getSoSuKienThamGia(): int
+    {
+        return (int)($this->attributes['so_su_kien_tham_gia'] ?? 0);
     }
     
     /**
@@ -285,13 +284,17 @@ class DienGia extends BaseEntity
      */
     public function getCreatedAt(): ?Time
     {
-        if (empty($this->attributes['created_at'])) {
+        $created = $this->attributes['created_at'] ?? null;
+        
+        if (empty($created)) {
             return null;
         }
         
-        return $this->attributes['created_at'] instanceof Time 
-            ? $this->attributes['created_at'] 
-            : new Time($this->attributes['created_at']);
+        if ($created instanceof Time) {
+            return $created;
+        }
+        
+        return new Time($created);
     }
     
     /**

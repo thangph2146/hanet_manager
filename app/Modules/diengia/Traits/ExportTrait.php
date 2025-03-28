@@ -29,12 +29,13 @@ trait ExportTrait
         'Chuyên môn' => 'J',
         'Thành tựu' => 'K',
         'Mạng xã hội' => 'L',
-        'Trạng thái' => 'M',
-        'Ngày tạo' => 'N',
-        'Ngày cập nhật' => 'O'
+        'Số sự kiện tham gia' => 'M',
+        'Trạng thái' => 'N',
+        'Ngày tạo' => 'O',
+        'Ngày cập nhật' => 'P'
     ];
     protected $header_title_deleted =  [
-        'Ngày xóa' => 'P'
+        'Ngày xóa' => 'Q'
     ];
 
     protected $excel_row = [
@@ -50,10 +51,11 @@ trait ExportTrait
         'J' => ['method' => 'getChuyenMon', 'align' => 'left', 'wrap' => true],
         'K' => ['method' => 'getThanhTuu', 'align' => 'left', 'wrap' => true],
         'L' => ['method' => 'getMangXaHoi', 'align' => 'left', 'wrap' => true, 'json' => true],
-        'M' => ['method' => 'getStatus', 'align' => 'center', 'format' => 'status'],
-        'N' => ['method' => 'getCreatedAtFormatted', 'align' => 'center'],
-        'O' => ['method' => 'getUpdatedAtFormatted', 'align' => 'center'],
-        'P' => ['method' => 'getDeletedAtFormatted', 'align' => 'center']
+        'M' => ['method' => 'getSoSuKienThamGia', 'align' => 'center'],
+        'N' => ['method' => 'getStatus', 'align' => 'center', 'format' => 'status'],
+        'O' => ['method' => 'getCreatedAtFormatted', 'align' => 'center'],
+        'P' => ['method' => 'getUpdatedAtFormatted', 'align' => 'center'],
+        'Q' => ['method' => 'getDeletedAtFormatted', 'align' => 'center']
     ];
 
     protected function getLastColumn()
@@ -237,7 +239,13 @@ trait ExportTrait
                     
                     // Xử lý định dạng đặc biệt
                     if (isset($config['json']) && $config['json'] && is_array($value)) {
-                        $value = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                        // Thay đổi format hiển thị mạng xã hội để dễ đọc hơn
+                        $formattedValue = '';
+                        foreach ($value as $platform => $url) {
+                            $platformName = ucfirst($platform);
+                            $formattedValue .= "{$platformName}: {$url}\n";
+                        }
+                        $value = $formattedValue;
                     } elseif (isset($config['format'])) {
                         switch ($config['format']) {
                             case 'status':

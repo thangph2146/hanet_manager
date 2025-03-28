@@ -126,13 +126,14 @@
                                 </div>
                             </th>
                             <th width="5%" class="align-middle">ID</th>
-                            <th width="20%" class="align-middle">Tên diễn giả</th>
-                            <th width="15%" class="align-middle">Chức danh</th>
+                            <th width="15%" class="align-middle">Tên diễn giả</th>
+                            <th width="10%" class="align-middle">Chức danh</th>
                             <th width="15%" class="align-middle">Tổ chức</th>
                             <th width="10%" class="align-middle">Email</th>
                             <th width="10%" class="align-middle">Số điện thoại</th>
+                            <th width="10%" class="align-middle">Số sự kiện</th>
                             <th width="10%" class="align-middle">Trạng thái</th>
-                            <th width="20%" class="text-center align-middle">Thao tác</th>
+                            <th width="15%" class="text-center align-middle">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -152,6 +153,7 @@
                                     <td><?= esc($item->getToChuc()) ?></td>
                                     <td><?= esc($item->getEmail()) ?></td>
                                     <td><?= esc($item->getDienThoai()) ?></td>
+                                    <td><?= esc($item->getSoSuKienThamGia()) ?></td>
                                     <td>
                                         <form action="<?= site_url($module_name . '/statusMultiple') ?>" 
                                             method="post" class="d-inline">
@@ -185,7 +187,7 @@
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="9" class="text-center py-3">
+                                <td colspan="10" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class="bx bx-folder-open"></i>
                                         <p>Không có dữ liệu</p>

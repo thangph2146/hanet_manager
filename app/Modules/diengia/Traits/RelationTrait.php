@@ -19,6 +19,7 @@ trait RelationTrait
         'thanh_tuu' => 'getThanhTuu',
         'mang_xa_hoi' => 'getMangXaHoi',
         'status' => 'getStatus',
+        'so_su_kien_tham_gia' => 'getSoSuKienThamGia',
         'created_at_formatted' => 'getCreatedAtFormatted',
         'updated_at_formatted' => 'getUpdatedAtFormatted',
         'deleted_at_formatted' => 'getDeletedAtFormatted',

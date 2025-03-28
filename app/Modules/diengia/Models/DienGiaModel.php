@@ -31,11 +31,11 @@ class DienGiaModel extends BaseModel
         'email',
         'dien_thoai',
         'website',
-        'nguoi_dung_id',
         'chuyen_mon',
         'thanh_tuu',
         'mang_xa_hoi',
         'status',
+        'so_su_kien_tham_gia',
         'created_at',
         'updated_at',
         'deleted_at'

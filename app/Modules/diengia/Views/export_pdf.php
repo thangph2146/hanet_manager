@@ -111,6 +111,7 @@
                 <th>Chuyên môn</th>
                 <th>Thành tựu</th>
                 <th>Mạng xã hội</th>
+                <th>Số sự kiện</th>
                 <th>Trạng thái</th>
                 <th>Ngày tạo</th>
                 <th>Ngày cập nhật</th>
@@ -132,7 +133,16 @@
                 <td><?= $item->getWebsite() ?></td>
                 <td><?= $item->getChuyenMon() ?></td>
                 <td><?= $item->getThanhTuu() ?></td>
-                <td><?= is_array($item->getMangXaHoi()) ? json_encode($item->getMangXaHoi(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '' ?></td>
+                <td>
+                    <?php if (is_array($item->getMangXaHoi()) && !empty($item->getMangXaHoi())): ?>
+                        <?php foreach ($item->getMangXaHoi() as $platform => $url): ?>
+                            <div><strong><?= ucfirst($platform) ?>:</strong> <?= $url ?></div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <?= is_array($item->getMangXaHoi()) ? '' : $item->getMangXaHoi() ?>
+                    <?php endif; ?>
+                </td>
+                <td class="text-center"><?= $item->getSoSuKienThamGia() ?></td>
                 <td class="text-center">
                     <?php if ($item->getStatus()): ?>
                         <span class="status-active">Hoạt động</span>
