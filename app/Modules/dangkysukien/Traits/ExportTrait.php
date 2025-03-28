@@ -14,49 +14,47 @@ use CodeIgniter\I18n\Time;
 trait ExportTrait
 {
     protected $export_title = 'DANH SÁCH ĐĂNG KÝ SỰ KIỆN';
-    protected $search_field = 'ten_su_kien';
+    protected $search_field = 'ngay_dang_ky';
     protected $search_order = 'DESC';
-    protected $header_title =  [
+    protected $header_title = [
         'STT' => 'A',
         'ID' => 'B',
         'Tên sự kiện' => 'C',
-        'Email' => 'D',
-        'Họ tên' => 'E',
+        'Họ tên' => 'D',
+        'Email' => 'E',
         'Điện thoại' => 'F',
-        'Ngày đăng ký' => 'G',
-        'Trạng thái' => 'H',
-        'Ngày tạo' => 'I',
-        'Ngày cập nhật' => 'J',
-        'Ngày xóa' => 'K',
-        'Giới thiệu' => 'L',
-        'Chuyên môn' => 'M',
-        'Thành tựu' => 'N',
-        'Mạng xã hội' => 'O',
-        'Số sự kiện tham gia' => 'N',
-        'Trạng thái' => 'O',
+        'Loại người đăng ký' => 'G',
+        'Hình thức tham gia' => 'H',
+        'Ngày đăng ký' => 'I',
+        'Trạng thái' => 'J',
+        'Trạng thái tham dự' => 'K',
+        'Số phút tham dự' => 'L',
+        'Phương thức điểm danh' => 'M',
+        'Đã check-in' => 'N',
+        'Đã check-out' => 'O',
         'Ngày tạo' => 'P',
         'Ngày cập nhật' => 'Q'
     ];
-    protected $header_title_deleted =  [
+    protected $header_title_deleted = [
         'Ngày xóa' => 'R'
     ];
 
     protected $excel_row = [
         'A' => ['method' => null, 'align' => 'center'], // STT
         'B' => ['method' => 'getId', 'align' => 'center'],
-        'C' => ['method' => 'getTenSuKienDienGia', 'align' => 'left'],
-        'D' => ['method' => 'getTenDienGia', 'align' => 'left'],
-        'E' => ['method' => 'getChucDanh', 'align' => 'left'],
-        'F' => ['method' => 'getToChuc', 'align' => 'left'],
-        'G' => ['method' => 'getEmail', 'align' => 'left'],
-        'H' => ['method' => 'getDienThoai', 'align' => 'left'],
-        'I' => ['method' => 'getWebsite', 'align' => 'left'],
-        'J' => ['method' => 'getGioiThieu', 'align' => 'left', 'wrap' => true],
-        'K' => ['method' => 'getChuyenMon', 'align' => 'left', 'wrap' => true],
-        'L' => ['method' => 'getThanhTuu', 'align' => 'left', 'wrap' => true],
-        'M' => ['method' => 'getMangXaHoi', 'align' => 'left', 'wrap' => true, 'json' => true],
-        'N' => ['method' => 'getSoSuKienThamGia', 'align' => 'center'],
-        'O' => ['method' => 'getStatus', 'align' => 'center', 'format' => 'status'],
+        'C' => ['method' => 'getTenSuKien', 'align' => 'left'],
+        'D' => ['method' => 'getHoTen', 'align' => 'left'],
+        'E' => ['method' => 'getEmail', 'align' => 'left'],
+        'F' => ['method' => 'getDienThoai', 'align' => 'left'],
+        'G' => ['method' => 'getLoaiNguoiDangKyText', 'align' => 'left'],
+        'H' => ['method' => 'getHinhThucThamGiaText', 'align' => 'left'],
+        'I' => ['method' => 'getNgayDangKyFormatted', 'align' => 'center'],
+        'J' => ['method' => 'getStatusText', 'align' => 'center'],
+        'K' => ['method' => 'getAttendanceStatusText', 'align' => 'center'],
+        'L' => ['method' => 'getAttendanceTimeFormatted', 'align' => 'center'],
+        'M' => ['method' => 'getDiemDanhBangText', 'align' => 'center'],
+        'N' => ['method' => 'isDaCheckIn', 'align' => 'center', 'format' => 'boolean'],
+        'O' => ['method' => 'isDaCheckOut', 'align' => 'center', 'format' => 'boolean'],
         'P' => ['method' => 'getCreatedAtFormatted', 'align' => 'center'],
         'Q' => ['method' => 'getUpdatedAtFormatted', 'align' => 'center'],
         'R' => ['method' => 'getDeletedAtFormatted', 'align' => 'center']
@@ -79,6 +77,10 @@ trait ExportTrait
             $criteria['keyword'] = $keyword;
         }
         
+        if (isset($status)) {
+            $criteria['status'] = $status;
+        }
+        
         if ($includeDeleted) {
             $criteria['deleted'] = true;
         }
@@ -91,7 +93,6 @@ trait ExportTrait
      */
     protected function prepareSearchOptions($sort, $order)
     {
-        // Nếu không có sort được chỉ định, mặc định là sắp xếp theo thứ tự tăng dần
         if (empty($sort)) {
             $sort = $this->search_field;
             $order = $this->search_order;
@@ -100,7 +101,7 @@ trait ExportTrait
         return [
             'sort' => $sort,
             'order' => $order,
-            'limit' => 1000 // Giới hạn số lượng bản ghi xuất
+            'limit' => 1000
         ];
     }
 
@@ -109,7 +110,6 @@ trait ExportTrait
      */
     protected function getExportData($criteria, $options)
     {
-        // Lấy dữ liệu từ model
         $data = isset($criteria['deleted']) && $criteria['deleted'] 
             ? $this->model->searchDeleted($criteria, $options)
             : $this->model->search($criteria, $options);
@@ -242,16 +242,11 @@ trait ExportTrait
                     $value = $method ? $item->$method() : '';
                     
                     // Xử lý định dạng đặc biệt
-                    if (isset($config['json']) && $config['json'] && is_array($value)) {
-                        // Thay đổi format hiển thị mạng xã hội để dễ đọc hơn
-                        $formattedValue = '';
-                        foreach ($value as $platform => $url) {
-                            $platformName = ucfirst($platform);
-                            $formattedValue .= "{$platformName}: {$url}\n";
-                        }
-                        $value = $formattedValue;
-                    } elseif (isset($config['format'])) {
+                    if (isset($config['format'])) {
                         switch ($config['format']) {
+                            case 'boolean':
+                                $value = $value ? 'Có' : 'Không';
+                                break;
                             case 'status':
                                 $value = $value ? 'Hoạt động' : 'Không hoạt động';
                                 break;
@@ -347,10 +342,6 @@ trait ExportTrait
 
     /**
      * Format filters để hiển thị trong báo cáo
-     * 
-     * @param array $filters Mảng các bộ lọc cần định dạng
-     * @param bool $forHTML True nếu định dạng cho HTML, False nếu trả về mảng cho Excel
-     * @return string|array Chuỗi HTML hoặc mảng tùy theo tham số $forHTML
      */
     protected function formatFilters($filters, $forHTML = false)
     {
@@ -372,41 +363,25 @@ trait ExportTrait
 
     /**
      * Xử lý xuất dữ liệu ra file Excel hoặc PDF
-     *
-     * @param array $data Dữ liệu cần xuất
-     * @param string $type Loại file (excel hoặc pdf)
-     * @param array $criteria Tiêu chí tìm kiếm đã sử dụng
-     * @param bool $isDeleted Có phải dữ liệu đã xóa không
-     * @return \CodeIgniter\HTTP\ResponseInterface
      */
     protected function exportData($data, $type = 'excel', $criteria = [], $isDeleted = false)
     {
         // Định dạng tiêu đề
-        $title = $isDeleted ? 'DANH SÁCH SỰ KIỆN DIỄN GIẢ ĐÃ XÓA' : 'DANH SÁCH SỰ KIỆN DIỄN GIẢ';
+        $title = $isDeleted ? 'DANH SÁCH ĐĂNG KÝ SỰ KIỆN ĐÃ XÓA' : 'DANH SÁCH ĐĂNG KÝ SỰ KIỆN';
         
         // Tạo tên file dựa trên loại và thời gian
-        $filename = 'su_kien_dien_gia_' . ($isDeleted ? 'deleted_' : '') . date('YmdHis');
+        $filename = 'dang_ky_su_kien_' . ($isDeleted ? 'deleted_' : '') . date('YmdHis');
         
-        // Định dạng bộ lọc cho báo cáo - định dạng khác nhau dựa trên loại xuất
+        // Định dạng bộ lọc cho báo cáo
         if ($type === 'excel') {
-            // Chuẩn bị bộ lọc dạng mảng cho Excel
             $filters = $this->formatFilters($criteria, false);
-            
-            // Chuẩn bị headers cho Excel
             $headers = $this->prepareExcelHeaders($isDeleted);
-            
-            // Tạo và xuất file Excel
             return $this->createExcelFile($data, $headers, $filters, $filename, $isDeleted);
-            
         } elseif ($type === 'pdf') {
-            // Chuẩn bị bộ lọc dạng HTML cho PDF
             $filters = $this->formatFilters($criteria, true);
-            
-            // Tạo và xuất file PDF
             return $this->createPdfFile($data, $filters, $title, $filename, $isDeleted);
         }
         
-        // Trường hợp không hợp lệ, quay về trang danh sách
         $this->alert->set('danger', 'Loại xuất dữ liệu không hợp lệ', true);
         return redirect()->to($this->moduleUrl);
     }
