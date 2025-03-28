@@ -407,20 +407,38 @@ function nav_config() {
                 ]
             ],
             [
-                'title' => 'Quản lý Đăng Ký Sự Kiện',
+                'title' => 'Quản lý Check In Sự Kiện',
                 'icon' => 'bx bx-calendar-event',
                 'submenu' => [
                     [
-                        'title' => 'Danh Sách Đăng Ký Sự Kiện',
-                        'url' => site_url('dangkysukien')
+                        'title' => 'Danh Sách Check In Sự Kiện',
+                        'url' => site_url('checkinsukien')
                     ],
                     [
-                        'title' => 'Danh sách Đăng Ký Sự Kiện bị xóa',
-                        'url' => site_url('dangkysukien/listdeleted')
+                        'title' => 'Danh sách Check In Sự Kiện bị xóa',
+                        'url' => site_url('checkinsukien/listdeleted')
                     ],
                     [
-                        'title' => 'Thêm Đăng Ký Sự Kiện mới',
-                        'url' => site_url('dangkysukien/new')
+                        'title' => 'Thêm Check In Sự Kiện mới',
+                        'url' => site_url('checkinsukien/new')
+                    ]
+                ]
+            ],
+            [
+                'title' => 'Quản lý Check Out Sự Kiện',
+                'icon' => 'bx bx-calendar-event',
+                'submenu' => [
+                    [
+                        'title' => 'Danh Sách Check Out Sự Kiện',
+                        'url' => site_url('checkoutsukien')
+                    ],
+                    [
+                        'title' => 'Danh sách Check Out Sự Kiện bị xóa',
+                        'url' => site_url('checkoutsukien/listdeleted')
+                    ],
+                    [
+                        'title' => 'Thêm Check Out Sự Kiện mới',
+                        'url' => site_url('checkoutsukien/new')
                     ]
                 ]
             ],
