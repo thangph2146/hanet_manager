@@ -88,10 +88,6 @@ class DienGia extends BaseEntity
         'status' => [
             'rules' => 'required|in_list[0,1]',
             'label' => 'Trạng thái'
-        ],
-        'so_su_kien_tham_gia' => [
-            'rules' => 'permit_empty|integer|greater_than_equal_to[0]',
-            'label' => 'Số sự kiện tham gia'
         ]
     ];
     
@@ -124,10 +120,6 @@ class DienGia extends BaseEntity
         'status' => [
             'required' => '{field} là bắt buộc',
             'in_list' => '{field} không hợp lệ'
-        ],
-        'so_su_kien_tham_gia' => [
-            'integer' => '{field} phải là số nguyên',
-            'greater_than_equal_to' => '{field} không được nhỏ hơn 0'
         ]
     ];
     

@@ -315,6 +315,7 @@ $so_su_kien_tham_gia = old('so_su_kien_tham_gia', $so_su_kien_tham_gia);
                         <input type="text" 
                                class="form-control" 
                                id="so_su_kien_tham_gia"
+                               name="so_su_kien_tham_gia"
                                value="<?= esc($so_su_kien_tham_gia) ?>"
                                readonly>
                     </div>
