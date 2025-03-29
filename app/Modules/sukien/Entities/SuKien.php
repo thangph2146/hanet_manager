@@ -177,16 +177,33 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy thông tin poster sự kiện
+     * Lấy giá trị poster sự kiện
      * 
-     * @return array|null
+     * @return array|object|string|null
      */
-    public function getSuKienPoster(): ?array
+    public function getSuKienPoster()
     {
         $poster = $this->attributes['su_kien_poster'] ?? null;
         
+        // Nếu là null hoặc chuỗi rỗng, trả về giá trị mặc định
+        if (empty($poster)) {
+            return null;
+        }
+        
+        // Nếu đã là mảng hoặc đối tượng, trả về luôn
+        if (is_array($poster) || is_object($poster)) {
+            return $poster;
+        }
+        
+        // Thử chuyển đổi từ JSON
         if (is_string($poster)) {
-            return json_decode($poster, true);
+            $decoded = json_decode($poster);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $decoded;
+            }
+            
+            // Nếu không phải JSON, coi như đường dẫn file
+            return $poster;
         }
         
         return $poster;
@@ -535,19 +552,34 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy lịch trình
+     * Lấy giá trị lịch trình
      * 
      * @return array|null
      */
-    public function getLichTrinh(): ?array
+    public function getLichTrinh()
     {
         $lichTrinh = $this->attributes['lich_trinh'] ?? null;
         
-        if (is_string($lichTrinh)) {
-            return json_decode($lichTrinh, true);
+        // Nếu là null hoặc chuỗi rỗng, trả về mảng rỗng
+        if (empty($lichTrinh)) {
+            return [];
         }
         
-        return $lichTrinh;
+        // Nếu đã là mảng, trả về luôn
+        if (is_array($lichTrinh)) {
+            return $lichTrinh;
+        }
+        
+        // Thử chuyển đổi từ JSON
+        if (is_string($lichTrinh)) {
+            $decoded = json_decode($lichTrinh, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $decoded;
+            }
+        }
+        
+        // Nếu không thể chuyển đổi, trả về mảng rỗng
+        return [];
     }
     
     /**

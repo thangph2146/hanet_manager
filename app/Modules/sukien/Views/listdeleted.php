@@ -4,14 +4,14 @@
 <?= page_css('table') ?>
 <?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>THÙNG RÁC - DIỄN GIẢ<?= $this->endSection() ?>
+<?= $this->section('title') ?>THÙNG RÁC - SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thùng rác - Diễn giả',
+	'title' => 'Thùng rác - Sự kiện',
 	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Diễn giả', 'url' => site_url($module_name)],
+		['title' => 'Quản lý Sự kiện', 'url' => site_url($module_name)],
 		['title' => 'Thùng rác', 'active' => true]
 	],
 	'actions' => [
@@ -23,7 +23,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách diễn giả đã xóa</h5>
+        <h5 class="card-title mb-0">Danh sách sự kiện đã xóa</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -44,7 +44,7 @@
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
                     <a href="<?= site_url($module_name) ?>" class="btn btn-outline-primary btn-sm">
-                        <i class='bx bx-arrow-back'></i> Danh sách diễn giả
+                        <i class='bx bx-arrow-back'></i> Danh sách sự kiện
                     </a>
                     <form id="form-restore-multiple" action="<?= site_url($module_name . '/restoreMultiple') ?>" method="post" class="d-inline">
                         <?= csrf_field() ?>
@@ -115,13 +115,14 @@
                                 </div>
                             </th>
                             <th width="5%" class="align-middle">ID</th>
-                            <th width="20%" class="align-middle">Tên diễn giả</th>
-                            <th width="15%" class="align-middle">Chức danh</th>
-                            <th width="15%" class="align-middle">Tổ chức</th>
-                            <th width="10%" class="align-middle">Email</th>
-                            <th width="10%" class="align-middle">Số sự kiện</th>
-                            <th width="10%" class="align-middle">Trạng thái</th>
-                            <th width="10%" class="text-center align-middle">Thao tác</th>
+                            <th width="20%" class="align-middle">Tên sự kiện</th>
+                            <th width="10%" class="align-middle">Thời gian bắt đầu</th>
+                            <th width="10%" class="align-middle">Thời gian kết thúc</th>
+                            <th width="15%" class="align-middle">Địa điểm</th>
+                            <th width="10%" class="align-middle">Loại sự kiện</th>
+                            <th width="5%" class="align-middle">Hình thức</th>
+                            <th width="5%" class="align-middle">Trạng thái</th>
+                            <th width="15%" class="text-center align-middle">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -136,35 +137,58 @@
                                         </div>
                                     </td>
                                     <td><?= esc($item->getId()) ?></td>  
-                                    <td><?= esc($item->getTenDienGia()) ?></td> 
-                                    <td><?= esc($item->getChucDanh()) ?></td>
-                                    <td><?= esc($item->getToChuc()) ?></td>
-                                    <td><?= esc($item->getEmail()) ?></td>
                                     <td>
-                                        <?php if ($item->getSoSuKienThamGia() > 0): ?>
-                                            <span class="badge bg-info"><?= esc($item->getSoSuKienThamGia()) ?></span>
-                                        <?php else: ?>
-                                            <span class="text-muted">0</span>
+                                        <?= esc($item->getTenSuKien()) ?>
+                                        <?php if (!empty($item->getSlug())): ?>
+                                            <div class="small text-muted">
+                                                <i class="bx bx-link-alt"></i> <?= esc($item->getSlug()) ?>
+                                            </div>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php if ($item->getStatus()): ?>
-                                            <span class="badge bg-success">Hoạt động</span>
+                                        <?= esc($item->thoi_gian_bat_dau_formatted) ?>
+                                    </td>
+                                    <td>
+                                        <?= esc($item->thoi_gian_ket_thuc_formatted) ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($item->getDiaDiem())): ?>
+                                            <?= esc($item->getDiaDiem()) ?>
+                                            <?php if (!empty($item->getDiaChiCuThe())): ?>
+                                                <div class="small text-muted"><?= esc($item->getDiaChiCuThe()) ?></div>
+                                            <?php endif; ?>
                                         <?php else: ?>
-                                            <span class="badge bg-danger">Không hoạt động</span>
+                                            <span class="text-muted">Chưa cập nhật</span>
                                         <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($item->loaiSuKien)): ?>
+                                            <?= esc($item->loaiSuKien->ten_loai_su_kien) ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">Không xác định</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-<?= $item->getHinhThuc() === 'offline' ? 'success' : ($item->getHinhThuc() === 'online' ? 'info' : 'warning') ?>">
+                                            <?= esc($item->hinh_thuc_text) ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-<?= $item->getStatus() ? 'success' : 'danger' ?>">
+                                            <?= esc($item->status_text) ?>
+                                        </span>
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <button type="button" class="btn btn-success btn-sm btn-restore w-100 h-100" 
                                                     data-id="<?= $item->getId() ?>" 
-                                                    data-name="<?= esc($item->getTenDienGia()) ?>"
+                                                    data-name="<?= esc($item->getTenSuKien()) ?>"
                                                     data-bs-toggle="tooltip" title="Khôi phục">
                                                 <i class="bx bx-revision"></i>
                                             </button>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
                                                     data-id="<?= $item->getId() ?>" 
-                                                    data-name="<?= esc($item->getTenDienGia()) ?>"
+                                                    data-name="<?= esc($item->getTenSuKien()) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa vĩnh viễn">
                                                 <i class="bx bx-trash"></i>
                                             </button>
@@ -174,7 +198,7 @@
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="9" class="text-center py-3">
+                                <td colspan="10" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class="bx bx-folder-open"></i>
                                         <p>Không có dữ liệu</p>
@@ -227,7 +251,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-revision text-success" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn khôi phục diễn giả:</p>
+                <p class="text-center">Bạn có chắc chắn muốn khôi phục sự kiện:</p>
                 <p class="text-center fw-bold" id="restore-item-name"></p>
             </div>
             <div class="modal-footer">
@@ -252,7 +276,7 @@
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn diễn giả:</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn sự kiện:</p>
                 <p class="text-center fw-bold" id="delete-item-name"></p>
                 <div class="alert alert-danger mt-3">
                     <i class="bx bx-info-circle me-1"></i> Cảnh báo: Dữ liệu sẽ bị xóa vĩnh viễn và không thể khôi phục!

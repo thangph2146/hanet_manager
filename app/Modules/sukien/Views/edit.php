@@ -4,14 +4,14 @@
 <?= page_css('form') ?>
 <?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CẬP NHẬT SỰ KIỆN DIỄN GIẢ<?= $this->endSection() ?>
+<?= $this->section('title') ?>CẬP NHẬT SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Cập nhật sự kiện diễn giả',
+    'title' => 'Cập nhật sự kiện',
     'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý sự kiện diễn giả', 'url' => site_url($module_name)],
+        ['title' => 'Quản lý sự kiện', 'url' => site_url($module_name)],
         ['title' => 'Cập nhật', 'active' => true]
     ],
     'actions' => [

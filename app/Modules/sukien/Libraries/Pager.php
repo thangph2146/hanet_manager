@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Modules\sukiendiengia\Libraries;
+namespace App\Modules\sukien\Libraries;
 
 /**
- * Lớp Pager - cung cấp chức năng phân trang cho module HeDaoTao
+ * Lớp Pager - cung cấp chức năng phân trang cho module SuKien
  * 
  * Lớp này thay thế cho \CodeIgniter\Pager\Pager mặc định để tùy chỉnh
- * cách hiển thị và xử lý phân trang riêng cho module HeDaoTao.
+ * cách hiển thị và xử lý phân trang riêng cho module SuKien.
  */
 class Pager
 {
@@ -15,7 +15,7 @@ class Pager
      * 
      * @var string
      */
-    protected $module_name = 'sukiendiengia';
+    protected $module_name = 'sukien';
 
     /**
      * Số lượng trang hiển thị xung quanh trang hiện tại
