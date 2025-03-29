@@ -256,6 +256,12 @@ class DienGiaModel extends BaseModel
         // Loại bỏ validation cho dien_gia_id trong mọi trường hợp
         unset($this->validationRules['dien_gia_id']);
         
+        // Loại bỏ trường avatar khỏi validation để tránh lỗi khi upload file
+        unset($this->validationRules['avatar']);
+        
+        // Loại bỏ trường so_su_kien_tham_gia khỏi validation
+        unset($this->validationRules['so_su_kien_tham_gia']);
+        
         if ($scenario === 'update' && isset($data['dien_gia_id'])) {
             foreach ($this->validationRules as $field => &$rules) {
                 // Kiểm tra nếu $rules là một mảng
@@ -271,6 +277,8 @@ class DienGiaModel extends BaseModel
                 }
             }
         }
+        
+        return $this;
     }
     
     /**

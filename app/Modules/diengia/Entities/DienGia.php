@@ -19,7 +19,6 @@ class DienGia extends BaseEntity
     protected $casts = [
         'dien_gia_id' => 'int',
         'status' => 'boolean',
-        'so_su_kien_tham_gia' => 'int',
         'mang_xa_hoi' => 'json',
         'created_at' => 'timestamp',
         'updated_at' => 'timestamp',
@@ -57,10 +56,6 @@ class DienGia extends BaseEntity
             'rules' => 'permit_empty',
             'label' => 'Giới thiệu'
         ],
-        'avatar' => [
-            'rules' => 'permit_empty|max_length[255]',
-            'label' => 'Ảnh đại diện'
-        ],
         'email' => [
             'rules' => 'permit_empty|valid_email|max_length[100]|is_unique[dien_gia.email,dien_gia_id,{dien_gia_id}]',
             'label' => 'Email'
@@ -88,10 +83,6 @@ class DienGia extends BaseEntity
         'status' => [
             'rules' => 'required|in_list[0,1]',
             'label' => 'Trạng thái'
-        ],
-        'so_su_kien_tham_gia' => [
-            'rules' => 'permit_empty|integer|greater_than_equal_to[0]',
-            'label' => 'Số sự kiện tham gia'
         ]
     ];
     
@@ -104,9 +95,6 @@ class DienGia extends BaseEntity
             'max_length' => '{field} không được vượt quá 255 ký tự'
         ],
         'to_chuc' => [
-            'max_length' => '{field} không được vượt quá 255 ký tự'
-        ],
-        'avatar' => [
             'max_length' => '{field} không được vượt quá 255 ký tự'
         ],
         'email' => [
@@ -124,10 +112,6 @@ class DienGia extends BaseEntity
         'status' => [
             'required' => '{field} là bắt buộc',
             'in_list' => '{field} không hợp lệ'
-        ],
-        'so_su_kien_tham_gia' => [
-            'integer' => '{field} phải là số nguyên',
-            'greater_than_equal_to' => '{field} không được nhỏ hơn 0'
         ]
     ];
     
