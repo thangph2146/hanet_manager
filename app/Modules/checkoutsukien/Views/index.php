@@ -63,7 +63,7 @@
                                 <button class="btn btn-outline-secondary btn-sm" type="submit">
                                     <i class='bx bx-search'></i>
                                 </button>
-                                <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['sukien_id']) || isset($_GET['checkout_type']) || isset($_GET['hinh_thuc_tham_gia'])): ?>
+                                <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['su_kien_id']) || isset($_GET['checkout_type']) || isset($_GET['hinh_thuc_tham_gia']) || isset($_GET['face_verified']) || isset($_GET['start_date']) || isset($_GET['end_date']) || isset($_GET['danh_gia'])): ?>
                                 <a href="<?= site_url($module_name) ?>" class="btn btn-outline-danger btn-sm">
                                     <i class='bx bx-x'></i>
                                 </a>
@@ -71,10 +71,10 @@
                             </div>
                             <div class="d-flex flex-wrap gap-2">
                                 <!-- Bộ lọc sự kiện -->
-                                <select name="sukien_id" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                <select name="su_kien_id" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
                                     <option value="">Tất cả sự kiện</option>
                                     <?php foreach ($suKienList as $suKien): ?>
-                                    <option value="<?= $suKien->su_kien_id ?>" <?= (isset($_GET['sukien_id']) && $_GET['sukien_id'] == $suKien->su_kien_id) ? 'selected' : '' ?>><?= esc($suKien->ten_su_kien) ?></option>
+                                    <option value="<?= $suKien->su_kien_id ?>" <?= (isset($_GET['su_kien_id']) && $_GET['su_kien_id'] == $suKien->su_kien_id) ? 'selected' : '' ?>><?= esc($suKien->ten_su_kien) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                                 
@@ -102,6 +102,35 @@
                                     <option value="offline" <?= (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] === 'offline') ? 'selected' : '' ?>>Trực tiếp</option>
                                     <option value="online" <?= (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] === 'online') ? 'selected' : '' ?>>Trực tuyến</option>
                                 </select>
+                                
+                                <!-- Bộ lọc xác minh khuôn mặt -->
+                                <select name="face_verified" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả xác minh khuôn mặt</option>
+                                    <option value="1" <?= (isset($_GET['face_verified']) && $_GET['face_verified'] === '1') ? 'selected' : '' ?>>Đã xác minh</option>
+                                    <option value="0" <?= (isset($_GET['face_verified']) && $_GET['face_verified'] === '0') ? 'selected' : '' ?>>Chưa xác minh</option>
+                                </select>
+                                
+                                <!-- Bộ lọc đánh giá -->
+                                <select name="danh_gia" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả đánh giá</option>
+                                    <option value="5" <?= (isset($_GET['danh_gia']) && $_GET['danh_gia'] === '5') ? 'selected' : '' ?>>★★★★★</option>
+                                    <option value="4" <?= (isset($_GET['danh_gia']) && $_GET['danh_gia'] === '4') ? 'selected' : '' ?>>★★★★☆</option>
+                                    <option value="3" <?= (isset($_GET['danh_gia']) && $_GET['danh_gia'] === '3') ? 'selected' : '' ?>>★★★☆☆</option>
+                                    <option value="2" <?= (isset($_GET['danh_gia']) && $_GET['danh_gia'] === '2') ? 'selected' : '' ?>>★★☆☆☆</option>
+                                    <option value="1" <?= (isset($_GET['danh_gia']) && $_GET['danh_gia'] === '1') ? 'selected' : '' ?>>★☆☆☆☆</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Bộ lọc khoảng thời gian check-out -->
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <div class="input-group" style="max-width: 200px;">
+                                    <span class="input-group-text form-control-sm">Từ</span>
+                                    <input type="date" name="start_date" class="form-control form-control-sm" value="<?= isset($_GET['start_date']) ? $_GET['start_date'] : '' ?>" onchange="this.form.submit()">
+                                </div>
+                                <div class="input-group" style="max-width: 200px;">
+                                    <span class="input-group-text form-control-sm">Đến</span>
+                                    <input type="date" name="end_date" class="form-control form-control-sm" value="<?= isset($_GET['end_date']) ? $_GET['end_date'] : '' ?>" onchange="this.form.submit()">
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -123,19 +152,19 @@
             </div>
         <?php endif; ?>
         
-        <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['sukien_id']) || isset($_GET['checkout_type']) || isset($_GET['hinh_thuc_tham_gia'])): ?>
+        <?php if (!empty($keyword) || isset($_GET['status']) || isset($_GET['su_kien_id']) || isset($_GET['checkout_type']) || isset($_GET['hinh_thuc_tham_gia']) || isset($_GET['face_verified']) || isset($_GET['start_date']) || isset($_GET['end_date']) || isset($_GET['danh_gia'])): ?>
             <div class="alert alert-info m-3">
                 <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
                 <div class="small">
                     <?php if (!empty($keyword)): ?>
                         <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
                     <?php endif; ?>
-                    <?php if (isset($_GET['sukien_id']) && $_GET['sukien_id'] !== ''): ?>
+                    <?php if (isset($_GET['su_kien_id']) && $_GET['su_kien_id'] !== ''): ?>
                         <span class="badge bg-primary me-2">Sự kiện: 
                             <?php 
                                 $ten_su_kien = '';
                                 foreach ($suKienList as $suKien) {
-                                    if ($suKien->su_kien_id == $_GET['sukien_id']) {
+                                    if ($suKien->su_kien_id == $_GET['su_kien_id']) {
                                         $ten_su_kien = $suKien->ten_su_kien;
                                         break;
                                     }
@@ -180,6 +209,25 @@
                                 echo $hinh_thuc_map[$_GET['hinh_thuc_tham_gia']] ?? $_GET['hinh_thuc_tham_gia'];
                             ?>
                         </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['face_verified']) && $_GET['face_verified'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Xác minh khuôn mặt: 
+                            <?= $_GET['face_verified'] == '1' ? 'Đã xác minh' : 'Chưa xác minh' ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['danh_gia']) && $_GET['danh_gia'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Đánh giá: 
+                            <?php 
+                                $stars = intval($_GET['danh_gia']);
+                                echo str_repeat('★', $stars) . str_repeat('☆', 5 - $stars);
+                            ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['start_date']) && $_GET['start_date'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Từ ngày: <?= $_GET['start_date'] ?></span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['end_date']) && $_GET['end_date'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Đến ngày: <?= $_GET['end_date'] ?></span>
                     <?php endif; ?>
                     <a href="<?= site_url($module_name) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>

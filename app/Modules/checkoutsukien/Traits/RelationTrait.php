@@ -132,8 +132,14 @@ trait RelationTrait
             'keyword' => $request->getGet('keyword') ?? '',
             'status' => $request->getGet('status'),
             'su_kien_id' => $request->getGet('su_kien_id'),
-            'bat_buoc_dien' => $request->getGet('bat_buoc_dien'),
-            'hien_thi_cong_khai' => $request->getGet('hien_thi_cong_khai'),
+            'checkout_type' => $request->getGet('checkout_type'),
+            'face_verified' => $request->getGet('face_verified'),
+            'hinh_thuc_tham_gia' => $request->getGet('hinh_thuc_tham_gia'),
+            'dangky_sukien_id' => $request->getGet('dangky_sukien_id'),
+            'checkin_sukien_id' => $request->getGet('checkin_sukien_id'),
+            'start_date' => $request->getGet('start_date'),
+            'end_date' => $request->getGet('end_date'),
+            'danh_gia' => $request->getGet('danh_gia'),
         ];
     }
 
@@ -161,20 +167,43 @@ trait RelationTrait
         }
 
         if (isset($params['status']) && $params['status'] !== '') {
-            $criteria['status'] = (int)$params['status'];
+            $criteria['status'] = $params['status'];
         }
         
-        // Thêm các tham số lọc mới
-        if (!empty($params['su_kien_id'])) {
-            $criteria['su_kien_id'] = (int)$params['su_kien_id'];
+        if (isset($params['su_kien_id']) && $params['su_kien_id'] !== '') {
+            $criteria['su_kien_id'] = $params['su_kien_id'];
         }
         
-        if (isset($params['bat_buoc_dien']) && $params['bat_buoc_dien'] !== '') {
-            $criteria['bat_buoc_dien'] = (int)$params['bat_buoc_dien'];
+        if (isset($params['checkout_type']) && $params['checkout_type'] !== '') {
+            $criteria['checkout_type'] = $params['checkout_type'];
         }
         
-        if (isset($params['hien_thi_cong_khai']) && $params['hien_thi_cong_khai'] !== '') {
-            $criteria['hien_thi_cong_khai'] = (int)$params['hien_thi_cong_khai'];
+        if (isset($params['face_verified']) && $params['face_verified'] !== '') {
+            $criteria['face_verified'] = $params['face_verified'];
+        }
+        
+        if (isset($params['hinh_thuc_tham_gia']) && $params['hinh_thuc_tham_gia'] !== '') {
+            $criteria['hinh_thuc_tham_gia'] = $params['hinh_thuc_tham_gia'];
+        }
+        
+        if (isset($params['dangky_sukien_id']) && $params['dangky_sukien_id'] !== '') {
+            $criteria['dangky_sukien_id'] = $params['dangky_sukien_id'];
+        }
+        
+        if (isset($params['checkin_sukien_id']) && $params['checkin_sukien_id'] !== '') {
+            $criteria['checkin_sukien_id'] = $params['checkin_sukien_id'];
+        }
+        
+        if (isset($params['danh_gia']) && $params['danh_gia'] !== '') {
+            $criteria['danh_gia'] = $params['danh_gia'];
+        }
+        
+        if (!empty($params['start_date'])) {
+            $criteria['tu_ngay'] = $params['start_date'];
+        }
+        
+        if (!empty($params['end_date'])) {
+            $criteria['den_ngay'] = $params['end_date'];
         }
 
         return $criteria;

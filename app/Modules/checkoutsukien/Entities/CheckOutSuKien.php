@@ -22,7 +22,7 @@ class CheckOutSuKien extends BaseEntity
     
     protected $casts = [
         'checkout_sukien_id' => 'int',
-        'sukien_id' => 'int',
+        'su_kien_id' => 'int',
         'dangky_sukien_id' => 'int',
         'checkin_sukien_id' => 'int',
         'face_match_score' => 'float',
@@ -40,8 +40,8 @@ class CheckOutSuKien extends BaseEntity
     
     // Các quy tắc xác thực cho CheckOutSuKien
     protected $validationRules = [
-        'sukien_id' => [
-            'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id]',
+        'su_kien_id' => [
+            'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id,su_kien.deleted_at,null]',
             'label' => 'ID sự kiện'
         ],
         'email' => [
@@ -68,38 +68,82 @@ class CheckOutSuKien extends BaseEntity
             'rules' => 'required|in_list[face_id,manual,qr_code,auto,online]',
             'label' => 'Loại check-out'
         ],
+        'face_image_path' => [
+            'rules' => 'permit_empty|string|max_length[255]',
+            'label' => 'Đường dẫn ảnh khuôn mặt'
+        ],
         'face_match_score' => [
             'rules' => 'permit_empty|numeric|greater_than_equal_to[0]|less_than_equal_to[1]',
             'label' => 'Điểm số khớp khuôn mặt'
+        ],
+        'face_verified' => [
+            'rules' => 'permit_empty|in_list[0,1]',
+            'label' => 'Xác minh khuôn mặt'
+        ],
+        'ma_xac_nhan' => [
+            'rules' => 'permit_empty|string|max_length[20]',
+            'label' => 'Mã xác nhận'
+        ],
+        'status' => [
+            'rules' => 'permit_empty|integer|in_list[0,1,2]',
+            'label' => 'Trạng thái'
+        ],
+        'location_data' => [
+            'rules' => 'permit_empty|string|max_length[255]',
+            'label' => 'Dữ liệu vị trí'
+        ],
+        'device_info' => [
+            'rules' => 'permit_empty|string|max_length[255]',
+            'label' => 'Thông tin thiết bị'
         ],
         'attendance_duration_minutes' => [
             'rules' => 'permit_empty|integer|greater_than_equal_to[0]',
             'label' => 'Thời gian tham dự (phút)'
         ],
-        'status' => [
-            'rules' => 'permit_empty|integer',
-            'label' => 'Trạng thái'
-        ],
         'hinh_thuc_tham_gia' => [
             'rules' => 'required|in_list[offline,online]',
             'label' => 'Hình thức tham gia'
         ],
-        'danh_gia' => [
-            'rules' => 'permit_empty|integer|greater_than_equal_to[1]|less_than_equal_to[5]',
-            'label' => 'Đánh giá'
+        'ip_address' => [
+            'rules' => 'permit_empty|string|max_length[45]',
+            'label' => 'Địa chỉ IP'
+        ],
+        'thong_tin_bo_sung' => [
+            'rules' => 'permit_empty',
+            'label' => 'Thông tin bổ sung'
+        ],
+        'ghi_chu' => [
+            'rules' => 'permit_empty',
+            'label' => 'Ghi chú'
         ],
         'feedback' => [
             'rules' => 'permit_empty',
             'label' => 'Phản hồi'
         ],
+        'danh_gia' => [
+            'rules' => 'permit_empty|integer|greater_than_equal_to[1]|less_than_equal_to[5]',
+            'label' => 'Đánh giá'
+        ],
         'noi_dung_danh_gia' => [
             'rules' => 'permit_empty',
             'label' => 'Nội dung đánh giá'
+        ],
+        'created_at' => [
+            'rules' => 'permit_empty|valid_date',
+            'label' => 'Ngày tạo'
+        ],
+        'updated_at' => [
+            'rules' => 'permit_empty|valid_date',
+            'label' => 'Ngày cập nhật'
+        ],
+        'deleted_at' => [
+            'rules' => 'permit_empty|valid_date',
+            'label' => 'Ngày xóa'
         ]
     ];
     
     protected $validationMessages = [
-        'sukien_id' => [
+        'su_kien_id' => [
             'required' => '{field} là bắt buộc',
             'integer' => '{field} phải là số nguyên',
             'is_not_unique' => '{field} không tồn tại trong hệ thống'
@@ -169,7 +213,7 @@ class CheckOutSuKien extends BaseEntity
      */
     public function getSuKienId(): int
     {
-        return (int)($this->attributes['sukien_id'] ?? 0);
+        return (int)($this->attributes['su_kien_id'] ?? 0);
     }
     
     /**
@@ -285,7 +329,7 @@ class CheckOutSuKien extends BaseEntity
      */
     public function getStatus(): int
     {
-        return (int)($this->attributes['status'] ?? 1);
+        return (int)($this->attributes['status'] ?? 0);
     }
     
     /**
@@ -345,13 +389,15 @@ class CheckOutSuKien extends BaseEntity
      */
     public function getThongTinBoSung(): ?array
     {
-        $thongTin = $this->attributes['thong_tin_bo_sung'] ?? null;
-        
-        if (is_string($thongTin)) {
-            return json_decode($thongTin, true);
+        if (empty($this->attributes['thong_tin_bo_sung'])) {
+            return null;
         }
         
-        return $thongTin;
+        if (is_string($this->attributes['thong_tin_bo_sung'])) {
+            return json_decode($this->attributes['thong_tin_bo_sung'], true);
+        }
+        
+        return $this->attributes['thong_tin_bo_sung'];
     }
     
     /**
@@ -401,17 +447,13 @@ class CheckOutSuKien extends BaseEntity
      */
     public function getCreatedAt(): ?Time
     {
-        $created = $this->attributes['created_at'] ?? null;
-        
-        if (empty($created)) {
+        if (empty($this->attributes['created_at'])) {
             return null;
         }
         
-        if ($created instanceof Time) {
-            return $created;
-        }
-        
-        return new Time($created);
+        return $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
     }
     
     /**
@@ -579,14 +621,24 @@ class CheckOutSuKien extends BaseEntity
      */
     public function getSuKien(): ?SuKien
     {
-        $suKienId = $this->getSuKienId();
+        // Tạo thuộc tính tạm thời trước để tránh lỗi
+        if (!property_exists($this, 'instance_suKien')) {
+            $this->instance_suKien = null;
+        }
         
-        if ($suKienId <= 0) {
+        // Kiểm tra xem đã lấy dữ liệu chưa
+        if ($this->instance_suKien !== null) {
+            return $this->instance_suKien;
+        }
+        
+        if (!$this->getSuKienId()) {
             return null;
         }
         
-        $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
-        return $suKienModel->find($suKienId);
+        $suKienModel = model('App\Modules\sukien\Models\SuKienModel');
+        $this->instance_suKien = $suKienModel->find($this->getSuKienId());
+        
+        return $this->instance_suKien;
     }
     
     /**
@@ -596,14 +648,24 @@ class CheckOutSuKien extends BaseEntity
      */
     public function getDangKySuKien(): ?DangKySuKien
     {
-        $dangKySuKienId = $this->getDangKySuKienId();
+        // Tạo thuộc tính tạm thời trước để tránh lỗi
+        if (!property_exists($this, 'instance_dangKySuKien')) {
+            $this->instance_dangKySuKien = null;
+        }
         
-        if ($dangKySuKienId === null || $dangKySuKienId <= 0) {
+        // Kiểm tra xem đã lấy dữ liệu chưa
+        if ($this->instance_dangKySuKien !== null) {
+            return $this->instance_dangKySuKien;
+        }
+        
+        if (!$this->getDangKySuKienId()) {
             return null;
         }
         
-        $dangKySuKienModel = new \App\Modules\dangkysukien\Models\DangKySuKienModel();
-        return $dangKySuKienModel->find($dangKySuKienId);
+        $dangKySuKienModel = model('App\Modules\dangkysukien\Models\DangKySuKienModel');
+        $this->instance_dangKySuKien = $dangKySuKienModel->find($this->getDangKySuKienId());
+        
+        return $this->instance_dangKySuKien;
     }
     
     /**
@@ -613,14 +675,24 @@ class CheckOutSuKien extends BaseEntity
      */
     public function getCheckInSuKien(): ?CheckInSuKien
     {
-        $checkInSuKienId = $this->getCheckInSuKienId();
+        // Tạo thuộc tính tạm thời trước để tránh lỗi
+        if (!property_exists($this, 'instance_checkInSuKien')) {
+            $this->instance_checkInSuKien = null;
+        }
         
-        if ($checkInSuKienId === null || $checkInSuKienId <= 0) {
+        // Kiểm tra xem đã lấy dữ liệu chưa
+        if ($this->instance_checkInSuKien !== null) {
+            return $this->instance_checkInSuKien;
+        }
+        
+        if (!$this->getCheckInSuKienId()) {
             return null;
         }
         
-        $checkInSuKienModel = new \App\Modules\checkinsukien\Models\CheckInSuKienModel();
-        return $checkInSuKienModel->find($checkInSuKienId);
+        $checkInSuKienModel = model('App\Modules\checkinsukien\Models\CheckInSuKienModel');
+        $this->instance_checkInSuKien = $checkInSuKienModel->find($this->getCheckInSuKienId());
+        
+        return $this->instance_checkInSuKien;
     }
     
     /**
@@ -630,7 +702,108 @@ class CheckOutSuKien extends BaseEntity
      */
     public function getValidationRules(): array
     {
-        return $this->validationRules;
+        return [
+            'su_kien_id' => [
+                'label' => 'Sự kiện',
+                'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id,su_kien.deleted_at,null]'
+            ],
+            'email' => [
+                'label' => 'Email',
+                'rules' => 'required|valid_email'
+            ],
+            'ho_ten' => [
+                'label' => 'Họ tên',
+                'rules' => 'required|min_length[3]|max_length[255]'
+            ],
+            'dangky_sukien_id' => [
+                'label' => 'ID đăng ký sự kiện',
+                'rules' => 'permit_empty|integer|is_not_unique[dangky_sukien.dangky_sukien_id,dangky_sukien.deleted_at,null]'
+            ],
+            'checkin_sukien_id' => [
+                'label' => 'ID check-in sự kiện',
+                'rules' => 'permit_empty|integer|is_not_unique[checkin_sukien.checkin_sukien_id,checkin_sukien.deleted_at,null]'
+            ],
+            'thoi_gian_check_out' => [
+                'label' => 'Thời gian check-out',
+                'rules' => 'required|valid_date'
+            ],
+            'checkout_type' => [
+                'label' => 'Loại check-out',
+                'rules' => 'required|in_list[face_id,manual,qr_code,auto,online]'
+            ],
+            'face_image_path' => [
+                'label' => 'Đường dẫn ảnh khuôn mặt',
+                'rules' => 'permit_empty|string|max_length[255]'
+            ],
+            'face_match_score' => [
+                'label' => 'Điểm khớp khuôn mặt',
+                'rules' => 'permit_empty|numeric|greater_than_equal_to[0]|less_than_equal_to[1]'
+            ],
+            'face_verified' => [
+                'label' => 'Xác minh khuôn mặt',
+                'rules' => 'permit_empty|in_list[0,1]'
+            ],
+            'ma_xac_nhan' => [
+                'label' => 'Mã xác nhận',
+                'rules' => 'permit_empty|string|max_length[100]'
+            ],
+            'status' => [
+                'label' => 'Trạng thái',
+                'rules' => 'required|integer|in_list[0,1,2]'
+            ],
+            'location_data' => [
+                'label' => 'Dữ liệu vị trí',
+                'rules' => 'permit_empty|string'
+            ],
+            'device_info' => [
+                'label' => 'Thông tin thiết bị',
+                'rules' => 'permit_empty|string'
+            ],
+            'attendance_duration_minutes' => [
+                'label' => 'Thời lượng tham dự (phút)',
+                'rules' => 'permit_empty|integer|greater_than_equal_to[0]'
+            ],
+            'hinh_thuc_tham_gia' => [
+                'label' => 'Hình thức tham gia',
+                'rules' => 'required|in_list[offline,online]'
+            ],
+            'ip_address' => [
+                'label' => 'Địa chỉ IP',
+                'rules' => 'permit_empty|string|max_length[50]'
+            ],
+            'thong_tin_bo_sung' => [
+                'label' => 'Thông tin bổ sung',
+                'rules' => 'permit_empty'
+            ],
+            'ghi_chu' => [
+                'label' => 'Ghi chú',
+                'rules' => 'permit_empty|string'
+            ],
+            'feedback' => [
+                'label' => 'Phản hồi',
+                'rules' => 'permit_empty|string'
+            ],
+            'danh_gia' => [
+                'label' => 'Đánh giá',
+                'rules' => 'permit_empty|integer|greater_than_equal_to[1]|less_than_equal_to[5]'
+            ],
+            'noi_dung_danh_gia' => [
+                'label' => 'Nội dung đánh giá',
+                'rules' => 'permit_empty|string'
+            ],
+            'created_at' => [
+                'label' => 'Ngày tạo',
+                'rules' => 'permit_empty|valid_date'
+            ],
+            'updated_at' => [
+                'label' => 'Ngày cập nhật',
+                'rules' => 'permit_empty|valid_date'
+            ],
+            'deleted_at' => [
+                'label' => 'Ngày xóa',
+                'rules' => 'permit_empty|valid_date'
+            ]
+        ];
     }
     
     /**
@@ -640,6 +813,59 @@ class CheckOutSuKien extends BaseEntity
      */
     public function getValidationMessages(): array
     {
-        return $this->validationMessages;
+        return [
+            'su_kien_id' => [
+                'required' => '{field} là bắt buộc',
+                'integer' => '{field} phải là số nguyên',
+                'is_not_unique' => '{field} không tồn tại trong hệ thống'
+            ],
+            'email' => [
+                'required' => '{field} là bắt buộc',
+                'valid_email' => '{field} không hợp lệ'
+            ],
+            'ho_ten' => [
+                'required' => '{field} là bắt buộc',
+                'min_length' => '{field} phải có ít nhất {param} ký tự',
+                'max_length' => '{field} không được vượt quá {param} ký tự'
+            ],
+            'dangky_sukien_id' => [
+                'integer' => '{field} phải là số nguyên',
+                'is_not_unique' => '{field} không tồn tại trong hệ thống'
+            ],
+            'checkin_sukien_id' => [
+                'integer' => '{field} phải là số nguyên',
+                'is_not_unique' => '{field} không tồn tại trong hệ thống'
+            ],
+            'thoi_gian_check_out' => [
+                'required' => '{field} là bắt buộc',
+                'valid_date' => '{field} phải là ngày hợp lệ'
+            ],
+            'checkout_type' => [
+                'required' => '{field} là bắt buộc',
+                'in_list' => '{field} phải là một trong các giá trị: nhận diện khuôn mặt, thủ công, mã QR, tự động, trực tuyến'
+            ],
+            'face_match_score' => [
+                'numeric' => '{field} phải là số',
+                'greater_than_equal_to' => '{field} phải lớn hơn hoặc bằng {param}',
+                'less_than_equal_to' => '{field} phải nhỏ hơn hoặc bằng {param}'
+            ],
+            'attendance_duration_minutes' => [
+                'integer' => '{field} phải là số nguyên',
+                'greater_than_equal_to' => '{field} phải lớn hơn hoặc bằng {param}'
+            ],
+            'status' => [
+                'integer' => '{field} phải là số nguyên',
+                'in_list' => '{field} phải có giá trị hợp lệ'
+            ],
+            'hinh_thuc_tham_gia' => [
+                'required' => '{field} là bắt buộc',
+                'in_list' => '{field} phải là một trong các giá trị: trực tiếp, trực tuyến'
+            ],
+            'danh_gia' => [
+                'integer' => '{field} phải là số nguyên',
+                'greater_than_equal_to' => '{field} phải lớn hơn hoặc bằng {param}',
+                'less_than_equal_to' => '{field} phải nhỏ hơn hoặc bằng {param}'
+            ]
+        ];
     }
 }

@@ -14,7 +14,7 @@ class CheckOutSuKien extends Migration
                 'constraint' => 11,
                 'auto_increment' => true
             ],
-            'sukien_id' => [
+            'su_kien_id' => [
                 'type' => 'INT',
                 'constraint' => 11,
                 'null' => false
@@ -41,7 +41,7 @@ class CheckOutSuKien extends Migration
             ],
             'thoi_gian_check_out' => [
                 'type' => 'DATETIME',
-                'null' => false
+                'null' => false,
             ],
             'checkout_type' => [
                 'type' => 'ENUM',
@@ -141,7 +141,7 @@ class CheckOutSuKien extends Migration
         $this->forge->addKey('checkout_sukien_id', true);
         
         // Thêm các chỉ mục (index)
-        $this->forge->addKey('sukien_id', false, false, 'idx_sukien_id');
+        $this->forge->addKey('su_kien_id', false, false, 'idx_su_kien_id');
         $this->forge->addKey('email', false, false, 'idx_email');
         $this->forge->addKey('dangky_sukien_id', false, false, 'idx_dangky_sukien_id');
         $this->forge->addKey('checkin_sukien_id', false, false, 'idx_checkin_sukien_id');
@@ -150,7 +150,7 @@ class CheckOutSuKien extends Migration
         $this->forge->addKey('hinh_thuc_tham_gia', false, false, 'idx_hinh_thuc_tham_gia');
         
         // Thêm khóa ngoại
-        $this->forge->addForeignKey('sukien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
+        $this->forge->addForeignKey('su_kien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('dangky_sukien_id', 'dangky_sukien', 'dangky_sukien_id', 'SET NULL', 'CASCADE');
         $this->forge->addForeignKey('checkin_sukien_id', 'checkin_sukien', 'checkin_sukien_id', 'SET NULL', 'CASCADE');
         
@@ -162,8 +162,10 @@ class CheckOutSuKien extends Migration
             'COMMENT' => 'Bảng lưu trữ thông tin check-out sự kiện'
         ]);
         
-        // Thêm giá trị mặc định CURRENT_TIMESTAMP cho các trường datetime
+        // Thêm giá trị mặc định CURRENT_TIMESTAMP cho trường thoi_gian_check_out
         $this->db->query("ALTER TABLE `checkout_sukien` MODIFY `thoi_gian_check_out` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP");
+        
+        // Thêm giá trị mặc định CURRENT_TIMESTAMP cho trường created_at
         $this->db->query("ALTER TABLE `checkout_sukien` MODIFY `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP");
         
         // Thêm ràng buộc check cho đánh giá

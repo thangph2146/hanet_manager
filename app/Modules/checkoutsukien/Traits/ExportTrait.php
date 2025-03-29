@@ -19,47 +19,43 @@ trait ExportTrait
     protected $header_title =  [
         'STT' => 'A',
         'ID' => 'B',
-        'Tên sự kiện' => 'C',
+        'Sự kiện' => 'C',
         'Email' => 'D',
         'Họ tên' => 'E',
         'Điện thoại' => 'F',
-        'Ngày checkout' => 'G',
+        'Thời gian check-out' => 'G',
         'Trạng thái' => 'H',
         'Ngày tạo' => 'I',
         'Ngày cập nhật' => 'J',
-        'Ngày xóa' => 'K',
-        'Giới thiệu' => 'L',
-        'Chuyên môn' => 'M',
-        'Thành tựu' => 'N',
-        'Mạng xã hội' => 'O',
-        'Số sự kiện tham gia' => 'N',
-        'Trạng thái' => 'O',
-        'Ngày tạo' => 'P',
-        'Ngày cập nhật' => 'Q'
+        'Ghi chú' => 'K',
+        'Phản hồi' => 'L',
+        'Nội dung đánh giá' => 'M',
+        'Thông tin bổ sung' => 'N',
+        'Thời lượng tham dự' => 'O', 
+        'Hình thức tham gia' => 'P'
     ];
     protected $header_title_deleted =  [
-        'Ngày xóa' => 'R'
+        'Ngày xóa' => 'Q'
     ];
 
     protected $excel_row = [
         'A' => ['method' => null, 'align' => 'center'], // STT
         'B' => ['method' => 'getId', 'align' => 'center'],
-        'C' => ['method' => 'getTenSuKienDienGia', 'align' => 'left'],
-        'D' => ['method' => 'getTenDienGia', 'align' => 'left'],
-        'E' => ['method' => 'getChucDanh', 'align' => 'left'],
-        'F' => ['method' => 'getToChuc', 'align' => 'left'],
-        'G' => ['method' => 'getEmail', 'align' => 'left'],
-        'H' => ['method' => 'getDienThoai', 'align' => 'left'],
-        'I' => ['method' => 'getWebsite', 'align' => 'left'],
-        'J' => ['method' => 'getGioiThieu', 'align' => 'left', 'wrap' => true],
-        'K' => ['method' => 'getChuyenMon', 'align' => 'left', 'wrap' => true],
-        'L' => ['method' => 'getThanhTuu', 'align' => 'left', 'wrap' => true],
-        'M' => ['method' => 'getMangXaHoi', 'align' => 'left', 'wrap' => true, 'json' => true],
-        'N' => ['method' => 'getSoSuKienThamGia', 'align' => 'center'],
-        'O' => ['method' => 'getStatus', 'align' => 'center', 'format' => 'status'],
-        'P' => ['method' => 'getCreatedAtFormatted', 'align' => 'center'],
-        'Q' => ['method' => 'getUpdatedAtFormatted', 'align' => 'center'],
-        'R' => ['method' => 'getDeletedAtFormatted', 'align' => 'center']
+        'C' => ['method' => null, 'align' => 'left', 'custom' => true], // Xử lý đặc biệt cho Sự kiện
+        'D' => ['method' => 'getEmail', 'align' => 'left'],
+        'E' => ['method' => 'getHoTen', 'align' => 'left'],
+        'F' => ['method' => null, 'align' => 'left'], // Không có điện thoại trong CheckOutSuKien
+        'G' => ['method' => 'getThoiGianCheckOutFormatted', 'align' => 'center'],
+        'H' => ['method' => 'getStatusText', 'align' => 'center'],
+        'I' => ['method' => 'getCreatedAt', 'align' => 'center', 'format' => 'date'],
+        'J' => ['method' => 'getUpdatedAt', 'align' => 'center', 'format' => 'date'],
+        'K' => ['method' => 'getGhiChu', 'align' => 'left', 'wrap' => true],
+        'L' => ['method' => 'getFeedback', 'align' => 'left', 'wrap' => true],
+        'M' => ['method' => 'getNoiDungDanhGia', 'align' => 'left', 'wrap' => true],
+        'N' => ['method' => 'getThongTinBoSung', 'align' => 'left', 'wrap' => true, 'json' => true],
+        'O' => ['method' => 'getAttendanceDurationFormatted', 'align' => 'center'],
+        'P' => ['method' => 'getHinhThucThamGiaText', 'align' => 'center'],
+        'Q' => ['method' => 'getDeletedAt', 'align' => 'center', 'format' => 'date'],
     ];
 
     protected function getLastColumn()
@@ -239,21 +235,49 @@ trait ExportTrait
                     $value = $index + 1;
                 } else {
                     $method = $config['method'];
-                    $value = $method ? $item->$method() : '';
+                    // Xử lý đặc biệt cho các trường custom
+                    if (isset($config['custom']) && $config['custom']) {
+                        if ($col === 'C') { // Cột Sự kiện
+                            $suKien = $item->getSuKien();
+                            $value = $suKien ? $suKien->getTenSuKien() : 'Không có thông tin';
+                        } else {
+                            $value = '';
+                        }
+                    } else {
+                        $value = $method ? $item->$method() : '';
+                    }
                     
                     // Xử lý định dạng đặc biệt
-                    if (isset($config['json']) && $config['json'] && is_array($value)) {
-                        // Thay đổi format hiển thị mạng xã hội để dễ đọc hơn
-                        $formattedValue = '';
-                        foreach ($value as $platform => $url) {
-                            $platformName = ucfirst($platform);
-                            $formattedValue .= "{$platformName}: {$url}\n";
+                    if (isset($config['json']) && $config['json']) {
+                        if (is_array($value)) {
+                            // Thay đổi format hiển thị mạng xã hội để dễ đọc hơn
+                            $formattedValue = '';
+                            foreach ($value as $platform => $url) {
+                                $platformName = ucfirst($platform);
+                                $formattedValue .= "{$platformName}: {$url}\n";
+                            }
+                            $value = $formattedValue;
+                        } elseif (is_object($value)) {
+                            // Nếu là đối tượng, chuyển đổi thành JSON string
+                            $value = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                        } elseif (is_null($value)) {
+                            $value = '';
+                        } elseif (!is_string($value)) {
+                            // Đảm bảo giá trị là string
+                            $value = (string)$value;
                         }
-                        $value = $formattedValue;
                     } elseif (isset($config['format'])) {
                         switch ($config['format']) {
                             case 'status':
                                 $value = $value ? 'Hoạt động' : 'Không hoạt động';
+                                break;
+                            case 'date':
+                                // Nếu $value là đối tượng Time, chuyển đổi thành chuỗi
+                                if ($value instanceof \CodeIgniter\I18n\Time) {
+                                    $value = $value->format('d/m/Y H:i:s');
+                                } elseif (empty($value)) {
+                                    $value = '';
+                                }
                                 break;
                         }
                     }
@@ -382,10 +406,10 @@ trait ExportTrait
     protected function exportData($data, $type = 'excel', $criteria = [], $isDeleted = false)
     {
         // Định dạng tiêu đề
-        $title = $isDeleted ? 'DANH SÁCH SỰ KIỆN DIỄN GIẢ ĐÃ XÓA' : 'DANH SÁCH SỰ KIỆN DIỄN GIẢ';
+        $title = $isDeleted ? 'DANH SÁCH CHECK OUT SỰ KIỆN ĐÃ XÓA' : 'DANH SÁCH CHECK OUT SỰ KIỆN';
         
         // Tạo tên file dựa trên loại và thời gian
-        $filename = 'su_kien_dien_gia_' . ($isDeleted ? 'deleted_' : '') . date('YmdHis');
+        $filename = 'checkout_sukien_' . ($isDeleted ? 'deleted_' : '') . date('YmdHis');
         
         // Định dạng bộ lọc cho báo cáo - định dạng khác nhau dựa trên loại xuất
         if ($type === 'excel') {

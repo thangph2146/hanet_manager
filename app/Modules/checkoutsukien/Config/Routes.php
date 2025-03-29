@@ -36,4 +36,8 @@ function ($routes) use ($controller_name) {
     $routes->get('exportExcel', $controller_name . '::exportExcel');
     $routes->get('exportDeletedPdf', $controller_name . '::exportDeletedPdf');
     $routes->get('exportDeletedExcel', $controller_name . '::exportDeletedExcel');
+
+    // Điều chỉnh route cho updateStatus để đảm bảo format phù hợp
+    $routes->get('updateStatus/(:num)/(:any)', $controller_name . '::updateStatus/$1/$2');
+    $routes->post('updateStatus/(:num)/(:any)', $controller_name . '::updateStatus/$1/$2');
 }); 

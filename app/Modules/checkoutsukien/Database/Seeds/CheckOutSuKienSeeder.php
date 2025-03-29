@@ -38,7 +38,7 @@ class CheckOutSuKienSeeder extends Seeder
             if ($useCheckIn) {
                 // Sử dụng dữ liệu từ check-in có sẵn
                 $checkIn = $checkInList[array_rand($checkInList)];
-                $suKienId = $checkIn['sukien_id'];
+                $suKienId = $checkIn['su_kien_id'];
                 $hoTen = $checkIn['ho_ten'];
                 $email = $checkIn['email'];
                 $dangKySukienId = $checkIn['dangky_sukien_id'];
@@ -133,7 +133,7 @@ class CheckOutSuKienSeeder extends Seeder
             $noiDungDanhGia = $hasFeedback && $danhGia ? $this->getRandomNoiDungDanhGia($danhGia) : null;
             
             $data[] = [
-                'sukien_id' => $suKienId,
+                'su_kien_id' => $suKienId,
                 'email' => $email,
                 'ho_ten' => $hoTen,
                 'dangky_sukien_id' => $dangKySukienId,
