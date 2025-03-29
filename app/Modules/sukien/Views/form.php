@@ -149,10 +149,8 @@ $mat_khau_online = old('mat_khau_online', $mat_khau_online);
         </div>
     <?php endif; ?>
 
-    <!-- Card: Thông tin cơ bản sự kiện -->
-    <div class="card shadow-sm border-0 mb-4">
     <div class="bg-light py-3">
-            <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center container-fluid">
                 <span class="text-muted small">
                     <i class='bx bx-info-circle me-1'></i>
                     Các trường có dấu <span class="text-danger">*</span> là bắt buộc
@@ -169,981 +167,630 @@ $mat_khau_online = old('mat_khau_online', $mat_khau_online);
                 </div>
             </div>
         </div>
-        <div class="card-header bg-white py-3">
-            <h5 class="card-title mb-0">
-                <i class='bx bx-calendar-event text-primary me-2'></i>
-                Thông tin cơ bản sự kiện
-            </h5>
-        </div>
-        
-        <div class="card-body">
-            <div class="row g-3">
-                <!-- ten_su_kien -->
-                <div class="col-md-12">
-                    <label for="ten_su_kien" class="form-label fw-semibold">
-                        Tên sự kiện <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-calendar-edit'></i></span>
-                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('ten_su_kien') ? 'is-invalid' : '' ?>" 
-                            id="ten_su_kien" name="ten_su_kien" 
-                            value="<?= esc($ten_su_kien) ?>" 
-                            placeholder="Nhập tên sự kiện"
-                            required maxlength="255">
-                        <?php if (isset($validation) && $validation->hasError('ten_su_kien')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('ten_su_kien') ?>
+
+    <div class="container-fluid">
+                            <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <ul class="nav nav-tabs nav-fill" id="eventTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="basic-info-tab" data-bs-toggle="tab" data-bs-target="#basic-info" type="button" role="tab" aria-controls="basic-info" aria-selected="true">
+                                    <i class='bx bx-info-circle me-1'></i>
+                                    Thông tin cơ bản
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="datetime-location-tab" data-bs-toggle="tab" data-bs-target="#datetime-location" type="button" role="tab" aria-controls="datetime-location" aria-selected="false">
+                                    <i class='bx bx-calendar-event me-1'></i>
+                                    Thời gian & Địa điểm
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="registration-tab" data-bs-toggle="tab" data-bs-target="#registration" type="button" role="tab" aria-controls="registration" aria-selected="false">
+                                    <i class='bx bx-edit me-1'></i>
+                                    Đăng ký & Tham gia
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="checkinout-tab" data-bs-toggle="tab" data-bs-target="#checkinout" type="button" role="tab" aria-controls="checkinout" aria-selected="false">
+                                    <i class='bx bx-check-shield me-1'></i>
+                                    Check-in/Check-out
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="seo-content-tab" data-bs-toggle="tab" data-bs-target="#seo-content" type="button" role="tab" aria-controls="seo-content" aria-selected="false">
+                                    <i class='bx bx-search-alt me-1'></i>
+                                    SEO & Nội dung
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="tab-content p-3" id="eventTabContent">
+
+                            <!-- Tab Thông tin cơ bản -->
+                            <div class="tab-pane fade show active" id="basic-info" role="tabpanel" aria-labelledby="basic-info-tab">
+                                <div class="row g-3">
+                                    <!-- ten_su_kien -->
+                                    <div class="col-md-12">
+                                        <label for="ten_su_kien" class="form-label fw-semibold">
+                                            Tên sự kiện <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-calendar-edit'></i></span>
+                                            <input type="text" class="form-control <?= isset($validation) && $validation->hasError('ten_su_kien') ? 'is-invalid' : '' ?>"
+                                                id="ten_su_kien" name="ten_su_kien"
+                                                value="<?= esc($ten_su_kien) ?>"
+                                                placeholder="Nhập tên sự kiện"
+                                                required maxlength="255">
+                                            <?php if (isset($validation) && $validation->hasError('ten_su_kien')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('ten_su_kien') ?>
+                                            </div>
+                                            <?php else: ?>
+                                            <div class="invalid-feedback">Vui lòng nhập tên sự kiện</div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class='bx bx-info-circle me-1'></i>
+                                            Tên sự kiện là bắt buộc, tối đa 255 ký tự
+                                        </div>
+                                    </div>
+
+                                    <!-- su_kien_poster -->
+                                    <div class="col-md-12">
+                                        <label for="su_kien_poster" class="form-label fw-semibold">
+                                            Poster sự kiện
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-image'></i></span>
+                                            <input type="file"
+                                                class="form-control <?= isset($validation) && $validation->hasError('su_kien_poster') ? 'is-invalid' : '' ?>"
+                                                id="su_kien_poster" name="su_kien_poster"
+                                                accept="image/*">
+                                            <?php if (isset($validation) && $validation->hasError('su_kien_poster')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('su_kien_poster') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if (!empty($su_kien_poster)): ?>
+                                        <div class="mt-2">
+                                            <?php if (is_array($su_kien_poster) || is_object($su_kien_poster)): ?>
+                                            <?php if (isset($su_kien_poster->path) || (is_array($su_kien_poster) && isset($su_kien_poster['path']))): ?>
+                                            <?php
+                                                    $posterPath = is_object($su_kien_poster) ? $su_kien_poster->path : $su_kien_poster['path'];
+                                                    ?>
+                                            <img src="<?= base_url($posterPath) ?>" alt="Poster sự kiện" class="img-thumbnail" style="max-width: 200px;">
+                                            <?php endif; ?>
+                                            <?php else: ?>
+                                            <img src="<?= base_url('uploads/sukien/' . $su_kien_poster) ?>" alt="Poster sự kiện" class="img-thumbnail" style="max-width: 200px;">
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- mo_ta -->
+                                    <div class="col-md-12">
+                                        <label for="mo_ta" class="form-label fw-semibold">
+                                            Mô tả ngắn
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-text'></i></span>
+                                            <textarea class="form-control <?= isset($validation) && $validation->hasError('mo_ta') ? 'is-invalid' : '' ?>"
+                                                id="mo_ta" name="mo_ta"
+                                                rows="3" placeholder="Nhập mô tả ngắn về sự kiện"><?= esc($mo_ta) ?></textarea>
+                                            <?php if (isset($validation) && $validation->hasError('mo_ta')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('mo_ta') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class='bx bx-info-circle me-1'></i>
+                                            Mô tả ngắn gọn về sự kiện (tối đa 500 ký tự)
+                                        </div>
+                                    </div>
+
+                                    <!-- mo_ta_su_kien -->
+                                    <div class="col-md-12">
+                                        <label for="mo_ta_su_kien" class="form-label fw-semibold">
+                                            Mô tả chi tiết sự kiện
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-detail'></i></span>
+                                            <textarea class="form-control <?= isset($validation) && $validation->hasError('mo_ta_su_kien') ? 'is-invalid' : '' ?>"
+                                                id="mo_ta_su_kien" name="mo_ta_su_kien"
+                                                rows="4"
+                                                placeholder="Nhập mô tả chi tiết sự kiện"><?= esc($mo_ta_su_kien) ?></textarea>
+                                            <?php if (isset($validation) && $validation->hasError('mo_ta_su_kien')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('mo_ta_su_kien') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <!-- loai_su_kien_id -->
+                                    <div class="col-md-6">
+                                        <label for="loai_su_kien_id" class="form-label fw-semibold">
+                                            Loại sự kiện <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-category'></i></span>
+                                            <select class="form-select <?= isset($validation) && $validation->hasError('loai_su_kien_id') ? 'is-invalid' : '' ?>"
+                                                id="loai_su_kien_id" name="loai_su_kien_id" required>
+                                                <option value="">-- Chọn loại sự kiện --</option>
+                                                <?php if (!empty($loaiSuKienList)): ?>
+                                                <?php foreach ($loaiSuKienList as $loaiSuKien): ?>
+                                                <option value="<?= $loaiSuKien->loai_su_kien_id ?>" <?= $loai_su_kien_id == $loaiSuKien->loai_su_kien_id ? 'selected' : '' ?>>
+                                                    <?= esc($loaiSuKien->ten_loai_su_kien) ?>
+                                                </option>
+                                                <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </select>
+                                            <?php if (isset($validation) && $validation->hasError('loai_su_kien_id')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('loai_su_kien_id') ?>
+                                            </div>
+                                            <?php else: ?>
+                                            <div class="invalid-feedback">Vui lòng chọn loại sự kiện</div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <!-- hinh_thuc -->
+                                    <div class="col-md-6">
+                                        <label for="hinh_thuc" class="form-label fw-semibold">
+                                            Hình thức tổ chức <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-laptop'></i></span>
+                                            <select class="form-select <?= isset($validation) && $validation->hasError('hinh_thuc') ? 'is-invalid' : '' ?>"
+                                                id="hinh_thuc" name="hinh_thuc" required>
+                                                <option value="offline" <?= $hinh_thuc == 'offline' ? 'selected' : '' ?>>Trực tiếp (Offline)</option>
+                                                <option value="online" <?= $hinh_thuc == 'online' ? 'selected' : '' ?>>Trực tuyến (Online)</option>
+                                                <option value="hybrid" <?= $hinh_thuc == 'hybrid' ? 'selected' : '' ?>>Kết hợp (Hybrid)</option>
+                                            </select>
+                                            <?php if (isset($validation) && $validation->hasError('hinh_thuc')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('hinh_thuc') ?>
+                                            </div>
+                                            <?php else: ?>
+                                            <div class="invalid-feedback">Vui lòng chọn hình thức tổ chức</div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng nhập tên sự kiện</div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Tên sự kiện là bắt buộc, tối đa 255 ký tự
-                    </div>
-                </div>
 
-                <!-- su_kien_poster -->
-                <div class="col-md-12">
-                    <label for="su_kien_poster" class="form-label fw-semibold">
-                        Poster sự kiện
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-image'></i></span>
-                        <input type="file" 
-                               class="form-control <?= isset($validation) && $validation->hasError('su_kien_poster') ? 'is-invalid' : '' ?>" 
-                               id="su_kien_poster" name="su_kien_poster"
-                               accept="image/*">
-                        <?php if (isset($validation) && $validation->hasError('su_kien_poster')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('su_kien_poster') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <?php if (!empty($su_kien_poster)): ?>
-                        <div class="mt-2">
-                            <?php if (is_array($su_kien_poster) || is_object($su_kien_poster)): ?>
-                                <?php if (isset($su_kien_poster->path) || (is_array($su_kien_poster) && isset($su_kien_poster['path']))): ?>
-                                    <?php 
-                                        $posterPath = is_object($su_kien_poster) ? $su_kien_poster->path : $su_kien_poster['path'];
-                                    ?>
-                                    <img src="<?= base_url($posterPath) ?>" alt="Poster sự kiện" class="img-thumbnail" style="max-width: 200px;">
-                                <?php endif; ?>
-                            <?php else: ?>
-                                <img src="<?= base_url('uploads/sukien/' . $su_kien_poster) ?>" alt="Poster sự kiện" class="img-thumbnail" style="max-width: 200px;">
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                            <!-- Tab Thời gian & Địa điểm -->
+                            <div class="tab-pane fade" id="datetime-location" role="tabpanel" aria-labelledby="datetime-location-tab">
+                                <div class="row g-3">
+                                    <!-- thoi_gian_bat_dau -->
+                                    <div class="col-md-6">
+                                        <label for="thoi_gian_bat_dau" class="form-label fw-semibold">
+                                            Thời gian bắt đầu <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-calendar-plus'></i></span>
+                                            <input type="datetime-local"
+                                                class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_bat_dau') ? 'is-invalid' : '' ?>"
+                                                id="thoi_gian_bat_dau" name="thoi_gian_bat_dau"
+                                                value="<?= esc($thoi_gian_bat_dau) ?>"
+                                                required>
+                                            <?php if (isset($validation) && $validation->hasError('thoi_gian_bat_dau')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('thoi_gian_bat_dau') ?>
+                                            </div>
+                                            <?php else: ?>
+                                            <div class="invalid-feedback">Vui lòng chọn thời gian bắt đầu</div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
 
-                <!-- mo_ta -->
-                <div class="col-md-12">
-                    <label for="mo_ta" class="form-label fw-semibold">
-                        Mô tả ngắn
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-text'></i></span>
-                        <textarea class="form-control <?= isset($validation) && $validation->hasError('mo_ta') ? 'is-invalid' : '' ?>" 
-                                id="mo_ta" name="mo_ta" 
-                                rows="3" placeholder="Nhập mô tả ngắn về sự kiện"><?= esc($mo_ta) ?></textarea>
-                        <?php if (isset($validation) && $validation->hasError('mo_ta')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('mo_ta') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Mô tả ngắn gọn về sự kiện (tối đa 500 ký tự)
-                    </div>
-                </div>
+                                    <!-- thoi_gian_ket_thuc -->
+                                    <div class="col-md-6">
+                                        <label for="thoi_gian_ket_thuc" class="form-label fw-semibold">
+                                            Thời gian kết thúc <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-calendar-check'></i></span>
+                                            <input type="datetime-local"
+                                                class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_ket_thuc') ? 'is-invalid' : '' ?>"
+                                                id="thoi_gian_ket_thuc" name="thoi_gian_ket_thuc"
+                                                value="<?= esc($thoi_gian_ket_thuc) ?>"
+                                                required>
+                                            <?php if (isset($validation) && $validation->hasError('thoi_gian_ket_thuc')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('thoi_gian_ket_thuc') ?>
+                                            </div>
+                                            <?php else: ?>
+                                            <div class="invalid-feedback">Vui lòng chọn thời gian kết thúc</div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div id="time-error-message" class="text-danger small mt-1" style="display: none;"></div>
+                                    </div>
 
-                <!-- mo_ta_su_kien -->
-                <div class="col-md-12">
-                    <label for="mo_ta_su_kien" class="form-label fw-semibold">
-                        Mô tả chi tiết sự kiện
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-detail'></i></span>
-                        <textarea class="form-control <?= isset($validation) && $validation->hasError('mo_ta_su_kien') ? 'is-invalid' : '' ?>" 
-                                  id="mo_ta_su_kien" name="mo_ta_su_kien"
-                                  rows="4"
-                                  placeholder="Nhập mô tả chi tiết sự kiện"><?= esc($mo_ta_su_kien) ?></textarea>
-                        <?php if (isset($validation) && $validation->hasError('mo_ta_su_kien')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('mo_ta_su_kien') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
+                                    <!-- gio_bat_dau -->
+                                    <div class="col-md-6">
+                                        <label for="gio_bat_dau" class="form-label fw-semibold">
+                                            Giờ bắt đầu chính xác
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-time'></i></span>
+                                            <input type="datetime-local"
+                                                class="form-control <?= isset($validation) && $validation->hasError('gio_bat_dau') ? 'is-invalid' : '' ?>"
+                                                id="gio_bat_dau" name="gio_bat_dau"
+                                                value="<?= esc($gio_bat_dau) ?>">
+                                            <?php if (isset($validation) && $validation->hasError('gio_bat_dau')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('gio_bat_dau') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class='bx bx-info-circle me-1'></i>
+                                            Giờ bắt đầu chính xác của sự kiện (nếu khác với thời gian bắt đầu)
+                                        </div>
+                                    </div>
 
-                <!-- thoi_gian_bat_dau -->
-                <div class="col-md-6">
-                    <label for="thoi_gian_bat_dau" class="form-label fw-semibold">
-                        Thời gian bắt đầu <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-calendar-plus'></i></span>
-                        <input type="datetime-local" 
-                               class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_bat_dau') ? 'is-invalid' : '' ?>" 
-                               id="thoi_gian_bat_dau" name="thoi_gian_bat_dau"
-                               value="<?= esc($thoi_gian_bat_dau) ?>"
-                               required>
-                        <?php if (isset($validation) && $validation->hasError('thoi_gian_bat_dau')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('thoi_gian_bat_dau') ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng chọn thời gian bắt đầu</div>
-                        <?php endif; ?>
-                    </div>
-                </div>
+                                    <!-- gio_ket_thuc -->
+                                    <div class="col-md-6">
+                                        <label for="gio_ket_thuc" class="form-label fw-semibold">
+                                            Giờ kết thúc chính xác
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-time-five'></i></span>
+                                            <input type="datetime-local"
+                                                class="form-control <?= isset($validation) && $validation->hasError('gio_ket_thuc') ? 'is-invalid' : '' ?>"
+                                                id="gio_ket_thuc" name="gio_ket_thuc"
+                                                value="<?= esc($gio_ket_thuc) ?>">
+                                            <?php if (isset($validation) && $validation->hasError('gio_ket_thuc')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('gio_ket_thuc') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class='bx bx-info-circle me-1'></i>
+                                            Giờ kết thúc chính xác của sự kiện (nếu khác với thời gian kết thúc)
+                                        </div>
+                                    </div>
 
-                <!-- thoi_gian_ket_thuc -->
-                <div class="col-md-6">
-                    <label for="thoi_gian_ket_thuc" class="form-label fw-semibold">
-                        Thời gian kết thúc <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-calendar-check'></i></span>
-                        <input type="datetime-local" 
-                               class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_ket_thuc') ? 'is-invalid' : '' ?>" 
-                               id="thoi_gian_ket_thuc" name="thoi_gian_ket_thuc"
-                               value="<?= esc($thoi_gian_ket_thuc) ?>"
-                               required>
-                        <?php if (isset($validation) && $validation->hasError('thoi_gian_ket_thuc')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('thoi_gian_ket_thuc') ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng chọn thời gian kết thúc</div>
-                        <?php endif; ?>
-                    </div>
-                    <div id="time-error-message" class="text-danger small mt-1" style="display: none;"></div>
-                </div>
-
-                <!-- gio_bat_dau -->
-                <div class="col-md-6">
-                    <label for="gio_bat_dau" class="form-label fw-semibold">
-                        Giờ bắt đầu chính xác
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-time'></i></span>
-                        <input type="datetime-local" 
-                               class="form-control <?= isset($validation) && $validation->hasError('gio_bat_dau') ? 'is-invalid' : '' ?>" 
-                               id="gio_bat_dau" name="gio_bat_dau"
-                               value="<?= esc($gio_bat_dau) ?>">
-                        <?php if (isset($validation) && $validation->hasError('gio_bat_dau')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('gio_bat_dau') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Giờ bắt đầu chính xác của sự kiện (nếu khác với thời gian bắt đầu)
-                    </div>
-                </div>
-
-                <!-- gio_ket_thuc -->
-                <div class="col-md-6">
-                    <label for="gio_ket_thuc" class="form-label fw-semibold">
-                        Giờ kết thúc chính xác
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-time-five'></i></span>
-                        <input type="datetime-local" 
-                               class="form-control <?= isset($validation) && $validation->hasError('gio_ket_thuc') ? 'is-invalid' : '' ?>" 
-                               id="gio_ket_thuc" name="gio_ket_thuc"
-                               value="<?= esc($gio_ket_thuc) ?>">
-                        <?php if (isset($validation) && $validation->hasError('gio_ket_thuc')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('gio_ket_thuc') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Giờ kết thúc chính xác của sự kiện (nếu khác với thời gian kết thúc)
-                    </div>
-                </div>
-
-                <!-- dia_diem -->
-                <div class="col-md-12">
-                    <label for="dia_diem" class="form-label fw-semibold">
-                        Địa điểm
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-map'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('dia_diem') ? 'is-invalid' : '' ?>" 
-                               id="dia_diem" name="dia_diem"
-                               value="<?= esc($dia_diem) ?>"
-                               placeholder="Nhập địa điểm"
-                               maxlength="255">
-                        <?php if (isset($validation) && $validation->hasError('dia_diem')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('dia_diem') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- dia_chi_cu_the -->
-                <div class="col-md-12">
-                    <label for="dia_chi_cu_the" class="form-label fw-semibold">
-                        Địa chỉ chi tiết
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-map'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('dia_chi_cu_the') ? 'is-invalid' : '' ?>" 
-                               id="dia_chi_cu_the" name="dia_chi_cu_the"
-                               value="<?= esc($dia_chi_cu_the) ?>"
-                               placeholder="Nhập địa chỉ chi tiết"
-                               maxlength="255">
-                        <?php if (isset($validation) && $validation->hasError('dia_chi_cu_the')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('dia_chi_cu_the') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- toa_do_gps -->
-                <div class="col-md-12">
-                    <label for="toa_do_gps" class="form-label fw-semibold">
-                        Toạ độ GPS
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-map'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('toa_do_gps') ? 'is-invalid' : '' ?>" 
-                               id="toa_do_gps" name="toa_do_gps"
-                               value="<?= esc($toa_do_gps) ?>"
-                               placeholder="Nhập toạ độ GPS"
-                               maxlength="255">
-                        <?php if (isset($validation) && $validation->hasError('toa_do_gps')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('toa_do_gps') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- loai_su_kien_id -->
-                <div class="col-md-6">
-                    <label for="loai_su_kien_id" class="form-label fw-semibold">
-                        Loại sự kiện <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-category'></i></span>
-                        <select class="form-select <?= isset($validation) && $validation->hasError('loai_su_kien_id') ? 'is-invalid' : '' ?>" 
-                                id="loai_su_kien_id" name="loai_su_kien_id" required>
-                            <option value="">-- Chọn loại sự kiện --</option>
-                            <?php if (!empty($loaiSuKienList)): ?>
-                                <?php foreach ($loaiSuKienList as $loaiSuKien): ?>
-                                    <option value="<?= $loaiSuKien->loai_su_kien_id ?>" <?= $loai_su_kien_id == $loaiSuKien->loai_su_kien_id ? 'selected' : '' ?>>
-                                        <?= esc($loaiSuKien->ten_loai_su_kien) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                        <?php if (isset($validation) && $validation->hasError('loai_su_kien_id')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('loai_su_kien_id') ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng chọn loại sự kiện</div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- hinh_thuc -->
-                <div class="col-md-6">
-                    <label for="hinh_thuc" class="form-label fw-semibold">
-                        Hình thức tổ chức <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-laptop'></i></span>
-                        <select class="form-select <?= isset($validation) && $validation->hasError('hinh_thuc') ? 'is-invalid' : '' ?>" 
-                                id="hinh_thuc" name="hinh_thuc" required>
-                            <option value="offline" <?= $hinh_thuc == 'offline' ? 'selected' : '' ?>>Trực tiếp (Offline)</option>
-                            <option value="online" <?= $hinh_thuc == 'online' ? 'selected' : '' ?>>Trực tuyến (Online)</option>
-                            <option value="hybrid" <?= $hinh_thuc == 'hybrid' ? 'selected' : '' ?>>Kết hợp (Hybrid)</option>
-                        </select>
-                        <?php if (isset($validation) && $validation->hasError('hinh_thuc')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('hinh_thuc') ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng chọn hình thức tổ chức</div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- ma_qr_code -->
-                <div class="col-md-12">
-                    <label for="ma_qr_code" class="form-label fw-semibold">
-                        Mã QR Code
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-qr'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('ma_qr_code') ? 'is-invalid' : '' ?>" 
-                               id="ma_qr_code" name="ma_qr_code"
-                               value="<?= esc($ma_qr_code) ?>"
-                               placeholder="Nhập mã QR Code"
-                               maxlength="255">
-                        <?php if (isset($validation) && $validation->hasError('ma_qr_code')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('ma_qr_code') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- status -->
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Trạng thái sự kiện</label>
-                    <div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?= ($status == 1) ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="status_active">Hoạt động</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?= ($status == 0) ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="status_inactive">Không hoạt động</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- slug -->
-                <div class="col-md-6">
-                    <label for="slug" class="form-label fw-semibold">
-                        Slug (đường dẫn thân thiện)
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-link'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('slug') ? 'is-invalid' : '' ?>" 
-                               id="slug" name="slug"
-                               value="<?= esc($slug) ?>"
-                               placeholder="Sinh tự động nếu để trống">
-                        <?php if (isset($validation) && $validation->hasError('slug')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('slug') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Để trống để tự động tạo từ tên sự kiện
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="card-title mb-0">
-                <i class='bx bx-user text-primary me-2'></i>
-                Thông tin sự kiện
-            </h5>
-        </div>
-        
-        <div class="card-body">
-            <div class="row g-3">
-                <!-- so_luong_tham_gia -->
-                <div class="col-md-6">
-                    <label for="so_luong_tham_gia" class="form-label fw-semibold">
-                        Số lượng tham gia
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
-                        <input type="number" 
-                               class="form-control <?= isset($validation) && $validation->hasError('so_luong_tham_gia') ? 'is-invalid' : '' ?>" 
-                               id="so_luong_tham_gia" name="so_luong_tham_gia"
-                               value="<?= esc($so_luong_tham_gia) ?>"
-                               required>
-                        <?php if (isset($validation) && $validation->hasError('so_luong_tham_gia')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('so_luong_tham_gia') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- so_luong_dien_gia -->
-                <div class="col-md-6">
-                    <label for="so_luong_dien_gia" class="form-label fw-semibold">
-                        Số lượng diễn giả
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-money'></i></span>
-                        <input type="number" 
-                               class="form-control <?= isset($validation) && $validation->hasError('so_luong_dien_gia') ? 'is-invalid' : '' ?>" 
-                               id="so_luong_dien_gia" name="so_luong_dien_gia"
-                               value="<?= esc($so_luong_dien_gia) ?>"
-                               required>
-                        <?php if (isset($validation) && $validation->hasError('so_luong_dien_gia')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('so_luong_dien_gia') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                
-                
-
-                <!-- gioi_han_loai_nguoi_dung -->
-                <div class="col-md-12">
-                    <label for="gioi_han_loai_nguoi_dung" class="form-label fw-semibold">
-                        Giới hạn loại người dùng
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('gioi_han_loai_nguoi_dung') ? 'is-invalid' : '' ?>" 
-                               id="gioi_han_loai_nguoi_dung" name="gioi_han_loai_nguoi_dung"
-                               value="<?= esc($gioi_han_loai_nguoi_dung) ?>"
-                               placeholder="Nhập giới hạn loại người dùng">
-                        <?php if (isset($validation) && $validation->hasError('gioi_han_loai_nguoi_dung')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('gioi_han_loai_nguoi_dung') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- tu_khoa_su_kien -->
-                <div class="col-md-12">
-                    <label for="tu_khoa_su_kien" class="form-label fw-semibold">
-                        Từ khóa sự kiện
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-search'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('tu_khoa_su_kien') ? 'is-invalid' : '' ?>" 
-                               id="tu_khoa_su_kien" name="tu_khoa_su_kien"
-                               value="<?= esc($tu_khoa_su_kien) ?>"
-                               placeholder="Nhập từ khóa sự kiện">
-                        <?php if (isset($validation) && $validation->hasError('tu_khoa_su_kien')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('tu_khoa_su_kien') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- hashtag -->
-                <div class="col-md-12">
-                    <label for="hashtag" class="form-label fw-semibold">
-                        Hashtag
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-hashtag'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('hashtag') ? 'is-invalid' : '' ?>" 
-                               id="hashtag" name="hashtag"
-                               value="<?= esc($hashtag) ?>"
-                               placeholder="Nhập hashtag">
-                        <?php if (isset($validation) && $validation->hasError('hashtag')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('hashtag') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- so_luot_xem -->
-                <div class="col-md-6">
-                    <label for="so_luot_xem" class="form-label fw-semibold">
-                        Số lượt xem
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-eye'></i></span>
-                        <input type="number" 
-                               class="form-control <?= isset($validation) && $validation->hasError('so_luot_xem') ? 'is-invalid' : '' ?>" 
-                               id="so_luot_xem" name="so_luot_xem"
-                               value="<?= esc($so_luot_xem) ?>"
-                               required>
-                        <?php if (isset($validation) && $validation->hasError('so_luot_xem')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('so_luot_xem') ?>
-                        </div>
-                    <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- link_online -->
-                <div class="col-md-12">
-                    <label for="link_online" class="form-label fw-semibold">
-                        Link trực tuyến
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-link'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('link_online') ? 'is-invalid' : '' ?>" 
-                               id="link_online" name="link_online"
-                               value="<?= esc($link_online) ?>"
-                               placeholder="Nhập link trực tuyến">
-                        <?php if (isset($validation) && $validation->hasError('link_online')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('link_online') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- mat_khau_online -->
-                <div class="col-md-12">
-                    <label for="mat_khau_online" class="form-label fw-semibold">
-                        Mật khẩu trực tuyến
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-lock'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('mat_khau_online') ? 'is-invalid' : '' ?>" 
-                               id="mat_khau_online" name="mat_khau_online"
-                               value="<?= esc($mat_khau_online) ?>"
-                               placeholder="Nhập mật khẩu trực tuyến">
-                        <?php if (isset($validation) && $validation->hasError('mat_khau_online')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('mat_khau_online') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card-footer bg-light py-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted small">
-                    <i class='bx bx-info-circle me-1'></i>
-                    Các trường có dấu <span class="text-danger">*</span> là bắt buộc
-                </span>
-                
-                <div class="d-flex gap-2">
-                    <a href="<?= site_url($module_name) ?>" class="btn btn-light">
-                        <i class='bx bx-arrow-back me-1'></i> Quay lại
-                    </a>
-                    <button class="btn btn-primary px-4" type="submit">
-                        <i class='bx bx-save me-1'></i>
-                        <?= $isUpdate ? 'Cập nhật' : 'Thêm mới' ?>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Card: Địa điểm và Thông tin Online -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="card-title mb-0">
-                <i class='bx bx-map-alt text-primary me-2'></i>
-                Địa điểm và Thông tin Online
-            </h5>
-        </div>
-        
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-12 mb-2">
-                    <div class="alert alert-info">
-                        <i class='bx bx-info-circle me-2'></i>
-                        Điền thông tin địa điểm cho sự kiện trực tiếp (offline/hybrid) hoặc thông tin tham gia online cho sự kiện trực tuyến (online/hybrid).
-                    </div>
-                </div>
-
-                <!-- Thông tin địa điểm (cho sự kiện offline/hybrid) -->
-                <div class="col-12" id="section-offline">
-                    <div class="card border shadow-none mb-3">
-                        <div class="card-header bg-light py-2">
-                            <h6 class="mb-0">Thông tin địa điểm</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <!-- dia_diem -->
-                                <div class="col-md-12">
-                                    <label for="dia_diem" class="form-label fw-semibold">
-                                        Tên địa điểm
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class='bx bx-building'></i></span>
-                                        <input type="text" 
-                                            class="form-control <?= isset($validation) && $validation->hasError('dia_diem') ? 'is-invalid' : '' ?>" 
-                                            id="dia_diem" name="dia_diem"
-                                            value="<?= esc($dia_diem) ?>"
-                                            placeholder="Nhập tên địa điểm (VD: Trung tâm Hội nghị Quốc tế)">
-                                        <?php if (isset($validation) && $validation->hasError('dia_diem')): ?>
+                                    <!-- dia_diem -->
+                                    <div class="col-md-12">
+                                        <label for="dia_diem" class="form-label fw-semibold">
+                                            Địa điểm
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-map'></i></span>
+                                            <input type="text"
+                                                class="form-control <?= isset($validation) && $validation->hasError('dia_diem') ? 'is-invalid' : '' ?>"
+                                                id="dia_diem" name="dia_diem"
+                                                value="<?= esc($dia_diem) ?>"
+                                                placeholder="Nhập địa điểm"
+                                                maxlength="255">
+                                            <?php if (isset($validation) && $validation->hasError('dia_diem')): ?>
                                             <div class="invalid-feedback">
                                                 <?= $validation->getError('dia_diem') ?>
                                             </div>
-                                        <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- dia_chi_cu_the -->
-                                <div class="col-md-12">
-                                    <label for="dia_chi_cu_the" class="form-label fw-semibold">
-                                        Địa chỉ cụ thể
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class='bx bx-map'></i></span>
-                                        <input type="text" 
-                                            class="form-control <?= isset($validation) && $validation->hasError('dia_chi_cu_the') ? 'is-invalid' : '' ?>" 
-                                            id="dia_chi_cu_the" name="dia_chi_cu_the"
-                                            value="<?= esc($dia_chi_cu_the) ?>"
-                                            placeholder="Nhập địa chỉ cụ thể">
-                                        <?php if (isset($validation) && $validation->hasError('dia_chi_cu_the')): ?>
+                                    <!-- dia_chi_cu_the -->
+                                    <div class="col-md-12">
+                                        <label for="dia_chi_cu_the" class="form-label fw-semibold">
+                                            Địa chỉ chi tiết
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-map'></i></span>
+                                            <input type="text"
+                                                class="form-control <?= isset($validation) && $validation->hasError('dia_chi_cu_the') ? 'is-invalid' : '' ?>"
+                                                id="dia_chi_cu_the" name="dia_chi_cu_the"
+                                                value="<?= esc($dia_chi_cu_the) ?>"
+                                                placeholder="Nhập địa chỉ chi tiết"
+                                                maxlength="255">
+                                            <?php if (isset($validation) && $validation->hasError('dia_chi_cu_the')): ?>
                                             <div class="invalid-feedback">
                                                 <?= $validation->getError('dia_chi_cu_the') ?>
                                             </div>
-                                        <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- toa_do_gps -->
-                                <div class="col-md-12">
-                                    <label for="toa_do_gps" class="form-label fw-semibold">
-                                        Tọa độ GPS
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class='bx bx-map-pin'></i></span>
-                                        <input type="text" 
-                                            class="form-control <?= isset($validation) && $validation->hasError('toa_do_gps') ? 'is-invalid' : '' ?>" 
-                                            id="toa_do_gps" name="toa_do_gps"
-                                            value="<?= esc($toa_do_gps) ?>"
-                                            placeholder="VD: 21.028511, 105.804817">
-                                        <?php if (isset($validation) && $validation->hasError('toa_do_gps')): ?>
+                                    <!-- toa_do_gps -->
+                                    <div class="col-md-12">
+                                        <label for="toa_do_gps" class="form-label fw-semibold">
+                                            Toạ độ GPS
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-map'></i></span>
+                                            <input type="text"
+                                                class="form-control <?= isset($validation) && $validation->hasError('toa_do_gps') ? 'is-invalid' : '' ?>"
+                                                id="toa_do_gps" name="toa_do_gps"
+                                                value="<?= esc($toa_do_gps) ?>"
+                                                placeholder="Nhập toạ độ GPS"
+                                                maxlength="255">
+                                            <?php if (isset($validation) && $validation->hasError('toa_do_gps')): ?>
                                             <div class="invalid-feedback">
                                                 <?= $validation->getError('toa_do_gps') ?>
                                             </div>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="form-text text-muted">
-                                        <i class='bx bx-info-circle me-1'></i>
-                                        Nhập tọa độ GPS định dạng vĩ độ, kinh độ (latitude, longitude)
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Thông tin online (cho sự kiện online/hybrid) -->
-                <div class="col-12" id="section-online">
-                    <div class="card border shadow-none mb-3">
-                        <div class="card-header bg-light py-2">
-                            <h6 class="mb-0">Thông tin tham gia trực tuyến</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <!-- link_online -->
-                                <div class="col-md-12">
-                                    <label for="link_online" class="form-label fw-semibold">
-                                        Link tham gia
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class='bx bx-link'></i></span>
-                                        <input type="url" 
-                                            class="form-control <?= isset($validation) && $validation->hasError('link_online') ? 'is-invalid' : '' ?>" 
-                                            id="link_online" name="link_online"
-                                            value="<?= esc($link_online) ?>"
-                                            placeholder="https://...">
-                                        <?php if (isset($validation) && $validation->hasError('link_online')): ?>
+                            <!-- Tab Đăng ký & Tham gia -->
+                            <div class="tab-pane fade" id="registration" role="tabpanel" aria-labelledby="registration-tab">
+                                <div class="row g-3">
+                                    <!-- bat_dau_dang_ky -->
+                                    <div class="col-md-6">
+                                        <label for="bat_dau_dang_ky" class="form-label fw-semibold">
+                                            Thời gian bắt đầu đăng ký
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-calendar-plus'></i></span>
+                                            <input type="datetime-local"
+                                                class="form-control <?= isset($validation) && $validation->hasError('bat_dau_dang_ky') ? 'is-invalid' : '' ?>"
+                                                id="bat_dau_dang_ky" name="bat_dau_dang_ky"
+                                                value="<?= esc($bat_dau_dang_ky) ?>">
+                                            <?php if (isset($validation) && $validation->hasError('bat_dau_dang_ky')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('bat_dau_dang_ky') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <!-- ket_thuc_dang_ky -->
+                                    <div class="col-md-6">
+                                        <label for="ket_thuc_dang_ky" class="form-label fw-semibold">
+                                            Thời gian kết thúc đăng ký
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-calendar-x'></i></span>
+                                            <input type="datetime-local"
+                                                class="form-control <?= isset($validation) && $validation->hasError('ket_thuc_dang_ky') ? 'is-invalid' : '' ?>"
+                                                id="ket_thuc_dang_ky" name="ket_thuc_dang_ky"
+                                                value="<?= esc($ket_thuc_dang_ky) ?>">
+                                            <?php if (isset($validation) && $validation->hasError('ket_thuc_dang_ky')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('ket_thuc_dang_ky') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <!-- han_huy_dang_ky -->
+                                    <div class="col-md-6">
+                                        <label for="han_huy_dang_ky" class="form-label fw-semibold">
+                                            Hạn chót hủy đăng ký
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-calendar-exclamation'></i></span>
+                                            <input type="datetime-local"
+                                                class="form-control <?= isset($validation) && $validation->hasError('han_huy_dang_ky') ? 'is-invalid' : '' ?>"
+                                                id="han_huy_dang_ky" name="han_huy_dang_ky"
+                                                value="<?= esc($han_huy_dang_ky) ?>">
+                                            <?php if (isset($validation) && $validation->hasError('han_huy_dang_ky')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('han_huy_dang_ky') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <!-- so_luong_tham_gia (Giới hạn số người tham gia) -->
+                                    <div class="col-md-6">
+                                        <label for="so_luong_tham_gia" class="form-label fw-semibold">
+                                            Giới hạn số người tham gia
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-group'></i></span>
+                                            <input type="number"
+                                                class="form-control <?= isset($validation) && $validation->hasError('so_luong_tham_gia') ? 'is-invalid' : '' ?>"
+                                                id="so_luong_tham_gia" name="so_luong_tham_gia"
+                                                value="<?= esc($so_luong_tham_gia) ?>"
+                                                min="0">
+                                            <?php if (isset($validation) && $validation->hasError('so_luong_tham_gia')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('so_luong_tham_gia') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class='bx bx-info-circle me-1'></i>
+                                            Để 0 nếu không giới hạn số lượng
+                                        </div>
+                                    </div>
+
+                                    <!-- gioi_han_loai_nguoi_dung -->
+                                    <div class="col-md-12">
+                                        <label for="gioi_han_loai_nguoi_dung" class="form-label fw-semibold">
+                                            Giới hạn loại người dùng được tham gia
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-user-check'></i></span>
+                                            <input type="text"
+                                                class="form-control <?= isset($validation) && $validation->hasError('gioi_han_loai_nguoi_dung') ? 'is-invalid' : '' ?>"
+                                                id="gioi_han_loai_nguoi_dung" name="gioi_han_loai_nguoi_dung"
+                                                value="<?= esc($gioi_han_loai_nguoi_dung) ?>"
+                                                placeholder="VD: Sinh viên, Giảng viên, Nhân viên">
+                                            <?php if (isset($validation) && $validation->hasError('gioi_han_loai_nguoi_dung')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('gioi_han_loai_nguoi_dung') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class='bx bx-info-circle me-1'></i>
+                                            Để trống nếu không giới hạn loại người dùng
+                                        </div>
+                                    </div>
+
+                                    <!-- link_online -->
+                                    <div class="col-md-12" id="online-link-field" style="display: none;">
+                                        <label for="link_online" class="form-label fw-semibold">
+                                            Link trực tuyến
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-link'></i></span>
+                                            <input type="text"
+                                                class="form-control <?= isset($validation) && $validation->hasError('link_online') ? 'is-invalid' : '' ?>"
+                                                id="link_online" name="link_online"
+                                                value="<?= esc($link_online) ?>"
+                                                placeholder="Nhập link trực tuyến">
+                                            <?php if (isset($validation) && $validation->hasError('link_online')): ?>
                                             <div class="invalid-feedback">
                                                 <?= $validation->getError('link_online') ?>
                                             </div>
-                                        <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- mat_khau_online -->
-                                <div class="col-md-6">
-                                    <label for="mat_khau_online" class="form-label fw-semibold">
-                                        Mật khẩu tham gia (nếu có)
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class='bx bx-lock'></i></span>
-                                        <input type="text" 
-                                            class="form-control <?= isset($validation) && $validation->hasError('mat_khau_online') ? 'is-invalid' : '' ?>" 
-                                            id="mat_khau_online" name="mat_khau_online"
-                                            value="<?= esc($mat_khau_online) ?>"
-                                            placeholder="Nhập mật khẩu nếu có">
-                                        <?php if (isset($validation) && $validation->hasError('mat_khau_online')): ?>
+                                    <!-- mat_khau_online -->
+                                    <div class="col-md-6" id="online-password-field" style="display: none;">
+                                        <label for="mat_khau_online" class="form-label fw-semibold">
+                                            Mật khẩu trực tuyến
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-lock'></i></span>
+                                            <input type="text"
+                                                class="form-control <?= isset($validation) && $validation->hasError('mat_khau_online') ? 'is-invalid' : '' ?>"
+                                                id="mat_khau_online" name="mat_khau_online"
+                                                value="<?= esc($mat_khau_online) ?>"
+                                                placeholder="Nhập mật khẩu trực tuyến">
+                                            <?php if (isset($validation) && $validation->hasError('mat_khau_online')): ?>
                                             <div class="invalid-feedback">
                                                 <?= $validation->getError('mat_khau_online') ?>
                                             </div>
-                                        <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Card: Thông tin đăng ký tham gia -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="card-title mb-0">
-                <i class='bx bx-calendar-check text-primary me-2'></i>
-                Thông tin đăng ký tham gia
-            </h5>
-        </div>
-        
-        <div class="card-body">
-            <div class="row g-3">
-                <!-- bat_dau_dang_ky -->
-                <div class="col-md-6">
-                    <label for="bat_dau_dang_ky" class="form-label fw-semibold">
-                        Thời gian bắt đầu đăng ký
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-calendar-plus'></i></span>
-                        <input type="datetime-local" 
-                               class="form-control <?= isset($validation) && $validation->hasError('bat_dau_dang_ky') ? 'is-invalid' : '' ?>" 
-                               id="bat_dau_dang_ky" name="bat_dau_dang_ky"
-                               value="<?= esc($bat_dau_dang_ky) ?>">
-                        <?php if (isset($validation) && $validation->hasError('bat_dau_dang_ky')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('bat_dau_dang_ky') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- ket_thuc_dang_ky -->
-                <div class="col-md-6">
-                    <label for="ket_thuc_dang_ky" class="form-label fw-semibold">
-                        Thời gian kết thúc đăng ký
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-calendar-x'></i></span>
-                        <input type="datetime-local" 
-                               class="form-control <?= isset($validation) && $validation->hasError('ket_thuc_dang_ky') ? 'is-invalid' : '' ?>" 
-                               id="ket_thuc_dang_ky" name="ket_thuc_dang_ky"
-                               value="<?= esc($ket_thuc_dang_ky) ?>">
-                        <?php if (isset($validation) && $validation->hasError('ket_thuc_dang_ky')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('ket_thuc_dang_ky') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- han_huy_dang_ky -->
-                <div class="col-md-6">
-                    <label for="han_huy_dang_ky" class="form-label fw-semibold">
-                        Hạn chót hủy đăng ký
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-calendar-exclamation'></i></span>
-                        <input type="datetime-local" 
-                               class="form-control <?= isset($validation) && $validation->hasError('han_huy_dang_ky') ? 'is-invalid' : '' ?>" 
-                               id="han_huy_dang_ky" name="han_huy_dang_ky"
-                               value="<?= esc($han_huy_dang_ky) ?>">
-                        <?php if (isset($validation) && $validation->hasError('han_huy_dang_ky')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('han_huy_dang_ky') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- so_luong_tham_gia -->
-                <div class="col-md-6">
-                    <label for="so_luong_tham_gia" class="form-label fw-semibold">
-                        Giới hạn số người tham gia
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-group'></i></span>
-                        <input type="number" 
-                               class="form-control <?= isset($validation) && $validation->hasError('so_luong_tham_gia') ? 'is-invalid' : '' ?>" 
-                               id="so_luong_tham_gia" name="so_luong_tham_gia"
-                               value="<?= esc($so_luong_tham_gia) ?>"
-                               min="0">
-                        <?php if (isset($validation) && $validation->hasError('so_luong_tham_gia')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('so_luong_tham_gia') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Để 0 nếu không giới hạn số lượng
-                    </div>
-                </div>
-
-                <!-- gioi_han_loai_nguoi_dung -->
-                <div class="col-md-12">
-                    <label for="gioi_han_loai_nguoi_dung" class="form-label fw-semibold">
-                        Giới hạn loại người dùng được tham gia
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-user-check'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('gioi_han_loai_nguoi_dung') ? 'is-invalid' : '' ?>" 
-                               id="gioi_han_loai_nguoi_dung" name="gioi_han_loai_nguoi_dung"
-                               value="<?= esc($gioi_han_loai_nguoi_dung) ?>"
-                               placeholder="VD: Sinh viên, Giảng viên, Nhân viên">
-                        <?php if (isset($validation) && $validation->hasError('gioi_han_loai_nguoi_dung')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('gioi_han_loai_nguoi_dung') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Để trống nếu không giới hạn loại người dùng
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Card: Cài đặt Check-in/out -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="card-title mb-0">
-                <i class='bx bx-check-shield text-primary me-2'></i>
-                Cài đặt Check-in/out
-            </h5>
-        </div>
-        
-        <div class="card-body">
-            <div class="row g-3">
-                <!-- ma_qr_code -->
-                <div class="col-md-12">
-                    <label for="ma_qr_code" class="form-label fw-semibold">
-                        Mã QR code điểm danh
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-qr'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('ma_qr_code') ? 'is-invalid' : '' ?>" 
-                               id="ma_qr_code" name="ma_qr_code"
-                               value="<?= esc($ma_qr_code) ?>"
-                               placeholder="Nhập mã QR code hoặc để trống để tạo tự động">
-                        <?php if (isset($validation) && $validation->hasError('ma_qr_code')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('ma_qr_code') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Mã QR code dùng để điểm danh. Để trống sẽ được tạo tự động
-                    </div>
-                </div>
-
-                <!-- Các tùy chọn check-in/out -->
-                <div class="col-md-6">
-                    <div class="card border shadow-none">
-                        <div class="card-header bg-light py-2">
-                            <h6 class="mb-0">Tùy chọn Check-in/out</h6>
-                        </div>
-                        <div class="card-body">
-                            <!-- cho_phep_check_in -->
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="cho_phep_check_in" name="cho_phep_check_in" value="1" <?= $cho_phep_check_in ? 'checked' : '' ?>>
-                                <label class="form-check-label" for="cho_phep_check_in">Cho phép check-in</label>
-                            </div>
-                            
-                            <!-- cho_phep_check_out -->
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="cho_phep_check_out" name="cho_phep_check_out" value="1" <?= $cho_phep_check_out ? 'checked' : '' ?>>
-                                <label class="form-check-label" for="cho_phep_check_out">Cho phép check-out</label>
-                            </div>
-                            
-                            <!-- yeu_cau_face_id -->
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="yeu_cau_face_id" name="yeu_cau_face_id" value="1" <?= $yeu_cau_face_id ? 'checked' : '' ?>>
-                                <label class="form-check-label" for="yeu_cau_face_id">Yêu cầu nhận diện khuôn mặt</label>
-                            </div>
-                            
-                            <!-- cho_phep_checkin_thu_cong -->
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="cho_phep_checkin_thu_cong" name="cho_phep_checkin_thu_cong" value="1" <?= $cho_phep_checkin_thu_cong ? 'checked' : '' ?>>
-                                <label class="form-check-label" for="cho_phep_checkin_thu_cong">Cho phép check-in thủ công</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Thống kê tham gia (chỉ hiển thị khi chỉnh sửa) -->
-                <?php if ($isUpdate): ?>
-                <div class="col-md-6">
-                    <div class="card border shadow-none">
-                        <div class="card-header bg-light py-2">
-                            <h6 class="mb-0">Thống kê tham gia</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-4 text-center">
-                                    <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-2" style="width: 60px; height: 60px;">
-                                        <h4 class="mb-0"><?= esc($tong_dang_ky) ?></h4>
+                            <!-- Tab Check-in/Check-out -->
+                            <div class="tab-pane fade" id="checkinout" role="tabpanel" aria-labelledby="checkinout-tab">
+                                <div class="row g-3">
+                                    <!-- ma_qr_code -->
+                                    <div class="col-md-12">
+                                        <label for="ma_qr_code" class="form-label fw-semibold">
+                                            Mã QR code điểm danh
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-qr'></i></span>
+                                            <input type="text"
+                                                class="form-control <?= isset($validation) && $validation->hasError('ma_qr_code') ? 'is-invalid' : '' ?>"
+                                                id="ma_qr_code" name="ma_qr_code"
+                                                value="<?= esc($ma_qr_code) ?>"
+                                                placeholder="Nhập mã QR code hoặc để trống để tạo tự động">
+                                            <?php if (isset($validation) && $validation->hasError('ma_qr_code')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('ma_qr_code') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class='bx bx-info-circle me-1'></i>
+                                            Mã QR code dùng để điểm danh. Để trống sẽ được tạo tự động
+                                        </div>
                                     </div>
-                                    <p class="small mb-0">Đăng ký</p>
-                                </div>
-                                <div class="col-4 text-center">
-                                    <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-2" style="width: 60px; height: 60px;">
-                                        <h4 class="mb-0"><?= esc($tong_check_in) ?></h4>
+
+                                    <!-- Các tùy chọn check-in/out -->
+                                    <div class="col-md-6">
+                                        <div class="card border shadow-none">
+                                            <div class="card-header bg-light py-2">
+                                                <h6 class="mb-0">Tùy chọn Check-in/out</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- cho_phep_check_in -->
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="cho_phep_check_in" name="cho_phep_check_in" value="1" <?= $cho_phep_check_in ? 'checked' : '' ?>>
+                                                    <label class="form-check-label" for="cho_phep_check_in">Cho phép check-in</label>
+                                                </div>
+
+                                                <!-- cho_phep_check_out -->
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="cho_phep_check_out" name="cho_phep_check_out" value="1" <?= $cho_phep_check_out ? 'checked' : '' ?>>
+                                                    <label class="form-check-label" for="cho_phep_check_out">Cho phép check-out</label>
+                                                </div>
+
+                                                <!-- yeu_cau_face_id -->
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="yeu_cau_face_id" name="yeu_cau_face_id" value="1" <?= $yeu_cau_face_id ? 'checked' : '' ?>>
+                                                    <label class="form-check-label" for="yeu_cau_face_id">Yêu cầu nhận diện khuôn mặt</label>
+                                                </div>
+
+                                                <!-- cho_phep_checkin_thu_cong -->
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="cho_phep_checkin_thu_cong" name="cho_phep_checkin_thu_cong" value="1" <?= $cho_phep_checkin_thu_cong ? 'checked' : '' ?>>
+                                                    <label class="form-check-label" for="cho_phep_checkin_thu_cong">Cho phép check-in thủ công</label>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p class="small mb-0">Check-in</p>
-                                </div>
-                                <div class="col-4 text-center">
-                                    <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-2" style="width: 60px; height: 60px;">
-                                        <h4 class="mb-0"><?= esc($tong_check_out) ?></h4>
+
+                                    <!-- Thống kê tham gia (chỉ hiển thị khi chỉnh sửa) -->
+                                    <?php if ($isUpdate): ?>
+                                    <div class="col-md-6">
+                                        <div class="card border shadow-none">
+                                            <div class="card-header bg-light py-2">
+                                                <h6 class="mb-0">Thống kê tham gia</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-4 text-center">
+                                                        <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-2" style="width: 60px; height: 60px;">
+                                                            <h4 class="mb-0"><?= esc($tong_dang_ky) ?></h4>
+                                                        </div>
+                                                        <p class="small mb-0">Đăng ký</p>
+                                                    </div>
+                                                    <div class="col-4 text-center">
+                                                        <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-2" style="width: 60px; height: 60px;">
+                                                            <h4 class="mb-0"><?= esc($tong_check_in) ?></h4>
+                                                        </div>
+                                                        <p class="small mb-0">Check-in</p>
+                                                    </div>
+                                                    <div class="col-4 text-center">
+                                                        <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-2" style="width: 60px; height: 60px;">
+                                                            <h4 class="mb-0"><?= esc($tong_check_out) ?></h4>
+                                                        </div>
+                                                        <p class="small mb-0">Check-out</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p class="small mb-0">Check-out</p>
+                                    <?php endif; ?>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
 
-    <!-- Card: Thông tin SEO và tìm kiếm -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="card-title mb-0">
-                <i class='bx bx-search-alt text-primary me-2'></i>
-                Thông tin SEO và tìm kiếm
-            </h5>
-        </div>
-        
-        <div class="card-body">
-            <div class="row g-3">
-                <!-- tu_khoa_su_kien -->
-                <div class="col-md-6">
-                    <label for="tu_khoa_su_kien" class="form-label fw-semibold">
-                        Từ khóa tìm kiếm
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-search'></i></span>
-                        <input type="text" 
-                               class="form-control <?= isset($validation) && $validation->hasError('tu_khoa_su_kien') ? 'is-invalid' : '' ?>" 
-                               id="tu_khoa_su_kien" name="tu_khoa_su_kien"
-                               value="<?= esc($tu_khoa_su_kien) ?>"
-                               placeholder="Nhập từ khóa ngăn cách bởi dấu phẩy">
-                        <?php if (isset($validation) && $validation->hasError('tu_khoa_su_kien')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('tu_khoa_su_kien') ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
+                            <!-- Tab SEO & Nội dung -->
+                            <div class="tab-pane fade" id="seo-content" role="tabpanel" aria-labelledby="seo-content-tab">
+                                <div class="row g-3">
+                                    <!-- slug -->
+                                    <div class="col-md-6">
+                                        <label for="slug" class="form-label fw-semibold">
+                                            Slug (đường dẫn thân thiện)
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class='bx bx-link'></i></span>
+                                            <input type="text"
+                                                class="form-control <?= isset($validation) && $validation->hasError('slug') ? 'is-invalid' : '' ?>"
+                                                id="slug" name="slug"
+                                                value="<?= esc($slug) ?>"
+                                                placeholder="Sinh tự động nếu để trống">
+                                            <?php if (isset($validation) && $validation->hasError('slug')): ?>
+                                            <div class="invalid-feedback">
+                                                <?= $validation->getError('slug') ?>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <i class='bx bx-info-circle me-1'></i>
                         Các từ khóa ngăn cách bởi dấu phẩy, dùng để tìm kiếm
                     </div>
                 </div>
