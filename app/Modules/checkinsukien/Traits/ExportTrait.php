@@ -393,10 +393,10 @@ trait ExportTrait
     protected function exportData($data, $type = 'excel', $criteria = [], $isDeleted = false)
     {
         // Định dạng tiêu đề
-        $title = $isDeleted ? 'DANH SÁCH CHECK IN SỰ KIỆN ĐÃ XÓA' : 'DANH SÁCH CHECK IN SỰ KIỆN';
+        $title = $isDeleted ? 'DANH SÁCH CHECK-IN SỰ KIỆN ĐÃ XÓA' : 'DANH SÁCH CHECK-IN SỰ KIỆN';
         
         // Tạo tên file dựa trên loại và thời gian
-        $filename = 'checkin_su_kien_' . ($isDeleted ? 'deleted_' : '') . date('YmdHis');
+        $filename = 'checkin_sukien_' . ($isDeleted ? 'deleted_' : '') . date('YmdHis');
         
         // Định dạng bộ lọc cho báo cáo
         if ($type === 'excel') {

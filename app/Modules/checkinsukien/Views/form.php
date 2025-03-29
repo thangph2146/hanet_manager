@@ -1,39 +1,27 @@
 <?php
 /**
- * Form component for creating and updating sự kiện diễn giả (event speaker relationship)
+ * Form component for creating and updating check-in sự kiện
  * 
  * @var string $action Form submission URL
  * @var string $method Form method (POST or PUT)
- * @var SuKienDienGia $data SuKienDienGia entity data for editing (optional)
+ * @var CheckInSuKien $data CheckInSuKien entity data for editing (optional)
  * @var array $suKienList List of all events
- * @var array $dienGiaList List of all speakers
  */
 
 // Set default values if editing
-$su_kien_id = isset($data) ? $data->getSuKienId() : '';
-$dien_gia_id = isset($data) ? $data->getDienGiaId() : '';
-$thu_tu = isset($data) ? $data->getThuTu() : '';
-$vai_tro = isset($data) ? $data->getVaiTro() : '';
-$mo_ta = isset($data) ? $data->getMoTa() : '';
-
-// Đảm bảo định dạng thời gian theo chuẩn ISO 8601 cho input datetime-local
-$thoi_gian_trinh_bay = '';
-if (isset($data) && $data->getThoiGianTrinhBay()) {
-    $thoi_gian_trinh_bay = $data->getThoiGianTrinhBay()->format('Y-m-d\TH:i');
-}
-
-$thoi_gian_ket_thuc = '';
-if (isset($data) && $data->getThoiGianKetThuc()) {
-    $thoi_gian_ket_thuc = $data->getThoiGianKetThuc()->format('Y-m-d\TH:i');
-}
-
-$thoi_luong_phut = isset($data) ? $data->getThoiLuongPhut() : '';
-$tieu_de_trinh_bay = isset($data) ? $data->getTieuDeTrinhBay() : '';
-$tai_lieu_dinh_kem = isset($data) ? $data->getTaiLieuDinhKem() : [];
-$trang_thai_tham_gia = isset($data) ? $data->getTrangThaiThamGia() : 'cho_xac_nhan';
-$hien_thi_cong_khai = isset($data) ? $data->getHienThiCongKhai() : true;
-$ghi_chu = isset($data) ? $data->getGhiChu() : '';
-$id = isset($data) ? $data->getId() : '';
+$id = isset($id) ? $id : 0;
+$su_kien_id = isset($su_kien_id) ? $su_kien_id : '';
+$dangky_sukien_id = isset($dangky_sukien_id) ? $dangky_sukien_id : '';
+$ho_ten = isset($ho_ten) ? $ho_ten : '';
+$email = isset($email) ? $email : '';
+$thoi_gian_check_in = isset($thoi_gian_check_in) ? $thoi_gian_check_in : date('Y-m-d H:i:s');
+$checkin_type = isset($checkin_type) ? $checkin_type : 'manual';
+$face_verified = isset($face_verified) ? $face_verified : 0;
+$face_match_score = isset($face_match_score) ? $face_match_score : '';
+$ma_xac_nhan = isset($ma_xac_nhan) ? $ma_xac_nhan : '';
+$hinh_thuc_tham_gia = isset($hinh_thuc_tham_gia) ? $hinh_thuc_tham_gia : 'offline';
+$ghi_chu = isset($ghi_chu) ? $ghi_chu : '';
+$status = isset($status) ? $status : 1;
 
 // Set default values for form action and method
 $action = isset($action) ? $action : site_url($module_name . '/create');
@@ -44,422 +32,337 @@ $isUpdate = isset($data) && $data->getId() > 0;
 
 // Lấy giá trị từ old() nếu có
 $su_kien_id = old('su_kien_id', $su_kien_id);
-$dien_gia_id = old('dien_gia_id', $dien_gia_id);
-$thu_tu = old('thu_tu', $thu_tu);
-$vai_tro = old('vai_tro', $vai_tro);
-$mo_ta = old('mo_ta', $mo_ta);
-$thoi_gian_trinh_bay = old('thoi_gian_trinh_bay', $thoi_gian_trinh_bay);
-$thoi_gian_ket_thuc = old('thoi_gian_ket_thuc', $thoi_gian_ket_thuc);
-$thoi_luong_phut = old('thoi_luong_phut', $thoi_luong_phut);
-$tieu_de_trinh_bay = old('tieu_de_trinh_bay', $tieu_de_trinh_bay);
-$tai_lieu_dinh_kem = old('tai_lieu_dinh_kem', $tai_lieu_dinh_kem);
-$trang_thai_tham_gia = old('trang_thai_tham_gia', $trang_thai_tham_gia);
-$hien_thi_cong_khai = old('hien_thi_cong_khai', $hien_thi_cong_khai);
+$dangky_sukien_id = old('dangky_sukien_id', $dangky_sukien_id);
+$ho_ten = old('ho_ten', $ho_ten);
+$email = old('email', $email);
+$thoi_gian_check_in = old('thoi_gian_check_in', $thoi_gian_check_in);
+$checkin_type = old('checkin_type', $checkin_type);
+$face_verified = old('face_verified', $face_verified);
+$face_match_score = old('face_match_score', $face_match_score);
+$ma_xac_nhan = old('ma_xac_nhan', $ma_xac_nhan);
+$hinh_thuc_tham_gia = old('hinh_thuc_tham_gia', $hinh_thuc_tham_gia);
 $ghi_chu = old('ghi_chu', $ghi_chu);
+$status = old('status', $status);
+
+// Kiểm tra biến validation tồn tại
+$validation = $validation ?? [];
+$errorClass = 'is-invalid';
+$feedbackClass = 'invalid-feedback';
+
+// Lấy giá trị từ dữ liệu record hoặc post data
+function getValue($field, $record, $post) {
+    if (isset($post[$field])) {
+        return $post[$field];
+    } elseif (isset($record) && method_exists($record, 'get' . ucfirst($field))) {
+        $method = 'get' . ucfirst($field);
+        return $record->$method();
+    } elseif (isset($record) && isset($record->$field)) {
+        return $record->$field;
+    }
+    return '';
+}
 ?>
 
-<!-- Form chính -->
-<form action="<?= $action ?>" method="<?= $method ?>" id="form-<?= $module_name ?>" class="needs-validation" novalidate enctype="multipart/form-data">
-    <?= csrf_field() ?>
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="card-title mb-0">
+            <i class='bx bx-log-in-circle text-primary me-2'></i>
+            Thông tin check-in sự kiện
+        </h5>
+    </div>
     
-    <?php if ($id): ?>
-        <input type="hidden" name="su_kien_dien_gia_id" value="<?= $id ?>">
-    <?php else: ?>
-        <input type="hidden" name="su_kien_dien_gia_id" value="0">
-    <?php endif; ?>
-    
-    <!-- Hiển thị thông báo lỗi nếu có -->
-    <?php if (session('error')): ?>
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
-            <div class="d-flex">
-                <div class="me-3">
-                    <i class='bx bx-error-circle fs-3'></i>
+    <div class="card-body">
+        <div class="row g-3">
+            <!-- ID -->
+            <?php if ($id): ?>
+            <input type="hidden" name="checkin_sukien_id" value="<?= $id ?>">
+            <?php endif; ?>
+            
+            <!-- su_kien_id -->
+            <div class="col-md-6">
+                <label for="su_kien_id" class="form-label fw-semibold">
+                    Sự kiện <span class="text-danger">*</span>
+                </label>
+                <select class="form-select <?= isset($validation) && isset($validation['su_kien_id']) ? 'is-invalid' : '' ?>" 
+                        id="su_kien_id" name="su_kien_id" required>
+                    <option value="">Chọn sự kiện</option>
+                    <?php foreach ($suKienList as $suKien): ?>
+                    <option value="<?= $suKien->su_kien_id ?>" <?= $su_kien_id == $suKien->su_kien_id ? 'selected' : '' ?>>
+                        <?= esc($suKien->ten_su_kien) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (isset($validation) && isset($validation['su_kien_id'])): ?>
+                <div class="invalid-feedback">
+                    <?= $validation['su_kien_id'] ?>
                 </div>
-                <div>
-                    <strong>Lỗi!</strong> <?= session('error') ?>
-                </div>
+                <?php endif; ?>
             </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
 
-    <!-- Hiển thị lỗi validation -->
-    <?php if (isset($errors) && (is_array($errors) || is_object($errors)) && count($errors) > 0): ?>
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
-            <div class="d-flex">
-                <div class="me-3">
-                    <i class='bx bx-error-circle fs-3'></i>
+            <!-- ho_ten -->
+            <div class="col-md-6">
+                <label for="ho_ten" class="form-label fw-semibold">
+                    Họ tên <span class="text-danger">*</span>
+                </label>
+                <input type="text" 
+                       class="form-control <?= isset($validation) && isset($validation['ho_ten']) ? 'is-invalid' : '' ?>" 
+                       id="ho_ten" name="ho_ten"
+                       value="<?= esc($ho_ten) ?>"
+                       required>
+                <?php if (isset($validation) && isset($validation['ho_ten'])): ?>
+                <div class="invalid-feedback">
+                    <?= $validation['ho_ten'] ?>
                 </div>
-                <div>
-                    <strong>Lỗi nhập liệu:</strong>
-                    <ul class="mb-0 ps-3 mt-1">
-                        <?php foreach ($errors as $field => $error): ?>
-                            <li><?= is_array($error) ? implode(', ', $error) : $error ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
+                <?php endif; ?>
             </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
 
-    <!-- Hiển thị thông báo thành công -->
-    <?php if (session('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show shadow-sm border-start border-success border-4" role="alert">
-            <div class="d-flex">
-                <div class="me-3">
-                    <i class='bx bx-check-circle fs-3'></i>
+            <!-- email -->
+            <div class="col-md-6">
+                <label for="email" class="form-label fw-semibold">
+                    Email <span class="text-danger">*</span>
+                </label>
+                <input type="email" 
+                       class="form-control <?= isset($validation) && isset($validation['email']) ? 'is-invalid' : '' ?>" 
+                       id="email" name="email"
+                       value="<?= esc($email) ?>"
+                       required>
+                <?php if (isset($validation) && isset($validation['email'])): ?>
+                <div class="invalid-feedback">
+                    <?= $validation['email'] ?>
                 </div>
-                <div>
-                    <strong>Thành công!</strong> <?= session('success') ?>
-                </div>
+                <?php endif; ?>
             </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
 
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="card-title mb-0">
-                <i class='bx bx-user text-primary me-2'></i>
-                Thông tin sự kiện diễn giả
-            </h5>
-        </div>
-        
-        <div class="card-body">
-            <div class="row g-3">
-                <!-- su_kien_id -->
-                <div class="col-md-6">
-                    <label for="su_kien_id" class="form-label fw-semibold">
-                        Sự kiện <span class="text-danger">*</span>
-                    </label>
-                    <select class="form-select <?= isset($validation) && $validation->hasError('su_kien_id') ? 'is-invalid' : '' ?>" 
-                            id="su_kien_id" name="su_kien_id" required>
-                        <option value="">Chọn sự kiện</option>
-                        <?php foreach ($suKienList as $suKien): ?>
-                            <option value="<?= $suKien->su_kien_id ?>" <?= $su_kien_id == $suKien->su_kien_id ? 'selected' : '' ?>>
-                                <?= esc($suKien->ten_su_kien) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if (isset($validation) && $validation->hasError('su_kien_id')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('su_kien_id') ?>
-                        </div>
-                    <?php endif; ?>
+            <!-- dangky_sukien_id -->
+            <div class="col-md-6">
+                <label for="dangky_sukien_id" class="form-label fw-semibold">
+                    ID đăng ký sự kiện
+                </label>
+                <input type="number" 
+                       class="form-control <?= isset($validation) && isset($validation['dangky_sukien_id']) ? 'is-invalid' : '' ?>" 
+                       id="dangky_sukien_id" name="dangky_sukien_id"
+                       value="<?= esc($dangky_sukien_id) ?>">
+                <?php if (isset($validation) && isset($validation['dangky_sukien_id'])): ?>
+                <div class="invalid-feedback">
+                    <?= $validation['dangky_sukien_id'] ?>
                 </div>
+                <?php endif; ?>
+            </div>
 
-                <!-- dien_gia_id -->
-                <div class="col-md-6">
-                    <label for="dien_gia_id" class="form-label fw-semibold">
-                        Diễn giả <span class="text-danger">*</span>
-                    </label>
-                    <select class="form-select <?= isset($validation) && $validation->hasError('dien_gia_id') ? 'is-invalid' : '' ?>" 
-                            id="dien_gia_id" name="dien_gia_id" required>
-                        <option value="">Chọn diễn giả</option>
-                        <?php foreach ($dienGiaList as $dienGia): ?>
-                            <option value="<?= $dienGia->dien_gia_id ?>" <?= $dien_gia_id == $dienGia->dien_gia_id ? 'selected' : '' ?>>
-                                <?= esc($dienGia->ten_dien_gia) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if (isset($validation) && $validation->hasError('dien_gia_id')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('dien_gia_id') ?>
-                        </div>
-                    <?php endif; ?>
+            <!-- thoi_gian_check_in -->
+            <div class="col-md-6">
+                <label for="thoi_gian_check_in" class="form-label fw-semibold">
+                    Thời gian check-in
+                </label>
+                <input type="datetime-local" 
+                       class="form-control <?= isset($validation) && isset($validation['thoi_gian_check_in']) ? 'is-invalid' : '' ?>" 
+                       id="thoi_gian_check_in" name="thoi_gian_check_in"
+                       value="<?= date('Y-m-d\TH:i', strtotime($thoi_gian_check_in)) ?>">
+                <?php if (isset($validation) && isset($validation['thoi_gian_check_in'])): ?>
+                <div class="invalid-feedback">
+                    <?= $validation['thoi_gian_check_in'] ?>
                 </div>
+                <?php endif; ?>
+            </div>
 
-                <!-- thu_tu -->
-                <div class="col-md-6">
-                    <label for="thu_tu" class="form-label fw-semibold">
-                        Thứ tự
-                    </label>
-                    <input type="number" 
-                           class="form-control <?= isset($validation) && $validation->hasError('thu_tu') ? 'is-invalid' : '' ?>" 
-                           id="thu_tu" name="thu_tu"
-                           value="<?= esc($thu_tu) ?>"
-                           placeholder="Nhập thứ tự">
-                    <?php if (isset($validation) && $validation->hasError('thu_tu')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('thu_tu') ?>
-                        </div>
-                    <?php endif; ?>
+            <!-- checkin_type -->
+            <div class="col-md-6">
+                <label for="checkin_type" class="form-label fw-semibold">
+                    Loại check-in <span class="text-danger">*</span>
+                </label>
+                <select class="form-select <?= isset($validation) && isset($validation['checkin_type']) ? 'is-invalid' : '' ?>" 
+                        id="checkin_type" name="checkin_type" required>
+                    <option value="manual" <?= $checkin_type == 'manual' ? 'selected' : '' ?>>Thủ công</option>
+                    <option value="qr_code" <?= $checkin_type == 'qr_code' ? 'selected' : '' ?>>QR Code</option>
+                    <option value="face_id" <?= $checkin_type == 'face_id' ? 'selected' : '' ?>>Face ID</option>
+                </select>
+                <?php if (isset($validation) && isset($validation['checkin_type'])): ?>
+                <div class="invalid-feedback">
+                    <?= $validation['checkin_type'] ?>
                 </div>
+                <?php endif; ?>
+            </div>
 
-                <!-- vai_tro -->
-                <div class="col-md-6">
-                    <label for="vai_tro" class="form-label fw-semibold">
-                        Vai trò
-                    </label>
-                    <input type="text" 
-                           class="form-control <?= isset($validation) && $validation->hasError('vai_tro') ? 'is-invalid' : '' ?>" 
-                           id="vai_tro" name="vai_tro"
-                           value="<?= esc($vai_tro) ?>"
-                           placeholder="Nhập vai trò">
-                    <?php if (isset($validation) && $validation->hasError('vai_tro')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('vai_tro') ?>
-                        </div>
-                    <?php endif; ?>
+            <!-- hinh_thuc_tham_gia -->
+            <div class="col-md-6">
+                <label for="hinh_thuc_tham_gia" class="form-label fw-semibold">
+                    Hình thức tham gia <span class="text-danger">*</span>
+                </label>
+                <select class="form-select <?= isset($validation) && isset($validation['hinh_thuc_tham_gia']) ? 'is-invalid' : '' ?>" 
+                        id="hinh_thuc_tham_gia" name="hinh_thuc_tham_gia" required>
+                    <option value="offline" <?= $hinh_thuc_tham_gia == 'offline' ? 'selected' : '' ?>>Trực tiếp</option>
+                    <option value="online" <?= $hinh_thuc_tham_gia == 'online' ? 'selected' : '' ?>>Trực tuyến</option>
+                </select>
+                <?php if (isset($validation) && isset($validation['hinh_thuc_tham_gia'])): ?>
+                <div class="invalid-feedback">
+                    <?= $validation['hinh_thuc_tham_gia'] ?>
                 </div>
+                <?php endif; ?>
+            </div>
 
-                <!-- mo_ta -->
-                <div class="col-md-12">
-                    <label for="mo_ta" class="form-label fw-semibold">
-                        Mô tả
-                    </label>
-                    <textarea class="form-control <?= isset($validation) && $validation->hasError('mo_ta') ? 'is-invalid' : '' ?>" 
-                              id="mo_ta" name="mo_ta"
-                              rows="4"
-                              placeholder="Nhập mô tả"><?= esc($mo_ta) ?></textarea>
-                    <?php if (isset($validation) && $validation->hasError('mo_ta')): ?>
+            <!-- Phần dành cho face_id -->
+            <div id="face_id_section" class="col-12 <?= $checkin_type !== 'face_id' ? 'd-none' : '' ?>">
+                <div class="row g-3">
+                    <!-- face_image -->
+                    <div class="col-md-6">
+                        <label for="face_image" class="form-label fw-semibold">
+                            Ảnh khuôn mặt
+                        </label>
+                        <input type="file" 
+                               class="form-control <?= isset($validation) && isset($validation['face_image']) ? 'is-invalid' : '' ?>" 
+                               id="face_image" name="face_image"
+                               accept="image/*">
+                        <?php if (isset($validation) && isset($validation['face_image'])): ?>
                         <div class="invalid-feedback">
-                            <?= $validation->getError('mo_ta') ?>
+                            <?= $validation['face_image'] ?>
                         </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- thoi_gian_trinh_bay -->
-                <div class="col-md-6">
-                    <label for="thoi_gian_trinh_bay" class="form-label fw-semibold">
-                        Thời gian trình bày
-                    </label>
-                    <input type="datetime-local" 
-                           class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_trinh_bay') ? 'is-invalid' : '' ?>" 
-                           id="thoi_gian_trinh_bay" name="thoi_gian_trinh_bay"
-                           value="<?= esc($thoi_gian_trinh_bay) ?>"
-                           step="60">
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Định dạng: YYYY-MM-DDThh:mm theo giờ 24h (VD: 2023-12-31T14:30)
+                        <?php endif; ?>
+                        
+                        <?php if (isset($data) && !empty($data->getFaceImagePath())): ?>
+                        <div class="mt-2">
+                            <img src="<?= base_url('uploads/faces/' . $data->getFaceImagePath()) ?>" alt="Ảnh khuôn mặt" class="img-thumbnail" style="max-width: 150px;">
+                        </div>
+                        <?php endif; ?>
                     </div>
-                    <?php if (isset($validation) && $validation->hasError('thoi_gian_trinh_bay')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('thoi_gian_trinh_bay') ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
 
-                <!-- thoi_gian_ket_thuc -->
-                <div class="col-md-6">
-                    <label for="thoi_gian_ket_thuc" class="form-label fw-semibold">
-                        Thời gian kết thúc
-                    </label>
-                    <input type="datetime-local" 
-                           class="form-control <?= isset($validation) && $validation->hasError('thoi_gian_ket_thuc') ? 'is-invalid' : '' ?>" 
-                           id="thoi_gian_ket_thuc" name="thoi_gian_ket_thuc"
-                           value="<?= esc($thoi_gian_ket_thuc) ?>"
-                           step="60">
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Định dạng: YYYY-MM-DDThh:mm theo giờ 24h (VD: 2023-12-31T16:30)
+                    <!-- face_match_score -->
+                    <div class="col-md-6">
+                        <label for="face_match_score" class="form-label fw-semibold">
+                            Điểm khớp khuôn mặt
+                        </label>
+                        <input type="number" 
+                               class="form-control <?= isset($validation) && isset($validation['face_match_score']) ? 'is-invalid' : '' ?>" 
+                               id="face_match_score" name="face_match_score"
+                               value="<?= esc($face_match_score) ?>"
+                               min="0" max="1" step="0.01">
+                        <?php if (isset($validation) && isset($validation['face_match_score'])): ?>
+                        <div class="invalid-feedback">
+                            <?= $validation['face_match_score'] ?>
+                        </div>
+                        <?php endif; ?>
                     </div>
-                    <?php if (isset($validation) && $validation->hasError('thoi_gian_ket_thuc')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('thoi_gian_ket_thuc') ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
 
-                <!-- thoi_luong_phut -->
-                <div class="col-md-6">
-                    <label for="thoi_luong_phut" class="form-label fw-semibold">
-                        Thời lượng (phút)
-                    </label>
-                    <input type="number" 
-                           class="form-control <?= isset($validation) && $validation->hasError('thoi_luong_phut') ? 'is-invalid' : '' ?>" 
-                           id="thoi_luong_phut" name="thoi_luong_phut"
-                           value="<?= esc($thoi_luong_phut) ?>"
-                           placeholder="Nhập thời lượng">
-                    <?php if (isset($validation) && $validation->hasError('thoi_luong_phut')): ?>
+                    <!-- face_verified -->
+                    <div class="col-md-6">
+                        <label for="face_verified" class="form-label fw-semibold">
+                            Xác minh khuôn mặt
+                        </label>
+                        <select class="form-select <?= isset($validation) && isset($validation['face_verified']) ? 'is-invalid' : '' ?>" 
+                                id="face_verified" name="face_verified">
+                            <option value="0" <?= $face_verified == 0 ? 'selected' : '' ?>>Chưa xác minh</option>
+                            <option value="1" <?= $face_verified == 1 ? 'selected' : '' ?>>Đã xác minh</option>
+                        </select>
+                        <?php if (isset($validation) && isset($validation['face_verified'])): ?>
                         <div class="invalid-feedback">
-                            <?= $validation->getError('thoi_luong_phut') ?>
+                            <?= $validation['face_verified'] ?>
                         </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- tieu_de_trinh_bay -->
-                <div class="col-md-6">
-                    <label for="tieu_de_trinh_bay" class="form-label fw-semibold">
-                        Tiêu đề trình bày
-                    </label>
-                    <input type="text" 
-                           class="form-control <?= isset($validation) && $validation->hasError('tieu_de_trinh_bay') ? 'is-invalid' : '' ?>" 
-                           id="tieu_de_trinh_bay" name="tieu_de_trinh_bay"
-                           value="<?= esc($tieu_de_trinh_bay) ?>"
-                           placeholder="Nhập tiêu đề trình bày">
-                    <?php if (isset($validation) && $validation->hasError('tieu_de_trinh_bay')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('tieu_de_trinh_bay') ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- tai_lieu_dinh_kem -->
-                <div class="col-md-12">
-                    <label for="tai_lieu_dinh_kem" class="form-label fw-semibold">
-                        Tài liệu đính kèm
-                    </label>
-                    <input type="file" 
-                           class="form-control <?= isset($validation) && $validation->hasError('tai_lieu_dinh_kem') ? 'is-invalid' : '' ?>" 
-                           id="tai_lieu_dinh_kem" name="tai_lieu_dinh_kem[]"
-                           multiple>
-                    <?php if (isset($validation) && $validation->hasError('tai_lieu_dinh_kem')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('tai_lieu_dinh_kem') ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- trang_thai_tham_gia -->
-                <div class="col-md-6">
-                    <label for="trang_thai_tham_gia" class="form-label fw-semibold">
-                        Trạng thái tham gia
-                    </label>
-                    <select class="form-select <?= isset($validation) && $validation->hasError('trang_thai_tham_gia') ? 'is-invalid' : '' ?>" 
-                            id="trang_thai_tham_gia" name="trang_thai_tham_gia">
-                        <option value="cho_xac_nhan" <?= $trang_thai_tham_gia == 'cho_xac_nhan' ? 'selected' : '' ?>>Chờ xác nhận</option>
-                        <option value="xac_nhan" <?= $trang_thai_tham_gia == 'xac_nhan' ? 'selected' : '' ?>>Đã xác nhận</option>
-                        <option value="tu_choi" <?= $trang_thai_tham_gia == 'tu_choi' ? 'selected' : '' ?>>Từ chối</option>
-                        <option value="khong_lien_he_duoc" <?= $trang_thai_tham_gia == 'khong_lien_he_duoc' ? 'selected' : '' ?>>Không liên hệ được</option>
-                    </select>
-                    <?php if (isset($validation) && $validation->hasError('trang_thai_tham_gia')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('trang_thai_tham_gia') ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- hien_thi_cong_khai -->
-                <div class="col-md-6">
-                    <label for="hien_thi_cong_khai" class="form-label fw-semibold">
-                        Hiển thị công khai
-                    </label>
-                    <select class="form-select <?= isset($validation) && $validation->hasError('hien_thi_cong_khai') ? 'is-invalid' : '' ?>" 
-                            id="hien_thi_cong_khai" name="hien_thi_cong_khai">
-                        <option value="1" <?= $hien_thi_cong_khai ? 'selected' : '' ?>>Có</option>
-                        <option value="0" <?= !$hien_thi_cong_khai ? 'selected' : '' ?>>Không</option>
-                    </select>
-                    <?php if (isset($validation) && $validation->hasError('hien_thi_cong_khai')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('hien_thi_cong_khai') ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- ghi_chu -->
-                <div class="col-md-12">
-                    <label for="ghi_chu" class="form-label fw-semibold">
-                        Ghi chú
-                    </label>
-                    <textarea class="form-control <?= isset($validation) && $validation->hasError('ghi_chu') ? 'is-invalid' : '' ?>" 
-                              id="ghi_chu" name="ghi_chu"
-                              rows="4"
-                              placeholder="Nhập ghi chú"><?= esc($ghi_chu) ?></textarea>
-                    <?php if (isset($validation) && $validation->hasError('ghi_chu')): ?>
-                        <div class="invalid-feedback">
-                            <?= $validation->getError('ghi_chu') ?>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="card-footer bg-light py-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted small">
-                    <i class='bx bx-info-circle me-1'></i>
-                    Các trường có dấu <span class="text-danger">*</span> là bắt buộc
-                </span>
-                
-                <div class="d-flex gap-2">
-                    <a href="<?= site_url($module_name) ?>" class="btn btn-light">
-                        <i class='bx bx-arrow-back me-1'></i> Quay lại
-                    </a>
-                    <button class="btn btn-primary px-4" type="submit">
-                        <i class='bx bx-save me-1'></i>
-                        <?= $isUpdate ? 'Cập nhật' : 'Thêm mới' ?>
-                    </button>
+
+            <!-- ma_xac_nhan -->
+            <div class="col-md-6">
+                <label for="ma_xac_nhan" class="form-label fw-semibold">
+                    Mã xác nhận
+                </label>
+                <input type="text" 
+                       class="form-control <?= isset($validation) && isset($validation['ma_xac_nhan']) ? 'is-invalid' : '' ?>" 
+                       id="ma_xac_nhan" name="ma_xac_nhan"
+                       value="<?= esc($ma_xac_nhan) ?>"
+                       placeholder="Để trống để tự động tạo mã">
+                <?php if (isset($validation) && isset($validation['ma_xac_nhan'])): ?>
+                <div class="invalid-feedback">
+                    <?= $validation['ma_xac_nhan'] ?>
                 </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- status -->
+            <div class="col-md-6">
+                <label for="status" class="form-label fw-semibold">
+                    Trạng thái
+                </label>
+                <select class="form-select <?= isset($validation) && isset($validation['status']) ? 'is-invalid' : '' ?>" 
+                        id="status" name="status">
+                    <option value="1" <?= $status == 1 ? 'selected' : '' ?>>Hoạt động</option>
+                    <option value="2" <?= $status == 2 ? 'selected' : '' ?>>Đang xử lý</option>
+                    <option value="0" <?= $status == 0 ? 'selected' : '' ?>>Vô hiệu</option>
+                </select>
+                <?php if (isset($validation) && isset($validation['status'])): ?>
+                <div class="invalid-feedback">
+                    <?= $validation['status'] ?>
+                </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- ghi_chu -->
+            <div class="col-md-12">
+                <label for="ghi_chu" class="form-label fw-semibold">
+                    Ghi chú
+                </label>
+                <textarea class="form-control <?= isset($validation) && isset($validation['ghi_chu']) ? 'is-invalid' : '' ?>" 
+                         id="ghi_chu" name="ghi_chu"
+                         rows="3"><?= esc($ghi_chu) ?></textarea>
+                <?php if (isset($validation) && isset($validation['ghi_chu'])): ?>
+                <div class="invalid-feedback">
+                    <?= $validation['ghi_chu'] ?>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
-</form>
+    
+    <div class="card-footer bg-light py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="text-muted small">
+                <i class='bx bx-info-circle me-1'></i>
+                Các trường có dấu <span class="text-danger">*</span> là bắt buộc
+            </span>
+            
+            <div class="d-flex gap-2">
+                <a href="<?= site_url($module_name) ?>" class="btn btn-light">
+                    <i class='bx bx-arrow-back me-1'></i> Quay lại
+                </a>
+                <button class="btn btn-primary px-4" type="submit">
+                    <i class='bx bx-save me-1'></i>
+                    <?= $isUpdate ? 'Cập nhật' : 'Thêm mới' ?>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Form validation
-        const forms = document.querySelectorAll('.needs-validation');
-        Array.from(forms).forEach(form => {
-            form.addEventListener('submit', event => {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                
-                // Kiểm tra thêm thời gian trình bày và thời gian kết thúc
-                const thoiGianTrinhBay = document.getElementById('thoi_gian_trinh_bay').value;
-                const thoiGianKetThuc = document.getElementById('thoi_gian_ket_thuc').value;
-                
-                if (thoiGianTrinhBay && thoiGianKetThuc) {
-                    const startDate = new Date(thoiGianTrinhBay);
-                    const endDate = new Date(thoiGianKetThuc);
-                    
-                    if (startDate > endDate) {
-                        event.preventDefault();
-                        alert('Thời gian kết thúc phải lớn hơn hoặc bằng thời gian trình bày');
-                        document.getElementById('thoi_gian_ket_thuc').classList.add('is-invalid');
-                    }
-                }
-                
-                // Định dạng thời gian theo chuẩn 24 giờ trước khi submit
-                if (thoiGianTrinhBay) {
-                    const startDate = new Date(thoiGianTrinhBay);
-                    const formattedStart = startDate.getFullYear() + '-' + 
-                                        String(startDate.getMonth() + 1).padStart(2, '0') + '-' + 
-                                        String(startDate.getDate()).padStart(2, '0') + 'T' + 
-                                        String(startDate.getHours()).padStart(2, '0') + ':' + 
-                                        String(startDate.getMinutes()).padStart(2, '0');
-                    document.getElementById('thoi_gian_trinh_bay').value = formattedStart;
-                }
-                
-                if (thoiGianKetThuc) {
-                    const endDate = new Date(thoiGianKetThuc);
-                    const formattedEnd = endDate.getFullYear() + '-' + 
-                                      String(endDate.getMonth() + 1).padStart(2, '0') + '-' + 
-                                      String(endDate.getDate()).padStart(2, '0') + 'T' + 
-                                      String(endDate.getHours()).padStart(2, '0') + ':' + 
-                                      String(endDate.getMinutes()).padStart(2, '0');
-                    document.getElementById('thoi_gian_ket_thuc').value = formattedEnd;
-                }
-                
-                form.classList.add('was-validated');
-            }, false);
-        });
-        
-        // Tự động focus vào trường đầu tiên
-        document.getElementById('su_kien_id').focus();
-        
-        // Xử lý sự kiện thay đổi thời gian
-        const thoiGianTrinhBayInput = document.getElementById('thoi_gian_trinh_bay');
-        const thoiGianKetThucInput = document.getElementById('thoi_gian_ket_thuc');
-        const thoiLuongPhutInput = document.getElementById('thoi_luong_phut');
-        
-        // Cập nhật thời lượng khi thời gian thay đổi
-        function updateThoiLuong() {
-            const startTime = thoiGianTrinhBayInput.value ? new Date(thoiGianTrinhBayInput.value) : null;
-            const endTime = thoiGianKetThucInput.value ? new Date(thoiGianKetThucInput.value) : null;
-            
-            if (startTime && endTime && startTime <= endTime) {
-                // Tính thời lượng phút
-                const diffMs = endTime - startTime;
-                const diffMinutes = Math.round(diffMs / 60000);
-                thoiLuongPhutInput.value = diffMinutes;
-            }
+document.addEventListener('DOMContentLoaded', function () {
+    const checkinTypeSelect = document.getElementById('checkin_type');
+    const faceIdSection = document.getElementById('face_id_section');
+    
+    // Hiển thị/ẩn phần Face ID dựa trên loại check-in
+    function toggleFaceIdSection() {
+        if (checkinTypeSelect.value === 'face_id') {
+            faceIdSection.classList.remove('d-none');
+        } else {
+            faceIdSection.classList.add('d-none');
         }
-        
-        thoiGianTrinhBayInput.addEventListener('change', updateThoiLuong);
-        thoiGianKetThucInput.addEventListener('change', updateThoiLuong);
+    }
+    
+    // Gọi hàm ban đầu
+    toggleFaceIdSection();
+    
+    // Thêm sự kiện khi thay đổi loại check-in
+    checkinTypeSelect.addEventListener('change', toggleFaceIdSection);
+    
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
     });
+});
 </script>

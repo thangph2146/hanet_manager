@@ -225,7 +225,10 @@ class CheckInSuKienModel extends BaseModel
         }
         
         // Sắp xếp kết quả
-        $builder->orderBy("{$this->table}.{$sort}", $order);
+        $validSortFields = ['thoi_gian_check_in', 'created_at', 'updated_at', 'deleted_at', 'su_kien_id', 'email', 'ho_ten', 'status'];
+        $sort = in_array($sort, $validSortFields) ? $sort : 'deleted_at';
+        
+        $builder->orderBy($this->table . '.' . $sort, $order);
         
         // Thực hiện truy vấn
         $result = $builder->get()->getResult($this->returnType);
@@ -324,21 +327,159 @@ class CheckInSuKienModel extends BaseModel
     }
     
     /**
-     * Chuẩn bị các quy tắc xác thực dựa trên tình huống
+     * Chuẩn bị các quy tắc xác thực dựa trên kịch bản
      * 
-     * @param string $scenario Tình huống xác thực ('insert' hoặc 'update')
+     * @param string $scenario Kịch bản (insert hoặc update)
      * @param array $data Dữ liệu cần xác thực
+     * @return array Rules xác thực
      */
     public function prepareValidationRules(string $scenario = 'insert', array $data = [])
     {
-        $entity = new CheckInSuKien();
-        $this->validationRules = $entity->getValidationRules();
-        $this->validationMessages = $entity->getValidationMessages();
+        // Khởi tạo đối tượng thực thể và lấy quy tắc xác thực
+        $entity = new \App\Modules\checkinsukien\Entities\CheckInSuKien();
+        $rules = $entity->getValidationRules();
+        $messages = $entity->getValidationMessages();
         
-        // Loại trừ các trường timestamp và primary key khi thêm mới
-        unset($this->validationRules['created_at']);
-        unset($this->validationRules['updated_at']);
-        unset($this->validationRules['deleted_at']);
+        // Các trường cần bỏ qua khi cập nhật
+        $skipFieldsOnUpdate = [
+            'created_at', 'updated_at', 'deleted_at'
+        ];
+        
+        // Các trường cho phép null
+        $nullableFields = [
+            'dangky_sukien_id', 'face_match_score', 
+            'ma_xac_nhan', 'ghi_chu',
+            'face_image_path', 'location_data', 
+            'device_info', 'thong_tin_bo_sung'
+        ];
+        
+        // Trong trường hợp cập nhật, chỉ áp dụng quy tắc cho các trường có trong dữ liệu
+        if ($scenario === 'update') {
+            // Tạo bản sao của quy tắc ban đầu
+            $updatedRules = [];
+            
+            // Chỉ giữ lại các quy tắc cho những trường có trong dữ liệu và không nằm trong danh sách bỏ qua
+            foreach ($rules as $field => $rule) {
+                if (array_key_exists($field, $data) && !in_array($field, $skipFieldsOnUpdate)) {
+                    $updatedRules[$field] = $rule;
+                }
+            }
+            
+            // Đảm bảo trường ID và su_kien_id luôn được kiểm tra trong cập nhật
+            if (isset($data[$this->primaryKey])) {
+                $updatedRules[$this->primaryKey] = $rules[$this->primaryKey] ?? [
+                    'rules' => 'required|integer|is_not_unique[' . $this->table . '.' . $this->primaryKey . ']',
+                    'label' => 'ID',
+                    'errors' => [
+                        'required' => '{field} là bắt buộc',
+                        'integer' => '{field} phải là số nguyên',
+                        'is_not_unique' => '{field} không tồn tại trong hệ thống'
+                    ]
+                ];
+            }
+            
+            if (isset($data['su_kien_id'])) {
+                // Kiểm tra sự kiện tồn tại và không bị xóa
+                $updatedRules['su_kien_id'] = [
+                    'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id]',
+                    'label' => 'Sự kiện',
+                    'errors' => [
+                        'required' => '{field} là bắt buộc',
+                        'integer' => '{field} phải là số nguyên',
+                        'is_not_unique' => '{field} không tồn tại trong hệ thống hoặc đã bị xóa'
+                    ]
+                ];
+            }
+            
+            // Cập nhật lại rules
+            $rules = $updatedRules;
+        } else {
+            // Đối với insert, đảm bảo sự kiện tồn tại và không bị xóa
+            $rules['su_kien_id'] = [
+                'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id]',
+                'label' => 'Sự kiện',
+                'errors' => [
+                    'required' => '{field} là bắt buộc',
+                    'integer' => '{field} phải là số nguyên',
+                    'is_not_unique' => '{field} không tồn tại trong hệ thống hoặc đã bị xóa'
+                ]
+            ];
+        }
+        
+        // Điều chỉnh quy tắc cho các trường có thể null
+        foreach ($nullableFields as $field) {
+            if (isset($rules[$field])) {
+                if (is_array($rules[$field]) && isset($rules[$field]['rules'])) {
+                    // Thêm permit_empty vào quy tắc
+                    if (strpos($rules[$field]['rules'], 'permit_empty') === false) {
+                        $rules[$field]['rules'] = 'permit_empty|' . preg_replace('/^required\|/', '', $rules[$field]['rules']);
+                    }
+                } else {
+                    // Thêm permit_empty vào quy tắc
+                    if (strpos($rules[$field], 'permit_empty') === false) {
+                        $rules[$field] = 'permit_empty|' . preg_replace('/^required\|/', '', $rules[$field]);
+                    }
+                }
+            }
+        }
+        
+        // Quy tắc đặc biệt cho face_match_score
+        if (isset($rules['face_match_score'])) {
+            if (is_array($rules['face_match_score']) && isset($rules['face_match_score']['rules'])) {
+                $rules['face_match_score']['rules'] = 'permit_empty|numeric|greater_than_equal_to[0]|less_than_equal_to[1]';
+            } else {
+                $rules['face_match_score'] = 'permit_empty|numeric|greater_than_equal_to[0]|less_than_equal_to[1]';
+            }
+        }
+        
+        // Quy tắc đặc biệt cho đường dẫn ảnh
+        if (isset($rules['face_image_path'])) {
+            if (is_array($rules['face_image_path']) && isset($rules['face_image_path']['rules'])) {
+                $rules['face_image_path']['rules'] = 'permit_empty|string|max_length[255]';
+            } else {
+                $rules['face_image_path'] = 'permit_empty|string|max_length[255]';
+            }
+        }
+        
+        // Kiểm tra ID đăng ký sự kiện
+        if (isset($rules['dangky_sukien_id'])) {
+            if (is_array($rules['dangky_sukien_id']) && isset($rules['dangky_sukien_id']['rules'])) {
+                $rules['dangky_sukien_id']['rules'] = 'permit_empty|integer|is_not_unique[dangky_sukien.dangky_sukien_id]';
+                $rules['dangky_sukien_id']['errors']['is_not_unique'] = 'ID đăng ký sự kiện không tồn tại trong hệ thống hoặc đã bị xóa';
+            } else {
+                $rules['dangky_sukien_id'] = 'permit_empty|integer|is_not_unique[dangky_sukien.dangky_sukien_id]';
+            }
+        }
+        
+        // Luôn đảm bảo email và ho_ten là bắt buộc
+        if (isset($rules['email'])) {
+            if (is_array($rules['email']) && isset($rules['email']['rules'])) {
+                if (strpos($rules['email']['rules'], 'required') === false) {
+                    $rules['email']['rules'] = 'required|' . $rules['email']['rules'];
+                }
+            } else if (strpos($rules['email'], 'required') === false) {
+                $rules['email'] = 'required|' . $rules['email'];
+            }
+        }
+        
+        if (isset($rules['ho_ten'])) {
+            if (is_array($rules['ho_ten']) && isset($rules['ho_ten']['rules'])) {
+                if (strpos($rules['ho_ten']['rules'], 'required') === false) {
+                    $rules['ho_ten']['rules'] = 'required|' . $rules['ho_ten']['rules'];
+                }
+            } else if (strpos($rules['ho_ten'], 'required') === false) {
+                $rules['ho_ten'] = 'required|' . $rules['ho_ten'];
+            }
+        }
+        
+        // Log các quy tắc cuối cùng để debug
+        log_message('debug', 'Validation rules for ' . $scenario . ': ' . json_encode($rules));
+        
+        // Thiết lập quy tắc xác thực và thông báo
+        $this->setValidationRules($rules);
+        $this->setValidationMessages($messages);
+        
+        return $rules;
     }
     
     /**
@@ -607,7 +748,11 @@ class CheckInSuKienModel extends BaseModel
         }
         
         // Sắp xếp kết quả
-        $builder->orderBy("{$this->table}.{$sort}", $order);
+        // Kiểm tra trường sắp xếp tồn tại trong bảng
+        $validSortFields = ['thoi_gian_check_in', 'created_at', 'updated_at', 'deleted_at', 'su_kien_id', 'email', 'ho_ten', 'status'];
+        $sort = in_array($sort, $validSortFields) ? $sort : 'deleted_at';
+        
+        $builder->orderBy($this->table . '.' . $sort, $order);
         
         // Thực hiện truy vấn
         $result = $builder->get()->getResult($this->returnType);
@@ -870,6 +1015,79 @@ class CheckInSuKienModel extends BaseModel
         } catch (\Exception $e) {
             log_message('error', "updateTrangThaiThamGia: Lỗi khi cập nhật ID: {$id}, status: {$status}, lỗi: " . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Thêm mới dữ liệu
+     * 
+     * @param array $data Dữ liệu cần thêm
+     * @return int ID của bản ghi mới
+     * @throws \RuntimeException Nếu có lỗi xảy ra trong quá trình thêm dữ liệu
+     */
+    public function insertData(array $data)
+    {
+        // Nếu chưa có mã xác nhận, tạo mã xác nhận mới
+        if (empty($data['ma_xac_nhan'])) {
+            $data['ma_xac_nhan'] = $this->generateConfirmationCode();
+        }
+        
+        // Xác thực dữ liệu
+        $this->prepareValidationRules('insert', $data);
+        if (!$this->validate($data)) {
+            $errors = $this->errors();
+            log_message('error', 'Lỗi xác thực dữ liệu: ' . json_encode($errors));
+            throw new \RuntimeException('Dữ liệu không hợp lệ: ' . implode(', ', $errors));
+        }
+        
+        // Thêm dữ liệu
+        try {
+            $this->insert($data);
+            $id = $this->getInsertID();
+            log_message('info', 'Đã thêm mới bản ghi với ID: ' . $id);
+            return $id;
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] Lỗi khi thêm dữ liệu: {exception}', ['exception' => $e]);
+            throw new \RuntimeException('Có lỗi xảy ra khi thêm mới dữ liệu: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Cập nhật dữ liệu
+     * 
+     * @param int $id ID của bản ghi cần cập nhật
+     * @param array $data Dữ liệu cần cập nhật
+     * @return bool Kết quả cập nhật
+     * @throws \RuntimeException Nếu có lỗi xảy ra trong quá trình cập nhật dữ liệu
+     */
+    public function updateData(int $id, array $data)
+    {
+        // Kiểm tra xem bản ghi tồn tại không
+        $existingRecord = $this->find($id);
+        if (!$existingRecord) {
+            log_message('error', 'Không tìm thấy bản ghi với ID: ' . $id);
+            throw new \RuntimeException('Không tìm thấy bản ghi cần cập nhật');
+        }
+        
+        // Đảm bảo ID được đưa vào dữ liệu để xác thực
+        $data[$this->primaryKey] = $id;
+        
+        // Xác thực dữ liệu
+        $this->prepareValidationRules('update', $data);
+        if (!$this->validate($data)) {
+            $errors = $this->errors();
+            log_message('error', 'Lỗi xác thực dữ liệu: ' . json_encode($errors));
+            throw new \RuntimeException('Dữ liệu không hợp lệ: ' . implode(', ', $errors));
+        }
+        
+        // Cập nhật dữ liệu
+        try {
+            $result = $this->update($id, $data);
+            log_message('info', 'Đã cập nhật bản ghi với ID: ' . $id);
+            return $result;
+        } catch (\Exception $e) {
+            log_message('error', '[ERROR] Lỗi khi cập nhật dữ liệu: {exception}', ['exception' => $e]);
+            throw new \RuntimeException('Có lỗi xảy ra khi cập nhật dữ liệu: ' . $e->getMessage());
         }
     }
 } 

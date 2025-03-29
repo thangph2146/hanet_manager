@@ -4,14 +4,14 @@
 <?= page_css('form') ?>
 <?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CẬP NHẬT SỰ KIỆN DIỄN GIẢ<?= $this->endSection() ?>
+<?= $this->section('title') ?>CẬP NHẬT CHECK-IN SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Cập nhật sự kiện diễn giả',
+    'title' => 'Cập nhật check-in sự kiện',
     'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý sự kiện diễn giả', 'url' => site_url($module_name)],
+        ['title' => 'Quản lý check-in sự kiện', 'url' => site_url($module_name)],
         ['title' => 'Cập nhật', 'active' => true]
     ],
     'actions' => [
@@ -23,9 +23,9 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-body">
-        <?= form_open(site_url($module_name . '/update/' . $data->getId()), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+        <?= form_open_multipart(site_url($module_name . '/update/' . $data->getId()), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
             <?php
-            // Include form fields with namHoc data
+            // Include form fields with data
             $action = site_url($module_name . '/update/' . $data->getId());
             $method = 'POST';
             include __DIR__ . '/form.php';

@@ -62,6 +62,10 @@
             color: #dc3545;
             font-weight: bold;
         }
+        .status-processing {
+            color: #ffc107;
+            font-weight: bold;
+        }
         .deleted {
             color: #dc3545;
         }
@@ -102,21 +106,19 @@
             <tr>
                 <th class="text-center">STT</th>
                 <th class="text-center">ID</th>
-                <th>Tên sự kiện</th>
-                <th>Họ tên</th>
+                <th>Sự kiện</th>
                 <th>Email</th>
-                <th class="text-center">Thời gian check-in</th>
-                <th class="text-center">Loại check-in</th>
-                <th class="text-center">Hình thức tham gia</th>
-                <th class="text-center">Điểm khớp khuôn mặt</th>
-                <th class="text-center">Xác thực khuôn mặt</th>
-                <th class="text-center">Trạng thái</th>
-                <th>Địa chỉ IP</th>
-                <th>Thông tin thiết bị</th>
-                <th class="text-center">Ngày tạo</th>
-                <th class="text-center">Ngày cập nhật</th>
+                <th>Họ tên</th>
+                <th>Thời gian check-in</th>
+                <th>Loại check-in</th>
+                <th>Hình thức tham gia</th>
+                <th>Mã xác nhận</th>
+                <th>Ghi chú</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th>Ngày cập nhật</th>
                 <?php if ($includeDeletedAt): ?>
-                <th class="text-center">Ngày xóa</th>
+                <th>Ngày xóa</th>
                 <?php endif; ?>
             </tr>
         </thead>
@@ -125,34 +127,48 @@
             <tr>
                 <td class="text-center"><?= $index + 1 ?></td>
                 <td class="text-center"><?= $item->getId() ?></td>
-                <td><?= $item->getTenSuKien() ?? '' ?></td>
-                <td><?= $item->getHoTen() ?></td>
-                <td><?= $item->getEmail() ?></td>
+                <td>
+                    <?php 
+                    $suKien = $item->getSuKien();
+                    echo $suKien ? esc($suKien->getTenSuKien()) : 'Không có thông tin';
+                    ?>
+                </td>
+                <td><?= esc($item->getEmail()) ?></td>
+                <td><?= esc($item->getHoTen()) ?></td>
                 <td class="text-center"><?= $item->getThoiGianCheckInFormatted() ?></td>
                 <td class="text-center"><?= $item->getCheckinTypeText() ?></td>
                 <td class="text-center"><?= $item->getHinhThucThamGiaText() ?></td>
-                <td class="text-center"><?= $item->getFaceMatchScorePercent() ?></td>
+                <td class="text-center"><?= esc($item->getMaXacNhan()) ?></td>
+                <td><?= esc($item->getGhiChu()) ?></td>
                 <td class="text-center">
-                    <?php if ($item->isFaceVerified()): ?>
-                        <span class="status-active">Có</span>
-                    <?php else: ?>
-                        <span class="status-inactive">Không</span>
-                    <?php endif; ?>
-                </td>
-                <td class="text-center">
-                    <?php if ($item->getStatus() == 1): ?>
+                    <?php 
+                    $status = $item->getStatus();
+                    if ($status == 1): ?>
                         <span class="status-active"><?= $item->getStatusText() ?></span>
+                    <?php elseif ($status == 2): ?>
+                        <span class="status-processing"><?= $item->getStatusText() ?></span>
                     <?php else: ?>
                         <span class="status-inactive"><?= $item->getStatusText() ?></span>
                     <?php endif; ?>
                 </td>
-                <td><?= $item->getIpAddress() ?></td>
-                <td><?= $item->getFormattedDeviceInfo() ?></td>
-                <td class="text-center"><?= $item->getCreatedAtFormatted() ?></td>
-                <td class="text-center"><?= $item->getUpdatedAtFormatted() ?></td>
+                <td class="text-center">
+                    <?php 
+                    $createdAt = $item->getCreatedAt();
+                    echo $createdAt ? $createdAt->format('d/m/Y H:i') : '';
+                    ?>
+                </td>
+                <td class="text-center">
+                    <?php 
+                    $updatedAt = $item->getUpdatedAt();
+                    echo $updatedAt ? $updatedAt->format('d/m/Y H:i') : '';
+                    ?>
+                </td>
                 <?php if ($includeDeletedAt): ?>
                 <td class="text-center deleted">
-                    <?= $item->getDeletedAtFormatted() ?>
+                    <?php 
+                    $deletedAt = $item->getDeletedAt();
+                    echo $deletedAt ? $deletedAt->format('d/m/Y H:i') : '';
+                    ?>
                 </td>
                 <?php endif; ?>
             </tr>

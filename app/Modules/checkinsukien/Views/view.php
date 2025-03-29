@@ -3,14 +3,14 @@
 <?php include __DIR__ . '/master_scripts.php'; ?>
 <?= page_css('view', $module_name) ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CHI TIẾT SỰ KIỆN DIỄN GIẢ<?= $this->endSection() ?>
+<?= $this->section('title') ?>CHI TIẾT CHECK-IN SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Chi tiết sự kiện diễn giả',
+    'title' => 'Chi tiết check-in sự kiện',
     'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Sự kiện Diễn giả', 'url' => site_url($module_name)],
+        ['title' => 'Quản lý check-in sự kiện', 'url' => site_url($module_name)],
         ['title' => 'Chi tiết', 'active' => true]
     ],
     'actions' => [
@@ -22,7 +22,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Chi tiết sự kiện diễn giả ID: <?= esc($data->getId()) ?></h5>
+        <h5 class="card-title mb-0">Chi tiết check-in sự kiện ID: <?= esc($data->getId()) ?></h5>
         <div class="d-flex gap-2">  
             <a href="<?= site_url($module_name . '/edit/' . $data->getId()) ?>" class="btn btn-sm btn-primary">
                 <i class="bx bx-edit me-1"></i> Chỉnh sửa
@@ -55,50 +55,20 @@
                         <td><?= esc($data->getId()) ?></td>
                     </tr>
                     <tr>
-                        <th>Tên diễn giả</th>
+                        <th>Sự kiện</th>
                         <td>
-                            <?php if (!empty($data->getTenDienGia())): ?>
-                                <?= esc($data->getTenDienGia()) ?>
+                            <?php if ($data->getSuKien()): ?>
+                                <?= esc($data->getSuKien()->getTenSuKien()) ?>
                             <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
+                                <span class="text-muted fst-italic">Không tìm thấy sự kiện</span>
                             <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
-                        <th>Chức danh</th>
+                        <th>Họ tên</th>
                         <td>
-                            <?php if (!empty($data->getChucDanh())): ?>
-                                <?= esc($data->getChucDanh()) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Tổ chức</th>
-                        <td>
-                            <?php if (!empty($data->getToChuc())): ?>
-                                <?= esc($data->getToChuc()) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Giới thiệu</th>
-                        <td>
-                            <?php if (!empty($data->getGioiThieu())): ?>
-                                <?= nl2br(esc($data->getGioiThieu())) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Ảnh đại diện</th>
-                        <td>
-                            <?php if (!empty($data->getAvatar())): ?>
-                                <img src="<?= base_url('uploads/diengia/' . $data->getAvatar()) ?>" alt="Ảnh đại diện" class="img-thumbnail" style="max-width: 200px;">
+                            <?php if (!empty($data->getHoTen())): ?>
+                                <?= esc($data->getHoTen()) ?>
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa cập nhật</span>
                             <?php endif; ?>
@@ -115,82 +85,107 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Số điện thoại</th>
+                        <th>Thời gian check-in</th>
                         <td>
-                            <?php if (!empty($data->getDienThoai())): ?>
-                                <?= esc($data->getDienThoai()) ?>
+                            <?php if ($data->getThoiGianCheckIn()): ?>
+                                <?= $data->getThoiGianCheckInFormatted() ?>
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa cập nhật</span>
                             <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
-                        <th>Website</th>
+                        <th>Loại check-in</th>
                         <td>
-                            <?php if (!empty($data->getWebsite())): ?>
-                                <a href="<?= esc($data->getWebsite()) ?>" target="_blank"><?= esc($data->getWebsite()) ?></a>
+                            <?php if (!empty($data->getCheckinType())): ?>
+                                <span class="badge bg-info"><?= esc($data->getCheckinTypeText()) ?></span>
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa cập nhật</span>
                             <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
-                        <th>Chuyên môn</th>
+                        <th>Hình thức tham gia</th>
                         <td>
-                            <?php if (!empty($data->getChuyenMon())): ?>
-                                <?= nl2br(esc($data->getChuyenMon())) ?>
+                            <?php if (!empty($data->getHinhThucThamGia())): ?>
+                                <span class="badge bg-primary"><?= esc($data->getHinhThucThamGiaText()) ?></span>
+                            <?php else: ?>
+                                <span class="text-muted fst-italic">Chưa cập nhật</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php if ($data->getCheckinType() === 'face_id'): ?>
+                    <tr>
+                        <th>Xác minh khuôn mặt</th>
+                        <td>
+                            <?php if ($data->isFaceVerified()): ?>
+                                <span class="badge bg-success">Đã xác minh</span>
+                            <?php else: ?>
+                                <span class="badge bg-warning text-dark">Chưa xác minh</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Ảnh khuôn mặt</th>
+                        <td>
+                            <?php if (!empty($data->getFaceImagePath())): ?>
+                                <img src="<?= base_url('uploads/faces/' . $data->getFaceImagePath()) ?>" alt="Ảnh khuôn mặt" class="img-thumbnail" style="max-width: 200px;">
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa cập nhật</span>
                             <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
-                        <th>Thành tựu</th>
+                        <th>Điểm khớp khuôn mặt</th>
                         <td>
-                            <?php if (!empty($data->getThanhTuu())): ?>
-                                <?= nl2br(esc($data->getThanhTuu())) ?>
+                            <?php if ($data->getFaceMatchScore() !== null): ?>
+                                <?= esc($data->getFaceMatchScore()) ?>
+                                <div class="progress mt-1" style="height: 5px; width: 200px;">
+                                    <div class="progress-bar <?= $data->getFaceMatchScore() >= 0.7 ? 'bg-success' : 'bg-warning' ?>" role="progressbar" style="width: <?= $data->getFaceMatchScore() * 100 ?>%" aria-valuenow="<?= $data->getFaceMatchScore() * 100 ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            <?php else: ?>
+                                <span class="text-muted fst-italic">Chưa cập nhật</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                    <tr>
+                        <th>Mã xác nhận</th>
+                        <td>
+                            <?php if (!empty($data->getMaXacNhan())): ?>
+                                <code><?= esc($data->getMaXacNhan()) ?></code>
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa cập nhật</span>
                             <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
-                        <th>Mạng xã hội</th>
+                        <th>Ghi chú</th>
                         <td>
-                            <?php if (!empty($data->getMangXaHoi())): ?>
-                                <?php foreach ($data->getMangXaHoi() as $platform => $url): ?>
-                                    <div><strong><?= ucfirst($platform) ?>:</strong> <a href="<?= esc($url) ?>" target="_blank"><?= esc($url) ?></a></div>
-                                <?php endforeach; ?>
+                            <?php if (!empty($data->getGhiChu())): ?>
+                                <?= nl2br(esc($data->getGhiChu())) ?>
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Số sự kiện tham gia</th>
-                        <td>
-                            <?php if ($data->getSoSuKienThamGia() > 0): ?>
-                                <span class="badge bg-info"><?= esc($data->getSoSuKienThamGia()) ?></span>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa tham gia sự kiện nào</span>
                             <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
                         <th>Trạng thái</th>
                         <td>
-                            <?php if ($data->getStatus()): ?>
+                            <?php if ($data->getStatus() == 1): ?>
                                 <span class="badge bg-success">Hoạt động</span>
+                            <?php elseif ($data->getStatus() == 2): ?>
+                                <span class="badge bg-warning text-dark">Đang xử lý</span>
                             <?php else: ?>
-                                <span class="badge bg-danger">Không hoạt động</span>
+                                <span class="badge bg-danger">Vô hiệu</span>
                             <?php endif; ?>
                         </td>
                     </tr>
                     <tr>
                         <th>Ngày tạo</th>
                         <td>
-                            <?php if (!empty($data->getCreatedAtFormatted())): ?>
-                                <?= $data->getCreatedAtFormatted() ?>
+                            <?php if ($data->getCreatedAt()): ?>
+                                <?= $data->getCreatedAt()->format('d/m/Y H:i:s') ?>
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa cập nhật</span>
                             <?php endif; ?>
@@ -199,8 +194,8 @@
                     <tr>
                         <th>Cập nhật lần cuối</th>
                         <td>
-                            <?php if (!empty($data->getUpdatedAtFormatted())): ?>
-                                <?= $data->getUpdatedAtFormatted() ?>
+                            <?php if ($data->getUpdatedAt()): ?>
+                                <?= $data->getUpdatedAt()->format('d/m/Y H:i:s') ?>
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa cập nhật</span>
                             <?php endif; ?>
@@ -209,8 +204,8 @@
                     <tr>
                         <th>Ngày xóa</th>
                         <td>
-                            <?php if (!empty($data->getDeletedAtFormatted())): ?>
-                                <?= $data->getDeletedAtFormatted() ?>
+                            <?php if ($data->getDeletedAt()): ?>
+                                <?= $data->getDeletedAt()->format('d/m/Y H:i:s') ?>
                             <?php else: ?>
                                 <span class="text-muted fst-italic">Chưa xóa</span>
                             <?php endif; ?>
@@ -231,7 +226,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn xóa diễn giả <strong><?= esc($data->getTenDienGia()) ?></strong> không?
+                Bạn có chắc chắn muốn xóa check-in sự kiện của <strong><?= esc($data->getHoTen()) ?></strong> không?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>

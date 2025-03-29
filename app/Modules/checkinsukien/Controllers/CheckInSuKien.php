@@ -81,10 +81,6 @@ class CheckInSuKien extends BaseController
         
         // Thông tin module
         $this->moduleUrl = base_url($this->module_name);
-        
-        // Khởi tạo các model quan hệ
-        $this->initializeRelationTrait();
-      
     }
     
 
@@ -150,84 +146,85 @@ class CheckInSuKien extends BaseController
      */
     public function new()
     {
-        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
-        $viewData = $this->prepareFormData($this->module_name);
+        // Chuẩn bị dữ liệu cho form
+        $viewData = $this->prepareFormData();
         
-        // Lấy danh sách sự kiện và diễn giả từ model
-        $viewData['suKienList'] = $this->suKienModel->findAll();
-        
-        // Thêm dữ liệu cho view
-        $viewData['title'] = 'Thêm mới ' . $this->title;
-        $viewData['validation'] = $this->validator;
-        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
-        $viewData['action'] = site_url($this->module_name . '/create');
-        $viewData['method'] = 'POST';
-        
-        return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
+        // Hiển thị form thêm mới
+        return $this->render('new', $viewData);
     }
     
     /**
-     * Xử lý thêm mới dữ liệu
+     * Xử lý tạo mới dữ liệu
      */
     public function create()
     {
+        // Kiểm tra xem đã submit chưa
+        if (!$this->request->is('post')) {
+            return redirect()->to(site_url($this->module_name . '/new'));
+        }
+        
         // Lấy dữ liệu từ form
-        $data = $this->request->getPost();
+        $postData = $this->request->getPost();
         
-        // Xử lý định dạng thời gian bằng cách sử dụng phương thức formatDateTime từ model
-        if (!empty($data['thoi_gian_trinh_bay'])) {
-            $data['thoi_gian_trinh_bay'] = $this->model->formatDateTime($data['thoi_gian_trinh_bay']);
+        // Xác thực dữ liệu
+        $rules = $this->model->prepareValidationRules('insert', $postData);
+        if (!$this->validate($rules)) {
+            // Khi xác thực không thành công, lưu lỗi và redirect về form
+            session()->setFlashdata('errors', $this->validator->getErrors());
+            return redirect()->back()->withInput();
         }
         
-        if (!empty($data['thoi_gian_ket_thuc'])) {
-            $data['thoi_gian_ket_thuc'] = $this->model->formatDateTime($data['thoi_gian_ket_thuc']);
+        // Kiểm tra xem sự kiện có tồn tại không
+        $su_kien_id = $this->request->getPost('su_kien_id');
+        $suKien = $this->suKienModel->find($su_kien_id);
+        
+        // Nếu không tìm thấy sự kiện hoặc sự kiện đã bị xóa
+        if (!$suKien || !empty($suKien->deleted_at)) {
+            $this->alert->set('danger', 'Sự kiện không tồn tại trong hệ thống', true);
+            return redirect()->back()->withInput();
         }
         
-        // Kiểm tra xem mối quan hệ đã tồn tại chưa
-        if (!empty($data['su_kien_id']) && !empty($data['dien_gia_id'])) {
-            if ($this->model->isRelationExists($data['su_kien_id'], $data['dien_gia_id'])) {
-                return redirect()->back()->withInput()->with('error', 'Diễn giả đã được thêm vào sự kiện này');
+        // Chuẩn bị dữ liệu để insert
+        $data = [
+            'su_kien_id' => $su_kien_id,
+            'email' => $this->request->getPost('email'),
+            'ho_ten' => $this->request->getPost('ho_ten'),
+            'dangky_sukien_id' => $this->request->getPost('dangky_sukien_id') ?: null,
+            'thoi_gian_check_in' => $this->request->getPost('thoi_gian_check_in') ?: date('Y-m-d H:i:s'),
+            'checkin_type' => $this->request->getPost('checkin_type'),
+            'ma_xac_nhan' => $this->request->getPost('ma_xac_nhan'),
+            'hinh_thuc_tham_gia' => $this->request->getPost('hinh_thuc_tham_gia'),
+            'ghi_chu' => $this->request->getPost('ghi_chu'),
+            'status' => $this->request->getPost('status') !== null ? $this->request->getPost('status') : 1,
+        ];
+        
+        // Xử lý face_id nếu có
+        if ($this->request->getPost('checkin_type') === 'face_id') {
+            // Lấy thông tin về face verification
+            $data['face_verified'] = (int)$this->request->getPost('face_verified');
+            $data['face_match_score'] = $this->request->getPost('face_match_score');
+            
+            // Xử lý upload ảnh khuôn mặt nếu có
+            $faceImage = $this->request->getFile('face_image');
+            if ($faceImage && $faceImage->isValid() && !$faceImage->hasMoved()) {
+                $newName = $faceImage->getRandomName();
+                $faceImage->move(ROOTPATH . 'public/uploads/faces', $newName);
+                $data['face_image_path'] = $newName;
             }
-        }
-        
-        // Chuẩn bị các quy tắc validation
-        $this->model->prepareValidationRules('insert');
-        
-        // Kiểm tra dữ liệu
-        if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
         try {
-            // Xử lý tài liệu đính kèm nếu có
-            $files = $this->request->getFiles();
-            $hasValidFiles = false;
+            // Thực hiện insert dữ liệu
+            $id = $this->model->insertData($data);
             
-            if (!empty($files['tai_lieu_dinh_kem'])) {
-                $uploadedFiles = $files['tai_lieu_dinh_kem'];
-                if (is_array($uploadedFiles) && !empty($uploadedFiles[0]) && $uploadedFiles[0]->isValid()) {
-                    $data['tai_lieu_dinh_kem'] = $this->uploadFiles($uploadedFiles);
-                    $hasValidFiles = true;
-                }
-            }
-            
-            // Nếu không có tệp hợp lệ, đặt tai_lieu_dinh_kem là JSON rỗng []
-            if (!$hasValidFiles) {
-                $data['tai_lieu_dinh_kem'] = json_encode([]);
-            }
-            
-            // Lưu dữ liệu thông qua model
-            if ($this->model->insert($data)) {
-                $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
-                return redirect()->to($this->moduleUrl);
-            } else {
-                throw new \RuntimeException('Không thể thêm mới ' . $this->title);
-            }
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi thêm mới sự kiện diễn giả: ' . $e->getMessage());
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title . ': ' . $e->getMessage());
+            // Thông báo thành công và redirect
+            $this->alert->set('success', 'Thêm mới check-in sự kiện thành công', true);
+            return redirect()->to(site_url($this->module_name . '/view/' . $id));
+        } catch (Exception $e) {
+            // Ghi log lỗi và thông báo
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            $this->alert->set('danger', 'Đã có lỗi xảy ra: ' . $e->getMessage(), true);
+            return redirect()->back()->withInput();
         }
     }
     
@@ -241,9 +238,6 @@ class CheckInSuKien extends BaseController
             return redirect()->to($this->moduleUrl);
         }
         
-        // Đảm bảo các model relationship được khởi tạo
-        $this->initializeRelationTrait();
-        
         // Lấy thông tin dữ liệu cơ bản thông qua model
         $data = $this->model->find($id);
         
@@ -252,9 +246,13 @@ class CheckInSuKien extends BaseController
             return redirect()->to($this->moduleUrl);
         }
         
-        // Lấy thông tin sự kiện và diễn giả thông qua model
+        // Lấy thông tin sự kiện thông qua model
         $data->suKien = $this->suKienModel->find($data->getSuKienId());
-        $data->dienGia = $this->dienGiaModel->find($data->getDienGiaId());
+        
+        // Lấy thông tin đăng ký sự kiện nếu có
+        if ($data->getDangKySuKienId()) {
+            $data->dangKySuKien = $this->dangKySuKienModel->find($data->getDangKySuKienId());
+        }
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
@@ -272,34 +270,17 @@ class CheckInSuKien extends BaseController
      */
     public function edit($id = null)
     {
-        if (empty($id)) {
-            $this->alert->set('danger', 'ID không hợp lệ', true);
-            return redirect()->to($this->moduleUrl);
+        // Kiểm tra xem bản ghi tồn tại không
+        $checkin = $this->model->find($id);
+        if (!$checkin) {
+            $this->alert->set('danger', 'Không tìm thấy check-in sự kiện!', true);
+            return redirect()->to(site_url($this->module_name));
         }
         
-        // Lấy thông tin từ model
-        $data = $this->model->find($id);
+        // Hiển thị form cập nhật
+        $viewData = $this->prepareFormData($checkin);
         
-        if (empty($data)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
-        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
-        $viewData = $this->prepareFormData($this->module_name, $data);
-        
-        // Lấy danh sách sự kiện và diễn giả từ model
-        $viewData['suKienList'] = $this->suKienModel->findAll();
-        $viewData['dienGiaList'] = $this->dienGiaModel->findAll();
-        
-        // Thêm dữ liệu cho view
-        $viewData['title'] = 'Chỉnh sửa ' . $this->title;
-        $viewData['validation'] = $this->validator;
-        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
-        $viewData['action'] = site_url($this->module_name . '/update/' . $id);
-        $viewData['method'] = 'POST';
-        
-        return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
+        return $this->render('edit', $viewData);
     }
     
     /**
@@ -307,73 +288,94 @@ class CheckInSuKien extends BaseController
      */
     public function update($id = null)
     {
+        // Kiểm tra ID
         if (empty($id)) {
             $this->alert->set('danger', 'ID không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
-        // Lấy thông tin từ model
-        $existingRecord = $this->model->find($id);
-        
-        if (empty($existingRecord)) {
+        // Kiểm tra xem bản ghi tồn tại không
+        $checkin = $this->model->find($id);
+        if (!$checkin) {
             $this->alert->set('danger', 'Không tìm thấy dữ liệu', true);
             return redirect()->to($this->moduleUrl);
         }
         
-        // Xác thực dữ liệu gửi lên
-        $data = $this->request->getPost();
-        
-        // Xử lý định dạng thời gian bằng cách sử dụng phương thức formatDateTime từ model
-        if (!empty($data['thoi_gian_trinh_bay'])) {
-            $data['thoi_gian_trinh_bay'] = $this->model->formatDateTime($data['thoi_gian_trinh_bay']);
+        // Kiểm tra xem đã submit chưa
+        if (!$this->request->is('post')) {
+            return redirect()->to(site_url($this->module_name . '/edit/' . $id));
         }
         
-        if (!empty($data['thoi_gian_ket_thuc'])) {
-            $data['thoi_gian_ket_thuc'] = $this->model->formatDateTime($data['thoi_gian_ket_thuc']);
+        // Lấy dữ liệu từ form
+        $postData = $this->request->getPost();
+        
+        // Xác thực dữ liệu
+        $rules = $this->model->prepareValidationRules('update', $postData);
+        if (!$this->validate($rules)) {
+            // Khi xác thực không thành công, lưu lỗi và redirect về form
+            session()->setFlashdata('errors', $this->validator->getErrors());
+            return redirect()->back()->withInput();
         }
-  
-        // Kiểm tra xem mối quan hệ đã tồn tại chưa (nếu có thay đổi)
-        if (!empty($data['su_kien_id']) && !empty($data['dien_gia_id']) && 
-            ($data['su_kien_id'] != $existingRecord->getSuKienId() || $data['dien_gia_id'] != $existingRecord->getDienGiaId())) {
-            if ($this->model->isRelationExists($data['su_kien_id'], $data['dien_gia_id'], $id)) {
-                return redirect()->back()->withInput()->with('error', 'Diễn giả đã được thêm vào sự kiện này');
+        
+        // Kiểm tra xem sự kiện có tồn tại không
+        $su_kien_id = $this->request->getPost('su_kien_id');
+        $suKien = $this->suKienModel->find($su_kien_id);
+        
+        // Nếu không tìm thấy sự kiện hoặc sự kiện đã bị xóa
+        if (!$suKien || !empty($suKien->deleted_at)) {
+            $this->alert->set('danger', 'Sự kiện không tồn tại trong hệ thống', true);
+            return redirect()->back()->withInput();
+        }
+        
+        // Chuẩn bị dữ liệu để update
+        $data = [
+            'su_kien_id' => $su_kien_id,
+            'email' => $this->request->getPost('email'),
+            'ho_ten' => $this->request->getPost('ho_ten'),
+            'dangky_sukien_id' => $this->request->getPost('dangky_sukien_id') ?: null,
+            'thoi_gian_check_in' => $this->request->getPost('thoi_gian_check_in') ?: date('Y-m-d H:i:s'),
+            'checkin_type' => $this->request->getPost('checkin_type'),
+            'ma_xac_nhan' => $this->request->getPost('ma_xac_nhan'),
+            'hinh_thuc_tham_gia' => $this->request->getPost('hinh_thuc_tham_gia'),
+            'ghi_chu' => $this->request->getPost('ghi_chu'),
+            'status' => $this->request->getPost('status'),
+        ];
+        
+        // Xử lý face_id nếu có
+        if ($this->request->getPost('checkin_type') === 'face_id') {
+            // Lấy thông tin về face verification
+            $data['face_verified'] = (int)$this->request->getPost('face_verified');
+            $data['face_match_score'] = $this->request->getPost('face_match_score');
+            
+            // Xử lý upload ảnh khuôn mặt nếu có
+            $faceImage = $this->request->getFile('face_image');
+            if ($faceImage && $faceImage->isValid() && !$faceImage->hasMoved()) {
+                // Xóa ảnh cũ nếu có
+                if (!empty($checkin->face_image_path)) {
+                    $oldImagePath = ROOTPATH . 'public/uploads/faces/' . $checkin->face_image_path;
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+                
+                $newName = $faceImage->getRandomName();
+                $faceImage->move(ROOTPATH . 'public/uploads/faces', $newName);
+                $data['face_image_path'] = $newName;
             }
-        }
-    
-        // Chuẩn bị quy tắc validation cho cập nhật
-        $this->model->prepareValidationRules('update', [$this->primary_key => $id]);
-        
-        // Kiểm tra dữ liệu
-        if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
         try {
-            // Xử lý tài liệu đính kèm nếu có
-            $files = $this->request->getFiles();
-            if (!empty($files['tai_lieu_dinh_kem'])) {
-                $uploadedFiles = $files['tai_lieu_dinh_kem'];
-                // Chỉ cập nhật khi có tệp hợp lệ được tải lên
-                if (is_array($uploadedFiles) && !empty($uploadedFiles[0]) && $uploadedFiles[0]->isValid()) {
-                    $data['tai_lieu_dinh_kem'] = $this->uploadFiles($uploadedFiles);
-                }
-            } else {
-                // Nếu không có tệp mới, bỏ qua trường này để tránh ghi đè thành NULL
-                unset($data['tai_lieu_dinh_kem']);
-            }
+            // Thực hiện update dữ liệu
+            $this->model->updateData($id, $data);
             
-            // Lưu dữ liệu thông qua model
-            if ($this->model->update($id, $data)) {
-                $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
-                return redirect()->to($this->moduleUrl);
-            } else {
-                throw new \RuntimeException('Không thể cập nhật ' . $this->title);
-            }
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi cập nhật sự kiện diễn giả: ' . $e->getMessage());
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title . ': ' . $e->getMessage());
+            // Thông báo thành công và redirect
+            $this->alert->set('success', 'Cập nhật check-in sự kiện thành công', true);
+            return redirect()->to(site_url($this->module_name . '/view/' . $id));
+        } catch (Exception $e) {
+            // Ghi log lỗi và thông báo
+            log_message('error', '[ERROR] {exception}', ['exception' => $e]);
+            $this->alert->set('danger', 'Đã có lỗi xảy ra: ' . $e->getMessage(), true);
+            return redirect()->back()->withInput();
         }
     }
     
@@ -842,5 +844,162 @@ class CheckInSuKien extends BaseController
         }
         
         return $url;
+    }
+
+    /**
+     * Chuẩn bị dữ liệu cho form
+     * 
+     * @param CheckInSuKien|null $data Dữ liệu check-in nếu có
+     * @return array Dữ liệu cho view
+     */
+    protected function prepareFormData($data = null)
+    {
+        // Chuẩn bị dữ liệu từ bản ghi nếu có
+        $id = isset($data) ? $data->getId() : 0;
+        $su_kien_id = isset($data) ? $data->getSuKienId() : '';
+        $dangky_sukien_id = isset($data) ? $data->getDangKySuKienId() : '';
+        $ho_ten = isset($data) ? $data->getHoTen() : '';
+        $email = isset($data) ? $data->getEmail() : '';
+        $thoi_gian_check_in = isset($data) && $data->getThoiGianCheckIn() ? $data->getThoiGianCheckIn()->format('Y-m-d H:i:s') : date('Y-m-d H:i:s');
+        $checkin_type = isset($data) ? $data->getCheckinType() : 'manual';
+        $face_verified = isset($data) ? $data->isFaceVerified() : 0;
+        $face_match_score = isset($data) ? $data->getFaceMatchScore() : '';
+        $ma_xac_nhan = isset($data) ? $data->getMaXacNhan() : '';
+        $hinh_thuc_tham_gia = isset($data) ? $data->getHinhThucThamGia() : 'offline';
+        $ghi_chu = isset($data) ? $data->getGhiChu() : '';
+        $status = isset($data) ? $data->getStatus() : 1;
+        
+        // Lấy danh sách sự kiện
+        $suKienList = $this->suKienModel->findAll();
+        
+        // Chuẩn bị dữ liệu cho view
+        $viewData = [
+            'module_name' => $this->module_name,
+            'title' => isset($data) ? 'Cập nhật check-in sự kiện' : 'Thêm mới check-in sự kiện',
+            'data' => $data,
+            'id' => $id,
+            'su_kien_id' => $su_kien_id,
+            'dangky_sukien_id' => $dangky_sukien_id,
+            'ho_ten' => $ho_ten,
+            'email' => $email,
+            'thoi_gian_check_in' => $thoi_gian_check_in,
+            'checkin_type' => $checkin_type,
+            'face_verified' => $face_verified,
+            'face_match_score' => $face_match_score,
+            'ma_xac_nhan' => $ma_xac_nhan,
+            'hinh_thuc_tham_gia' => $hinh_thuc_tham_gia,
+            'ghi_chu' => $ghi_chu,
+            'status' => $status,
+            'suKienList' => $suKienList,
+            'validation' => $this->validator,
+            'errors' => session()->getFlashdata('errors') ?? []
+        ];
+        
+        return $viewData;
+    }
+
+    /**
+     * Render view với data
+     * 
+     * @param string $view Tên view
+     * @param array $data Dữ liệu truyền cho view
+     * @return string HTML
+     */
+    protected function render(string $view, array $data = [])
+    {
+        return view('App\Modules\\' . $this->module_name . '\Views\\' . $view, $data);
+    }
+
+    /**
+     * Chuẩn bị tham số tìm kiếm
+     */
+    protected function prepareSearchParams($request)
+    {
+        return [
+            'page' => (int)($request->getGet('page') ?? 1),
+            'perPage' => (int)($request->getGet('perPage') ?? 10),
+            'sort' => $request->getGet('sort') ?? 'created_at',
+            'order' => $request->getGet('order') ?? 'DESC',
+            'keyword' => $request->getGet('keyword') ?? '',
+            'status' => $request->getGet('status'),
+            'su_kien_id' => $request->getGet('su_kien_id'),
+            'checkin_type' => $request->getGet('checkin_type'),
+            'face_verified' => $request->getGet('face_verified'),
+            'hinh_thuc_tham_gia' => $request->getGet('hinh_thuc_tham_gia'),
+            'dangky_sukien_id' => $request->getGet('dangky_sukien_id'),
+            'start_date' => $request->getGet('start_date'),
+            'end_date' => $request->getGet('end_date')
+        ];
+    }
+
+    /**
+     * Xử lý tham số tìm kiếm
+     */
+    protected function processSearchParams($params)
+    {
+        // Kiểm tra và điều chỉnh các tham số không hợp lệ
+        if ($params['page'] < 1) $params['page'] = 1;
+        if ($params['perPage'] < 1) $params['perPage'] = 10;
+
+        return $params;
+    }
+
+    /**
+     * Xây dựng tham số tìm kiếm cho model
+     */
+    protected function buildSearchCriteria($params)
+    {
+        $criteria = [];
+        
+        if (!empty($params['keyword'])) {
+            $criteria['keyword'] = $params['keyword'];
+        }
+
+        if (isset($params['status']) && $params['status'] !== '') {
+            $criteria['status'] = $params['status'];
+        }
+        
+        if (isset($params['su_kien_id']) && $params['su_kien_id'] !== '') {
+            $criteria['su_kien_id'] = $params['su_kien_id'];
+        }
+        
+        if (isset($params['checkin_type']) && $params['checkin_type'] !== '') {
+            $criteria['checkin_type'] = $params['checkin_type'];
+        }
+        
+        if (isset($params['face_verified']) && $params['face_verified'] !== '') {
+            $criteria['face_verified'] = $params['face_verified'];
+        }
+        
+        if (isset($params['hinh_thuc_tham_gia']) && $params['hinh_thuc_tham_gia'] !== '') {
+            $criteria['hinh_thuc_tham_gia'] = $params['hinh_thuc_tham_gia'];
+        }
+        
+        if (isset($params['dangky_sukien_id']) && $params['dangky_sukien_id'] !== '') {
+            $criteria['dangky_sukien_id'] = $params['dangky_sukien_id'];
+        }
+        
+        if (!empty($params['start_date'])) {
+            $criteria['start_date'] = $params['start_date'];
+        }
+        
+        if (!empty($params['end_date'])) {
+            $criteria['end_date'] = $params['end_date'];
+        }
+
+        return $criteria;
+    }
+
+    /**
+     * Xây dựng tùy chọn tìm kiếm cho model
+     */
+    protected function buildSearchOptions($params)
+    {
+        return [
+            'limit' => $params['perPage'],
+            'offset' => ($params['page'] - 1) * $params['perPage'],
+            'sort' => $params['sort'],
+            'order' => $params['order']
+        ];
     }
 }

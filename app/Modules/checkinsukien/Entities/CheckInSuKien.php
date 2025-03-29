@@ -502,14 +502,24 @@ class CheckInSuKien extends BaseEntity
      */
     public function getSuKien(): ?SuKien
     {
-        $suKienId = $this->getSuKienId();
+        // Tạo thuộc tính tạm thời trước để tránh lỗi
+        if (!property_exists($this, 'instance_suKien')) {
+            $this->instance_suKien = null;
+        }
         
-        if ($suKienId <= 0) {
+        // Kiểm tra xem đã lấy dữ liệu chưa
+        if ($this->instance_suKien !== null) {
+            return $this->instance_suKien;
+        }
+        
+        if (!$this->getSuKienId()) {
             return null;
         }
         
-        $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
-        return $suKienModel->find($suKienId);
+        $suKienModel = model('App\Modules\sukien\Models\SuKienModel');
+        $this->instance_suKien = $suKienModel->find($this->getSuKienId());
+        
+        return $this->instance_suKien;
     }
     
     /**
@@ -519,14 +529,24 @@ class CheckInSuKien extends BaseEntity
      */
     public function getDangKySuKien(): ?DangKySuKien
     {
-        $dangKySuKienId = $this->getDangKySuKienId();
+        // Tạo thuộc tính tạm thời trước để tránh lỗi
+        if (!property_exists($this, 'instance_dangKySuKien')) {
+            $this->instance_dangKySuKien = null;
+        }
         
-        if ($dangKySuKienId === null || $dangKySuKienId <= 0) {
+        // Kiểm tra xem đã lấy dữ liệu chưa
+        if ($this->instance_dangKySuKien !== null) {
+            return $this->instance_dangKySuKien;
+        }
+        
+        if (!$this->getDangKySuKienId()) {
             return null;
         }
         
-        $dangKySuKienModel = new \App\Modules\dangkysukien\Models\DangKySuKienModel();
-        return $dangKySuKienModel->find($dangKySuKienId);
+        $dangKySuKienModel = model('App\Modules\dangkysukien\Models\DangKySuKienModel');
+        $this->instance_dangKySuKien = $dangKySuKienModel->find($this->getDangKySuKienId());
+        
+        return $this->instance_dangKySuKien;
     }
     
     /**
@@ -536,7 +556,128 @@ class CheckInSuKien extends BaseEntity
      */
     public function getValidationRules(): array
     {
-        return $this->validationRules;
+        return [
+            'su_kien_id' => [
+                'label' => 'Sự kiện',
+                'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id,su_kien.deleted_at,null]',
+                'errors' => [
+                    'required' => '{field} là bắt buộc',
+                    'integer' => '{field} phải là số nguyên',
+                    'is_not_unique' => '{field} không tồn tại trong hệ thống hoặc đã bị xóa'
+                ]
+            ],
+            'email' => [
+                'label' => 'Email',
+                'rules' => 'required|valid_email',
+                'errors' => [
+                    'required' => '{field} là bắt buộc',
+                    'valid_email' => '{field} không hợp lệ'
+                ]
+            ],
+            'ho_ten' => [
+                'label' => 'Họ tên',
+                'rules' => 'required|min_length[3]|max_length[255]',
+                'errors' => [
+                    'required' => '{field} là bắt buộc',
+                    'min_length' => '{field} phải có ít nhất {param} ký tự',
+                    'max_length' => '{field} không được vượt quá {param} ký tự'
+                ]
+            ],
+            'dangky_sukien_id' => [
+                'label' => 'ID đăng ký sự kiện',
+                'rules' => 'permit_empty|integer|is_not_unique[dangky_sukien.dangky_sukien_id]',
+                'errors' => [
+                    'integer' => '{field} phải là số nguyên',
+                    'is_not_unique' => '{field} không tồn tại trong hệ thống hoặc đã bị xóa'
+                ]
+            ],
+            'thoi_gian_check_in' => [
+                'label' => 'Thời gian check-in',
+                'rules' => 'required|valid_date',
+                'errors' => [
+                    'required' => '{field} là bắt buộc',
+                    'valid_date' => '{field} phải có định dạng ngày giờ hợp lệ'
+                ]
+            ],
+            'checkin_type' => [
+                'label' => 'Loại check-in',
+                'rules' => 'required|in_list[face_id,manual,qr_code,online]',
+                'errors' => [
+                    'required' => '{field} là bắt buộc',
+                    'in_list' => '{field} phải là một trong các giá trị: nhận diện khuôn mặt, thủ công, mã QR, trực tuyến'
+                ]
+            ],
+            'face_image_path' => [
+                'label' => 'Đường dẫn ảnh khuôn mặt',
+                'rules' => 'permit_empty|string|max_length[255]'
+            ],
+            'face_match_score' => [
+                'label' => 'Điểm khớp khuôn mặt',
+                'rules' => 'permit_empty|numeric|greater_than_equal_to[0]|less_than_equal_to[1]',
+                'errors' => [
+                    'numeric' => '{field} phải là số',
+                    'greater_than_equal_to' => '{field} phải lớn hơn hoặc bằng {param}',
+                    'less_than_equal_to' => '{field} phải nhỏ hơn hoặc bằng {param}'
+                ]
+            ],
+            'face_verified' => [
+                'label' => 'Xác minh khuôn mặt',
+                'rules' => 'permit_empty|in_list[0,1]'
+            ],
+            'ma_xac_nhan' => [
+                'label' => 'Mã xác nhận',
+                'rules' => 'permit_empty|string|max_length[100]'
+            ],
+            'status' => [
+                'label' => 'Trạng thái',
+                'rules' => 'required|integer|in_list[0,1,2]',
+                'errors' => [
+                    'required' => '{field} là bắt buộc',
+                    'integer' => '{field} phải là số nguyên',
+                    'in_list' => '{field} phải có giá trị hợp lệ'
+                ]
+            ],
+            'location_data' => [
+                'label' => 'Dữ liệu vị trí',
+                'rules' => 'permit_empty|string'
+            ],
+            'device_info' => [
+                'label' => 'Thông tin thiết bị',
+                'rules' => 'permit_empty|string'
+            ],
+            'hinh_thuc_tham_gia' => [
+                'label' => 'Hình thức tham gia',
+                'rules' => 'required|in_list[offline,online]',
+                'errors' => [
+                    'required' => '{field} là bắt buộc',
+                    'in_list' => '{field} phải là một trong các giá trị: trực tiếp, trực tuyến'
+                ]
+            ],
+            'ip_address' => [
+                'label' => 'Địa chỉ IP',
+                'rules' => 'permit_empty|string|max_length[50]'
+            ],
+            'thong_tin_bo_sung' => [
+                'label' => 'Thông tin bổ sung',
+                'rules' => 'permit_empty'
+            ],
+            'ghi_chu' => [
+                'label' => 'Ghi chú',
+                'rules' => 'permit_empty|string'
+            ],
+            'created_at' => [
+                'label' => 'Ngày tạo',
+                'rules' => 'permit_empty|valid_date'
+            ],
+            'updated_at' => [
+                'label' => 'Ngày cập nhật',
+                'rules' => 'permit_empty|valid_date'
+            ],
+            'deleted_at' => [
+                'label' => 'Ngày xóa',
+                'rules' => 'permit_empty|valid_date'
+            ]
+        ];
     }
     
     /**
@@ -546,7 +687,47 @@ class CheckInSuKien extends BaseEntity
      */
     public function getValidationMessages(): array
     {
-        return $this->validationMessages;
+        return [
+            'su_kien_id' => [
+                'required' => '{field} là bắt buộc',
+                'integer' => '{field} phải là số nguyên',
+                'is_not_unique' => '{field} không tồn tại trong hệ thống hoặc đã bị xóa'
+            ],
+            'email' => [
+                'required' => '{field} là bắt buộc',
+                'valid_email' => '{field} không hợp lệ'
+            ],
+            'ho_ten' => [
+                'required' => '{field} là bắt buộc',
+                'min_length' => '{field} phải có ít nhất {param} ký tự',
+                'max_length' => '{field} không được vượt quá {param} ký tự'
+            ],
+            'dangky_sukien_id' => [
+                'integer' => '{field} phải là số nguyên',
+                'is_not_unique' => '{field} không tồn tại trong hệ thống hoặc đã bị xóa'
+            ],
+            'thoi_gian_check_in' => [
+                'required' => '{field} là bắt buộc',
+                'valid_date' => '{field} phải có định dạng ngày giờ hợp lệ'
+            ],
+            'checkin_type' => [
+                'required' => '{field} là bắt buộc',
+                'in_list' => '{field} phải là một trong các giá trị: nhận diện khuôn mặt, thủ công, mã QR, trực tuyến'
+            ],
+            'face_match_score' => [
+                'numeric' => '{field} phải là số',
+                'greater_than_equal_to' => '{field} phải lớn hơn hoặc bằng {param}',
+                'less_than_equal_to' => '{field} phải nhỏ hơn hoặc bằng {param}'
+            ],
+            'status' => [
+                'integer' => '{field} phải là số nguyên',
+                'in_list' => '{field} phải có giá trị hợp lệ'
+            ],
+            'hinh_thuc_tham_gia' => [
+                'required' => '{field} là bắt buộc',
+                'in_list' => '{field} phải là một trong các giá trị: trực tiếp, trực tuyến'
+            ]
+        ];
     }
     
     /**
@@ -575,69 +756,80 @@ class CheckInSuKien extends BaseEntity
     }
     
     /**
-     * Lấy trạng thái người dùng với định dạng HTML
+     * Tạo HTML cho trạng thái
      *
-     * @return string HTML span với class và text tương ứng
+     * @return string
      */
     public function getStatusHtml(): string
     {
         $status = $this->getStatus();
-        $text = $this->getStatusText();
         
         switch ($status) {
             case 0:
-                return '<span class="badge bg-danger">' . $text . '</span>';
+                return '<span class="badge bg-danger">Vô hiệu</span>';
             case 1:
-                return '<span class="badge bg-success">' . $text . '</span>';
+                return '<span class="badge bg-success">Hoạt động</span>';
             case 2:
-                return '<span class="badge bg-warning text-dark">' . $text . '</span>';
+                return '<span class="badge bg-warning text-dark">Đang xử lý</span>';
             default:
-                return '<span class="badge bg-secondary">' . $text . '</span>';
+                return '<span class="badge bg-secondary">Không xác định</span>';
         }
     }
     
     /**
-     * Lấy loại check-in với định dạng HTML
+     * Tạo HTML cho loại check-in
      *
-     * @return string HTML span với class và text tương ứng
+     * @return string
      */
     public function getCheckinTypeHtml(): string
     {
         $type = $this->getCheckinType();
-        $text = $this->getCheckinTypeText();
         
         switch ($type) {
             case 'face_id':
-                return '<span class="badge bg-primary">' . $text . '</span>';
+                return '<span class="badge bg-info">Nhận diện khuôn mặt</span>';
             case 'manual':
-                return '<span class="badge bg-secondary">' . $text . '</span>';
+                return '<span class="badge bg-primary">Thủ công</span>';
             case 'qr_code':
-                return '<span class="badge bg-info text-dark">' . $text . '</span>';
+                return '<span class="badge bg-success">Mã QR</span>';
             case 'online':
-                return '<span class="badge bg-success">' . $text . '</span>';
+                return '<span class="badge bg-warning text-dark">Trực tuyến</span>';
             default:
-                return '<span class="badge bg-secondary">' . $text . '</span>';
+                return '<span class="badge bg-secondary">Không xác định</span>';
         }
     }
     
     /**
-     * Lấy hình thức tham gia với định dạng HTML
+     * Tạo HTML cho hình thức tham gia
      *
-     * @return string HTML span với class và text tương ứng
+     * @return string
      */
     public function getHinhThucThamGiaHtml(): string
     {
         $hinhThuc = $this->getHinhThucThamGia();
-        $text = $this->getHinhThucThamGiaText();
         
         switch ($hinhThuc) {
             case 'offline':
-                return '<span class="badge bg-info text-dark">' . $text . '</span>';
+                return '<span class="badge bg-primary">Trực tiếp</span>';
             case 'online':
-                return '<span class="badge bg-primary">' . $text . '</span>';
+                return '<span class="badge bg-success">Trực tuyến</span>';
             default:
-                return '<span class="badge bg-secondary">' . $text . '</span>';
+                return '<span class="badge bg-secondary">Không xác định</span>';
         }
+    }
+    
+    /**
+     * Tạo HTML cho kết quả xác minh khuôn mặt
+     *
+     * @return string
+     */
+    public function getFaceVerifiedHtml(): string
+    {
+        if ($this->isFaceVerified()) {
+            return '<span class="badge bg-success">Đã xác minh</span>';
+        }
+        
+        return '<span class="badge bg-warning text-dark">Chưa xác minh</span>';
     }
     
     /**
@@ -820,21 +1012,6 @@ class CheckInSuKien extends BaseEntity
     {
         $time = $this->getDeletedAt();
         return $time ? $time->format($format) : null;
-    }
-
-    /**
-     * Lấy trạng thái xác minh khuôn mặt dưới dạng HTML
-     *
-     * @return string
-     */
-    public function getFaceVerifiedHtml(): string
-    {
-        $verified = $this->isFaceVerified();
-        if ($verified) {
-            return '<span class="badge bg-success">Đã xác minh</span>';
-        } else {
-            return '<span class="badge bg-danger">Chưa xác minh</span>';
-        }
     }
 
     /**
