@@ -99,6 +99,9 @@ $mat_khau_online = old('mat_khau_online', $mat_khau_online);
         <input type="hidden" name="su_kien_id" value="0">
     <?php endif; ?>
     
+    <!-- Thêm hidden field cho version -->
+    <input type="hidden" name="version" value="<?= $version ?>">
+    
     <!-- Hiển thị thông báo lỗi nếu có -->
     <?php if (session('error')): ?>
         <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4" role="alert">
@@ -169,7 +172,7 @@ $mat_khau_online = old('mat_khau_online', $mat_khau_online);
         </div>
 
     <div class="container-fluid">
-                            <div class="row">
+        <div class="row">
             <div class="col-12">
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body">
@@ -884,9 +887,9 @@ $mat_khau_online = old('mat_khau_online', $mat_khau_online);
                                                 // Lịch trình là mảng các mục
                                                 foreach ($lich_trinh as $index => $item) {
                                                     echo '<tr>';
-                                                    echo '<td><input type="text" class="form-control" name="lich_trinh[thoi_gian][]" value="' . esc($item['thoi_gian'] ?? '') . '" placeholder="Thời gian"></td>';
+                                                    echo '<td><input type="datetime-local" class="form-control" name="lich_trinh[thoi_gian][]" value="' . esc($item['thoi_gian'] ?? '') . '" placeholder="Thời gian"></td>';
                                                     echo '<td><input type="text" class="form-control" name="lich_trinh[noi_dung][]" value="' . esc($item['noi_dung'] ?? '') . '" placeholder="Nội dung"></td>';
-                                                    echo '<td><input type="text" class="form-control" name="lich_trinh[ghi_chu][]" value="' . esc($item['ghi_chu'] ?? '') . '" placeholder="Ghi chú"></td>';
+                                                    echo '<td><textarea class="form-control" name="lich_trinh[ghi_chu][]" placeholder="Ghi chú">' . esc($item['ghi_chu'] ?? '') . '</textarea></td>';
                                                     echo '<td><button type="button" class="btn btn-danger btn-sm remove-schedule-row"><i class="bx bx-trash"></i></button></td>';
                                                     echo '</tr>';
                                                 }
@@ -894,9 +897,9 @@ $mat_khau_online = old('mat_khau_online', $mat_khau_online);
                                                 // Lịch trình là mảng các thuộc tính
                                                 for ($i = 0; $i < count($lich_trinh['thoi_gian']); $i++) {
                                                     echo '<tr>';
-                                                    echo '<td><input type="text" class="form-control" name="lich_trinh[thoi_gian][]" value="' . esc($lich_trinh['thoi_gian'][$i] ?? '') . '" placeholder="Thời gian"></td>';
+                                                    echo '<td><input type="datetime-local" class="form-control" name="lich_trinh[thoi_gian][]" value="' . esc($lich_trinh['thoi_gian'][$i] ?? '') . '" placeholder="Thời gian"></td>';
                                                     echo '<td><input type="text" class="form-control" name="lich_trinh[noi_dung][]" value="' . esc($lich_trinh['noi_dung'][$i] ?? '') . '" placeholder="Nội dung"></td>';
-                                                    echo '<td><input type="text" class="form-control" name="lich_trinh[ghi_chu][]" value="' . esc($lich_trinh['ghi_chu'][$i] ?? '') . '" placeholder="Ghi chú"></td>';
+                                                    echo '<td><textarea class="form-control" name="lich_trinh[ghi_chu][]" placeholder="Ghi chú">' . esc($lich_trinh['ghi_chu'][$i] ?? '') . '</textarea></td>';
                                                     echo '<td><button type="button" class="btn btn-danger btn-sm remove-schedule-row"><i class="bx bx-trash"></i></button></td>';
                                                     echo '</tr>';
                                                 }
@@ -907,9 +910,9 @@ $mat_khau_online = old('mat_khau_online', $mat_khau_online);
                                     if (!$hasScheduleItems) {
                                         // Hiển thị một dòng trống mặc định
                                         echo '<tr>';
-                                        echo '<td><input type="text" class="form-control" name="lich_trinh[thoi_gian][]" placeholder="Thời gian"></td>';
+                                        echo '<td><input type="datetime-local" class="form-control" name="lich_trinh[thoi_gian][]" placeholder="Thời gian"></td>';
                                         echo '<td><input type="text" class="form-control" name="lich_trinh[noi_dung][]" placeholder="Nội dung"></td>';
-                                        echo '<td><input type="text" class="form-control" name="lich_trinh[ghi_chu][]" placeholder="Ghi chú"></td>';
+                                        echo '<td><textarea class="form-control" name="lich_trinh[ghi_chu][]" placeholder="Ghi chú"></textarea></td>';
                                         echo '<td><button type="button" class="btn btn-danger btn-sm remove-schedule-row"><i class="bx bx-trash"></i></button></td>';
                                         echo '</tr>';
                                     }
@@ -1084,9 +1087,9 @@ $(document).ready(function() {
     $('#add-schedule-row').on('click', function() {
         var newRow = `
             <tr>
-                <td><input type="text" class="form-control" name="lich_trinh[thoi_gian][]" placeholder="Thời gian"></td>
+                <td><input type="datetime-local" class="form-control" name="lich_trinh[thoi_gian][]" placeholder="Thời gian"></td>
                 <td><input type="text" class="form-control" name="lich_trinh[noi_dung][]" placeholder="Nội dung"></td>
-                <td><input type="text" class="form-control" name="lich_trinh[ghi_chu][]" placeholder="Ghi chú"></td>
+                <td><textarea class="form-control" name="lich_trinh[ghi_chu][]" placeholder="Ghi chú"></textarea></td>
                 <td><button type="button" class="btn btn-danger btn-sm remove-schedule-row"><i class="bx bx-trash"></i></button></td>
             </tr>
         `;
@@ -1097,7 +1100,7 @@ $(document).ready(function() {
     $(document).on('click', '.remove-schedule-row', function() {
         // Nếu chỉ còn 1 dòng, chỉ xóa nội dung
         if ($('#schedule-table tbody tr').length <= 1) {
-            $(this).closest('tr').find('input').val('');
+            $(this).closest('tr').find('input, textarea').val('');
         } else {
             $(this).closest('tr').remove();
         }

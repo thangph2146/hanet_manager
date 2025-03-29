@@ -291,7 +291,7 @@ class SuKienDienGiaModel extends BaseModel
      * @param string|null $datetimeString Chuỗi thời gian theo định dạng HTML
      * @return string|null Chuỗi thời gian theo định dạng cơ sở dữ liệu
      */
-    public function formatDateTime(?string $datetimeString): ?string
+    public function formatDateTime($datetimeString)
     {
         if (empty($datetimeString)) {
             return null;
