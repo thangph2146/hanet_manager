@@ -60,9 +60,12 @@ class CheckInSuKien extends BaseController
         'sort', 
         'order', 
         'status', 
-        'sukien_id',
-        'dien_gia_id',  
-        'hien_thi_cong_khai',
+        'su_kien_id',
+        'checkin_type',
+        'hinh_thuc_tham_gia',
+        'face_verified',
+        'start_date',
+        'end_date'
     ];
 
     public function __construct()
@@ -476,9 +479,8 @@ class CheckInSuKien extends BaseController
         // Chuẩn bị dữ liệu cho view
         $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
         
-        // Thêm danh sách sự kiện và diễn giả để hiển thị tên thay vì ID
+        // Thêm danh sách sự kiện để hiển thị tên thay vì ID
         $viewData['suKienList'] = $this->suKienModel->findAll();
-        $viewData['dienGiaList'] = $this->dienGiaModel->findAll();
         
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);

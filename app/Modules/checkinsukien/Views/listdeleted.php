@@ -4,14 +4,14 @@
 <?= page_css('table') ?>
 <?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>THÙNG RÁC - DIỄN GIẢ THAM GIA SỰ KIỆN<?= $this->endSection() ?>
+<?= $this->section('title') ?>THÙNG RÁC - CHECK-IN SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thùng rác - Diễn giả tham gia sự kiện',
+	'title' => 'Thùng rác - Check-in sự kiện',
 	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Diễn giả tham gia sự kiện', 'url' => site_url($module_name)],
+		['title' => 'Quản lý Check-in sự kiện', 'url' => site_url($module_name)],
 		['title' => 'Thùng rác', 'active' => true]
 	],
 	'actions' => [
@@ -23,7 +23,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách diễn giả tham gia sự kiện đã xóa</h5>
+        <h5 class="card-title mb-0">Danh sách check-in sự kiện đã xóa</h5>
         <div>
             <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
                 <i class='bx bx-refresh'></i> Làm mới
@@ -44,7 +44,7 @@
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
                     <a href="<?= site_url($module_name) ?>" class="btn btn-outline-primary btn-sm">
-                        <i class='bx bx-arrow-back'></i> Danh sách diễn giả tham gia sự kiện
+                        <i class='bx bx-arrow-back'></i> Danh sách check-in sự kiện
                     </a>
                     <form id="form-restore-multiple" action="<?= site_url($module_name . '/restoreMultiple') ?>" method="post" class="d-inline">
                         <?= csrf_field() ?>
@@ -70,7 +70,7 @@
                                 <button class="btn btn-outline-secondary btn-sm" type="submit">
                                     <i class='bx bx-search'></i>
                                 </button>
-                                <?php if (!empty($keyword) || isset($_GET['trang_thai_tham_gia']) || isset($_GET['su_kien_id']) || isset($_GET['dien_gia_id']) || isset($_GET['hien_thi_cong_khai'])): ?>
+                                <?php if (!empty($keyword) || isset($_GET['su_kien_id']) || isset($_GET['hinh_thuc_tham_gia']) || isset($_GET['checkin_type']) || isset($_GET['status']) || isset($_GET['face_verified']) || isset($_GET['start_date']) || isset($_GET['end_date'])): ?>
                                 <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
                                     <i class='bx bx-x'></i>
                                 </a>
@@ -78,36 +78,58 @@
                             </div>
                             <div class="d-flex flex-wrap gap-2">
                                 <!-- Bộ lọc sự kiện -->
+                                <?php if (isset($suKienList) && !empty($suKienList)): ?>
                                 <select name="su_kien_id" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
                                     <option value="">Tất cả sự kiện</option>
                                     <?php foreach ($suKienList as $suKien): ?>
                                     <option value="<?= $suKien->su_kien_id ?>" <?= (isset($_GET['su_kien_id']) && $_GET['su_kien_id'] == $suKien->su_kien_id) ? 'selected' : '' ?>><?= esc($suKien->ten_su_kien) ?></option>
                                     <?php endforeach; ?>
                                 </select>
+                                <?php endif; ?>
                                 
-                                <!-- Bộ lọc diễn giả -->
-                                <select name="dien_gia_id" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
-                                    <option value="">Tất cả diễn giả</option>
-                                    <?php foreach ($dienGiaList as $dienGia): ?>
-                                    <option value="<?= $dienGia->dien_gia_id ?>" <?= (isset($_GET['dien_gia_id']) && $_GET['dien_gia_id'] == $dienGia->dien_gia_id) ? 'selected' : '' ?>><?= esc($dienGia->ten_dien_gia) ?></option>
-                                    <?php endforeach; ?>
+                                <!-- Bộ lọc hình thức tham gia -->
+                                <select name="hinh_thuc_tham_gia" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả hình thức</option>
+                                    <option value="offline" <?= (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] === 'offline') ? 'selected' : '' ?>>Trực tiếp</option>
+                                    <option value="online" <?= (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] === 'online') ? 'selected' : '' ?>>Trực tuyến</option>
                                 </select>
                                 
-                                <!-- Bộ lọc trạng thái tham gia -->
-                                <select name="trang_thai_tham_gia" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                <!-- Bộ lọc loại check-in -->
+                                <select name="checkin_type" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả loại check-in</option>
+                                    <option value="face_id" <?= (isset($_GET['checkin_type']) && $_GET['checkin_type'] === 'face_id') ? 'selected' : '' ?>>Nhận diện khuôn mặt</option>
+                                    <option value="manual" <?= (isset($_GET['checkin_type']) && $_GET['checkin_type'] === 'manual') ? 'selected' : '' ?>>Thủ công</option>
+                                    <option value="qr_code" <?= (isset($_GET['checkin_type']) && $_GET['checkin_type'] === 'qr_code') ? 'selected' : '' ?>>Mã QR</option>
+                                    <option value="online" <?= (isset($_GET['checkin_type']) && $_GET['checkin_type'] === 'online') ? 'selected' : '' ?>>Trực tuyến</option>
+                                </select>
+                                
+                                <!-- Bộ lọc trạng thái -->
+                                <select name="status" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
                                     <option value="">Tất cả trạng thái</option>
-                                    <option value="xac_nhan" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'xac_nhan') ? 'selected' : '' ?>>Đã xác nhận</option>
-                                    <option value="cho_xac_nhan" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'cho_xac_nhan') ? 'selected' : '' ?>>Chờ xác nhận</option>
-                                    <option value="tu_choi" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'tu_choi') ? 'selected' : '' ?>>Từ chối</option>
-                                    <option value="khong_lien_he_duoc" <?= (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] === 'khong_lien_he_duoc') ? 'selected' : '' ?>>Không liên hệ được</option>
+                                    <option value="1" <?= (isset($_GET['status']) && $_GET['status'] === '1') ? 'selected' : '' ?>>Hoạt động</option>
+                                    <option value="0" <?= (isset($_GET['status']) && $_GET['status'] === '0') ? 'selected' : '' ?>>Vô hiệu</option>
+                                    <option value="2" <?= (isset($_GET['status']) && $_GET['status'] === '2') ? 'selected' : '' ?>>Đang xử lý</option>
                                 </select>
                                 
-                                <!-- Bộ lọc hiển thị công khai -->
-                                <select name="hien_thi_cong_khai" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
-                                    <option value="">Tất cả hiển thị</option>
-                                    <option value="1" <?= (isset($_GET['hien_thi_cong_khai']) && $_GET['hien_thi_cong_khai'] === '1') ? 'selected' : '' ?>>Hiển thị công khai</option>
-                                    <option value="0" <?= (isset($_GET['hien_thi_cong_khai']) && $_GET['hien_thi_cong_khai'] === '0') ? 'selected' : '' ?>>Không hiển thị công khai</option>
+                                <!-- Bộ lọc xác thực khuôn mặt -->
+                                <select name="face_verified" class="form-select form-select-sm" style="max-width: 200px;" onchange="this.form.submit()">
+                                    <option value="">Tất cả xác thực</option>
+                                    <option value="1" <?= (isset($_GET['face_verified']) && $_GET['face_verified'] === '1') ? 'selected' : '' ?>>Đã xác thực</option>
+                                    <option value="0" <?= (isset($_GET['face_verified']) && $_GET['face_verified'] === '0') ? 'selected' : '' ?>>Chưa xác thực</option>
                                 </select>
+                            </div>
+                            
+                            <!-- Bộ lọc thời gian -->
+                            <div class="mt-2 d-flex flex-wrap gap-2">
+                                <div class="input-group" style="max-width: 200px;">
+                                    <span class="input-group-text">Từ</span>
+                                    <input type="date" class="form-control form-control-sm" name="start_date" value="<?= isset($_GET['start_date']) ? $_GET['start_date'] : '' ?>">
+                                </div>
+                                <div class="input-group" style="max-width: 200px;">
+                                    <span class="input-group-text">Đến</span>
+                                    <input type="date" class="form-control form-control-sm" name="end_date" value="<?= isset($_GET['end_date']) ? $_GET['end_date'] : '' ?>">
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-primary">Lọc thời gian</button>
                             </div>
                         </div>
                     </form>
@@ -129,14 +151,14 @@
             </div>
         <?php endif; ?>
         
-        <?php if (!empty($keyword) || isset($_GET['trang_thai_tham_gia']) || isset($_GET['su_kien_id']) || isset($_GET['dien_gia_id']) || isset($_GET['hien_thi_cong_khai'])): ?>
+        <?php if (!empty($keyword) || isset($_GET['su_kien_id']) || isset($_GET['hinh_thuc_tham_gia']) || isset($_GET['checkin_type']) || isset($_GET['status']) || isset($_GET['face_verified']) || isset($_GET['start_date']) || isset($_GET['end_date'])): ?>
             <div class="alert alert-info m-3">
                 <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
                 <div class="small">
                     <?php if (!empty($keyword)): ?>
                         <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
                     <?php endif; ?>
-                    <?php if (isset($_GET['su_kien_id']) && $_GET['su_kien_id'] !== ''): ?>
+                    <?php if (isset($_GET['su_kien_id']) && $_GET['su_kien_id'] !== '' && isset($suKienList)): ?>
                         <span class="badge bg-primary me-2">Sự kiện: 
                             <?php 
                                 $ten_su_kien = '';
@@ -150,37 +172,46 @@
                             ?>
                         </span>
                     <?php endif; ?>
-                    <?php if (isset($_GET['dien_gia_id']) && $_GET['dien_gia_id'] !== ''): ?>
-                        <span class="badge bg-primary me-2">Diễn giả: 
+                    <?php if (isset($_GET['hinh_thuc_tham_gia']) && $_GET['hinh_thuc_tham_gia'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Hình thức: 
+                            <?= $_GET['hinh_thuc_tham_gia'] === 'offline' ? 'Trực tiếp' : 'Trực tuyến' ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['checkin_type']) && $_GET['checkin_type'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Loại check-in: 
                             <?php 
-                                $ten_dien_gia = '';
-                                foreach ($dienGiaList as $dienGia) {
-                                    if ($dienGia->dien_gia_id == $_GET['dien_gia_id']) {
-                                        $ten_dien_gia = $dienGia->ten_dien_gia;
-                                        break;
-                                    }
-                                }
-                                echo esc($ten_dien_gia);
+                                $checkin_type_map = [
+                                    'face_id' => 'Nhận diện khuôn mặt',
+                                    'manual' => 'Thủ công',
+                                    'qr_code' => 'Mã QR',
+                                    'online' => 'Trực tuyến'
+                                ];
+                                echo $checkin_type_map[$_GET['checkin_type']] ?? $_GET['checkin_type'];
                             ?>
                         </span>
                     <?php endif; ?>
-                    <?php if (isset($_GET['trang_thai_tham_gia']) && $_GET['trang_thai_tham_gia'] !== ''): ?>
+                    <?php if (isset($_GET['status']) && $_GET['status'] !== ''): ?>
                         <span class="badge bg-primary me-2">Trạng thái: 
                             <?php 
-                                $trang_thai_map = [
-                                    'xac_nhan' => 'Đã xác nhận',
-                                    'cho_xac_nhan' => 'Chờ xác nhận',
-                                    'tu_choi' => 'Từ chối',
-                                    'khong_lien_he_duoc' => 'Không liên hệ được'
+                                $status_map = [
+                                    '0' => 'Vô hiệu',
+                                    '1' => 'Hoạt động',
+                                    '2' => 'Đang xử lý'
                                 ];
-                                echo $trang_thai_map[$_GET['trang_thai_tham_gia']] ?? $_GET['trang_thai_tham_gia'];
+                                echo $status_map[$_GET['status']] ?? $_GET['status'];
                             ?>
                         </span>
                     <?php endif; ?>
-                    <?php if (isset($_GET['hien_thi_cong_khai'])): ?>
-                        <span class="badge bg-primary me-2">Hiển thị: 
-                            <?= $_GET['hien_thi_cong_khai'] === '1' ? 'Hiển thị công khai' : 'Không hiển thị công khai' ?>
+                    <?php if (isset($_GET['face_verified']) && $_GET['face_verified'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Xác thực khuôn mặt: 
+                            <?= $_GET['face_verified'] == '1' ? 'Đã xác thực' : 'Chưa xác thực' ?>
                         </span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['start_date']) && $_GET['start_date'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Từ ngày: <?= esc($_GET['start_date']) ?></span>
+                    <?php endif; ?>
+                    <?php if (isset($_GET['end_date']) && $_GET['end_date'] !== ''): ?>
+                        <span class="badge bg-primary me-2">Đến ngày: <?= esc($_GET['end_date']) ?></span>
                     <?php endif; ?>
                     <a href="<?= site_url($module_name . '/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>
@@ -199,11 +230,10 @@
                             </th>
                             <th width="5%" class="align-middle">ID</th>
                             <th width="15%" class="align-middle">Sự kiện</th>
-                            <th width="15%" class="align-middle">Diễn giả</th>
-                            <th width="5%" class="align-middle">Thứ tự</th>
-                            <th width="10%" class="align-middle">Vai trò</th>
-                            <th width="15%" class="align-middle">Thời gian trình bày</th>
-                            <th width="10%" class="align-middle">Thời lượng</th>
+                            <th width="15%" class="align-middle">Người tham gia</th>
+                            <th width="15%" class="align-middle">Thời gian check-in</th>
+                            <th width="10%" class="align-middle">Loại check-in</th>
+                            <th width="10%" class="align-middle">Hình thức</th>
                             <th width="10%" class="align-middle">Trạng thái</th>
                             <th width="10%" class="text-center align-middle">Thao tác</th>
                         </tr>
@@ -212,21 +242,16 @@
                         <?php if (!empty($processedData)) : ?>
                             <?php foreach ($processedData as $item) : ?>
                                 <?php 
-                                    // Tìm tên sự kiện và diễn giả từ danh sách 
+                                    // Tìm tên sự kiện nếu có join dữ liệu
                                     $suKienName = '';
-                                    $dienGiaName = '';
-                                    
-                                    foreach ($suKienList as $suKien) {
-                                        if ($suKien->su_kien_id == $item->getSuKienId()) {
-                                            $suKienName = $suKien->ten_su_kien;
-                                            break;
-                                        }
-                                    }
-                                    
-                                    foreach ($dienGiaList as $dienGia) {
-                                        if ($dienGia->dien_gia_id == $item->getDienGiaId()) {
-                                            $dienGiaName = $dienGia->ten_dien_gia;
-                                            break;
+                                    if (method_exists($item, 'getTenSuKien') && $item->getTenSuKien()) {
+                                        $suKienName = $item->getTenSuKien();
+                                    } elseif (isset($suKienList) && !empty($suKienList)) {
+                                        foreach ($suKienList as $suKien) {
+                                            if ($suKien->su_kien_id == $item->getSuKienId()) {
+                                                $suKienName = $suKien->ten_su_kien;
+                                                break;
+                                            }
                                         }
                                     }
                                 ?>
@@ -240,45 +265,22 @@
                                     </td>
                                     <td><?= esc($item->getId()) ?></td>  
                                     <td><?= esc($suKienName) ?></td> 
-                                    <td><?= esc($dienGiaName) ?></td>
-                                    <td><?= esc($item->getThuTu()) ?></td>
-                                    <td><?= esc($item->getVaiTro()) ?></td>
-                                    <td>
-                                        <?php if ($item->getThoiGianTrinhBay()): ?>
-                                            <?= esc($item->getThoiGianTrinhBayFormatted()) ?>
-                                        <?php else: ?>
-                                            <span class="text-muted">Chưa xác định</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php if ($item->getThoiLuongPhut()): ?>
-                                            <?= esc($item->getThoiLuongPhut()) ?> phút
-                                        <?php else: ?>
-                                            <span class="text-muted">Chưa xác định</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <?php
-                                            $trang_thai = $item->getTrangThaiThamGia();
-                                            $badge_class = '';
-                                            if ($trang_thai == 'xac_nhan') $badge_class = 'bg-success';
-                                            elseif ($trang_thai == 'cho_xac_nhan') $badge_class = 'bg-warning';
-                                            elseif ($trang_thai == 'tu_choi') $badge_class = 'bg-danger';
-                                            else $badge_class = 'bg-secondary';
-                                        ?>
-                                        <span class="badge <?= $badge_class ?>"><?= $item->getTrangThaiThamGiaText() ?></span>
-                                    </td>
+                                    <td><?= esc($item->getHoTen()) ?></td>
+                                    <td><?= esc($item->getThoiGianCheckInFormatted()) ?></td>
+                                    <td><?= $item->getCheckinTypeHtml() ?></td>
+                                    <td><?= $item->getHinhThucThamGiaHtml() ?></td>
+                                    <td><?= $item->getStatusHtml() ?></td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <button type="button" class="btn btn-success btn-sm btn-restore w-100 h-100" 
                                                     data-id="<?= $item->getId() ?>" 
-                                                    data-name="diễn giả <?= esc($dienGiaName) ?> trong sự kiện <?= esc($suKienName) ?>"
+                                                    data-name="check-in của <?= esc($item->getHoTen()) ?> cho sự kiện <?= esc($suKienName) ?>"
                                                     data-bs-toggle="tooltip" title="Khôi phục">
                                                 <i class="bx bx-revision"></i>
                                             </button>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
                                                     data-id="<?= $item->getId() ?>" 
-                                                    data-name="diễn giả <?= esc($dienGiaName) ?> trong sự kiện <?= esc($suKienName) ?>"
+                                                    data-name="check-in của <?= esc($item->getHoTen()) ?> cho sự kiện <?= esc($suKienName) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa vĩnh viễn">
                                                 <i class="bx bx-trash"></i>
                                             </button>
@@ -288,7 +290,7 @@
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="10" class="text-center py-3">
+                                <td colspan="9" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class="bx bx-folder-open"></i>
                                         <p>Không có dữ liệu</p>
