@@ -731,4 +731,44 @@ class CheckInSuKien extends BaseController
         
         return "$fieldText ($orderText)";
     }
+
+    /**
+     * Xử lý URL trả về
+     * 
+     * @param string|null $returnUrl URL cần xử lý
+     * @return string URL đã được xử lý hoặc URL mặc định
+     */
+    private function processReturnUrl($returnUrl)
+    {
+        // Nếu URL trả về rỗng, sử dụng URL mặc định
+        if (empty($returnUrl)) {
+            return $this->moduleUrl;
+        }
+        
+        // Kiểm tra nếu returnUrl là URL tương đối
+        if (strpos($returnUrl, '/') === 0) {
+            return site_url(ltrim($returnUrl, '/'));
+        }
+        
+        // Kiểm tra nếu URL chứa domain của ứng dụng
+        $baseUrl = base_url();
+        if (strpos($returnUrl, $baseUrl) === 0) {
+            return $returnUrl;
+        }
+        
+        // Kiểm tra URL có phải là URL hợp lệ không
+        if (filter_var($returnUrl, FILTER_VALIDATE_URL)) {
+            // Chỉ chấp nhận URL nội bộ từ cùng domain
+            $parsedReturnUrl = parse_url($returnUrl);
+            $parsedBaseUrl = parse_url($baseUrl);
+            
+            if (isset($parsedReturnUrl['host']) && isset($parsedBaseUrl['host']) && 
+                $parsedReturnUrl['host'] === $parsedBaseUrl['host']) {
+                return $returnUrl;
+            }
+        }
+        
+        // Trả về URL mặc định nếu không phù hợp
+        return $this->moduleUrl;
+    }
 }

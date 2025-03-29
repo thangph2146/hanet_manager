@@ -101,8 +101,11 @@ class CheckInSuKienSeeder extends Seeder
             // Ghi chú (nếu có)
             $ghiChu = rand(0, 3) == 0 ? $this->getRandomGhiChu() : null;
             
+            // Trạng thái
+            $status = rand(0, 10) > 2 ? 1 : (rand(0, 1) ? 0 : 2); // 80% hoạt động, 10% vô hiệu, 10% đang xử lý
+            
             $data[] = [
-                'sukien_id' => $suKienId,
+                'su_kien_id' => $suKienId,
                 'email' => $email,
                 'ho_ten' => $hoTen,
                 'dangky_sukien_id' => $dangKySukienId,
@@ -112,7 +115,7 @@ class CheckInSuKienSeeder extends Seeder
                 'face_match_score' => $faceMatchScore,
                 'face_verified' => $faceVerified,
                 'ma_xac_nhan' => $maXacNhan,
-                'status' => 1,
+                'status' => $status,
                 'location_data' => $locationData,
                 'device_info' => $deviceInfo,
                 'hinh_thuc_tham_gia' => $hinhThucThamGia,

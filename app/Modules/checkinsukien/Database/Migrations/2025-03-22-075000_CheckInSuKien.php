@@ -14,7 +14,7 @@ class CheckInSuKien extends Migration
                 'constraint' => 11,
                 'auto_increment' => true
             ],
-            'sukien_id' => [
+            'su_kien_id' => [
                 'type' => 'INT',
                 'constraint' => 11,
                 'null' => false
@@ -33,6 +33,7 @@ class CheckInSuKien extends Migration
             ],
             'dangky_sukien_id' => [
                 'type' => 'INT',
+                'constraint' => 11,
                 'null' => true
             ],
             'thoi_gian_check_in' => [
@@ -65,6 +66,7 @@ class CheckInSuKien extends Migration
             ],
             'status' => [
                 'type' => 'TINYINT',
+                'constraint' => 1,
                 'default' => 1
             ],
             'location_data' => [
@@ -117,23 +119,22 @@ class CheckInSuKien extends Migration
         $this->forge->addKey('checkin_sukien_id', true);
         
         // Thêm các chỉ mục (index)
-        $this->forge->addKey('sukien_id', false, false, 'idx_sukien_id');
+        $this->forge->addKey('su_kien_id', false, false, 'idx_su_kien_id');
         $this->forge->addKey('email', false, false, 'idx_email');
-        $this->forge->addKey('dangky_sukien_id', false, false, 'idx_dangky_sukien_id');
+        $this->forge->addKey('dangky_sukien_id', false, false, 'idx_dangky_su_kien_id');
         $this->forge->addKey('thoi_gian_check_in', false, false, 'idx_thoi_gian_check_in');
         $this->forge->addKey('checkin_type', false, false, 'idx_checkin_type');
         $this->forge->addKey('hinh_thuc_tham_gia', false, false, 'idx_hinh_thuc_tham_gia');
         
         // Thêm khóa ngoại
-        $this->forge->addForeignKey('sukien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
+        $this->forge->addForeignKey('su_kien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
         $this->forge->addForeignKey('dangky_sukien_id', 'dangky_sukien', 'dangky_sukien_id', 'SET NULL', 'CASCADE');
         
         // Tạo bảng
         $this->forge->createTable('checkin_sukien', true, [
             'ENGINE' => 'InnoDB',
             'CHARACTER SET' => 'utf8mb4',
-            'COLLATE' => 'utf8mb4_unicode_ci',
-            'COMMENT' => 'Bảng lưu trữ thông tin check-in sự kiện'
+            'COLLATE' => 'utf8mb4_unicode_ci'
         ]);
         
         // Thêm giá trị mặc định CURRENT_TIMESTAMP cho các trường datetime

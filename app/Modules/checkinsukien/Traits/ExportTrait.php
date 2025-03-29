@@ -13,60 +13,55 @@ use CodeIgniter\I18n\Time;
 
 trait ExportTrait
 {
-    protected $export_title = 'DANH SÁCH CHECK IN SỰ KIỆN';
-    protected $search_field = 'ten_su_kien' ;
+    protected $export_title = 'DANH SÁCH CHECK-IN SỰ KIỆN';
+    protected $search_field = 'thoi_gian_check_in';
     protected $search_order = 'DESC';
-    protected $header_title =  [
+    protected $suKienList = [];
+    protected $header_title = [
         'STT' => 'A',
         'ID' => 'B',
-        'Tên sự kiện' => 'C',
-        'Email' => 'D',
-        'Họ tên' => 'E',
-        'Điện thoại' => 'F',
-        'Ngày checkin' => 'G',
-        'Trạng thái' => 'H',
-        'Ngày tạo' => 'I',
-        'Ngày cập nhật' => 'J',
-        'Ngày xóa' => 'K',
-        'Giới thiệu' => 'L',
-        'Chuyên môn' => 'M',
-        'Thành tựu' => 'N',
-        'Mạng xã hội' => 'O',
-        'Số sự kiện tham gia' => 'N',
-        'Trạng thái' => 'O',
-        'Ngày tạo' => 'P',
-        'Ngày cập nhật' => 'Q'
+        'Sự kiện' => 'C',
+        'Họ tên' => 'D',
+        'Email' => 'E',
+        'Thời gian check-in' => 'F',
+        'Loại check-in' => 'G',
+        'Hình thức tham gia' => 'H',
+        'Xác minh khuôn mặt' => 'I',
+        'Điểm số khuôn mặt' => 'J',
+        'Mã xác nhận' => 'K',
+        'Trạng thái' => 'L',
+        'Địa chỉ IP' => 'M',
+        'Thiết bị' => 'N',
+        'Ngày tạo' => 'O',
+        'Ngày cập nhật' => 'P'
     ];
-    protected $header_title_deleted =  [
-        'Ngày xóa' => 'R'
+    protected $header_title_deleted = [
+        'Ngày xóa' => 'Q'
     ];
 
     protected $excel_row = [
         'A' => ['method' => null, 'align' => 'center'], // STT
         'B' => ['method' => 'getId', 'align' => 'center'],
-        'C' => ['method' => 'getTenSuKienDienGia', 'align' => 'left'],
-        'D' => ['method' => 'getTenDienGia', 'align' => 'left'],
-        'E' => ['method' => 'getChucDanh', 'align' => 'left'],
-        'F' => ['method' => 'getToChuc', 'align' => 'left'],
-        'G' => ['method' => 'getEmail', 'align' => 'left'],
-        'H' => ['method' => 'getDienThoai', 'align' => 'left'],
-        'I' => ['method' => 'getWebsite', 'align' => 'left'],
-        'J' => ['method' => 'getGioiThieu', 'align' => 'left', 'wrap' => true],
-        'K' => ['method' => 'getChuyenMon', 'align' => 'left', 'wrap' => true],
-        'L' => ['method' => 'getThanhTuu', 'align' => 'left', 'wrap' => true],
-        'M' => ['method' => 'getMangXaHoi', 'align' => 'left', 'wrap' => true, 'json' => true],
-        'N' => ['method' => 'getSoSuKienThamGia', 'align' => 'center'],
-        'O' => ['method' => 'getStatus', 'align' => 'center', 'format' => 'status'],
-        'P' => ['method' => 'getCreatedAtFormatted', 'align' => 'center'],
-        'Q' => ['method' => 'getUpdatedAtFormatted', 'align' => 'center'],
-        'R' => ['method' => 'getDeletedAtFormatted', 'align' => 'center']
+        'C' => ['method' => 'getTenSuKien', 'align' => 'left'],
+        'D' => ['method' => 'getHoTen', 'align' => 'left'],
+        'E' => ['method' => 'getEmail', 'align' => 'left'],
+        'F' => ['method' => 'getThoiGianCheckInFormatted', 'align' => 'center'],
+        'G' => ['method' => 'getCheckinTypeText', 'align' => 'left'],
+        'H' => ['method' => 'getHinhThucThamGiaText', 'align' => 'left'],
+        'I' => ['method' => 'isFaceVerified', 'align' => 'center', 'format' => 'boolean'],
+        'J' => ['method' => 'getFaceMatchScorePercent', 'align' => 'center'],
+        'K' => ['method' => 'getMaXacNhan', 'align' => 'center'],
+        'L' => ['method' => 'getStatusText', 'align' => 'center'],
+        'M' => ['method' => 'getIpAddress', 'align' => 'left'],
+        'N' => ['method' => 'getDeviceInfo', 'align' => 'left', 'wrap' => true],
+        'O' => ['method' => 'getCreatedAtFormatted', 'align' => 'center'],
+        'P' => ['method' => 'getUpdatedAtFormatted', 'align' => 'center'],
     ];
 
-    protected function getLastColumn()
-    {
-        $columns = array_keys($this->excel_row);
-        return end($columns);
-    }
+    protected $excel_row_deleted = [
+        'Q' => ['method' => 'getDeletedAtFormatted', 'align' => 'center'],
+    ];
+
 
     /**
      * Chuẩn bị tiêu chí tìm kiếm
@@ -77,6 +72,10 @@ trait ExportTrait
         
         if (!empty($keyword)) {
             $criteria['keyword'] = $keyword;
+        }
+        
+        if (isset($status) && $status !== '') {
+            $criteria['status'] = $status;
         }
         
         if ($includeDeleted) {
@@ -91,7 +90,6 @@ trait ExportTrait
      */
     protected function prepareSearchOptions($sort, $order)
     {
-        // Nếu không có sort được chỉ định, mặc định là sắp xếp theo thứ tự tăng dần
         if (empty($sort)) {
             $sort = $this->search_field;
             $order = $this->search_order;
@@ -100,7 +98,7 @@ trait ExportTrait
         return [
             'sort' => $sort,
             'order' => $order,
-            'limit' => 1000 // Giới hạn số lượng bản ghi xuất
+            'limit' => 1000
         ];
     }
 
@@ -109,7 +107,6 @@ trait ExportTrait
      */
     protected function getExportData($criteria, $options)
     {
-        // Lấy dữ liệu từ model
         $data = isset($criteria['deleted']) && $criteria['deleted'] 
             ? $this->model->searchDeleted($criteria, $options)
             : $this->model->search($criteria, $options);
@@ -193,7 +190,8 @@ trait ExportTrait
 
         // Thêm tiêu đề
         $sheet->setCellValue('A1', $this->export_title);
-        $sheet->mergeCells('A1:' . end($headers) . '1');
+        $lastHeader = end($headers);
+        $sheet->mergeCells("A1:{$lastHeader}1");
         $sheet->getStyle('A1')->applyFromArray([
             'font' => ['bold' => true, 'size' => 14],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
@@ -201,7 +199,7 @@ trait ExportTrait
 
         // Thêm ngày xuất
         $sheet->setCellValue('A2', 'Ngày xuất: ' . Time::now()->format('d/m/Y H:i:s'));
-        $sheet->mergeCells('A2:' . end($headers) . '2');
+        $sheet->mergeCells("A2:{$lastHeader}2");
         $sheet->getStyle('A2')->applyFromArray([
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT],
             'font' => ['italic' => true],
@@ -224,34 +222,36 @@ trait ExportTrait
         }
 
         // Thêm headers
-        $col = 1;
-        foreach ($headers as $header => $column) {
-            $sheet->setCellValue($column . $row, $header);
-            $sheet->getStyle($column . $row)->applyFromArray($headerStyle);
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue("{$col}{$row}", $header);
+            $sheet->getStyle("{$col}{$row}")->applyFromArray($headerStyle);
             $col++;
         }
 
         // Thêm dữ liệu
         $row++;
         foreach ($data as $index => $item) {
-            foreach ($this->excel_row as $col => $config) {
+            // Kết hợp excel_row và excel_row_deleted nếu includeDeleted = true
+            $excel_rows = $includeDeleted ? array_merge($this->excel_row, $this->excel_row_deleted) : $this->excel_row;
+            
+            foreach ($excel_rows as $col => $config) {
                 if ($col === 'A') {
                     $value = $index + 1;
                 } else {
                     $method = $config['method'];
-                    $value = $method ? $item->$method() : '';
+                    if ($method === null) {
+                        $value = '';
+                    } else {
+                        $value = $method ? $item->$method() : '';
+                    }
                     
                     // Xử lý định dạng đặc biệt
-                    if (isset($config['json']) && $config['json'] && is_array($value)) {
-                        // Thay đổi format hiển thị mạng xã hội để dễ đọc hơn
-                        $formattedValue = '';
-                        foreach ($value as $platform => $url) {
-                            $platformName = ucfirst($platform);
-                            $formattedValue .= "{$platformName}: {$url}\n";
-                        }
-                        $value = $formattedValue;
-                    } elseif (isset($config['format'])) {
+                    if (isset($config['format'])) {
                         switch ($config['format']) {
+                            case 'boolean':
+                                $value = $value ? 'Có' : 'Không';
+                                break;
                             case 'status':
                                 $value = $value ? 'Hoạt động' : 'Không hoạt động';
                                 break;
@@ -259,24 +259,23 @@ trait ExportTrait
                     }
                 }
                 
-                $sheet->setCellValue($col . $row, $value);
+                $sheet->setCellValue("{$col}{$row}", $value);
                 
                 // Áp dụng căn lề
                 if (isset($config['align'])) {
-                    $sheet->getStyle($col . $row)->getAlignment()
+                    $sheet->getStyle("{$col}{$row}")->getAlignment()
                           ->setHorizontal($config['align'] === 'center' ? 
                               Alignment::HORIZONTAL_CENTER : Alignment::HORIZONTAL_LEFT);
                 }
                 
                 // Áp dụng wrap text
                 if (isset($config['wrap']) && $config['wrap']) {
-                    $sheet->getStyle($col . $row)->getAlignment()->setWrapText(true);
+                    $sheet->getStyle("{$col}{$row}")->getAlignment()->setWrapText(true);
                 }
             }
             
             // Áp dụng style cho hàng
-            $lastColumn = $this->getLastColumn();
-            $sheet->getStyle('A' . $row . ':' . $lastColumn . $row)
+            $sheet->getStyle("A{$row}:{$lastHeader}{$row}")
                   ->applyFromArray($contentStyle);
             
             $row++;
@@ -284,9 +283,8 @@ trait ExportTrait
 
         // Thêm tổng số bản ghi
         $sheet->setCellValue('A' . $row, 'Tổng số bản ghi: ' . count($data));
-        $lastColumn = $this->getLastColumn();
-        $sheet->mergeCells('A' . $row . ':' . $lastColumn . $row);
-        $sheet->getStyle('A' . $row)->applyFromArray([
+        $sheet->mergeCells("A{$row}:{$lastHeader}{$row}");
+        $sheet->getStyle("A{$row}")->applyFromArray([
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT],
             'font' => ['bold' => true],
             'borders' => [
@@ -298,7 +296,7 @@ trait ExportTrait
         ]);
 
         // Tự động điều chỉnh độ rộng cột
-        foreach (range('A', $lastColumn) as $col) {
+        foreach (range('A', $lastHeader) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -347,10 +345,6 @@ trait ExportTrait
 
     /**
      * Format filters để hiển thị trong báo cáo
-     * 
-     * @param array $filters Mảng các bộ lọc cần định dạng
-     * @param bool $forHTML True nếu định dạng cho HTML, False nếu trả về mảng cho Excel
-     * @return string|array Chuỗi HTML hoặc mảng tùy theo tham số $forHTML
      */
     protected function formatFilters($filters, $forHTML = false)
     {
@@ -372,42 +366,232 @@ trait ExportTrait
 
     /**
      * Xử lý xuất dữ liệu ra file Excel hoặc PDF
-     *
-     * @param array $data Dữ liệu cần xuất
-     * @param string $type Loại file (excel hoặc pdf)
-     * @param array $criteria Tiêu chí tìm kiếm đã sử dụng
-     * @param bool $isDeleted Có phải dữ liệu đã xóa không
-     * @return \CodeIgniter\HTTP\ResponseInterface
      */
     protected function exportData($data, $type = 'excel', $criteria = [], $isDeleted = false)
     {
         // Định dạng tiêu đề
-        $title = $isDeleted ? 'DANH SÁCH SỰ KIỆN DIỄN GIẢ ĐÃ XÓA' : 'DANH SÁCH SỰ KIỆN DIỄN GIẢ';
+        $title = $isDeleted ? 'DANH SÁCH CHECK-IN SỰ KIỆN ĐÃ XÓA' : 'DANH SÁCH CHECK-IN SỰ KIỆN';
         
         // Tạo tên file dựa trên loại và thời gian
-        $filename = 'su_kien_dien_gia_' . ($isDeleted ? 'deleted_' : '') . date('YmdHis');
+        $filename = 'checkin_su_kien_' . ($isDeleted ? 'deleted_' : '') . date('YmdHis');
         
-        // Định dạng bộ lọc cho báo cáo - định dạng khác nhau dựa trên loại xuất
+        // Định dạng bộ lọc cho báo cáo
         if ($type === 'excel') {
-            // Chuẩn bị bộ lọc dạng mảng cho Excel
             $filters = $this->formatFilters($criteria, false);
-            
-            // Chuẩn bị headers cho Excel
             $headers = $this->prepareExcelHeaders($isDeleted);
-            
-            // Tạo và xuất file Excel
             return $this->createExcelFile($data, $headers, $filters, $filename, $isDeleted);
-            
         } elseif ($type === 'pdf') {
-            // Chuẩn bị bộ lọc dạng HTML cho PDF
             $filters = $this->formatFilters($criteria, true);
-            
-            // Tạo và xuất file PDF
             return $this->createPdfFile($data, $filters, $title, $filename, $isDeleted);
         }
         
-        // Trường hợp không hợp lệ, quay về trang danh sách
         $this->alert->set('danger', 'Loại xuất dữ liệu không hợp lệ', true);
         return redirect()->to($this->moduleUrl);
+    }
+
+    /**
+     * Thiết lập danh sách sự kiện
+     */
+    public function setSuKienList($list)
+    {
+        $this->suKienList = $list;
+        return $this;
+    }
+
+    /**
+     * Xuất dữ liệu sang Excel
+     */
+    public function exportToExcel($data, $headers, $filters, $filename)
+    {
+        // Khởi tạo đối tượng Spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // Thiết lập tiêu đề và ngày xuất
+        $sheet->setCellValue('A1', $this->export_title);
+        $lastColumn = array_values($headers)[count($headers) - 1];
+        $sheet->mergeCells("A1:{$lastColumn}1");
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        
+        $sheet->setCellValue('A2', 'Ngày xuất: ' . date('d/m/Y H:i:s'));
+        $sheet->mergeCells("A2:{$lastColumn}2");
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        
+        // Thêm thông tin bộ lọc
+        $row = 3;
+        if (!empty($filters)) {
+            $sheet->setCellValue('A3', 'Bộ lọc:');
+            $sheet->getStyle('A3')->getFont()->setBold(true);
+            $row = 4;
+            
+            foreach ($filters as $key => $value) {
+                $sheet->setCellValue("A{$row}", "{$key}: {$value}");
+                $row++;
+            }
+            
+            $row++;
+        }
+        
+        // Thêm tiêu đề cột
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue("{$col}{$row}", $header);
+            $sheet->getStyle("{$col}{$row}")->getFont()->setBold(true);
+            $sheet->getStyle("{$col}{$row}")->getFill()
+                  ->setFillType(Fill::FILL_SOLID)
+                  ->getStartColor()->setRGB('DDDDDD');
+            $sheet->getStyle("{$col}{$row}")
+                  ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $col++;
+        }
+        
+        // Thêm dữ liệu
+        $row++;
+        foreach ($data as $item) {
+            $col = 'A';
+            foreach ($headers as $header) {
+                $value = '';
+                
+                switch ($header) {
+                    case 'ID':
+                        $value = $item['ID'];
+                        break;
+                    case 'Sự kiện':
+                        $value = $item['Sự kiện'];
+                        break;
+                    case 'Họ tên':
+                        $value = $item['Họ tên'];
+                        break;
+                    case 'Email':
+                        $value = $item['Email'];
+                        break;
+                    case 'Thời gian check-in':
+                        $value = $item['Thời gian check-in'];
+                        break;
+                    case 'Loại check-in':
+                        $value = $item['Loại check-in'];
+                        break;
+                    case 'Hình thức tham gia':
+                        $value = $item['Hình thức tham gia'];
+                        break;
+                    case 'Trạng thái':
+                        $value = $item['Trạng thái'];
+                        break;
+                    case 'Địa chỉ IP':
+                        $value = $item['Địa chỉ IP'] ?? '';
+                        break;
+                    case 'Thiết bị':
+                        $value = $item['Thiết bị'] ?? '';
+                        break;
+                    default:
+                        $value = '';
+                }
+                
+                $sheet->setCellValue("{$col}{$row}", $value);
+                $sheet->getStyle("{$col}{$row}")
+                      ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $col++;
+            }
+            $row++;
+        }
+        
+        // Tự động điều chỉnh độ rộng cột
+        foreach (range('A', $lastColumn) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        
+        // Xuất file
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+        header('Cache-Control: max-age=0');
+        
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
+    
+    /**
+     * Xuất dữ liệu sang PDF
+     */
+    public function exportToPdf($data, $filters, $filename, $title)
+    {
+        // Thiết lập options cho Dompdf
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isPhpEnabled', true);
+        $dompdf = new Dompdf($options);
+        
+        // Tạo nội dung HTML
+        $html = '
+        <html>
+        <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+            <style>
+                body { font-family: DejaVu Sans, sans-serif; }
+                h1 { text-align: center; font-size: 16pt; margin-bottom: 10px; }
+                .date { text-align: right; font-size: 9pt; margin-bottom: 20px; }
+                .filters { margin-bottom: 20px; font-size: 10pt; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #000; padding: 5px; font-size: 9pt; }
+                th { background-color: #f0f0f0; font-weight: bold; }
+                .total { text-align: right; margin-top: 10px; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <h1>' . $title . '</h1>
+            <div class="date">Ngày xuất: ' . date('d/m/Y H:i:s') . '</div>';
+        
+        // Thêm thông tin bộ lọc
+        if (!empty($filters)) {
+            $html .= '<div class="filters">Bộ lọc: ' . $filters . '</div>';
+        }
+        
+        // Tạo table
+        $html .= '
+            <table>
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>ID</th>
+                        <th>Sự kiện</th>
+                        <th>Họ tên</th>
+                        <th>Email</th>
+                        <th>Thời gian check-in</th>
+                        <th>Loại check-in</th>
+                        <th>Hình thức</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>';
+        
+        // Thêm dữ liệu
+        foreach ($data as $index => $item) {
+            $html .= '
+                <tr>
+                    <td style="text-align: center;">' . ($index + 1) . '</td>
+                    <td style="text-align: center;">' . $item['ID'] . '</td>
+                    <td>' . $item['Sự kiện'] . '</td>
+                    <td>' . $item['Họ tên'] . '</td>
+                    <td>' . $item['Email'] . '</td>
+                    <td style="text-align: center;">' . $item['Thời gian check-in'] . '</td>
+                    <td>' . $item['Loại check-in'] . '</td>
+                    <td>' . $item['Hình thức tham gia'] . '</td>
+                    <td style="text-align: center;">' . $item['Trạng thái'] . '</td>
+                </tr>';
+        }
+        
+        $html .= '
+                </tbody>
+            </table>
+            <div class="total">Tổng số bản ghi: ' . count($data) . '</div>
+        </body>
+        </html>';
+        
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+        $dompdf->stream($filename . '.pdf', ['Attachment' => true]);
+        exit;
     }
 } 

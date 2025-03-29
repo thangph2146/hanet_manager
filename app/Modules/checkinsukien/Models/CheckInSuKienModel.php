@@ -23,7 +23,7 @@ class CheckInSuKienModel extends BaseModel
     protected $surroundCount = 2;
     
     protected $allowedFields = [
-        'sukien_id',
+        'su_kien_id',
         'email',
         'ho_ten',
         'dangky_sukien_id',
@@ -60,7 +60,7 @@ class CheckInSuKienModel extends BaseModel
     
     // Trường có thể lọc
     protected $filterableFields = [
-        'sukien_id',
+        'su_kien_id',
         'dangky_sukien_id',
         'checkin_type',
         'face_verified',
@@ -88,12 +88,14 @@ class CheckInSuKienModel extends BaseModel
     public function getAll($limit = 10, $offset = 0, $sort = 'thoi_gian_check_in', $order = 'DESC')
     {
         $builder = $this->builder();
+        $builder->select("{$this->table}.*, su_kien.ten_su_kien");
+        $builder->join('su_kien', "su_kien.su_kien_id = {$this->table}.su_kien_id", 'left');
         
         // Chỉ lấy bản ghi chưa xóa
-        $builder->where($this->table . '.deleted_at IS NULL');
+        $builder->where("{$this->table}.deleted_at IS NULL");
         
         if ($sort && $order) {
-            $builder->orderBy($this->table . '.' . $sort, $order);
+            $builder->orderBy("{$this->table}.{$sort}", $order);
         }
         
         $total = $this->countAll();
@@ -141,53 +143,55 @@ class CheckInSuKienModel extends BaseModel
     public function search(array $criteria = [], array $options = [])
     {
         $builder = $this->builder();
+        $builder->select("{$this->table}.*, su_kien.ten_su_kien");
+        $builder->join('su_kien', "su_kien.su_kien_id = {$this->table}.su_kien_id", 'left');
         
         // Xử lý withDeleted nếu cần
         if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
-            $builder->where($this->table . '.deleted_at IS NOT NULL');
+            $builder->where("{$this->table}.deleted_at IS NOT NULL");
         } else {
             // Mặc định chỉ lấy dữ liệu chưa xóa
-            $builder->where($this->table . '.deleted_at IS NULL');
+            $builder->where("{$this->table}.deleted_at IS NULL");
         }
         
         // Xử lý lọc theo sự kiện
-        if (isset($criteria['sukien_id'])) {
-            $builder->where($this->table . '.sukien_id', $criteria['sukien_id']);
+        if (isset($criteria['su_kien_id']) && $criteria['su_kien_id'] !== '') {
+            $builder->where("{$this->table}.su_kien_id", $criteria['su_kien_id']);
         }
         
         // Xử lý lọc theo ID đăng ký
-        if (isset($criteria['dangky_sukien_id'])) {
-            $builder->where($this->table . '.dangky_sukien_id', $criteria['dangky_sukien_id']);
+        if (isset($criteria['dangky_sukien_id']) && $criteria['dangky_sukien_id'] !== '') {
+            $builder->where("{$this->table}.dangky_sukien_id", $criteria['dangky_sukien_id']);
         }
         
         // Xử lý lọc theo loại check-in
-        if (isset($criteria['checkin_type'])) {
-            $builder->where($this->table . '.checkin_type', $criteria['checkin_type']);
+        if (isset($criteria['checkin_type']) && $criteria['checkin_type'] !== '') {
+            $builder->where("{$this->table}.checkin_type", $criteria['checkin_type']);
         }
         
         // Xử lý lọc theo trạng thái xác minh khuôn mặt
-        if (isset($criteria['face_verified'])) {
-            $builder->where($this->table . '.face_verified', $criteria['face_verified']);
+        if (isset($criteria['face_verified']) && $criteria['face_verified'] !== '') {
+            $builder->where("{$this->table}.face_verified", $criteria['face_verified']);
         }
         
         // Xử lý lọc theo trạng thái
-        if (isset($criteria['status'])) {
-            $builder->where($this->table . '.status', $criteria['status']);
+        if (isset($criteria['status']) && $criteria['status'] !== '') {
+            $builder->where("{$this->table}.status", $criteria['status']);
         }
         
         // Xử lý lọc theo hình thức tham gia
-        if (isset($criteria['hinh_thuc_tham_gia'])) {
-            $builder->where($this->table . '.hinh_thuc_tham_gia', $criteria['hinh_thuc_tham_gia']);
+        if (isset($criteria['hinh_thuc_tham_gia']) && $criteria['hinh_thuc_tham_gia'] !== '') {
+            $builder->where("{$this->table}.hinh_thuc_tham_gia", $criteria['hinh_thuc_tham_gia']);
         }
         
         // Xử lý tìm kiếm theo khoảng thời gian
         if (isset($criteria['start_date']) && isset($criteria['end_date'])) {
-            $builder->where($this->table . '.thoi_gian_check_in >=', $criteria['start_date']);
-            $builder->where($this->table . '.thoi_gian_check_in <=', $criteria['end_date']);
+            $builder->where("{$this->table}.thoi_gian_check_in >=", $criteria['start_date']);
+            $builder->where("{$this->table}.thoi_gian_check_in <=", $criteria['end_date']);
         } elseif (isset($criteria['start_date'])) {
-            $builder->where($this->table . '.thoi_gian_check_in >=', $criteria['start_date']);
+            $builder->where("{$this->table}.thoi_gian_check_in >=", $criteria['start_date']);
         } elseif (isset($criteria['end_date'])) {
-            $builder->where($this->table . '.thoi_gian_check_in <=', $criteria['end_date']);
+            $builder->where("{$this->table}.thoi_gian_check_in <=", $criteria['end_date']);
         }
         
         // Xử lý tìm kiếm theo từ khóa
@@ -197,11 +201,13 @@ class CheckInSuKienModel extends BaseModel
             $builder->groupStart();
             foreach ($this->searchableFields as $index => $field) {
                 if ($index === 0) {
-                    $builder->like($this->table . '.' . $field, $keyword);
+                    $builder->like("{$this->table}.{$field}", $keyword);
                 } else {
-                    $builder->orLike($this->table . '.' . $field, $keyword);
+                    $builder->orLike("{$this->table}.{$field}", $keyword);
                 }
             }
+            // Thêm tìm kiếm theo tên sự kiện
+            $builder->orLike("su_kien.ten_su_kien", $keyword);
             $builder->groupEnd();
         }
         
@@ -219,7 +225,7 @@ class CheckInSuKienModel extends BaseModel
         }
         
         // Sắp xếp kết quả
-        $builder->orderBy($this->table . '.' . $sort, $order);
+        $builder->orderBy("{$this->table}.{$sort}", $order);
         
         // Thực hiện truy vấn
         $result = $builder->get()->getResult($this->returnType);
@@ -227,7 +233,7 @@ class CheckInSuKienModel extends BaseModel
         // Thiết lập pager nếu cần
         if ($limit > 0) {
             $totalRows = $this->countSearchResults($criteria);
-            $this->pager = new Pager(
+            $this->pager = new \App\Modules\checkinsukien\Libraries\Pager(
                 $totalRows,
                 $limit,
                 floor($offset / $limit) + 1
@@ -247,53 +253,54 @@ class CheckInSuKienModel extends BaseModel
     public function countSearchResults(array $criteria = [])
     {
         $builder = $this->builder();
+        $builder->join('su_kien', "su_kien.su_kien_id = {$this->table}.su_kien_id", 'left');
         
         // Xử lý withDeleted nếu cần
         if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
-            $builder->where($this->table . '.deleted_at IS NOT NULL');
+            $builder->where("{$this->table}.deleted_at IS NOT NULL");
         } else {
             // Mặc định chỉ lấy dữ liệu chưa xóa
-            $builder->where($this->table . '.deleted_at IS NULL');
+            $builder->where("{$this->table}.deleted_at IS NULL");
         }
         
         // Xử lý lọc theo sự kiện
-        if (isset($criteria['sukien_id'])) {
-            $builder->where($this->table . '.sukien_id', $criteria['sukien_id']);
+        if (isset($criteria['su_kien_id']) && $criteria['su_kien_id'] !== '') {
+            $builder->where("{$this->table}.su_kien_id", $criteria['su_kien_id']);
         }
         
         // Xử lý lọc theo ID đăng ký
-        if (isset($criteria['dangky_sukien_id'])) {
-            $builder->where($this->table . '.dangky_sukien_id', $criteria['dangky_sukien_id']);
+        if (isset($criteria['dangky_sukien_id']) && $criteria['dangky_sukien_id'] !== '') {
+            $builder->where("{$this->table}.dangky_sukien_id", $criteria['dangky_sukien_id']);
         }
         
         // Xử lý lọc theo loại check-in
-        if (isset($criteria['checkin_type'])) {
-            $builder->where($this->table . '.checkin_type', $criteria['checkin_type']);
+        if (isset($criteria['checkin_type']) && $criteria['checkin_type'] !== '') {
+            $builder->where("{$this->table}.checkin_type", $criteria['checkin_type']);
         }
         
         // Xử lý lọc theo trạng thái xác minh khuôn mặt
-        if (isset($criteria['face_verified'])) {
-            $builder->where($this->table . '.face_verified', $criteria['face_verified']);
+        if (isset($criteria['face_verified']) && $criteria['face_verified'] !== '') {
+            $builder->where("{$this->table}.face_verified", $criteria['face_verified']);
         }
         
         // Xử lý lọc theo trạng thái
-        if (isset($criteria['status'])) {
-            $builder->where($this->table . '.status', $criteria['status']);
+        if (isset($criteria['status']) && $criteria['status'] !== '') {
+            $builder->where("{$this->table}.status", $criteria['status']);
         }
         
         // Xử lý lọc theo hình thức tham gia
-        if (isset($criteria['hinh_thuc_tham_gia'])) {
-            $builder->where($this->table . '.hinh_thuc_tham_gia', $criteria['hinh_thuc_tham_gia']);
+        if (isset($criteria['hinh_thuc_tham_gia']) && $criteria['hinh_thuc_tham_gia'] !== '') {
+            $builder->where("{$this->table}.hinh_thuc_tham_gia", $criteria['hinh_thuc_tham_gia']);
         }
         
         // Xử lý tìm kiếm theo khoảng thời gian
         if (isset($criteria['start_date']) && isset($criteria['end_date'])) {
-            $builder->where($this->table . '.thoi_gian_check_in >=', $criteria['start_date']);
-            $builder->where($this->table . '.thoi_gian_check_in <=', $criteria['end_date']);
+            $builder->where("{$this->table}.thoi_gian_check_in >=", $criteria['start_date']);
+            $builder->where("{$this->table}.thoi_gian_check_in <=", $criteria['end_date']);
         } elseif (isset($criteria['start_date'])) {
-            $builder->where($this->table . '.thoi_gian_check_in >=', $criteria['start_date']);
+            $builder->where("{$this->table}.thoi_gian_check_in >=", $criteria['start_date']);
         } elseif (isset($criteria['end_date'])) {
-            $builder->where($this->table . '.thoi_gian_check_in <=', $criteria['end_date']);
+            $builder->where("{$this->table}.thoi_gian_check_in <=", $criteria['end_date']);
         }
         
         // Xử lý tìm kiếm theo từ khóa
@@ -303,11 +310,13 @@ class CheckInSuKienModel extends BaseModel
             $builder->groupStart();
             foreach ($this->searchableFields as $index => $field) {
                 if ($index === 0) {
-                    $builder->like($this->table . '.' . $field, $keyword);
+                    $builder->like("{$this->table}.{$field}", $keyword);
                 } else {
-                    $builder->orLike($this->table . '.' . $field, $keyword);
+                    $builder->orLike("{$this->table}.{$field}", $keyword);
                 }
             }
+            // Thêm tìm kiếm theo tên sự kiện
+            $builder->orLike("su_kien.ten_su_kien", $keyword);
             $builder->groupEnd();
         }
         
@@ -367,32 +376,36 @@ class CheckInSuKienModel extends BaseModel
     public function getCheckInsByEvent(int $suKienId, array $options = [])
     {
         $builder = $this->builder();
-        $builder->where($this->table . '.sukien_id', $suKienId);
+        $builder->where($this->table . '.su_kien_id', $suKienId);
         $builder->where($this->table . '.deleted_at IS NULL');
         
         // Lọc theo loại check-in
-        if (isset($options['checkin_type'])) {
+        if (isset($options['checkin_type']) && $options['checkin_type'] !== '') {
             $builder->where($this->table . '.checkin_type', $options['checkin_type']);
         }
         
         // Lọc theo hình thức tham gia
-        if (isset($options['hinh_thuc_tham_gia'])) {
+        if (isset($options['hinh_thuc_tham_gia']) && $options['hinh_thuc_tham_gia'] !== '') {
             $builder->where($this->table . '.hinh_thuc_tham_gia', $options['hinh_thuc_tham_gia']);
         }
         
         // Lọc theo trạng thái xác minh khuôn mặt
-        if (isset($options['face_verified'])) {
+        if (isset($options['face_verified']) && $options['face_verified'] !== '') {
             $builder->where($this->table . '.face_verified', $options['face_verified']);
         }
         
         // Lọc theo ID đăng ký
-        if (isset($options['dangky_sukien_id'])) {
+        if (isset($options['dangky_sukien_id']) && $options['dangky_sukien_id'] !== '') {
             $builder->where($this->table . '.dangky_sukien_id', $options['dangky_sukien_id']);
         }
         
         // Lọc theo khoảng thời gian
         if (isset($options['start_date']) && isset($options['end_date'])) {
             $builder->where($this->table . '.thoi_gian_check_in >=', $options['start_date']);
+            $builder->where($this->table . '.thoi_gian_check_in <=', $options['end_date']);
+        } elseif (isset($options['start_date'])) {
+            $builder->where($this->table . '.thoi_gian_check_in >=', $options['start_date']);
+        } elseif (isset($options['end_date'])) {
             $builder->where($this->table . '.thoi_gian_check_in <=', $options['end_date']);
         }
         
@@ -420,32 +433,36 @@ class CheckInSuKienModel extends BaseModel
     public function countCheckInsByEvent(int $suKienId, array $options = [])
     {
         $builder = $this->builder();
-        $builder->where($this->table . '.sukien_id', $suKienId);
+        $builder->where($this->table . '.su_kien_id', $suKienId);
         $builder->where($this->table . '.deleted_at IS NULL');
         
         // Lọc theo loại check-in
-        if (isset($options['checkin_type'])) {
+        if (isset($options['checkin_type']) && $options['checkin_type'] !== '') {
             $builder->where($this->table . '.checkin_type', $options['checkin_type']);
         }
         
         // Lọc theo hình thức tham gia
-        if (isset($options['hinh_thuc_tham_gia'])) {
+        if (isset($options['hinh_thuc_tham_gia']) && $options['hinh_thuc_tham_gia'] !== '') {
             $builder->where($this->table . '.hinh_thuc_tham_gia', $options['hinh_thuc_tham_gia']);
         }
         
         // Lọc theo trạng thái xác minh khuôn mặt
-        if (isset($options['face_verified'])) {
+        if (isset($options['face_verified']) && $options['face_verified'] !== '') {
             $builder->where($this->table . '.face_verified', $options['face_verified']);
         }
         
         // Lọc theo ID đăng ký
-        if (isset($options['dangky_sukien_id'])) {
+        if (isset($options['dangky_sukien_id']) && $options['dangky_sukien_id'] !== '') {
             $builder->where($this->table . '.dangky_sukien_id', $options['dangky_sukien_id']);
         }
         
         // Lọc theo khoảng thời gian
         if (isset($options['start_date']) && isset($options['end_date'])) {
             $builder->where($this->table . '.thoi_gian_check_in >=', $options['start_date']);
+            $builder->where($this->table . '.thoi_gian_check_in <=', $options['end_date']);
+        } elseif (isset($options['start_date'])) {
+            $builder->where($this->table . '.thoi_gian_check_in >=', $options['start_date']);
+        } elseif (isset($options['end_date'])) {
             $builder->where($this->table . '.thoi_gian_check_in <=', $options['end_date']);
         }
         
@@ -462,7 +479,7 @@ class CheckInSuKienModel extends BaseModel
     public function findByEmailAndEvent(string $email, int $suKienId)
     {
         return $this->where('email', $email)
-                   ->where('sukien_id', $suKienId)
+                   ->where('su_kien_id', $suKienId)
                    ->first();
     }
     
@@ -538,18 +555,25 @@ class CheckInSuKienModel extends BaseModel
         $this->withDeleted();
         
         $builder = $this->builder();
+        $builder->select("{$this->table}.*, su_kien.ten_su_kien");
+        $builder->join('su_kien', "su_kien.su_kien_id = {$this->table}.su_kien_id", 'left');
         
         // Chỉ lấy dữ liệu đã xóa
-        $builder->where($this->table . '.deleted_at IS NOT NULL');
+        $builder->where("{$this->table}.deleted_at IS NOT NULL");
         
         // Xử lý lọc theo sự kiện
-        if (isset($criteria['sukien_id'])) {
-            $builder->where($this->table . '.sukien_id', $criteria['sukien_id']);
+        if (isset($criteria['su_kien_id']) && $criteria['su_kien_id'] !== '') {
+            $builder->where("{$this->table}.su_kien_id", $criteria['su_kien_id']);
         }
         
         // Xử lý lọc theo loại check-in
-        if (isset($criteria['checkin_type'])) {
-            $builder->where($this->table . '.checkin_type', $criteria['checkin_type']);
+        if (isset($criteria['checkin_type']) && $criteria['checkin_type'] !== '') {
+            $builder->where("{$this->table}.checkin_type", $criteria['checkin_type']);
+        }
+        
+        // Xử lý lọc theo hình thức tham gia
+        if (isset($criteria['hinh_thuc_tham_gia']) && $criteria['hinh_thuc_tham_gia'] !== '') {
+            $builder->where("{$this->table}.hinh_thuc_tham_gia", $criteria['hinh_thuc_tham_gia']);
         }
         
         // Xử lý tìm kiếm theo từ khóa
@@ -559,11 +583,13 @@ class CheckInSuKienModel extends BaseModel
             $builder->groupStart();
             foreach ($this->searchableFields as $index => $field) {
                 if ($index === 0) {
-                    $builder->like($this->table . '.' . $field, $keyword);
+                    $builder->like("{$this->table}.{$field}", $keyword);
                 } else {
-                    $builder->orLike($this->table . '.' . $field, $keyword);
+                    $builder->orLike("{$this->table}.{$field}", $keyword);
                 }
             }
+            // Thêm tìm kiếm theo tên sự kiện
+            $builder->orLike("su_kien.ten_su_kien", $keyword);
             $builder->groupEnd();
         }
         
@@ -581,7 +607,7 @@ class CheckInSuKienModel extends BaseModel
         }
         
         // Sắp xếp kết quả
-        $builder->orderBy($this->table . '.' . $sort, $order);
+        $builder->orderBy("{$this->table}.{$sort}", $order);
         
         // Thực hiện truy vấn
         $result = $builder->get()->getResult($this->returnType);
@@ -589,7 +615,7 @@ class CheckInSuKienModel extends BaseModel
         // Thiết lập pager nếu cần
         if ($limit > 0) {
             $totalRows = $this->countDeletedSearchResults($criteria);
-            $this->pager = new Pager(
+            $this->pager = new \App\Modules\checkinsukien\Libraries\Pager(
                 $totalRows,
                 $limit,
                 floor($offset / $limit) + 1
@@ -612,18 +638,24 @@ class CheckInSuKienModel extends BaseModel
         $this->withDeleted();
         
         $builder = $this->builder();
+        $builder->join('su_kien', "su_kien.su_kien_id = {$this->table}.su_kien_id", 'left');
         
         // Chỉ đếm bản ghi đã xóa
-        $builder->where($this->table . '.deleted_at IS NOT NULL');
+        $builder->where("{$this->table}.deleted_at IS NOT NULL");
         
         // Xử lý lọc theo sự kiện
-        if (isset($criteria['sukien_id'])) {
-            $builder->where($this->table . '.sukien_id', $criteria['sukien_id']);
+        if (isset($criteria['su_kien_id']) && $criteria['su_kien_id'] !== '') {
+            $builder->where("{$this->table}.su_kien_id", $criteria['su_kien_id']);
         }
         
         // Xử lý lọc theo loại check-in
-        if (isset($criteria['checkin_type'])) {
-            $builder->where($this->table . '.checkin_type', $criteria['checkin_type']);
+        if (isset($criteria['checkin_type']) && $criteria['checkin_type'] !== '') {
+            $builder->where("{$this->table}.checkin_type", $criteria['checkin_type']);
+        }
+        
+        // Xử lý lọc theo hình thức tham gia
+        if (isset($criteria['hinh_thuc_tham_gia']) && $criteria['hinh_thuc_tham_gia'] !== '') {
+            $builder->where("{$this->table}.hinh_thuc_tham_gia", $criteria['hinh_thuc_tham_gia']);
         }
         
         // Xử lý tìm kiếm theo từ khóa
@@ -633,14 +665,157 @@ class CheckInSuKienModel extends BaseModel
             $builder->groupStart();
             foreach ($this->searchableFields as $index => $field) {
                 if ($index === 0) {
-                    $builder->like($this->table . '.' . $field, $keyword);
+                    $builder->like("{$this->table}.{$field}", $keyword);
                 } else {
-                    $builder->orLike($this->table . '.' . $field, $keyword);
+                    $builder->orLike("{$this->table}.{$field}", $keyword);
                 }
             }
+            // Thêm tìm kiếm theo tên sự kiện
+            $builder->orLike("su_kien.ten_su_kien", $keyword);
             $builder->groupEnd();
         }
         
         return $builder->countAllResults();
+    }
+    
+    /**
+     * Lấy thống kê check-in theo sự kiện
+     *
+     * @param int $suKienId ID của sự kiện
+     * @return array
+     */
+    public function getEventCheckInStats(int $suKienId): array
+    {
+        $stats = [
+            'total' => 0,
+            'by_type' => [
+                'face_id' => 0,
+                'manual' => 0,
+                'qr_code' => 0,
+                'online' => 0
+            ],
+            'by_mode' => [
+                'offline' => 0,
+                'online' => 0
+            ],
+            'face_verified' => 0,
+            'status' => [
+                'active' => 0,
+                'inactive' => 0,
+                'processing' => 0
+            ]
+        ];
+        
+        // Tổng số check-in
+        $stats['total'] = $this->where('su_kien_id', $suKienId)
+                               ->where('deleted_at IS NULL')
+                               ->countAllResults();
+        
+        // Thống kê theo loại check-in
+        $checkInTypeStats = $this->select('checkin_type, COUNT(*) as count')
+                                ->where('su_kien_id', $suKienId)
+                                ->where('deleted_at IS NULL')
+                                ->groupBy('checkin_type')
+                                ->get()
+                                ->getResult();
+        
+        foreach ($checkInTypeStats as $stat) {
+            if (isset($stats['by_type'][$stat->checkin_type])) {
+                $stats['by_type'][$stat->checkin_type] = (int)$stat->count;
+            }
+        }
+        
+        // Thống kê theo hình thức tham gia
+        $participationModeStats = $this->select('hinh_thuc_tham_gia, COUNT(*) as count')
+                                      ->where('su_kien_id', $suKienId)
+                                      ->where('deleted_at IS NULL')
+                                      ->groupBy('hinh_thuc_tham_gia')
+                                      ->get()
+                                      ->getResult();
+        
+        foreach ($participationModeStats as $stat) {
+            if (isset($stats['by_mode'][$stat->hinh_thuc_tham_gia])) {
+                $stats['by_mode'][$stat->hinh_thuc_tham_gia] = (int)$stat->count;
+            }
+        }
+        
+        // Thống kê số lượng đã xác thực khuôn mặt
+        $stats['face_verified'] = $this->where('su_kien_id', $suKienId)
+                                      ->where('face_verified', 1)
+                                      ->where('deleted_at IS NULL')
+                                      ->countAllResults();
+        
+        // Thống kê theo trạng thái
+        $statusStats = $this->select('status, COUNT(*) as count')
+                           ->where('su_kien_id', $suKienId)
+                           ->where('deleted_at IS NULL')
+                           ->groupBy('status')
+                           ->get()
+                           ->getResult();
+        
+        foreach ($statusStats as $stat) {
+            switch ((int)$stat->status) {
+                case 1:
+                    $stats['status']['active'] = (int)$stat->count;
+                    break;
+                case 0:
+                    $stats['status']['inactive'] = (int)$stat->count;
+                    break;
+                case 2:
+                    $stats['status']['processing'] = (int)$stat->count;
+                    break;
+            }
+        }
+        
+        return $stats;
+    }
+    
+    /**
+     * Khôi phục một bản ghi đã bị xóa mềm
+     *
+     * @param mixed $id ID của bản ghi cần khôi phục
+     * @return mixed
+     */
+    public function restore($id)
+    {
+        $this->withDeleted();
+        $data = [
+            'deleted_at' => null,
+            'updated_at' => Time::now()->toDateTimeString()
+        ];
+        
+        return $this->update($id, $data);
+    }
+    
+    /**
+     * Lấy thông tin sự kiện từ bản ghi check-in
+     *
+     * @param int $checkinId ID của bản ghi check-in
+     * @return object|null
+     */
+    public function getSuKienFromCheckIn(int $checkinId)
+    {
+        $builder = $this->db->table("{$this->table} c");
+        $builder->select("s.*, c.su_kien_id");
+        $builder->join('su_kien s', "s.su_kien_id = c.su_kien_id", 'inner');
+        $builder->where("c.{$this->primaryKey}", $checkinId);
+        
+        return $builder->get()->getRow();
+    }
+    
+    /**
+     * Lấy thông tin đăng ký sự kiện từ bản ghi check-in
+     *
+     * @param int $checkinId ID của bản ghi check-in
+     * @return object|null
+     */
+    public function getDangKySuKienFromCheckIn(int $checkinId)
+    {
+        $builder = $this->db->table("{$this->table} c");
+        $builder->select("d.*, c.dangky_sukien_id");
+        $builder->join('dangky_sukien d', "d.dangky_sukien_id = c.dangky_sukien_id", 'inner');
+        $builder->where("c.{$this->primaryKey}", $checkinId);
+        
+        return $builder->get()->getRow();
     }
 } 
