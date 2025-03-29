@@ -474,12 +474,15 @@ class DangKySuKienModel extends BaseModel
         unset($this->validationRules['deleted_at']);
         
         // Nếu là cập nhật, thêm kiểm tra xem email đã tồn tại chưa (trừ bản ghi hiện tại)
-        if ($scenario === 'update' && isset($data['dangky_sukien_id'])) {
+        if ($scenario === 'update' && isset($data[$this->primaryKey])) {
+            // Khi cập nhật, cần loại trừ chính bản ghi đang cập nhật khỏi kiểm tra độc nhất
+            // Format: is_unique[table.field,ignore_field,ignore_value]
             $this->validationRules['email']['rules'] = sprintf(
-                'required|valid_email|is_unique[%s.email,su_kien_id,%s,dangky_sukien_id,%s]',
+                'required|valid_email|is_unique[%s.email,%s,%s,su_kien_id,%s]',
                 $this->table,
-                $data['su_kien_id'] ?? 0,
-                $data['dangky_sukien_id']
+                $this->primaryKey,
+                $data[$this->primaryKey],
+                $data['su_kien_id'] ?? 0
             );
         } else {
             // Khi thêm mới, kiểm tra email không trùng cho cùng sự kiện
@@ -650,6 +653,12 @@ class DangKySuKienModel extends BaseModel
      */
     public function updateCheckIn(int $id, bool $value, ?int $checkinSuKienId = null, string $diemDanhBang = 'manual'): bool
     {
+        // Lấy thông tin đăng ký hiện tại
+        $registration = $this->find($id);
+        if (!$registration) {
+            return false;
+        }
+        
         $data = [
             'da_check_in' => $value,
             'diem_danh_bang' => $diemDanhBang,
@@ -660,12 +669,29 @@ class DangKySuKienModel extends BaseModel
             $data['checkin_sukien_id'] = $checkinSuKienId;
         }
         
-        // Nếu là check-in mà trạng thái attendance_status là not_attended
-        // thì cập nhật thành partial
+        // Nếu người dùng check-in
         if ($value) {
-            $registration = $this->find($id);
-            if ($registration && $registration->getAttendanceStatus() === 'not_attended') {
+            // Lưu thời gian check-in
+            $data['checkin_time'] = Time::now()->toDateTimeString();
+            
+            // Cập nhật trạng thái tham dự nếu chưa tham dự
+            if ($registration->getAttendanceStatus() === 'not_attended') {
                 $data['attendance_status'] = 'partial';
+            }
+            
+            // Cập nhật status nếu đang trong trạng thái chờ xác nhận
+            if ($registration->getStatus() === 0) {
+                $data['status'] = 1; // Đã xác nhận
+            }
+        } else {
+            // Nếu bỏ check-in thì cũng bỏ check-out 
+            if ($registration->isDaCheckOut()) {
+                $data['da_check_out'] = false;
+            }
+            
+            // Nếu bỏ check-in và attendance_status đang là partial, trả về not_attended
+            if ($registration->getAttendanceStatus() === 'partial' && !$registration->isDaCheckOut()) {
+                $data['attendance_status'] = 'not_attended';
             }
         }
         
@@ -683,6 +709,17 @@ class DangKySuKienModel extends BaseModel
      */
     public function updateCheckOut(int $id, bool $value, ?int $checkoutSuKienId = null, int $attendanceMinutes = 0): bool
     {
+        // Lấy thông tin đăng ký hiện tại
+        $registration = $this->find($id);
+        if (!$registration) {
+            return false;
+        }
+        
+        // Không cho phép check-out nếu chưa check-in
+        if ($value && !$registration->isDaCheckIn()) {
+            return false;
+        }
+        
         $data = [
             'da_check_out' => $value,
             'updated_at' => Time::now()->toDateTimeString()
@@ -692,14 +729,67 @@ class DangKySuKienModel extends BaseModel
             $data['checkout_sukien_id'] = $checkoutSuKienId;
         }
         
-        if ($value && $attendanceMinutes > 0) {
-            $data['attendance_minutes'] = $attendanceMinutes;
+        // Nếu người dùng check-out
+        if ($value) {
+            // Lưu thời gian check-out
+            $data['checkout_time'] = Time::now()->toDateTimeString();
             
-            // Xác định trạng thái tham dự dựa vào thời gian
-            $data['attendance_status'] = ($attendanceMinutes >= 90) ? 'full' : 'partial';
+            // Tính thời gian tham dự nếu không được cung cấp
+            if ($attendanceMinutes <= 0 && !empty($registration->checkin_time)) {
+                $checkInTime = new Time($registration->checkin_time);
+                $checkOutTime = Time::now();
+                $diffMinutes = $checkOutTime->difference($checkInTime)->getMinutes();
+                $attendanceMinutes = max(0, $diffMinutes);
+            }
+            
+            // Cập nhật số phút tham dự
+            if ($attendanceMinutes > 0) {
+                $data['attendance_minutes'] = $attendanceMinutes;
+                
+                // Xác định trạng thái tham dự dựa vào thời gian và quy định của sự kiện
+                // Có thể cấu hình ngưỡng phút tham dự tối thiểu cho mỗi sự kiện
+                $suKienId = $registration->getSuKienId();
+                $thresholdMinutes = $this->getAttendanceThreshold($suKienId);
+                
+                $data['attendance_status'] = ($attendanceMinutes >= $thresholdMinutes) ? 'full' : 'partial';
+            }
+        } else {
+            // Nếu bỏ check-out, giữ nguyên attendance_status nếu đã là partial
+            if ($registration->getAttendanceStatus() === 'full') {
+                $data['attendance_status'] = 'partial';
+            }
+            
+            // Xóa thời gian check-out
+            $data['checkout_time'] = null;
         }
         
         return $this->update($id, $data);
+    }
+    
+    /**
+     * Lấy ngưỡng phút tham dự tối thiểu cho sự kiện
+     * 
+     * @param int $suKienId ID của sự kiện
+     * @return int Số phút tối thiểu để tính là tham dự đầy đủ
+     */
+    protected function getAttendanceThreshold(int $suKienId): int
+    {
+        // Mặc định: 90 phút
+        $defaultThreshold = 90;
+        
+        // TODO: Có thể lấy từ cấu hình sự kiện từ bảng su_kien
+        try {
+            $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+            $suKien = $suKienModel->find($suKienId);
+            
+            if ($suKien && !empty($suKien->thoi_luong_dk_full)) {
+                return (int)$suKien->thoi_luong_dk_full;
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi khi lấy thời lượng tham dự tối thiểu: ' . $e->getMessage());
+        }
+        
+        return $defaultThreshold;
     }
     
     /**
@@ -1011,4 +1101,90 @@ class DangKySuKienModel extends BaseModel
         
         return $criteria;
     }
+    
+    /**
+     * Kiểm tra email đã tồn tại trong sự kiện chưa (loại trừ ID đang cập nhật)
+     *
+     * @param string $email Email cần kiểm tra
+     * @param int $suKienId ID sự kiện
+     * @param int|null $excludeId ID bản ghi cần loại trừ khỏi việc kiểm tra (khi cập nhật)
+     * @return bool True nếu email là duy nhất, False nếu đã tồn tại
+     */
+    public function isUniqueEmail(string $email, int $suKienId, ?int $excludeId = null): bool
+    {
+        $builder = $this->builder();
+        $builder->where('email', $email);
+        $builder->where('su_kien_id', $suKienId);
+        
+        if ($excludeId !== null) {
+            $builder->where("{$this->primaryKey} !=", $excludeId);
+        }
+        
+        return $builder->countAllResults() === 0;
+    }
+    
+    /**
+     * Cập nhật trạng thái tham dự dựa trên thông tin check-in/check-out
+     *
+     * @param int $id ID của đăng ký
+     * @return bool True nếu cập nhật thành công
+     */
+    public function updateAttendanceStatus(int $id): bool
+    {
+        // Lấy thông tin đăng ký hiện tại
+        $registration = $this->find($id);
+        if (!$registration) {
+            return false;
+        }
+        
+        $data = [
+            'updated_at' => Time::now()->toDateTimeString()
+        ];
+        
+        // Đã check-in và check-out
+        if ($registration->isDaCheckIn() && $registration->isDaCheckOut()) {
+            $attendanceMinutes = $registration->getAttendanceMinutes();
+            if ($attendanceMinutes > 0) {
+                $suKienId = $registration->getSuKienId();
+                $thresholdMinutes = $this->getAttendanceThreshold($suKienId);
+                
+                $data['attendance_status'] = ($attendanceMinutes >= $thresholdMinutes) ? 'full' : 'partial';
+            } else {
+                $data['attendance_status'] = 'partial';
+            }
+        }
+        // Chỉ check-in, chưa check-out
+        else if ($registration->isDaCheckIn()) {
+            $data['attendance_status'] = 'partial';
+        }
+        // Chưa check-in
+        else {
+            $data['attendance_status'] = 'not_attended';
+        }
+        
+        return $this->update($id, $data);
+    }
+    
+    /**
+     * Định dạng ngày giờ từ chuỗi đầu vào của form (Y-m-d\TH:i) sang định dạng datetime
+     *
+     * @param string $dateTimeString Chuỗi datetime từ form input
+     * @return string|null Chuỗi datetime đã được định dạng hoặc null nếu là chuỗi rỗng
+     */
+    public function formatDateTime($dateTimeString)
+    {
+        if (empty($dateTimeString)) {
+            return null;
+        }
+        
+        try {
+            $time = new \CodeIgniter\I18n\Time($dateTimeString);
+            return $time->toDateTimeString();
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi định dạng thời gian: ' . $e->getMessage());
+            return null;
+        }
+    }
+    
+ 
 } 

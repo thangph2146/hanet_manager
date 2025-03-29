@@ -155,7 +155,7 @@ class DangKySuKien extends BaseController
         
         // Thêm dữ liệu cho view
         $viewData['title'] = 'Thêm mới ' . $this->title;
-        $viewData['validation'] = $this->validator;
+        $viewData['validation'] = \Config\Services::validation();
         $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
         $viewData['action'] = site_url($this->module_name . '/create');
         $viewData['method'] = 'POST';
@@ -172,23 +172,18 @@ class DangKySuKien extends BaseController
         $data = $this->request->getPost();
         
         // Xử lý định dạng thời gian bằng cách sử dụng phương thức formatDateTime từ model
-        if (!empty($data['thoi_gian_trinh_bay'])) {
-            $data['thoi_gian_trinh_bay'] = $this->model->formatDateTime($data['thoi_gian_trinh_bay']);
+        if (!empty($data['ngay_dang_ky'])) {
+            $data['ngay_dang_ky'] = $this->model->formatDateTime($data['ngay_dang_ky']);
         }
         
-        if (!empty($data['thoi_gian_ket_thuc'])) {
-            $data['thoi_gian_ket_thuc'] = $this->model->formatDateTime($data['thoi_gian_ket_thuc']);
-        }
-        
-        // Kiểm tra xem mối quan hệ đã tồn tại chưa
-        if (!empty($data['su_kien_id']) && !empty($data['dien_gia_id'])) {
-            if ($this->model->isRelationExists($data['su_kien_id'], $data['dien_gia_id'])) {
-                return redirect()->back()->withInput()->with('error', 'Diễn giả đã được thêm vào sự kiện này');
-            }
+        // Xử lý các trường checkbox (chuyển đổi thành boolean)
+        $checkboxFields = ['face_verified', 'da_check_in', 'da_check_out'];
+        foreach ($checkboxFields as $field) {
+            $data[$field] = isset($data[$field]) ? 1 : 0;
         }
         
         // Chuẩn bị các quy tắc validation
-        $this->model->prepareValidationRules('insert');
+        $this->model->prepareValidationRules('insert', $data);
         
         // Kiểm tra dữ liệu
         if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
@@ -196,21 +191,9 @@ class DangKySuKien extends BaseController
         }
         
         try {
-            // Xử lý tài liệu đính kèm nếu có
-            $files = $this->request->getFiles();
-            $hasValidFiles = false;
-            
-            if (!empty($files['tai_lieu_dinh_kem'])) {
-                $uploadedFiles = $files['tai_lieu_dinh_kem'];
-                if (is_array($uploadedFiles) && !empty($uploadedFiles[0]) && $uploadedFiles[0]->isValid()) {
-                    $data['tai_lieu_dinh_kem'] = $this->uploadFiles($uploadedFiles);
-                    $hasValidFiles = true;
-                }
-            }
-            
-            // Nếu không có tệp hợp lệ, đặt tai_lieu_dinh_kem là JSON rỗng []
-            if (!$hasValidFiles) {
-                $data['tai_lieu_dinh_kem'] = json_encode([]);
+            // Nếu không có mã xác nhận, tạo mã xác nhận mới
+            if (empty($data['ma_xac_nhan'])) {
+                $data['ma_xac_nhan'] = $this->model->generateConfirmationCode();
             }
             
             // Lưu dữ liệu thông qua model
@@ -221,7 +204,7 @@ class DangKySuKien extends BaseController
                 throw new \RuntimeException('Không thể thêm mới ' . $this->title);
             }
         } catch (\Exception $e) {
-            log_message('error', 'Lỗi thêm mới sự kiện diễn giả: ' . $e->getMessage());
+            log_message('error', 'Lỗi thêm mới đăng ký sự kiện: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title . ': ' . $e->getMessage());
@@ -289,7 +272,7 @@ class DangKySuKien extends BaseController
         
         // Thêm dữ liệu cho view
         $viewData['title'] = 'Chỉnh sửa ' . $this->title;
-        $viewData['validation'] = $this->validator;
+        $viewData['validation'] = \Config\Services::validation();
         $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
         $viewData['action'] = site_url($this->module_name . '/update/' . $id);
         $viewData['method'] = 'POST';
@@ -307,65 +290,44 @@ class DangKySuKien extends BaseController
             return redirect()->to($this->moduleUrl);
         }
         
-        // Lấy thông tin từ model
-        $existingRecord = $this->model->find($id);
-        
-        if (empty($existingRecord)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
-        // Xác thực dữ liệu gửi lên
+        // Lấy dữ liệu từ form
         $data = $this->request->getPost();
         
+        // Đảm bảo có ID của bản ghi đang cập nhật
+        $data[$this->primary_key] = $id;
+    
         // Xử lý định dạng thời gian bằng cách sử dụng phương thức formatDateTime từ model
-        if (!empty($data['thoi_gian_trinh_bay'])) {
-            $data['thoi_gian_trinh_bay'] = $this->model->formatDateTime($data['thoi_gian_trinh_bay']);
+        if (!empty($data['ngay_dang_ky'])) {
+            $data['ngay_dang_ky'] = $this->model->formatDateTime($data['ngay_dang_ky']);
         }
         
-        if (!empty($data['thoi_gian_ket_thuc'])) {
-            $data['thoi_gian_ket_thuc'] = $this->model->formatDateTime($data['thoi_gian_ket_thuc']);
-        }
-  
-        // Kiểm tra xem mối quan hệ đã tồn tại chưa (nếu có thay đổi)
-        if (!empty($data['su_kien_id']) && !empty($data['dien_gia_id']) && 
-            ($data['su_kien_id'] != $existingRecord->getSuKienId() || $data['dien_gia_id'] != $existingRecord->getDienGiaId())) {
-            if ($this->model->isRelationExists($data['su_kien_id'], $data['dien_gia_id'], $id)) {
-                return redirect()->back()->withInput()->with('error', 'Diễn giả đã được thêm vào sự kiện này');
-            }
-        }
-    
         // Chuẩn bị quy tắc validation cho cập nhật
-        $this->model->prepareValidationRules('update', [$this->primary_key => $id]);
+        $this->model->prepareValidationRules('update', $data);
         
         // Kiểm tra dữ liệu
         if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
+        // Xử lý các trường checkbox (chuyển đổi thành boolean)
+        $checkboxFields = ['face_verified', 'da_check_in', 'da_check_out'];
+        foreach ($checkboxFields as $field) {
+            $data[$field] = isset($data[$field]) ? 1 : 0;
+        }
+        
         try {
-            // Xử lý tài liệu đính kèm nếu có
-            $files = $this->request->getFiles();
-            if (!empty($files['tai_lieu_dinh_kem'])) {
-                $uploadedFiles = $files['tai_lieu_dinh_kem'];
-                // Chỉ cập nhật khi có tệp hợp lệ được tải lên
-                if (is_array($uploadedFiles) && !empty($uploadedFiles[0]) && $uploadedFiles[0]->isValid()) {
-                    $data['tai_lieu_dinh_kem'] = $this->uploadFiles($uploadedFiles);
-                }
-            } else {
-                // Nếu không có tệp mới, bỏ qua trường này để tránh ghi đè thành NULL
-                unset($data['tai_lieu_dinh_kem']);
-            }
-            
             // Lưu dữ liệu thông qua model
             if ($this->model->update($id, $data)) {
+                // Cập nhật trạng thái tham dự dựa trên check-in/check-out
+                $this->model->updateAttendanceStatus($id);
+                
                 $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
                 throw new \RuntimeException('Không thể cập nhật ' . $this->title);
             }
         } catch (\Exception $e) {
-            log_message('error', 'Lỗi cập nhật sự kiện diễn giả: ' . $e->getMessage());
+            log_message('error', 'Lỗi cập nhật đăng ký sự kiện: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title . ': ' . $e->getMessage());

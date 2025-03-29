@@ -99,7 +99,8 @@ $da_check_out = old('da_check_out', $da_check_out);
                     <ul class="mb-0 ps-3 mt-1">
                         <?php 
                         foreach ($errors as $field => $error): 
-                            $label = $validation->getRule($field)['label'] ?? ucfirst(str_replace('_', ' ', $field));
+                            // Sử dụng hàm ucfirst và str_replace để tạo label tự động, không phụ thuộc vào validation
+                            $label = ucfirst(str_replace('_', ' ', $field));
                         ?>
                             <li>
                                 <strong><?= $label ?>:</strong> 
@@ -171,7 +172,14 @@ $da_check_out = old('da_check_out', $da_check_out);
                            required>
                     <?php if (isset($validation) && $validation->hasError('email')): ?>
                         <div class="invalid-feedback">
-                            <?= $validation->getError('email') ?>
+                            <?php 
+                            $emailError = $validation->getError('email');
+                            if (strpos($emailError, 'unique') !== false) {
+                                echo 'Email này đã được đăng ký cho sự kiện này.';
+                            } else {
+                                echo $emailError;
+                            }
+                            ?>
                         </div>
                     <?php endif; ?>
                 </div>
