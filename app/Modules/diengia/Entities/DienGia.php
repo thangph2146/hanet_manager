@@ -19,7 +19,6 @@ class DienGia extends BaseEntity
     protected $casts = [
         'dien_gia_id' => 'int',
         'status' => 'boolean',
-        'so_su_kien_tham_gia' => 'int',
         'mang_xa_hoi' => 'json',
         'created_at' => 'timestamp',
         'updated_at' => 'timestamp',
@@ -56,10 +55,6 @@ class DienGia extends BaseEntity
         'gioi_thieu' => [
             'rules' => 'permit_empty',
             'label' => 'Giới thiệu'
-        ],
-        'avatar' => [
-            'rules' => 'permit_empty|max_length[255]',
-            'label' => 'Ảnh đại diện'
         ],
         'email' => [
             'rules' => 'permit_empty|valid_email|max_length[100]|is_unique[dien_gia.email,dien_gia_id,{dien_gia_id}]',
@@ -100,9 +95,6 @@ class DienGia extends BaseEntity
             'max_length' => '{field} không được vượt quá 255 ký tự'
         ],
         'to_chuc' => [
-            'max_length' => '{field} không được vượt quá 255 ký tự'
-        ],
-        'avatar' => [
             'max_length' => '{field} không được vượt quá 255 ký tự'
         ],
         'email' => [

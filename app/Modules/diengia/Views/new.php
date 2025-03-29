@@ -19,7 +19,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
 	<div class="card-body">
-		<?= form_open(site_url($module_name . '/create'), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+		<?= form_open(site_url($module_name . '/create'), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name, 'enctype' => 'multipart/form-data']) ?>
 			<?php
 			// Include form fields
 			$action = site_url($module_name . '/create');

@@ -155,24 +155,118 @@ class DienGia extends BaseController
         
         return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
     }
+
+    /**
+     * Xử lý upload ảnh
+     * 
+     * @param \CodeIgniter\HTTP\Files\UploadedFile $image File ảnh được upload
+     * @param string|null $oldImagePath Đường dẫn ảnh cũ (nếu có)
+     * @return string|null Đường dẫn ảnh mới hoặc null nếu không có ảnh
+     */
+    private function uploadImage($image, $oldImagePath = null)
+    {
+        if (!$image || !$image->isValid() || $image->hasMoved()) {
+            log_message('debug', 'Upload image: Invalid or moved image');
+            return null;
+        }
+
+        try {
+            // Tạo tên file mới với timestamp và random string
+            $newName = time() . '_' . $image->getRandomName();
+            
+            // Tạo đường dẫn thư mục theo năm/tháng/ngày
+            $year = date('Y');
+            $month = date('m');
+            $day = date('d');
+            $uploadPath = "data/images/{$year}/{$month}/{$day}";
+            
+            // Tạo thư mục nếu chưa tồn tại
+            if (!is_dir(FCPATH . $uploadPath)) {
+                if (!mkdir(FCPATH . $uploadPath, 0777, true)) {
+                    log_message('error', 'Không thể tạo thư mục: ' . FCPATH . $uploadPath);
+                    return null;
+                }
+            }
+            
+            // Di chuyển file vào thư mục
+            if (!$image->move(FCPATH . $uploadPath, $newName)) {
+                log_message('error', 'Không thể di chuyển file: ' . $image->getErrorString());
+                return null;
+            }
+            
+            // Đường dẫn đầy đủ của file mới
+            $newPath = $uploadPath . '/' . $newName;
+            
+            // Xóa ảnh cũ nếu có
+            if ($oldImagePath && !empty($oldImagePath)) {
+                $oldImageFullPath = FCPATH . $oldImagePath;
+                if (file_exists($oldImageFullPath)) {
+                    if (!unlink($oldImageFullPath)) {
+                        log_message('error', 'Không thể xóa file cũ: ' . $oldImageFullPath);
+                    } else {
+                        log_message('info', 'Đã xóa file cũ thành công: ' . $oldImageFullPath);
+                    }
+                } else {
+                    log_message('debug', 'File cũ không tồn tại: ' . $oldImageFullPath);
+                }
+            }
+            
+            log_message('info', 'Upload thành công. Path: ' . $newPath);
+            // Trả về đường dẫn tương đối theo định dạng yêu cầu
+            return $newPath;
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi upload ảnh: ' . $e->getMessage());
+            return null;
+        }
+    }
     
     /**
      * Xử lý thêm mới dữ liệu
      */
     public function create()
     {
-        // Lấy dữ liệu từ form
-        $data = $this->request->getPost();
-        
-        $this->model->prepareValidationRules('insert');
-        
-        // Kiểm tra dữ liệu
-        if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-        
         try {
-            // Lưu dữ liệu trực tiếp
+            // Lấy file avatar
+            $avatar = $this->request->getFile('avatar');
+            $avatarPath = null;
+            
+            // Xử lý upload ảnh trước
+            if ($avatar && $avatar->isValid() && !$avatar->hasMoved()) {
+                $avatarPath = $this->uploadImage($avatar);
+                if (!$avatarPath) {
+                    throw new \RuntimeException('Không thể upload ảnh');
+                }
+            }
+            
+            // Lấy dữ liệu từ form
+            $data = $this->request->getPost();
+            
+            // Loại bỏ trường không cần thiết và liên quan đến ảnh
+            unset($data['so_su_kien_tham_gia']);
+            unset($data['avatar']); // Quan trọng: Loại bỏ trường avatar để tránh lỗi validation
+            
+            // Chuẩn bị validation
+            $this->model->prepareValidationRules('insert');
+            
+            // Kiểm tra dữ liệu
+            if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
+                // Nếu validation không pass, cần xóa ảnh đã upload (nếu có)
+                if ($avatarPath) {
+                    $fullPath = FCPATH . $avatarPath;
+                    if (file_exists($fullPath)) {
+                        unlink($fullPath);
+                    }
+                }
+                
+                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            }
+            
+            // Thêm đường dẫn ảnh vào dữ liệu sau khi validation thành công
+            if ($avatarPath) {
+                $data['avatar'] = $avatarPath;
+            }
+            
+            // Lưu dữ liệu
             if ($this->model->insert($data)) {
                 $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
@@ -183,7 +277,7 @@ class DienGia extends BaseController
             log_message('error', '[' . $this->controller_name . '::create] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title);
+                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title . ': ' . $e->getMessage());
         }
     }
     
@@ -260,43 +354,68 @@ class DienGia extends BaseController
     public function update($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
+            $this->alert->set('danger', 'ID không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
-        }
-        
-        // Lấy thông tin tham gia sự kiện với relationship
-        $existingRecord = $this->model->findWithRelations($id);
-        
-        if (empty($existingRecord)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu khóa học', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
-        // Xác thực dữ liệu gửi lên
-        $data = $this->request->getPost();
-        // Xử lý thời gian điểm danh
-        if (!empty($data['thoi_gian_diem_danh'])) {
-            try {
-                $time = Time::parse($data['thoi_gian_diem_danh']);
-                $data['thoi_gian_diem_danh'] = $time->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {
-                log_message('error', 'Lỗi xử lý thời gian điểm danh: ' . $e->getMessage());
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Thời gian điểm danh không hợp lệ');
-            }
-        }
-    
-        // Chuẩn bị quy tắc validation cho cập nhật
-        $this->model->prepareValidationRules('update', [$this->primary_key => $id]);
-        
-        // Kiểm tra dữ liệu
-        if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
         try {
-            // Lưu dữ liệu trực tiếp
+            // Lấy thông tin bản ghi hiện tại
+            $existingRecord = $this->model->find($id);
+            if (!$existingRecord) {
+                throw new \RuntimeException('Không tìm thấy bản ghi cần cập nhật');
+            }
+            
+            // Lấy file avatar và đường dẫn ảnh cũ
+            $avatar = $this->request->getFile('avatar');
+            $existingAvatar = $this->request->getPost('existing_avatar');
+            $oldAvatarPath = $existingRecord->avatar;
+            $newAvatarPath = null;
+            
+            // Xử lý upload ảnh trước nếu có ảnh mới
+            if ($avatar && $avatar->isValid() && !$avatar->hasMoved()) {
+                $newAvatarPath = $this->uploadImage($avatar, $oldAvatarPath);
+                if (!$newAvatarPath) {
+                    throw new \RuntimeException('Không thể upload ảnh');
+                }
+            }
+            
+            // Lấy dữ liệu từ form
+            $data = $this->request->getPost();
+            
+            // Loại bỏ các trường không cần thiết và liên quan đến ảnh
+            unset($data['so_su_kien_tham_gia']);
+            unset($data['existing_avatar']);
+            unset($data['avatar']); // Quan trọng: Loại bỏ trường avatar để tránh lỗi validation
+            
+            // Chuẩn bị quy tắc validation cho cập nhật
+            $this->model->prepareValidationRules('update', [$this->primary_key => $id]);
+            
+            // Kiểm tra dữ liệu
+            if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
+                // Nếu validation không pass, cần xóa ảnh mới đã upload (nếu có)
+                if ($newAvatarPath) {
+                    $fullPath = FCPATH . $newAvatarPath;
+                    if (file_exists($fullPath)) {
+                        unlink($fullPath);
+                    }
+                }
+                
+                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            }
+            
+            // Thêm đường dẫn ảnh vào dữ liệu sau khi validation
+            if ($newAvatarPath) {
+                // Nếu đã upload ảnh mới thành công
+                $data['avatar'] = $newAvatarPath;
+            } else if (isset($existingAvatar) && !empty($existingAvatar)) {
+                // Nếu không có ảnh mới nhưng có ảnh cũ từ form
+                $data['avatar'] = $existingAvatar;
+            } else {
+                // Giữ nguyên ảnh cũ trong database
+                $data['avatar'] = $oldAvatarPath;
+            }
+            
+            // Lưu dữ liệu
             if ($this->model->update($id, $data)) {
                 $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
@@ -307,7 +426,7 @@ class DienGia extends BaseController
             log_message('error', '[' . $this->controller_name . '::update] ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title);
+                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title . ': ' . $e->getMessage());
         }
     }
     

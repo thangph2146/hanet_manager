@@ -305,23 +305,21 @@ $so_su_kien_tham_gia = old('so_su_kien_tham_gia', $so_su_kien_tham_gia);
                 </div>
 
                 <!-- so_su_kien_tham_gia - Chỉ hiển thị khi chỉnh sửa, không cho phép thay đổi -->
-                <?php if ($isUpdate): ?>
-                <div class="col-md-12">
+                <?php if (isset($data) && $data->getId() > 0): ?>
+                <div class="col-md-6">
                     <label for="so_su_kien_tham_gia" class="form-label fw-semibold">
                         Số sự kiện tham gia
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-calendar-event'></i></span>
-                        <input type="text" 
-                               class="form-control" 
+                        <input type="text" class="form-control" 
                                id="so_su_kien_tham_gia"
-                               name="so_su_kien_tham_gia"
                                value="<?= esc($so_su_kien_tham_gia) ?>"
-                               readonly>
+                               readonly disabled>
                     </div>
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
-                        Số sự kiện tham gia được cập nhật tự động và không thể chỉnh sửa trực tiếp
+                        Số lượng sự kiện diễn giả đã tham gia
                     </div>
                 </div>
                 <?php endif; ?>
@@ -410,9 +408,34 @@ $so_su_kien_tham_gia = old('so_su_kien_tham_gia', $so_su_kien_tham_gia);
                             </div>
                         <?php endif; ?>
                     </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Chọn ảnh đại diện cho diễn giả (jpg, jpeg, png)
+                    </div>
+                    <!-- Thêm div để hiển thị ảnh xem trước -->
+                    <div id="imagePreview" class="mt-2" style="display: none;">
+                        <div class="border rounded p-2 bg-light">
+                            <img id="previewImage" src="" alt="Ảnh xem trước" class="img-thumbnail" style="max-width: 200px; max-height: 200px; object-fit: cover;">
+                        </div>
+                    </div>
                     <?php if (!empty($avatar)): ?>
                         <div class="mt-2">
-                            <img src="<?= base_url('uploads/diengia/' . $avatar) ?>" alt="Ảnh đại diện" class="img-thumbnail" style="max-width: 200px;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="text-muted small">
+                                    <i class='bx bx-link-alt me-1'></i>
+                                    Đường dẫn hiện tại:
+                                </span>
+                                <span class="text-primary small">
+                                    <?= esc($avatar) ?>
+                                </span>
+                            </div>
+                            <div class="border rounded p-2 bg-light">
+                                <img src="<?= base_url($avatar) ?>" 
+                                     alt="Ảnh đại diện hiện tại" 
+                                     class="img-thumbnail"
+                                     style="max-width: 200px; max-height: 200px; object-fit: cover;">
+                            </div>
+                            <input type="hidden" name="existing_avatar" value="<?= esc($avatar) ?>">
                         </div>
                     <?php endif; ?>
                 </div>
@@ -477,6 +500,28 @@ $so_su_kien_tham_gia = old('so_su_kien_tham_gia', $so_su_kien_tham_gia);
         
         // Tự động focus vào trường đầu tiên
         document.getElementById('ten_dien_gia').focus();
+        
+        // Hiển thị ảnh xem trước khi chọn file
+        const fileInput = document.getElementById('avatar');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files && fileInput.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                    };
+                    
+                    reader.readAsDataURL(fileInput.files[0]);
+                } else {
+                    imagePreview.style.display = 'none';
+                }
+            });
+        }
     });
 
     document.addEventListener('DOMContentLoaded', function() {

@@ -23,7 +23,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-body">
-        <?= form_open(site_url($module_name . '/update/' . $data->getId()), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+        <?= form_open(site_url($module_name . '/update/' . $data->getId()), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name, 'enctype' => 'multipart/form-data']) ?>
             <?php
             // Include form fields with namHoc data
             $action = site_url($module_name . '/update/' . $data->getId());
