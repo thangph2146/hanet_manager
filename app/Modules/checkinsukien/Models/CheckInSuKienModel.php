@@ -818,4 +818,58 @@ class CheckInSuKienModel extends BaseModel
         
         return $builder->get()->getRow();
     }
+
+    /**
+     * Cập nhật trạng thái tham gia sự kiện
+     *
+     * @param int $id ID của bản ghi check-in
+     * @param int $status Trạng thái muốn cập nhật (0: Vô hiệu, 1: Hoạt động, 2: Đang xử lý)
+     * @return bool Kết quả cập nhật
+     */
+    public function updateTrangThaiThamGia(int $id, int $status): bool
+    {
+        // Kiểm tra ID hợp lệ
+        if ($id <= 0) {
+            log_message('error', "updateTrangThaiThamGia: ID không hợp lệ: {$id}");
+            return false;
+        }
+        
+        // Kiểm tra trạng thái hợp lệ
+        if (!in_array($status, [0, 1, 2])) {
+            log_message('error', "updateTrangThaiThamGia: Trạng thái không hợp lệ: {$status}");
+            return false;
+        }
+        
+        // Kiểm tra sự tồn tại của bản ghi
+        $existingRecord = $this->find($id);
+        if (!$existingRecord) {
+            log_message('error', "updateTrangThaiThamGia: Không tìm thấy bản ghi với ID: {$id}");
+            return false;
+        }
+        
+        // Chuẩn bị dữ liệu cập nhật
+        $data = [
+            'status' => $status,
+            'updated_at' => Time::now()->toDateTimeString()
+        ];
+        
+        try {
+            // Sử dụng builder để thực hiện cập nhật trực tiếp
+            $builder = $this->builder();
+            $result = $builder->where($this->primaryKey, $id)
+                             ->update($data);
+            
+            // Log thông tin kết quả cập nhật
+            if ($result) {
+                log_message('info', "updateTrangThaiThamGia: Cập nhật thành công ID: {$id}, status: {$status}");
+                return true;
+            } else {
+                log_message('error', "updateTrangThaiThamGia: Cập nhật không thành công ID: {$id}, status: {$status}");
+                return false;
+            }
+        } catch (\Exception $e) {
+            log_message('error', "updateTrangThaiThamGia: Lỗi khi cập nhật ID: {$id}, status: {$status}, lỗi: " . $e->getMessage());
+            return false;
+        }
+    }
 } 

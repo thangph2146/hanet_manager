@@ -38,7 +38,7 @@ class CheckInSuKien extends BaseController
     protected $controller_name = 'CheckInSuKien';
     protected $primary_key = 'checkin_sukien_id';
     // Search
-    protected $field_sort = 'ngay_checkin';
+    protected $field_sort = 'thoi_gian_check_in';
     protected $field_order = 'DESC';
 
     // Export
@@ -587,18 +587,51 @@ class CheckInSuKien extends BaseController
     
     /**
      * Cập nhật trạng thái tham gia
+     *
+     * @param int $id ID của bản ghi check-in
+     * @param int $status Trạng thái muốn cập nhật (0: Vô hiệu, 1: Hoạt động, 2: Đang xử lý)
+     * @return ResponseInterface
      */
     public function updateStatus($id = null, $status = null)
     {
-        if (empty($id) || empty($status)) {
-            $this->alert->set('danger', 'Thông tin không hợp lệ', true);
+        // Kiểm tra ID và status
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID không hợp lệ: ' . $id, true);
             return redirect()->to($this->moduleUrl);
         }
+        
+        // Đảm bảo status là số nguyên và nằm trong các giá trị hợp lệ
+        $validStatus = ['0', '1', '2', 0, 1, 2];
+        if (!in_array($status, $validStatus)) {
+            $this->alert->set('danger', 'Trạng thái không hợp lệ: ' . $status, true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Đảm bảo ID là số nguyên
+        $id = (int)$id;
+        
+        // Kiểm tra sự tồn tại của bản ghi
+        $checkin = $this->model->find($id);
+        if (empty($checkin)) {
+            $this->alert->set('danger', 'Không tìm thấy bản ghi check-in có ID: ' . $id, true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Log thông tin trước khi cập nhật
+        log_message('info', "Cập nhật trạng thái check-in ID: {$id}, từ trạng thái: {$checkin->getStatus()} sang: {$status}");
+        
         // Cập nhật trạng thái thông qua model
-        if ($this->model->updateTrangThaiThamGia($id, $status)) {
-            $this->alert->set('success', 'Cập nhật trạng thái thành công', true);
-        } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật trạng thái', true);
+        try {
+            $result = $this->model->updateTrangThaiThamGia($id, (int)$status);
+            if ($result) {
+                $this->alert->set('success', 'Cập nhật trạng thái thành công cho ID: ' . $id, true);
+            } else {
+                $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật trạng thái cho ID: ' . $id, true);
+                log_message('error', "Cập nhật trạng thái thất bại cho ID: {$id}, status: {$status}");
+            }
+        } catch (\Exception $e) {
+            $this->alert->set('danger', 'Lỗi: ' . $e->getMessage(), true);
+            log_message('error', "Exception khi cập nhật trạng thái: " . $e->getMessage());
         }
         
         // Lấy URL trở về
@@ -608,7 +641,7 @@ class CheckInSuKien extends BaseController
         return redirect()->to($redirectUrl);
     }
     
-    /**
+   /**
      * Xuất danh sách tham gia sự kiện ra file Excel
      */
     public function exportExcel()
@@ -617,6 +650,12 @@ class CheckInSuKien extends BaseController
         $status = $this->request->getGet('status');
         $sort = $this->request->getGet('sort') ?? $this->field_sort;
         $order = $this->request->getGet('order') ?? $this->field_order;
+
+        // Lấy danh sách sự kiện
+        $suKienList = $this->suKienModel->findAll();
+
+        // Thiết lập danh sách sự kiện cho trait
+        $this->setSuKienList($suKienList);
 
         $criteria = $this->prepareSearchCriteria($keyword, $status);
         $options = $this->prepareSearchOptions($sort, $order);
@@ -632,7 +671,7 @@ class CheckInSuKien extends BaseController
     }
 
     /**
-     * Xuất danh sách tham gia sự kiện ra file PDF
+     * Xuất danh sách check-in sự kiện ra file PDF
      */
     public function exportPdf()
     {
@@ -640,6 +679,12 @@ class CheckInSuKien extends BaseController
         $status = $this->request->getGet('status'); 
         $sort = $this->request->getGet('sort') ?? $this->field_sort;
         $order = $this->request->getGet('order') ?? $this->field_order;
+
+        // Lấy danh sách sự kiện
+        $suKienList = $this->suKienModel->findAll();
+
+        // Thiết lập danh sách sự kiện cho trait
+        $this->setSuKienList($suKienList);
 
         $criteria = $this->prepareSearchCriteria($keyword, $status);
         $options = $this->prepareSearchOptions($sort, $order);
@@ -650,11 +695,11 @@ class CheckInSuKien extends BaseController
         if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
 
-        $this->createPdfFile($data, $filters, $this->export_excel, $this->export_excel_title);
+        $this->createPdfFile($data, $filters, $this->export_pdf, $this->export_pdf_title);
     }
 
     /**
-     * Xuất danh sách tham gia sự kiện đã xóa ra file PDF
+     * Xuất danh sách check-in sự kiện đã xóa ra file PDF
      */
     public function exportDeletedPdf()
     {
@@ -662,6 +707,12 @@ class CheckInSuKien extends BaseController
         $status = $this->request->getGet('status');
         $sort = $this->request->getGet('sort') ?? $this->field_sort;
         $order = $this->request->getGet('order') ?? $this->field_order;
+
+        // Lấy danh sách sự kiện
+        $suKienList = $this->suKienModel->findAll();
+
+        // Thiết lập danh sách sự kiện cho trait
+        $this->setSuKienList($suKienList);
 
         $criteria = $this->prepareSearchCriteria($keyword, $status, true);
         $options = $this->prepareSearchOptions($sort, $order);
@@ -673,11 +724,11 @@ class CheckInSuKien extends BaseController
         if (!empty($sort)) $filters['Sắp xếp theo'] = $this->getSortText($sort, $order);
         $filters['Trạng thái'] = 'Đã xóa';
 
-        $this->createPdfFile($data, $filters, $this->export_excel_deleted, $this->export_excel_deleted_title);
+        $this->createPdfFile($data, $filters, $this->export_pdf_deleted, $this->export_pdf_deleted_title);
     }
 
     /**
-     * Xuất danh sách tham gia sự kiện đã xóa ra file Excel
+     * Xuất danh sách check-in sự kiện đã xóa ra file Excel
      */
     public function exportDeletedExcel()
     {
@@ -686,11 +737,23 @@ class CheckInSuKien extends BaseController
         $sort = $this->request->getGet('sort') ?? $this->field_sort;
         $order = $this->request->getGet('order') ?? $this->field_order;
 
+        // Lấy danh sách sự kiện
+        $suKienList = $this->suKienModel->findAll();
+
+        // Thiết lập danh sách sự kiện cho trait
+        $this->setSuKienList($suKienList);
+
+        // Chuẩn bị tiêu chí tìm kiếm
         $criteria = $this->prepareSearchCriteria($keyword, $status, true);
         $options = $this->prepareSearchOptions($sort, $order);
+
+        // Lấy dữ liệu
         $data = $this->getExportData($criteria, $options);
+
+        // Chuẩn bị headers
         $headers = $this->prepareExcelHeaders(true);
 
+        // Chuẩn bị filters
         $filters = [];
         if (!empty($keyword)) $filters['Từ khóa'] = $keyword;
         if (isset($status) && $status !== '') $filters['Trạng thái'] = $status == 1 ? 'Hoạt động' : 'Không hoạt động';  
@@ -710,17 +773,19 @@ class CheckInSuKien extends BaseController
     protected function getSortText($sort, $order = 'ASC')
     {
         $sortFields = [
-            'su_kien_dien_gia_id' => 'ID',
+            'checkin_sukien_id' => 'ID',
             'su_kien_id' => 'Sự kiện',
-            'dien_gia_id' => 'Diễn giả',
-            'thu_tu' => 'Thứ tự',
-            'vai_tro' => 'Vai trò',
-            'thoi_gian_trinh_bay' => 'Thời gian trình bày',
-            'thoi_gian_ket_thuc' => 'Thời gian kết thúc',
-            'thoi_luong_phut' => 'Thời lượng',
-            'tieu_de_trinh_bay' => 'Tiêu đề',
-            'trang_thai_tham_gia' => 'Trạng thái tham gia',
-            'hien_thi_cong_khai' => 'Hiển thị công khai',
+            'dangky_sukien_id' => 'Đăng ký sự kiện',
+            'ho_ten' => 'Họ tên',
+            'email' => 'Email',
+            'thoi_gian_check_in' => 'Thời gian check-in',
+            'checkin_type' => 'Loại check-in',
+            'face_match_score' => 'Điểm khớp khuôn mặt',
+            'face_verified' => 'Xác thực khuôn mặt',
+            'hinh_thuc_tham_gia' => 'Hình thức tham gia',
+            'status' => 'Trạng thái',
+            'ip_address' => 'Địa chỉ IP',
+            'device_info' => 'Thông tin thiết bị',
             'created_at' => 'Ngày tạo',
             'updated_at' => 'Ngày cập nhật',
             'deleted_at' => 'Ngày xóa'
@@ -735,40 +800,45 @@ class CheckInSuKien extends BaseController
     /**
      * Xử lý URL trả về
      * 
-     * @param string|null $returnUrl URL cần xử lý
-     * @return string URL đã được xử lý hoặc URL mặc định
+     * @param string|null $returnUrl URL trả về
+     * @return string URL đã xử lý
      */
-    private function processReturnUrl($returnUrl)
+    protected function processReturnUrl($returnUrl = null)
     {
-        // Nếu URL trả về rỗng, sử dụng URL mặc định
         if (empty($returnUrl)) {
             return $this->moduleUrl;
         }
-        
-        // Kiểm tra nếu returnUrl là URL tương đối
-        if (strpos($returnUrl, '/') === 0) {
-            return site_url(ltrim($returnUrl, '/'));
-        }
-        
-        // Kiểm tra nếu URL chứa domain của ứng dụng
+
+        // Kiểm tra URL có phải là URL nội bộ không
         $baseUrl = base_url();
-        if (strpos($returnUrl, $baseUrl) === 0) {
-            return $returnUrl;
+        if (strpos($returnUrl, $baseUrl) !== 0) {
+            return $this->moduleUrl;
+        }
+
+        return $returnUrl;
+    }
+
+    /**
+     * Tái tạo URL từ các thành phần đã phân tích
+     *
+     * @param array $parsedUrl Mảng chứa các thành phần của URL đã phân tích
+     * @param array $query Các tham số query string
+     * @return string URL đã được tái tạo
+     */
+    protected function buildUrl(array $parsedUrl, array $query = []): string
+    {
+        $scheme = $parsedUrl['scheme'] ?? '';
+        $host = $parsedUrl['host'] ?? '';
+        $path = $parsedUrl['path'] ?? '';
+        
+        // Tạo URL cơ bản
+        $url = $scheme . '/' . $host . $path;
+        
+        // Thêm query string nếu có
+        if (!empty($query)) {
+            $url .= '?' . http_build_query($query);
         }
         
-        // Kiểm tra URL có phải là URL hợp lệ không
-        if (filter_var($returnUrl, FILTER_VALIDATE_URL)) {
-            // Chỉ chấp nhận URL nội bộ từ cùng domain
-            $parsedReturnUrl = parse_url($returnUrl);
-            $parsedBaseUrl = parse_url($baseUrl);
-            
-            if (isset($parsedReturnUrl['host']) && isset($parsedBaseUrl['host']) && 
-                $parsedReturnUrl['host'] === $parsedBaseUrl['host']) {
-                return $returnUrl;
-            }
-        }
-        
-        // Trả về URL mặc định nếu không phù hợp
-        return $this->moduleUrl;
+        return $url;
     }
 }

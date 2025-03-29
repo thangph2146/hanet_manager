@@ -101,22 +101,22 @@
         <thead>
             <tr>
                 <th class="text-center">STT</th>
-                <th>ID</th>
-                <th>Tên diễn giả</th>
-                <th>Chức danh</th>
-                <th>Tổ chức</th>
+                <th class="text-center">ID</th>
+                <th>Tên sự kiện</th>
+                <th>Họ tên</th>
                 <th>Email</th>
-                <th>Điện thoại</th>
-                <th>Website</th>
-                <th>Chuyên môn</th>
-                <th>Thành tựu</th>
-                <th>Mạng xã hội</th>
-                <th>Số sự kiện</th>
-                <th>Trạng thái</th>
-                <th>Ngày tạo</th>
-                <th>Ngày cập nhật</th>
+                <th class="text-center">Thời gian check-in</th>
+                <th class="text-center">Loại check-in</th>
+                <th class="text-center">Hình thức tham gia</th>
+                <th class="text-center">Điểm khớp khuôn mặt</th>
+                <th class="text-center">Xác thực khuôn mặt</th>
+                <th class="text-center">Trạng thái</th>
+                <th>Địa chỉ IP</th>
+                <th>Thông tin thiết bị</th>
+                <th class="text-center">Ngày tạo</th>
+                <th class="text-center">Ngày cập nhật</th>
                 <?php if ($includeDeletedAt): ?>
-                <th>Ngày xóa</th>
+                <th class="text-center">Ngày xóa</th>
                 <?php endif; ?>
             </tr>
         </thead>
@@ -125,31 +125,29 @@
             <tr>
                 <td class="text-center"><?= $index + 1 ?></td>
                 <td class="text-center"><?= $item->getId() ?></td>
-                <td><?= $item->getTenDienGia() ?></td>
-                <td><?= $item->getChucDanh() ?></td>
-                <td><?= $item->getToChuc() ?></td>
+                <td><?= $item->getTenSuKien() ?? '' ?></td>
+                <td><?= $item->getHoTen() ?></td>
                 <td><?= $item->getEmail() ?></td>
-                <td><?= $item->getDienThoai() ?></td>
-                <td><?= $item->getWebsite() ?></td>
-                <td><?= $item->getChuyenMon() ?></td>
-                <td><?= $item->getThanhTuu() ?></td>
-                <td>
-                    <?php if (is_array($item->getMangXaHoi()) && !empty($item->getMangXaHoi())): ?>
-                        <?php foreach ($item->getMangXaHoi() as $platform => $url): ?>
-                            <div><strong><?= ucfirst($platform) ?>:</strong> <?= $url ?></div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <?= is_array($item->getMangXaHoi()) ? '' : $item->getMangXaHoi() ?>
-                    <?php endif; ?>
-                </td>
-                <td class="text-center"><?= $item->getSoSuKienThamGia() ?></td>
+                <td class="text-center"><?= $item->getThoiGianCheckInFormatted() ?></td>
+                <td class="text-center"><?= $item->getCheckinTypeText() ?></td>
+                <td class="text-center"><?= $item->getHinhThucThamGiaText() ?></td>
+                <td class="text-center"><?= $item->getFaceMatchScorePercent() ?></td>
                 <td class="text-center">
-                    <?php if ($item->getStatus()): ?>
-                        <span class="status-active">Hoạt động</span>
+                    <?php if ($item->isFaceVerified()): ?>
+                        <span class="status-active">Có</span>
                     <?php else: ?>
-                        <span class="status-inactive">Không hoạt động</span>
+                        <span class="status-inactive">Không</span>
                     <?php endif; ?>
                 </td>
+                <td class="text-center">
+                    <?php if ($item->getStatus() == 1): ?>
+                        <span class="status-active"><?= $item->getStatusText() ?></span>
+                    <?php else: ?>
+                        <span class="status-inactive"><?= $item->getStatusText() ?></span>
+                    <?php endif; ?>
+                </td>
+                <td><?= $item->getIpAddress() ?></td>
+                <td><?= $item->getFormattedDeviceInfo() ?></td>
                 <td class="text-center"><?= $item->getCreatedAtFormatted() ?></td>
                 <td class="text-center"><?= $item->getUpdatedAtFormatted() ?></td>
                 <?php if ($includeDeletedAt): ?>
