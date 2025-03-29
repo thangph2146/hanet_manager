@@ -14,15 +14,16 @@ function nav_config() {
             [
                 'title' => 'Dashboard',
                 'url' => site_url('users/dashboard'),
-                'icon' => 'bx bx-home-circle'
+                'icon' => 'bx bxs-dashboard'
             ],
+            // BỘ QUẢN TRỊ HỆ THỐNG
             [
                 'type' => 'label',
-                'title' => 'Phần Quản trị'
+                'title' => 'Quản Trị Hệ Thống'
             ],
             [
                 'title' => 'Quản lý Users',
-                'icon' => 'bx bx-user-pin',
+                'icon' => 'bx bxs-user-account',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Users',
@@ -40,7 +41,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Roles',
-                'icon' => 'bx bxs-group',
+                'icon' => 'bx bxs-user-badge',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Roles',
@@ -58,7 +59,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Permissions',
-                'icon' => 'fadeIn animated bx bx-accessibility',
+                'icon' => 'bx bxs-lock-alt',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Permissions',
@@ -76,7 +77,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Settings',
-                'icon' => 'bx bx-cog',
+                'icon' => 'bx bxs-cog',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Settings',
@@ -88,13 +89,15 @@ function nav_config() {
                     ]
                 ]
             ],
+            
+            // BỘ QUẢN LÝ NGƯỜI DÙNG
             [
                 'type' => 'label',
-                'title' => 'Quản lý Người Dùng'
+                'title' => 'Quản Lý Người Dùng'
             ],
             [
                 'title' => 'Quản lý Người Dùng',
-                'icon' => 'bx bx-user',
+                'icon' => 'bx bxs-user',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Người Dùng',
@@ -112,7 +115,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Loại Người Dùng',
-                'icon' => 'bx bx-category',
+                'icon' => 'bx bxs-user-detail',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Loại Người Dùng',
@@ -130,7 +133,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Face người dùng',
-                'icon' => 'bx bx-face',
+                'icon' => 'bx bxs-face',
                 'submenu' => [
                     [
                         'title' => 'Face người dùng',
@@ -146,13 +149,15 @@ function nav_config() {
                     ]
                 ]
             ],
+            
+            // BỘ QUẢN LÝ ĐÀO TẠO
             [
                 'type' => 'label',
-                'title' => 'Quản lý Đào Tạo'
+                'title' => 'Quản Lý Đào Tạo'
             ],
             [
                 'title' => 'Quản lý Phòng Khoa',
-                'icon' => 'bx bx-building-house',
+                'icon' => 'bx bxs-building',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Phòng Khoa',
@@ -170,7 +175,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Năm Học',
-                'icon' => 'bx bx-calendar',
+                'icon' => 'bx bxs-calendar',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Năm học',
@@ -188,7 +193,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Khóa Học',
-                'icon' => 'bx bx-book-content',
+                'icon' => 'bx bxs-book-bookmark',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Khóa Học',
@@ -206,7 +211,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Bậc Học',
-                'icon' => 'bx bx-award',
+                'icon' => 'bx bxs-graduation',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Bậc Học',
@@ -224,7 +229,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Hệ Đào Tạo',
-                'icon' => 'bx bx-certification',
+                'icon' => 'bx bxs-school',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Hệ Đào Tạo',
@@ -242,7 +247,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Ngành',
-                'icon' => 'bx bx-folder',
+                'icon' => 'bx bxs-book-content',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Ngành',
@@ -258,13 +263,15 @@ function nav_config() {
                     ]
                 ]
             ],
+            
+            // BỘ QUẢN LÝ SỰ KIỆN
             [
                 'type' => 'label',
-                'title' => 'Quản lý Sự Kiện'
+                'title' => 'Quản Lý Sự Kiện'
             ],
             [
                 'title' => 'Quản lý Sự Kiện',
-                'icon' => 'bx bx-calendar-event',
+                'icon' => 'bx bxs-calendar-event',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Sự Kiện',
@@ -282,7 +289,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Loại Sự Kiện',
-                'icon' => 'bx bx-calendar-event',
+                'icon' => 'bx bxs-calendar-star',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Loại Sự Kiện',
@@ -300,7 +307,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Diễn giả',
-                'icon' => 'bx bx-calendar-event',
+                'icon' => 'bx bxs-user-voice',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Diễn giả',
@@ -318,7 +325,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Template',
-                'icon' => 'bx bx-calendar-event',
+                'icon' => 'bx bxs-file-doc',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Template',
@@ -335,26 +342,8 @@ function nav_config() {
                 ]
             ],
             [
-                'title' => 'Quản lý Tham Gia Sự Kiện',
-                'icon' => 'bx bx-calendar-event',
-                'submenu' => [
-                    [
-                        'title' => 'Danh Sách Tham Gia Sự Kiện',
-                        'url' => site_url('thamgiasukien')
-                    ],
-                    [
-                        'title' => 'Danh sách Tham Gia Sự Kiện bị xóa',
-                        'url' => site_url('thamgiasukien/listdeleted')
-                    ],
-                    [
-                        'title' => 'Thêm Tham Gia Sự Kiện mới',
-                        'url' => site_url('thamgiasukien/new')
-                    ]
-                ]
-            ],
-            [
                 'title' => 'Quản lý Sự Kiện Diễn Giả',
-                'icon' => 'bx bx-calendar-event',
+                'icon' => 'bx bxs-calendar-plus',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Sự Kiện Diễn Giả',
@@ -370,9 +359,15 @@ function nav_config() {
                     ]
                 ]
             ],
+            
+            // BỘ QUẢN LÝ ĐĂNG KÝ VÀ THAM GIA
+            [
+                'type' => 'label',
+                'title' => 'Quản Lý Đăng Ký & Tham Gia'
+            ],
             [
                 'title' => 'Quản lý Đăng Ký Sự Kiện',
-                'icon' => 'bx bx-calendar-event',
+                'icon' => 'bx bxs-edit',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Đăng Ký Sự Kiện',
@@ -389,8 +384,8 @@ function nav_config() {
                 ]
             ],
             [
-                'title' => 'Quản lý Form Đăng Ký Sự Kiện',
-                'icon' => 'bx bx-calendar-event',
+                'title' => 'Quản lý Form Đăng Ký',
+                'icon' => 'bx bxs-file-plus',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Form Đăng Ký Sự Kiện',
@@ -407,8 +402,26 @@ function nav_config() {
                 ]
             ],
             [
-                'title' => 'Quản lý Check In Sự Kiện',
-                'icon' => 'bx bx-calendar-event',
+                'title' => 'Quản lý Tham Gia Sự Kiện',
+                'icon' => 'bx bxs-user-check',
+                'submenu' => [
+                    [
+                        'title' => 'Danh Sách Tham Gia Sự Kiện',
+                        'url' => site_url('thamgiasukien')
+                    ],
+                    [
+                        'title' => 'Danh sách Tham Gia Sự Kiện bị xóa',
+                        'url' => site_url('thamgiasukien/listdeleted')
+                    ],
+                    [
+                        'title' => 'Thêm Tham Gia Sự Kiện mới',
+                        'url' => site_url('thamgiasukien/new')
+                    ]
+                ]
+            ],
+            [
+                'title' => 'Quản lý Check In/Out',
+                'icon' => 'bx bxs-door-open',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Check In Sự Kiện',
@@ -421,13 +434,7 @@ function nav_config() {
                     [
                         'title' => 'Thêm Check In Sự Kiện mới',
                         'url' => site_url('checkinsukien/new')
-                    ]
-                ]
-            ],
-            [
-                'title' => 'Quản lý Check Out Sự Kiện',
-                'icon' => 'bx bx-calendar-event',
-                'submenu' => [
+                    ],
                     [
                         'title' => 'Danh Sách Check Out Sự Kiện',
                         'url' => site_url('checkoutsukien')
@@ -442,13 +449,15 @@ function nav_config() {
                     ]
                 ]
             ],
+            
+            // BỘ QUẢN LÝ THIẾT BỊ
             [
                 'type' => 'label',
-                'title' => 'Quản lý Thiết Bị'
+                'title' => 'Quản Lý Thiết Bị'
             ],
             [
                 'title' => 'Quản lý Màn Hình',
-                'icon' => 'bx bx-desktop',
+                'icon' => 'bx bxs-monitor',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Màn Hình',
@@ -466,7 +475,7 @@ function nav_config() {
             ],
             [
                 'title' => 'Quản lý Camera',
-                'icon' => 'bx bx-desktop',
+                'icon' => 'bx bxs-camera',
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Camera',
@@ -482,14 +491,16 @@ function nav_config() {
                     ]
                 ]
             ],
+            
+            // TRỢ GIÚP
             [
                 'type' => 'label',
-                'title' => 'Trợ giúp'
+                'title' => 'Trợ Giúp'
             ],
             [
                 'title' => 'Support',
                 'url' => 'https://phongqlcntt.hub.edu.vn/',
-                'icon' => 'bx bx-support',
+                'icon' => 'bx bxs-help-circle',
                 'target' => '_blank'
             ]
         ];
