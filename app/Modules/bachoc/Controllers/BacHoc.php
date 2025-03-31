@@ -142,7 +142,23 @@ class BacHoc extends BaseController
      */
     public function delete($id = null)
     {
-        return parent::delete($id);
+        // Lấy URL hiện tại trước khi xóa
+        $currentUrl = previous_url() ?: "/{$this->route_url}";
+
+        if (empty($id)) {
+            return redirect()->to($currentUrl)->with('error', 'ID không hợp lệ');
+        }
+
+        $model = new $this->modelName();
+        if (!$model->find($id)) {
+            return redirect()->to($currentUrl)->with('error', 'Bản ghi không tồn tại');
+        }
+
+        if ($model->delete($id)) {
+            return redirect()->to($currentUrl)->with('success', 'Xóa thành công');
+        }
+
+        return redirect()->to($currentUrl)->with('error', 'Có lỗi xảy ra khi xóa');
     }
 
     /**
