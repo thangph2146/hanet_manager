@@ -16,6 +16,12 @@ abstract class BaseEntity extends Entity
     protected $datamap = [];
     protected $jsonFields = [];
     protected $hiddenFields = [];
+    protected $fillable = [];
+    protected $guarded = [];
+    protected $original = [];
+    protected $changed = [];
+    protected $tempData = [];
+    protected $tempDataRemoved = [];
 
     public function __construct(array $data = [])
     {
@@ -30,6 +36,9 @@ abstract class BaseEntity extends Entity
                 $this->attributes[$field] = json_decode($data[$field], true);
             }
         }
+
+        // Lưu dữ liệu gốc
+        $this->original = $this->attributes;
     }
 
     protected function generateValidationRules()
@@ -221,6 +230,41 @@ abstract class BaseEntity extends Entity
     public function except(array $keys): array
     {
         return array_diff_key($this->toArray(), array_flip($keys));
+    }
+
+    public function isDirty(string $key = null): bool
+    {
+        if ($key === null) {
+            return !empty($this->changed);
+        }
+        return isset($this->changed[$key]);
+    }
+
+    public function getDirty(): array
+    {
+        return $this->changed;
+    }
+
+    public function getOriginal(string $key = null)
+    {
+        if ($key === null) {
+            return $this->original;
+        }
+        return $this->original[$key] ?? null;
+    }
+
+    public function getChanges(): array
+    {
+        return array_intersect_key($this->attributes, $this->changed);
+    }
+
+    public function reset(): self
+    {
+        $this->attributes = $this->original;
+        $this->changed = [];
+        $this->tempData = [];
+        $this->tempDataRemoved = [];
+        return $this;
     }
 
     /**
