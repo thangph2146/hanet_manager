@@ -1,20 +1,25 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
-<?php include __DIR__ . '/master_scripts.php'; ?>
-<?= page_css('view', $module_name) ?>
+<?php 
+// Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
+$route_url = isset($route_url) ? $route_url : 'admin/bachoc';
+$route_url_php = $route_url;
+include __DIR__ . '/master_scripts.php'; 
+?>
+<?= page_css('view', $route_url) ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>CHI TIẾT BẬC HỌC<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
     'title' => 'Chi tiết bậc học',
-    'dashboard_url' => site_url($module_name),
+    'dashboard_url' => site_url($route_url),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Bậc Học', 'url' => site_url($module_name)],
+        ['title' => 'Quản lý Bậc Học', 'url' => site_url($route_url)],
         ['title' => 'Chi tiết', 'active' => true]
     ],
     'actions' => [
-        ['url' => site_url($module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+        ['url' => site_url($route_url), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
     ]
 ]) ?>
 <?= $this->endSection() ?>
@@ -24,7 +29,7 @@
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">Chi tiết bậc học ID: <?= esc($data->bac_hoc_id) ?></h5>
         <div class="d-flex gap-2">  
-            <a href="<?= site_url($module_name . '/edit/' . $data->bac_hoc_id) ?>" class="btn btn-sm btn-primary">
+            <a href="<?= site_url($route_url . '/edit/' . $data->bac_hoc_id) ?>" class="btn btn-sm btn-primary">
                 <i class="bx bx-edit me-1"></i> Chỉnh sửa
             </a>
             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
@@ -133,7 +138,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <a href="<?= site_url($module_name . '/delete/' . $data->bac_hoc_id) ?>" class="btn btn-danger">Xóa</a>
+                <a href="<?= site_url($route_url . '/delete/' . $data->bac_hoc_id) ?>" class="btn btn-danger">Xóa</a>
             </div>
         </div>
     </div>
@@ -141,5 +146,5 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script_ext') ?>
-<?= page_js('view', $module_name) ?>
+<?= page_js('view', $route_url) ?>
 <?= $this->endSection() ?>

@@ -31,6 +31,7 @@ class Bachoc extends BaseController
     protected $title;
     protected $module_name = 'bachoc';
     protected $controller_name = 'BacHoc';
+    protected $route_url = 'admin/bachoc';
     
     public function __construct()
     {
@@ -42,7 +43,7 @@ class Bachoc extends BaseController
         $this->alert = new Alert();
         
         // Thông tin module
-        $this->moduleUrl = base_url($this->module_name);
+        $this->moduleUrl = base_url($this->route_url);
         $this->title = 'Bậc Học';
         
         // Khởi tạo các model quan hệ
@@ -77,7 +78,7 @@ class Bachoc extends BaseController
             // Tạo URL mới với trang cuối cùng
             $redirectParams = $_GET;
             $redirectParams['page'] = $pageCount;
-            $redirectUrl = site_url($this->module_name) . '?' . http_build_query($redirectParams);
+            $redirectUrl = site_url($this->route_url) . '?' . http_build_query($redirectParams);
             
             // Chuyển hướng đến trang cuối cùng
             return redirect()->to($redirectUrl);
@@ -86,7 +87,8 @@ class Bachoc extends BaseController
         // Lấy pager từ model và thiết lập các tham số
         $pager = $this->model->getPager();
         if ($pager !== null) {
-            $pager->setPath($this->module_name);
+            $pager->setPath($this->route_url);
+            $pager->setRouteUrl($this->route_url);
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
             $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'bac_hoc_id']);
             
@@ -97,6 +99,8 @@ class Bachoc extends BaseController
         
         // Chuẩn bị dữ liệu cho view
         $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
+        // Thêm route_url vào viewData để sử dụng trong view
+        $viewData['route_url'] = $this->route_url;
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
     }
@@ -113,8 +117,9 @@ class Bachoc extends BaseController
         $viewData['title'] = 'Thêm mới ' . $this->title;
         $viewData['validation'] = $this->validator;
         $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
-        $viewData['action'] = site_url($this->module_name . '/create');
+        $viewData['action'] = site_url($this->route_url . '/create');
         $viewData['method'] = 'POST';
+        $viewData['route_url'] = $this->route_url;
         
         return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
     }
@@ -180,7 +185,8 @@ class Bachoc extends BaseController
             'title' => 'Chi tiết ' . $this->title,
             'data' => $data,
             'moduleUrl' => $this->moduleUrl,
-            'module_name' => $this->module_name
+            'module_name' => $this->module_name,
+            'route_url' => $this->route_url
         ];
         
         return view('App\Modules\\' . $this->module_name . '\Views\view', $viewData);
@@ -211,8 +217,9 @@ class Bachoc extends BaseController
         $viewData['title'] = 'Chỉnh sửa ' . $this->title;
         $viewData['validation'] = $this->validator;
         $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
-        $viewData['action'] = site_url($this->module_name . '/update/' . $id);
+        $viewData['action'] = site_url($this->route_url . '/update/' . $id);
         $viewData['method'] = 'POST';
+        $viewData['route_url'] = $this->route_url;
         
         return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
     }
@@ -355,13 +362,15 @@ class Bachoc extends BaseController
             $pager->setSurroundCount(3);
         }
         
-        $pager->setPath($this->module_name . '/listdeleted');
+        $pager->setPath($this->route_url . '/listdeleted');
         $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'bac_hoc_id']);
         $pager->setPerPage($params['perPage']);
         $pager->setCurrentPage($params['page']);
         
         // Chuẩn bị dữ liệu cho view
         $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
+        // Thêm route_url vào viewData để sử dụng trong view
+        $viewData['route_url'] = $this->route_url;
         
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);

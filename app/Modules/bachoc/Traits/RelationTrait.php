@@ -39,7 +39,8 @@ trait RelationTrait
             'title' => 'Danh sách ' . $this->title,
             'moduleUrl' => $this->moduleUrl,
             'title' => $this->title,
-            'module_name' => $module_name
+            'module_name' => $module_name,
+            'route_url' => $this->route_url
         ];
     }
 
@@ -178,6 +179,7 @@ trait RelationTrait
             'module_name' => $module_name,
             'title' => $this->title,
             'moduleUrl' => $this->moduleUrl,
+            'route_url' => $this->route_url
         ];
     }
 } 

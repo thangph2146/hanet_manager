@@ -1,6 +1,11 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
-<?php include __DIR__ . '/master_scripts.php'; ?>
+<?php 
+// Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
+$route_url = isset($route_url) ? $route_url : 'admin/bachoc';
+$route_url_php = $route_url;
+include __DIR__ . '/master_scripts.php'; 
+?>
 <?= page_css('table') ?>
 <?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
@@ -9,13 +14,13 @@
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
 	'title' => 'Thùng rác - Bậc học',
-	'dashboard_url' => site_url($module_name),
+	'dashboard_url' => site_url($route_url),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Bậc học', 'url' => site_url($module_name)],
+		['title' => 'Quản lý Bậc học', 'url' => site_url($route_url)],
 		['title' => 'Thùng rác', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/' . $module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+		['url' => site_url('/' . $route_url), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>
@@ -33,8 +38,8 @@
                     <i class='bx bx-export'></i> Xuất
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= site_url($module_name . '/exportDeletedExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
-                    <li><a class="dropdown-item" href="#" id="export-pdf">PDF</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url($route_url . '/exportDeletedExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url($route_url . '/exportDeletedPdf' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-pdf">PDF</a></li>
                 </ul>
             </div>
         </div>
@@ -43,17 +48,17 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <a href="<?= site_url($module_name) ?>" class="btn btn-outline-primary btn-sm">
+                    <a href="<?= site_url($route_url) ?>" class="btn btn-outline-primary btn-sm">
                         <i class='bx bx-arrow-back'></i> Danh sách bậc học
                     </a>
-                    <form id="form-restore-multiple" action="<?= site_url($module_name . '/restoreMultiple') ?>" method="post" class="d-inline">
+                    <form id="form-restore-multiple" action="<?= site_url($route_url . '/restoreMultiple') ?>" method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <button type="button" id="restore-selected" class="btn btn-success btn-sm me-2" disabled>
                             <i class='bx bx-revision'></i> Khôi phục mục đã chọn
                         </button>
                     </form>
                     
-                    <form id="form-delete-multiple" action="<?= site_url($module_name . '/permanentDeleteMultiple') ?>" method="post" class="d-inline">
+                    <form id="form-delete-multiple" action="<?= site_url($route_url . '/permanentDeleteMultiple') ?>" method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <button type="button" id="delete-permanent-multiple" class="btn btn-danger btn-sm" disabled>
                             <i class='bx bx-trash'></i> Xóa vĩnh viễn
@@ -63,7 +68,7 @@
                    
                 </div>
                 <div class="col-12 col-md-6">
-                    <form action="<?= site_url($module_name . '/listdeleted') ?>" method="get" id="search-form">
+                    <form action="<?= site_url($route_url . '/listdeleted') ?>" method="get" id="search-form">
                         <input type="hidden" name="page" value="1">
                         <input type="hidden" name="perPage" value="<?= $perPage ?>">
                         <div class="input-group search-box">
@@ -72,7 +77,7 @@
                                 <i class='bx bx-search'></i>
                             </button>
                             <?php if (!empty($keyword)): ?>
-                            <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
+                            <a href="<?= site_url($route_url . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
                                 <i class='bx bx-x'></i>
                             </a>
                             <?php endif; ?>
@@ -103,7 +108,7 @@
                     <?php if (!empty($keyword)): ?>
                         <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
                     <?php endif; ?>
-                    <a href="<?= site_url($module_name . '/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
+                    <a href="<?= site_url($route_url . '/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>
             </div>
         <?php endif; ?>
@@ -309,11 +314,12 @@
 
 <script>
     var base_url = '<?= site_url() ?>';
+    var route_url = '<?= $route_url ?>';
 </script>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= page_js('table', $module_name) ?>
-<?= page_section_js('table', $module_name) ?>
-<?= page_table_js($module_name) ?>
+<?= page_js('table', $route_url) ?>
+<?= page_section_js('table', $route_url) ?>
+<?= page_table_js($route_url) ?>
 <?= $this->endSection() ?> 

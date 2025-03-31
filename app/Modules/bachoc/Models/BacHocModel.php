@@ -351,6 +351,7 @@ class BacHocModel extends BaseModel
         unset($this->validationRules['deleted_at']);
         // Loại bỏ validation cho bac_hoc_id trong mọi trường hợp
         unset($this->validationRules['bac_hoc_id']);
+        unset($this->validationRules['bin']);
         
         if ($scenario === 'update' && isset($data['bac_hoc_id'])) {
             foreach ($this->validationRules as $field => &$rules) {
