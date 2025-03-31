@@ -3,10 +3,10 @@
 namespace App\Modules\thamgiasukien\Libraries;
 
 /**
- * Lớp Pager - cung cấp chức năng phân trang cho module ThamGiaSuKien
+ * Lớp Pager - cung cấp chức năng phân trang cho module Bachoc
  * 
  * Lớp này thay thế cho \CodeIgniter\Pager\Pager mặc định để tùy chỉnh
- * cách hiển thị và xử lý phân trang riêng cho module ThamGiaSuKien.
+ * cách hiển thị và xử lý phân trang riêng cho module Bachoc.
  */
 class Pager
 {
@@ -18,32 +18,11 @@ class Pager
     protected $module_name = 'thamgiasukien';
 
     /**
-     * Số lượng trang hiển thị xung quanh trang hiện tại
+     * Đường dẫn cho routes
      * 
-     * @var int
+     * @var string
      */
-    protected $surroundCount = 2;
-    
-    /**
-     * Tổng số trang
-     * 
-     * @var int
-     */
-    protected $pageCount = 1;
-    
-    /**
-     * Trang hiện tại
-     * 
-     * @var int
-     */
-    protected $currentPage = 1;
-    
-    /**
-     * Segment URL chứa số trang
-     * 
-     * @var int
-     */
-    protected $segment = 2;
+    protected $route_url = 'admin/thamgiasukien';
     
     /**
      * Đường dẫn cơ sở cho các liên kết trang
@@ -72,6 +51,13 @@ class Pager
      * @var array
      */
     protected $only = [];
+    
+    /**
+     * Số lượng trang hiển thị xung quanh trang hiện tại
+     * 
+     * @var int
+     */
+    protected $surroundCount = 2;
     
     /**
      * Constructor
@@ -120,9 +106,9 @@ class Pager
      * @param string $path Đường dẫn
      * @return $this
      */
-    public function setPath(string $path)
+    public function setPath($path)
     {
-        $this->path = rtrim($path, '/');
+        $this->path = $path;
         return $this;
     }
     
@@ -181,6 +167,18 @@ class Pager
     public function setOnly(array $only)
     {
         $this->only = $only;
+        return $this;
+    }
+    
+    /**
+     * Thiết lập đường dẫn route
+     * 
+     * @param string $route_url
+     * @return self
+     */
+    public function setRouteUrl($route_url)
+    {
+        $this->route_url = $route_url;
         return $this;
     }
     

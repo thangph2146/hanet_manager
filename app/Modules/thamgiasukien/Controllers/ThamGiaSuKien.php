@@ -33,6 +33,8 @@ class ThamGiaSuKien extends BaseController
     protected $title;
     protected $module_name = 'thamgiasukien';
     protected $controller_name = 'ThamGiaSuKien';
+    protected $route_url = 'admin/thamgiasukien';
+    protected $masterScript;
     
     public function __construct()
     {
@@ -45,9 +47,14 @@ class ThamGiaSuKien extends BaseController
         $this->alert = new Alert();
         
         // Thông tin module
-        $this->moduleUrl = base_url($this->module_name);
+        $this->moduleUrl = base_url($this->route_url);
         $this->title = 'Tham Gia Sự Kiện';
         
+        // Khởi tạo thư viện MasterScript với route_url và module_name
+        $this->masterScript = new \App\Modules\thamgiasukien\Libraries\MasterScript($this->route_url, $this->module_name);
+        
+        // Khởi tạo các model quan hệ
+        $this->initializeRelationTrait();
     }
     
     /**
@@ -81,7 +88,7 @@ class ThamGiaSuKien extends BaseController
             // Tạo URL mới với trang cuối cùng
             $redirectParams = $_GET;
             $redirectParams['page'] = $pageCount;
-            $redirectUrl = site_url($this->module_name) . '?' . http_build_query($redirectParams);
+            $redirectUrl = site_url($this->route_url) . '?' . http_build_query($redirectParams);
             
             // Chuyển hướng đến trang cuối cùng
             return redirect()->to($redirectUrl);
@@ -90,7 +97,8 @@ class ThamGiaSuKien extends BaseController
         // Lấy pager từ model và thiết lập các tham số
         $pager = $this->model->getPager();
         if ($pager !== null) {
-            $pager->setPath($this->module_name);
+            $pager->setPath($this->route_url);
+            $pager->setRouteUrl($this->route_url);
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
             $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'nguoi_dung_id', 'su_kien_id', 'phuong_thuc_diem_danh']);
             
@@ -101,6 +109,10 @@ class ThamGiaSuKien extends BaseController
         
         // Chuẩn bị dữ liệu cho view
         $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
+        // Thêm route_url và masterScript vào viewData để sử dụng trong view
+        $viewData['route_url'] = $this->route_url;
+        $viewData['module_name'] = $this->module_name;
+        $viewData['masterScript'] = $this->masterScript;
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
     }
@@ -113,15 +125,19 @@ class ThamGiaSuKien extends BaseController
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Thêm mới', current_url());
         
-        // Chuẩn bị dữ liệu cho view
-        $viewData = [
-            'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Thêm mới ' . $this->title,
-            'validation' => $this->validator,
-            'moduleUrl' => $this->moduleUrl,
-            'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
-            'module_name' => $this->module_name
-        ];
+        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
+        $viewData = $this->prepareFormData($this->module_name);
+        
+        // Thêm dữ liệu cho view
+        $viewData['breadcrumb'] = $this->breadcrumb->render();
+        $viewData['title'] = 'Thêm mới ' . $this->title;
+        $viewData['validation'] = $this->validator;
+        $viewData['moduleUrl'] = $this->moduleUrl;
+        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
+        $viewData['action'] = site_url($this->route_url . '/create');
+        $viewData['method'] = 'POST';
+        $viewData['route_url'] = $this->route_url;
+        $viewData['masterScript'] = $this->masterScript;
         
         return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
     }
@@ -212,7 +228,9 @@ class ThamGiaSuKien extends BaseController
             'title' => 'Chi tiết ' . $this->title,
             'data' => $data,
             'moduleUrl' => $this->moduleUrl,
-            'module_name' => $this->module_name
+            'module_name' => $this->module_name,
+            'route_url' => $this->route_url,
+            'masterScript' => $this->masterScript
         ];
         
         return view('App\Modules\\' . $this->module_name . '\Views\view', $viewData);
@@ -239,16 +257,18 @@ class ThamGiaSuKien extends BaseController
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Chỉnh sửa', current_url());
         
-        // Chuẩn bị dữ liệu cho view
-        $viewData = [
-            'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Chỉnh sửa ' . $this->title,
-            'validation' => $this->validator,
-            'data' => $data,
-            'moduleUrl' => $this->moduleUrl,
-            'errors' => session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []),
-            'module_name' => $this->module_name
-        ];
+        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
+        $viewData = $this->prepareFormData($this->module_name, $data);
+        
+        // Thêm dữ liệu cho view
+        $viewData['breadcrumb'] = $this->breadcrumb->render();
+        $viewData['title'] = 'Chỉnh sửa ' . $this->title;
+        $viewData['validation'] = $this->validator;
+        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
+        $viewData['action'] = site_url($this->route_url . '/update/' . $id);
+        $viewData['method'] = 'POST';
+        $viewData['route_url'] = $this->route_url;
+        $viewData['masterScript'] = $this->masterScript;
         
         return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
     }
@@ -342,67 +362,64 @@ class ThamGiaSuKien extends BaseController
      */
     public function listdeleted()
     {
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Lịch sử xóa', current_url());
-        
         // Lấy và xử lý tham số tìm kiếm
-        $params = $this->prepareSearchParams($this->request);
-        $params = $this->processSearchParams($params);
-        
-        // Ghi đè sort mặc định cho trang list deleted
-        $params['sort'] = $this->request->getGet('sort') ?? 'deleted_at';
-        $params['order'] = $this->request->getGet('order') ?? 'DESC';
-        
-        // Log chi tiết URL và tham số
-        log_message('debug', '[Controller:listdeleted] URL đầy đủ: ' . current_url() . '?' . http_build_query($_GET));
-        log_message('debug', '[Controller:listdeleted] Tham số request: ' . json_encode($_GET));
-        log_message('debug', '[Controller:listdeleted] Đã xử lý: page=' . $params['page'] . ', perPage=' . $params['perPage'] . 
-            ', sort=' . $params['sort'] . ', order=' . $params['order'] . ', keyword=' . $params['keyword'] . 
-            ', status=' . $params['status']);
+        $params = $this->prepareDeletedSearchParams($this->request);
+        $params = $this->processDeletedSearchParams($params);
         
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
         
-        // Xây dựng tiêu chí và tùy chọn tìm kiếm
-        $criteria = $this->buildSearchCriteria($params);
-        $options = $this->buildSearchOptions($params);
-        
-        // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
-        $criteria['deleted'] = true;
-        
-        // Đảm bảo withDeleted được thiết lập
-        $this->model->withDeleted();
-        
-        // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
-        $data = $this->model->search($criteria, $options);
-        
-        // Xử lý dữ liệu và nạp các quan hệ
-        $data = $this->processData($data);
-        
-        // Lấy tổng số kết quả
-        $total = $this->model->countSearchResults($criteria);
-        
-        // Lấy pager từ model và thiết lập các tham số
+        // Lấy dữ liệu bị xóa và thông tin phân trang
+        $pageData = $this->model->getAllDeleted($params['perPage'], ($params['page'] - 1) * $params['perPage'], $params['sort'], $params['order']);
         $pager = $this->model->getPager();
-        if ($pager === null) {
-            // Tạo pager mới nếu getPager() trả về null
-            $pager = new \App\Modules\thamgiasukien\Libraries\Pager(
-                $total,
-                $params['perPage'],
-                $params['page']
-            );
-            $pager->setSurroundCount(3);
+        $total = $pager ? $pager->getTotal() : $this->model->countAllDeleted();
+        
+        // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
+        $pageCount = ceil($total / $params['perPage']);
+        if ($total > 0 && $params['page'] > $pageCount) {
+            // Tạo URL mới với trang cuối cùng
+            $redirectParams = $_GET;
+            $redirectParams['page'] = $pageCount;
+            $redirectUrl = site_url($this->route_url . '/listdeleted') . '?' . http_build_query($redirectParams);
+            
+            // Chuyển hướng đến trang cuối cùng
+            return redirect()->to($redirectUrl);
         }
         
-        $pager->setPath($this->module_name . '/listdeleted');
-        $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'nguoi_dung_id', 'su_kien_id', 'phuong_thuc_diem_danh']);
-        $pager->setPerPage($params['perPage']);
-        $pager->setCurrentPage($params['page']);
+        // Thiết lập các tham số cho phân trang
+        if ($pager !== null) {
+            $pager->setPath($this->route_url . '/listdeleted');
+            // Thêm tất cả các tham số cần giữ lại khi chuyển trang
+            $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'phuong_thuc_diem_danh']);
+            $pager->setRouteUrl($this->route_url);
+            
+            // Đảm bảo perPage và currentPage được thiết lập đúng
+            $pager->setPerPage($params['perPage']);
+            $pager->setCurrentPage($params['page']);
+        }
+        
+        // Cập nhật breadcrumb
+        $this->breadcrumb->add('Danh sách đã xóa', current_url());
+        
+        // Xử lý dữ liệu quan hệ
+        $processedData = $this->processData($pageData);
         
         // Chuẩn bị dữ liệu cho view
-        $viewData = $this->prepareViewData($this->module_name, $data, $pager, array_merge($params, ['total' => $total]));
+        $viewData = [
+            'breadcrumb' => $this->breadcrumb->render(),
+            'title' => 'Danh sách ' . $this->title . ' đã xóa',
+            'processedData' => $processedData,
+            'pager' => $pager,
+            'keyword' => $params['keyword'],
+            'perPage' => $params['perPage'],
+            'total' => $total,
+            'phuong_thuc_diem_danh' => $params['phuong_thuc_diem_danh'],
+            'moduleUrl' => $this->moduleUrl,
+            'module_name' => $this->module_name,
+            'route_url' => $this->route_url,
+            'masterScript' => $this->masterScript
+        ];
         
-        // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);
     }
     

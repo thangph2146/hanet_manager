@@ -278,4 +278,29 @@ trait RelationTrait
             'order' => $params['order']
         ];
     }
+
+    /**
+     * Chuẩn bị dữ liệu cho form
+     * 
+     * @param string $module_name Tên module
+     * @param object $data Dữ liệu tham gia sự kiện (nếu là cập nhật)
+     * @return array Dữ liệu để truyền vào view
+     */
+    public function prepareFormData($module_name, $data = null)
+    {
+        // Khởi tạo các model nếu chưa được khởi tạo
+        $this->initializeRelationTrait();
+        
+        // Lấy danh sách người dùng và sự kiện cho dropdown
+        $nguoiDungList = $this->nguoiDungModel->findAll();
+        $suKienList = $this->suKienModel->findAll();
+        
+        return [
+            'data' => $data,
+            'nguoiDungList' => $nguoiDungList,
+            'suKienList' => $suKienList,
+            'moduleUrl' => $this->moduleUrl,
+            'module_name' => $module_name
+        ];
+    }
 } 

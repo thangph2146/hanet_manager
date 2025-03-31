@@ -1,21 +1,28 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
-<?php include __DIR__ . '/master_scripts.php'; ?>
-<?= page_css('form') ?>
-<?= page_section_css('modal') ?>
+<?php 
+// Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
+$route_url = isset($route_url) ? $route_url : 'admin/thamgiasukien';
+$module_name = isset($module_name) ? $module_name : 'thamgiasukien';
+
+// Khởi tạo thư viện MasterScript
+$masterScript = new \App\Modules\thamgiasukien\Libraries\MasterScript($route_url, $module_name);
+?>
+<?= $masterScript->pageCss('form') ?>
+<?= $masterScript->pageSectionCss('form') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CẬP NHẬT THAM GIA SỰ KIỆN<?= $this->endSection() ?>
+<?= $this->section('title') ?>CHỈNH SỬA THAM GIA SỰ KIỆN<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Cập nhật tham gia sự kiện',
-    'dashboard_url' => site_url($module_name),
-    'breadcrumbs' => [
-        ['title' => 'Quản lý Tham Gia Sự Kiện', 'url' => site_url($module_name)],
-        ['title' => 'Cập nhật', 'active' => true]
-    ],
-    'actions' => [
-		['url' => site_url($module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+	'title' => 'Chỉnh sửa tham gia sự kiện',
+	'dashboard_url' => site_url($route_url),
+	'breadcrumbs' => [
+		['title' => 'Quản lý tham gia sự kiện', 'url' => site_url($route_url)],
+		['title' => 'Chỉnh sửa', 'active' => true]
+	],
+	'actions' => [
+		['url' => site_url($route_url), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>
@@ -23,7 +30,7 @@
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-body">
-        <?= form_open(site_url($module_name . '/update/' . $data->tham_gia_su_kien_id), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+        <?= form_open(site_url($route_url . '/update/' . $data->tham_gia_su_kien_id), ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-' . $route_url]) ?>
             <?php
             // Include form fields
             include __DIR__ . '/form.php';
@@ -34,10 +41,10 @@
 <?= $this->endSection() ?>  
 
 <?= $this->section('script') ?>
-<?= page_js('form', $module_name) ?>
+<?= $masterScript->pageJs('form') ?>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('form-<?= $module_name ?>');
+        const form = document.getElementById('form-<?= $route_url ?>');
         
         // Validate form khi submit
         form.addEventListener('submit', function (event) {

@@ -4,11 +4,13 @@ namespace Config;
 
 // Create a new instance of our RouteCollection class.
 $routes = Services::routes();
-$module_url = 'admin/thamgiasukien';
-$module_name = 'thamgiasukien';
+
+// Cấu hình URL route cho module, sử dụng 'admin/thamgiasukien' thay vì 'thamgiasukien'
+$route_url = 'admin/thamgiasukien';
+$module_namespace = 'thamgiasukien';
 $controller_name = 'ThamGiaSuKien';
-// Định nghĩa routes cho module Nganh
-$routes->group($module_url, ['namespace' => 'App\Modules\\' . $module_name . '\Controllers'], 
+// Định nghĩa routes cho module thamgiasukien
+$routes->group($route_url, ['namespace' => 'App\Modules\\' . $module_namespace . '\Controllers'], 
 function ($routes) use ($controller_name) {
     $routes->get('/', $controller_name . '::index');
     $routes->get('dashboard', $controller_name . '::dashboard');

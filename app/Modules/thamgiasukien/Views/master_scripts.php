@@ -4,7 +4,7 @@
  * Contains common CSS and JS for all views
  */
 // CSS section
-function page_css($type = 'all') {
+function page_css($type = 'all', $module_name = null) {
     ob_start();
     
     // Common CSS for DataTables
