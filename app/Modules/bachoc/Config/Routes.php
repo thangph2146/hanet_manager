@@ -6,9 +6,10 @@ namespace Config;
 $routes = Services::routes();
 
 // Cấu hình URL route cho module, sử dụng 'admin/bachoc' thay vì 'bachoc'
-$route_url = 'admin/bachoc';
 $module_namespace = 'bachoc';
 $controller_name = 'BacHoc';
+$route_url = 'admin/bachoc';
+
 // Định nghĩa routes cho module Bachoc
 $routes->group($route_url, ['namespace' => 'App\Modules\\' . $module_namespace . '\Controllers'], 
 function ($routes) use ($controller_name) {
@@ -34,7 +35,7 @@ function ($routes) use ($controller_name) {
     $routes->post('deletePermanentMultiple', $controller_name . '::deletePermanentMultiple');
     $routes->post('statusMultiple', $controller_name . '::statusMultiple');
     $routes->get('deleted', $controller_name . '::deleted');
-    $routes->get('view/(:num)', $controller_name . '::view/$1');
+    $routes->get('show/(:num)', $controller_name . '::show/$1');
     $routes->get('exportPdf', $controller_name . '::exportPdf');
     $routes->get('exportExcel', $controller_name . '::exportExcel');
     $routes->get('exportDeletedPdf', $controller_name . '::exportDeletedPdf');

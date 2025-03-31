@@ -1,9 +1,8 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php 
-// Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
-$route_url = isset($route_url) ? $route_url : 'admin/bachoc';
-$module_name = isset($module_name) ? $module_name : 'bachoc';
+// Tạo URL action cho form
+$action = site_url($route_url . '/create');
 
 // Khởi tạo thư viện MasterScript
 $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $module_name);

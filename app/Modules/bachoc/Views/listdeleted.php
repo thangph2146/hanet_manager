@@ -4,6 +4,7 @@
 // Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
 $route_url = isset($route_url) ? $route_url : 'admin/bachoc';
 $module_name = isset($module_name) ? $module_name : 'bachoc';
+$route_url_php = $route_url;
 
 // Khởi tạo thư viện MasterScript
 $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $module_name);
@@ -28,191 +29,137 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
-<div class="card shadow-sm">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách bậc học đã xóa</h5>
-        <div>
-            <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
-                <i class='bx bx-refresh'></i> Làm mới
-            </button>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class='bx bx-export'></i> Xuất
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= site_url($route_url . '/exportDeletedExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
-                    <li><a class="dropdown-item" href="<?= site_url($route_url . '/exportDeletedPdf' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-pdf">PDF</a></li>
-                </ul>
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800"><?= $title ?></h1>
+    <?= session()->getFlashdata('message'); ?>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách đã xóa</h6>
+            <div class="d-flex gap-1">
+                 <!-- Nút quay lại -->
+                 <a href="<?= base_url('admin/' . $module_name) ?>" class="btn btn-secondary btn-sm">
+                     <i class="bx bx-arrow-back"></i> Quay lại
+                 </a>
+                 <!-- Nút Export -->
+                 <div class="btn-group">
+                     <button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                         <i class="bx bx-export"></i> Export Đã Xóa
+                     </button>
+                     <ul class="dropdown-menu dropdown-menu-end">
+                         <li><a class="dropdown-item" href="<?= base_url('admin/' . $module_name . '/exportDeletedPdf') . '?' . http_build_query($searchData ?? []) ?>"><i class="bx bxs-file-pdf me-2"></i> PDF</a></li>
+                         <li><a class="dropdown-item" href="<?= base_url('admin/' . $module_name . '/exportDeletedExcel') . '?' . http_build_query($searchData ?? []) ?>"><i class="bx bxs-file-excel me-2"></i> Excel</a></li>
+                     </ul>
+                 </div>
             </div>
         </div>
-    </div>
-    <div class="card-body p-0">
-        <div class="p-3 bg-light border-bottom">
-            <div class="row">
-                <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <a href="<?= site_url($route_url) ?>" class="btn btn-outline-primary btn-sm">
-                        <i class='bx bx-arrow-back'></i> Danh sách bậc học
-                    </a>
-                    <form id="form-restore-multiple" action="<?= site_url($route_url . '/restoreMultiple') ?>" method="post" class="d-inline">
-                        <?= csrf_field() ?>
-                        <button type="button" id="restore-selected" class="btn btn-success btn-sm me-2" disabled>
-                            <i class='bx bx-revision'></i> Khôi phục mục đã chọn
-                        </button>
-                    </form>
-                    
-                    <form id="form-delete-multiple" action="<?= site_url($route_url . '/permanentDeleteMultiple') ?>" method="post" class="d-inline">
-                        <?= csrf_field() ?>
-                        <button type="button" id="delete-permanent-multiple" class="btn btn-danger btn-sm" disabled>
-                            <i class='bx bx-trash'></i> Xóa vĩnh viễn
-                        </button>
-                    </form>
-
-                   
-                </div>
-                <div class="col-12 col-md-6">
-                    <form action="<?= site_url($route_url . '/listdeleted') ?>" method="get" id="search-form">
-                        <input type="hidden" name="page" value="1">
-                        <input type="hidden" name="perPage" value="<?= $perPage ?>">
-                        <div class="input-group search-box">
-                            <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
-                            <button class="btn btn-outline-secondary btn-sm" type="submit">
-                                <i class='bx bx-search'></i>
-                            </button>
-                            <?php if (!empty($keyword)): ?>
-                            <a href="<?= site_url($route_url . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
-                                <i class='bx bx-x'></i>
-                            </a>
-                            <?php endif; ?>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <?php if (session()->has('error')) : ?>
-            <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
-                <?= session('error') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-
-        <?php if (session()->has('success')) : ?>
-            <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
-                <?= session('success') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-        
-        <?php if (!empty($keyword)): ?>
-            <div class="alert alert-info m-3">
-                <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
-                <div class="small">
-                    <?php if (!empty($keyword)): ?>
-                        <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
-                    <?php endif; ?>
-                    <a href="<?= site_url($route_url . '/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
-                </div>
-            </div>
-        <?php endif; ?>
-  
-        <div class="table-responsive">
-            <div class="table-container">
-                <table id="dataTable" class="table table-striped table-hover m-0 w-100">
-                    <thead class="table-light">
-                        <tr>
-                            <th width="5%" class="text-center align-middle">
-                                <div class="form-check">
-                                    <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
-                                </div>
+        <div class="card-body">
+            <?php 
+                // Khởi tạo thư viện FilterForm
+                $filterForm = new \App\Modules\bachoc\Libraries\FilterForm();
+                // Dữ liệu cần truyền vào form: chỉ cần cấu hình các trường
+                $filterData = [
+                    // 'search' và 'filters' sẽ được thư viện tự động lấy từ request
+                    'searchFields' => $searchFields ?? [], // Các trường có thể tìm kiếm
+                    'filterFields' => $filterFields ?? [], // Các trường có thể lọc
+                    'moduleName' => $moduleName ?? 'bachoc' // Tên module (nếu cần)
+                ];
+            ?>
+            <!-- Render form bằng thư viện -->
+            <?= $filterForm->render($filterData) ?>
+            
+            <!-- Bảng dữ liệu -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                         <tr>
+                            <th class="text-center" style="width: 30px;">
+                                <input type="checkbox" id="select-all">
                             </th>
-                            <th width="5%" class="align-middle">ID</th>
-                            <th width="20%" class="align-middle">Bậc học</th>
-                            <th width="10%" class="align-middle">Mã bậc học</th>
-                            <th width="10%" class="text-center align-middle">Trạng thái</th>
-                            <th width="15%" class="text-center align-middle">Ngày xóa</th>
-                            <th width="20%" class="text-center align-middle">Thao tác</th>
+                            <th>
+                                <?php 
+                                $sortParam = ($sort === 'ten_bac_hoc ASC') ? 'ten_bac_hoc DESC' : 'ten_bac_hoc ASC';
+                                $sortIcon = getSortIcon($sort, 'ten_bac_hoc');
+                                ?>
+                                <a href="<?= getCurrentUrlWithSort('ten_bac_hoc', $sortParam, true) ?>">
+                                    Tên Bậc học <?= $sortIcon ?>
+                                </a>
+                            </th>
+                            <th>
+                                <?php 
+                                $sortParam = ($sort === 'ma_bac_hoc ASC') ? 'ma_bac_hoc DESC' : 'ma_bac_hoc ASC';
+                                $sortIcon = getSortIcon($sort, 'ma_bac_hoc');
+                                ?>
+                                <a href="<?= getCurrentUrlWithSort('ma_bac_hoc', $sortParam, true) ?>">
+                                    Mã Bậc học <?= $sortIcon ?>
+                                </a>
+                            </th>
+                             <th class="text-center">
+                                <?php 
+                                $sortParam = ($sort === 'deleted_at ASC') ? 'deleted_at DESC' : 'deleted_at ASC';
+                                $sortIcon = getSortIcon($sort, 'deleted_at');
+                                ?>
+                                <a href="<?= getCurrentUrlWithSort('deleted_at', $sortParam, true) ?>">
+                                    Ngày xóa <?= $sortIcon ?>
+                                </a>
+                            </th>
+                            <th class="text-center">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($processedData)) : ?>
-                            <?php foreach ($processedData as $item) : ?>
+                        <?php if (!empty($items)) : ?>
+                            <?php foreach ($items as $item) : ?>
                                 <tr>
-                                    <td class="text-center">
-                                        <div class="form-check">
-                                            <input class="form-check-input checkbox-item cursor-pointer" 
-                                            type="checkbox" name="selected_items[]" 
-                                            value="<?= $item->bac_hoc_id ?>">
-                                        </div>
-                                    </td>
-                                    <td><?= esc($item->bac_hoc_id) ?></td>  
-                                    <td><?= esc($item->ten_bac_hoc) ?></td> 
+                                     <td class="text-center">
+                                         <input type="checkbox" name="ids[]" class="checkbox-item" value="<?= $item->bac_hoc_id ?>">
+                                     </td>
+                                    <td><?= esc($item->ten_bac_hoc) ?></td>
                                     <td><?= esc($item->ma_bac_hoc) ?></td>
+                                     <td class="text-center"><?= $item->getDeletedAtFormatted('d/m/Y H:i') ?></td>
                                     <td class="text-center">
-                                        <?= $item->getStatusLabel() ?>
-                                    </td>
-                                    <td class="text-center">
-                                        <?= $item->getDeletedAtFormatted() ?>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <button type="button" class="btn btn-success btn-sm btn-restore w-100 h-100" 
-                                                    data-id="<?= $item->bac_hoc_id ?>" 
-                                                    data-name="<?= esc($item->ten_bac_hoc) ?>"
-                                                    data-bs-toggle="tooltip" title="Khôi phục">
-                                                <i class="bx bx-revision"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
-                                                    data-id="<?= $item->bac_hoc_id ?>" 
-                                                    data-name="<?= esc($item->ten_bac_hoc) ?>"
-                                                    data-bs-toggle="tooltip" title="Xóa vĩnh viễn">
-                                                <i class="bx bx-trash"></i>
-                                            </button>
-                                        </div>
+                                         <button class="btn btn-primary btn-sm btn-restore" data-id="<?= $item->bac_hoc_id ?>" data-name="<?= esc($item->ten_bac_hoc) ?>"><i class="bx bx-revision"></i> Khôi phục</button>
+                                         <button class="btn btn-danger btn-sm btn-delete-permanent" data-id="<?= $item->bac_hoc_id ?>" data-name="<?= esc($item->ten_bac_hoc) ?>"><i class="bx bx-trash"></i> Xóa vĩnh viễn</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="7" class="text-center py-3">
-                                    <div class="empty-state">
-                                        <i class="bx bx-folder-open"></i>
-                                        <p>Không có dữ liệu</p>
-                                    </div>
-                                </td>
+                                <td colspan="5" class="text-center">Thùng rác trống.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
-        </div>
-        <?php if (!empty($processedData)): ?>
-            <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-2">
-                <div class="col-sm-12 col-md-5">
-                    <div class="dataTables_info">
-                        Hiển thị từ <?= (($pager->getCurrentPage() - 1) * $perPage + 1) ?> đến <?= min(($pager->getCurrentPage() - 1) * $perPage + $perPage, $total) ?> trong số <?= $total ?> bản ghi
-                    </div>
-                </div>
-                <div class="col-sm-12 col-md-7">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <div class="me-2">
-                            <select id="perPageSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
-                                <option value="10" <?= $perPage == 10 ? 'selected' : '' ?>>10</option>
-                                <option value="25" <?= $perPage == 25 ? 'selected' : '' ?>>25</option>
-                                <option value="50" <?= $perPage == 50 ? 'selected' : '' ?>>50</option>
-                                <option value="100" <?= $perPage == 100 ? 'selected' : '' ?>>100</option>
-                            </select>
-                        </div>
-                        <div class="pagination-container">
-                            <?php if ($pager) : ?>
-                                <?= $pager->links() ?>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
+
+            <!-- Thanh điều hướng và phân trang -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                 <div class="d-flex gap-1">
+                     <button class="btn btn-primary btn-sm" id="restore-selected" data-url="<?= base_url('admin/' . $moduleName . '/restoreMultiple') ?>" style="display: none;"><i class="bx bx-revision"></i> Khôi phục mục đã chọn</button>
+                     <button class="btn btn-danger btn-sm" id="delete-permanent-multiple" data-url="<?= base_url('admin/' . $moduleName . '/deletePermanentMultiple') ?>" style="display: none;"><i class="bx bx-trash"></i> Xóa vĩnh viễn mục đã chọn</button>
+                 </div>
+                 <!-- Hiển thị phân trang -->
+                 <div class="pagination-container">
+                     <?= $pager // Hiển thị links phân trang ?>
+                 </div>
             </div>
-        <?php endif; ?>
+        </div>
     </div>
+
 </div>
+<!-- /.container-fluid -->
+
+<!-- Scripts -->
+<?php 
+    // Tải HTML helper để sử dụng script_tag()
+    helper('html');
+
+    // Cách mới: Sử dụng moduleName làm namespace
+    $scriptUrl = base_url($module_name . '/master_scripts.php?module=' . $module_name);
+    // Truyền URL vào Javascript
+    echo script_tag($route_url_php . '/master_scripts.php?module=' . $module_name);
+?>
 
 <!-- Modal Xác nhận khôi phục -->
 <div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
@@ -226,10 +173,33 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
                 <p>Bạn có chắc chắn muốn khôi phục bậc học: <span id="restore-item-name" class="fw-bold"></span>?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bx bx-x"></i> Hủy</button>
                 <form id="restore-form" action="" method="post">
                     <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-success">Khôi phục</button>
+                    <button type="submit" class="btn btn-primary"><i class="bx bx-revision"></i> Khôi phục</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác nhận xóa vĩnh viễn -->
+<div class="modal fade" id="deletePermanentModal" tabindex="-1" aria-labelledby="deletePermanentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletePermanentModalLabel">Xác nhận xóa vĩnh viễn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa vĩnh viễn bậc học: <span id="delete-permanent-item-name" class="fw-bold"></span>?</p>
+                <p class="text-danger mb-0"><i class="bx bx-info-circle"></i> Lưu ý: Hành động này không thể hoàn tác!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bx bx-x"></i> Hủy</button>
+                <form id="delete-permanent-form" action="" method="post">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-danger"><i class="bx bx-trash"></i> Xóa vĩnh viễn</button>
                 </form>
             </div>
         </div>
@@ -248,66 +218,86 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
                 <p>Bạn có chắc chắn muốn khôi phục <span id="restore-count" class="fw-bold"></span> mục đã chọn?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" id="confirm-restore-multiple" class="btn btn-success">Khôi phục</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Xác nhận xóa vĩnh viễn -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa vĩnh viễn</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa vĩnh viễn bậc học: <span id="delete-item-name" class="fw-bold"></span>?</p>
-                <p class="text-danger mb-0"><i class="bx bx-error-circle"></i> Lưu ý: Hành động này không thể hoàn tác!</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <form id="delete-form" action="" method="post">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bx bx-x"></i> Hủy</button>
+                <form id="form-restore-multiple" action="<?= base_url('admin/' . $module_name . '/restoreMultiple') ?>" method="post" style="display: inline;">
                     <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-danger">Xóa vĩnh viễn</button>
                 </form>
+                <button type="button" id="confirm-restore-multiple" class="btn btn-primary"><i class="bx bx-revision"></i> Khôi phục</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Modal Xác nhận xóa vĩnh viễn nhiều -->
-<div class="modal fade" id="deleteMultipleModal" tabindex="-1" aria-labelledBy="deleteMultipleModalLabel" aria-hidden="true">
+<div class="modal fade" id="deletePermanentMultipleModal" tabindex="-1" aria-labelledby="deletePermanentMultipleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteMultipleModalLabel">Xác nhận xóa vĩnh viễn nhiều mục</h5>
+                <h5 class="modal-title" id="deletePermanentMultipleModalLabel">Xác nhận xóa vĩnh viễn nhiều mục</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa vĩnh viễn <span id="selected-count" class="fw-bold"></span> mục đã chọn?</p>
-                <p class="text-danger mb-0"><i class="bx bx-error-circle"></i> Lưu ý: Hành động này không thể hoàn tác!</p>
+                <p>Bạn có chắc chắn muốn xóa vĩnh viễn <span id="delete-permanent-count" class="fw-bold"></span> mục đã chọn?</p>
+                <p class="text-danger mb-0"><i class="bx bx-info-circle"></i> Lưu ý: Hành động này không thể hoàn tác!</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" id="confirm-delete-multiple" class="btn btn-danger">Xóa vĩnh viễn</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bx bx-x"></i> Hủy</button>
+                <form id="form-delete-permanent-multiple" action="<?= base_url('admin/' . $module_name . '/deletePermanentMultiple') ?>" method="post" style="display: inline;">
+                    <?= csrf_field() ?>
+                </form>
+                <button type="button" id="confirm-delete-permanent-multiple" class="btn btn-danger"><i class="bx bx-trash"></i> Xóa vĩnh viễn</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Loading indicator (hidden by default) -->
+<!-- Loading indicator -->
 <div id="loading-indicator" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
     <div class="spinner-border text-light" role="status">
         <span class="visually-hidden">Đang tải...</span>
     </div>
 </div>
-<?= $this->endSection() ?>
+
+<?php $this->endSection() ?>
 
 <?= $this->section('script') ?>
 <?= $masterScript->pageJs('table') ?>
 <?= $masterScript->pageSectionJs('table') ?>
 <?= $masterScript->pageTableJs() ?>
-<?= $this->endSection() ?> 
+<?= $this->endSection() ?>
+
+<?php 
+// Hàm helper để tạo URL sắp xếp (cập nhật để hoạt động trên trang listdeleted)
+function getCurrentUrlWithSort($field, $direction, $isDeletedList = false) {
+    $request = service('request');
+    $baseUrl = $isDeletedList ? base_url($request->getUri()->getPath()) : current_url();
+    $queryParams = $request->getGet();
+    $queryParams['sort'] = $field . ' ' . $direction;
+    unset($queryParams['page']); 
+    return $baseUrl . '?' . http_build_query($queryParams);
+}
+
+// Hàm helper để lấy icon sắp xếp
+function getSortIcon($currentSort, $field) {
+    if ($currentSort === $field . ' ASC') {
+        return '<i class="bx bx-sort-up"></i>';
+    } elseif ($currentSort === $field . ' DESC') {
+        return '<i class="bx bx-sort-down"></i>';
+    } else {
+        return '<i class="bx bx-sort"></i>'; // Icon mặc định
+    }
+}
+
+// Chuẩn bị dữ liệu tìm kiếm/lọc/sắp xếp cho link export
+$searchData = [
+    'search' => $search ?? '',
+    'filters' => $filters ?? [],
+    'sort' => $sort ?? ''
+];
+// Loại bỏ các giá trị rỗng khỏi mảng filter
+if (isset($searchData['filters']) && is_array($searchData['filters'])) {
+    $searchData['filters'] = array_filter($searchData['filters'], function($value) {
+        return $value !== '' && $value !== null;
+    });
+}
+?> 

@@ -4,21 +4,26 @@
  * 
  * @var string $action Form submission URL
  * @var string $method Form method (POST or PUT)
- * @var Bachoc $data Bachoc entity data for editing (optional)
+ * @var Bachoc $item Bachoc entity data for editing (optional)
  */
 
 // Set default values if editing
-$ten_bac_hoc = isset($data) ? $data->ten_bac_hoc : '';
-$ma_bac_hoc = isset($data) ? $data->ma_bac_hoc : '';
-$status = isset($data) ? (string)$data->status : '1';
-$id = isset($data) ? $data->bac_hoc_id : '';
+$ten_bac_hoc = isset($item) ? $item->ten_bac_hoc : '';
+$ma_bac_hoc = isset($item) ? $item->ma_bac_hoc : '';
+$status = isset($item) ? (string)$item->status : '1';
+$id = isset($item) ? $item->bac_hoc_id : '';
 
 // Set default values for form action and method
-$action = isset($action) ? $action : site_url($route_url . '/create');
+$action = isset($action) ? $action : site_url('admin/' . $route_url . '/create');
 $method = isset($method) ? $method : 'POST';
 
+// Nếu đang ở chế độ cập nhật, sử dụng route edit
+if (isset($item) && $item->bac_hoc_id > 0) {
+    $action = site_url('admin/' . $route_url . '/update/' . $item->bac_hoc_id);
+}
+
 // Xác định tiêu đề form dựa trên mode
-$isUpdate = isset($data) && $data->bac_hoc_id > 0;
+$isUpdate = isset($item) && $item->bac_hoc_id > 0;
 
 // Lấy giá trị từ old() nếu có
 $ten_bac_hoc = old('ten_bac_hoc', $ten_bac_hoc);

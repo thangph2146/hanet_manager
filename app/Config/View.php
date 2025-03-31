@@ -33,6 +33,7 @@ class View extends BaseView
         'App\Modules\login' => APPPATH . 'Modules/login',
         'App\Modules\sukien' => APPPATH . 'Modules/sukien',
         'App\Modules\nguoidung' => APPPATH . 'Modules/nguoidung',
+        'App\Modules\bachoc' => APPPATH . 'Modules/bachoc',
     ];
 
     /**

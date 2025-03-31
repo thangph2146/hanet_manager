@@ -308,6 +308,7 @@ class BaseModel extends Model
         return $id;
     }
 
+    
     public function updateWithRelations($id, array $data, array $relations = [])
     {
         $this->db->transStart();
@@ -622,5 +623,483 @@ class BaseModel extends Model
     {
         $this->concatFields = $fields;
         return $this;
+    }
+
+    /**
+     * Lấy dữ liệu theo điều kiện với phân trang
+     * 
+     * @param array $conditions Điều kiện tìm kiếm
+     * @param array $options Tùy chọn phân trang và sắp xếp
+     * @return array
+     */
+    public function getByConditions(array $conditions = [], array $options = [])
+    {
+        $builder = $this->builder();
+        
+        // Thêm điều kiện tìm kiếm
+        foreach ($conditions as $field => $value) {
+            if (is_array($value)) {
+                $builder->whereIn($field, $value);
+            } else {
+                $builder->where($field, $value);
+            }
+        }
+        
+        // Thêm điều kiện soft delete
+        if ($this->useSoftDeletes) {
+            $builder->where($this->deletedField . ' IS NULL');
+        }
+        
+        // Xử lý phân trang
+        $page = $options['page'] ?? 1;
+        $limit = $options['limit'] ?? $this->perPage;
+        $offset = ($page - 1) * $limit;
+        
+        // Xử lý sắp xếp
+        $sort = $options['sort'] ?? $this->defaultSort;
+        if ($sort) {
+            list($field, $direction) = explode(' ', $sort);
+            $builder->orderBy($field, $direction);
+        }
+        
+        // Thực hiện truy vấn
+        $results = $builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        
+        // Tính tổng số bản ghi
+        $total = $builder->countAllResults(false);
+        
+        // Tạo pager và lưu trạng thái bằng service
+        $pagerService = service('pager');
+        // Lưu trữ trạng thái pager để controller và view có thể sử dụng
+        $this->pager = $pagerService->store('default', $page, $limit, $total);
+        
+        return $results;
+    }
+
+    /**
+     * Lấy dữ liệu theo ID với các mối quan hệ
+     * 
+     * @param int $id ID cần tìm
+     * @param array $relations Các mối quan hệ cần lấy
+     * @return object|null
+     */
+    public function getByIdWithRelations($id, array $relations = [])
+    {
+        $data = $this->find($id);
+        if (!$data) {
+            return null;
+        }
+        
+        foreach ($relations as $relation) {
+            if (isset($this->relations[$relation])) {
+                $config = $this->relations[$relation];
+                $data->$relation = $this->fetchRelation($relation, $config, $data);
+            }
+        }
+        
+        return $data;
+    }
+
+    /**
+     * Lấy dữ liệu theo điều kiện với các mối quan hệ
+     * 
+     * @param array $conditions Điều kiện tìm kiếm
+     * @param array $relations Các mối quan hệ cần lấy
+     * @param array $options Tùy chọn phân trang và sắp xếp
+     * @return array
+     */
+    public function getByConditionsWithRelations(array $conditions = [], array $relations = [], array $options = [])
+    {
+        $results = $this->getByConditions($conditions, $options);
+        
+        foreach ($results as $item) {
+            foreach ($relations as $relation) {
+                if (isset($this->relations[$relation])) {
+                    $config = $this->relations[$relation];
+                    $item->$relation = $this->fetchRelation($relation, $config, $item);
+                }
+            }
+        }
+        
+        return $results;
+    }
+
+    /**
+     * Lấy dữ liệu theo từ khóa tìm kiếm
+     * 
+     * @param string $keyword Từ khóa tìm kiếm
+     * @param array $options Tùy chọn phân trang và sắp xếp
+     * @return array
+     */
+    public function searchByKeyword($keyword, array $options = [])
+    {
+        $builder = $this->builder();
+        
+        // Thêm điều kiện tìm kiếm theo từ khóa
+        if (!empty($keyword) && !empty($this->searchableFields)) {
+            $builder->groupStart();
+            foreach ($this->searchableFields as $field) {
+                $builder->orLike($field, $keyword);
+            }
+            $builder->groupEnd();
+        }
+        
+        // Thêm điều kiện soft delete
+        if ($this->useSoftDeletes) {
+            $builder->where($this->deletedField . ' IS NULL');
+        }
+        
+        // Xử lý phân trang
+        $page = $options['page'] ?? 1;
+        $limit = $options['limit'] ?? $this->perPage;
+        $offset = ($page - 1) * $limit;
+        
+        // Xử lý sắp xếp
+        $sort = $options['sort'] ?? $this->defaultSort;
+        if ($sort) {
+            list($field, $direction) = explode(' ', $sort);
+            $builder->orderBy($field, $direction);
+        }
+        
+        // Thực hiện truy vấn
+        $results = $builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        
+        // Tính tổng số bản ghi
+        $total = $builder->countAllResults(false);
+        
+        // Tạo pager và lưu trạng thái bằng service
+        $pagerService = service('pager');
+        // Lưu trữ trạng thái pager để controller và view có thể sử dụng
+        $this->pager = $pagerService->store('default', $page, $limit, $total);
+        
+        return $results;
+    }
+
+    /**
+     * Lấy dữ liệu theo điều kiện lọc
+     * 
+     * @param array $filters Điều kiện lọc
+     * @param array $options Tùy chọn phân trang và sắp xếp
+     * @return array
+     */
+    public function getByFilters(array $filters = [], array $options = [])
+    {
+        $builder = $this->builder();
+        
+        // Thêm điều kiện lọc
+        foreach ($filters as $field => $value) {
+            if (in_array($field, $this->filterableFields)) {
+                if (is_array($value)) {
+                    $builder->whereIn($field, $value);
+                } else {
+                    $builder->where($field, $value);
+                }
+            }
+        }
+        
+        // Thêm điều kiện soft delete
+        if ($this->useSoftDeletes) {
+            $builder->where($this->deletedField . ' IS NULL');
+        }
+        
+        // Xử lý phân trang
+        $page = $options['page'] ?? 1;
+        $limit = $options['limit'] ?? $this->perPage;
+        $offset = ($page - 1) * $limit;
+        
+        // Xử lý sắp xếp
+        $sort = $options['sort'] ?? $this->defaultSort;
+        if ($sort) {
+            list($field, $direction) = explode(' ', $sort);
+            $builder->orderBy($field, $direction);
+        }
+        
+        // Thực hiện truy vấn
+        $results = $builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        
+        // Tính tổng số bản ghi
+        $total = $builder->countAllResults(false);
+        
+        // Tạo pager và lưu trạng thái bằng service
+        $pagerService = service('pager');
+        // Lưu trữ trạng thái pager để controller và view có thể sử dụng
+        $this->pager = $pagerService->store('default', $page, $limit, $total);
+        
+        return $results;
+    }
+
+    /**
+     * Lấy dữ liệu theo điều kiện sắp xếp
+     * 
+     * @param array $sort Điều kiện sắp xếp
+     * @param array $options Tùy chọn phân trang
+     * @return array
+     */
+    public function getBySort(array $sort = [], array $options = [])
+    {
+        $builder = $this->builder();
+        
+        // Thêm điều kiện sắp xếp
+        foreach ($sort as $field => $direction) {
+            if (in_array($field, $this->sortableFields)) {
+                $builder->orderBy($field, $direction);
+            }
+        }
+        
+        // Thêm điều kiện soft delete
+        if ($this->useSoftDeletes) {
+            $builder->where($this->deletedField . ' IS NULL');
+        }
+        
+        // Xử lý phân trang
+        $page = $options['page'] ?? 1;
+        $limit = $options['limit'] ?? $this->perPage;
+        $offset = ($page - 1) * $limit;
+        
+        // Thực hiện truy vấn
+        $results = $builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        
+        // Tính tổng số bản ghi
+        $total = $builder->countAllResults(false);
+        
+        // Tạo pager và lưu trạng thái bằng service
+        $pagerService = service('pager');
+        // Lưu trữ trạng thái pager để controller và view có thể sử dụng
+        $this->pager = $pagerService->store('default', $page, $limit, $total);
+        
+        return $results;
+    }
+
+    /**
+     * Lấy dữ liệu theo điều kiện tổng hợp
+     * 
+     * @param array $params Tham số tìm kiếm, lọc, sắp xếp
+     * @param array $options Tùy chọn phân trang
+     * @return array
+     */
+    public function getByParams(array $params = [], array $options = [])
+    {
+        $builder = $this->builder();
+        
+        // Xử lý tìm kiếm theo từ khóa
+        if (!empty($params['keyword']) && !empty($this->searchableFields)) {
+            $builder->groupStart();
+            foreach ($this->searchableFields as $field) {
+                $builder->orLike($field, $params['keyword']);
+            }
+            $builder->groupEnd();
+        }
+        
+        // Xử lý điều kiện lọc
+        if (!empty($params['filters'])) {
+            foreach ($params['filters'] as $field => $value) {
+                if (in_array($field, $this->filterableFields)) {
+                    if (is_array($value)) {
+                        $builder->whereIn($field, $value);
+                    } else {
+                        $builder->where($field, $value);
+                    }
+                }
+            }
+        }
+        
+        // Xử lý điều kiện sắp xếp
+        if (!empty($params['sort'])) {
+            // Tách trường và hướng sắp xếp từ chuỗi, ví dụ: "ten_bac_hoc DESC"
+            $sortParts = explode(' ', $params['sort']);
+            $sortField = $sortParts[0] ?? null;
+            $sortOrder = strtoupper($sortParts[1] ?? 'ASC');
+            
+            // Kiểm tra xem trường sắp xếp có hợp lệ không (ví dụ: có trong $allowedFields hoặc $sortFields nếu bạn định nghĩa)
+            // Tạm thời, chúng ta sẽ tin tưởng $params['sort'] đã được kiểm tra ở Controller
+            if ($sortField) {
+                // Kiểm tra nếu field có dạng table.column để tránh lỗi ambiguity khi join
+                $fieldName = strpos($sortField, '.') !== false ? $sortField : $this->table . '.' . $sortField;
+                 $builder->orderBy($fieldName, $sortOrder);
+            }
+        }
+        
+        // Thêm điều kiện soft delete
+        if ($this->useSoftDeletes) {
+            $builder->where($this->deletedField . ' IS NULL');
+        }
+        
+        // Xử lý phân trang
+        $page = $options['page'] ?? 1;
+        $limit = $options['limit'] ?? $this->perPage;
+        $offset = ($page - 1) * $limit;
+        
+        // Thực hiện truy vấn
+        $results = $builder->limit($limit, $offset)->get()->getResult($this->returnType);
+        
+        // Tính tổng số bản ghi
+        $total = $builder->countAllResults(false);
+        
+        // Tạo pager và lưu trạng thái bằng service
+        $pagerService = service('pager');
+        // Lưu trữ trạng thái pager để controller và view có thể sử dụng
+        $this->pager = $pagerService->store('default', $page, $limit, $total);
+        
+        return $results;
+    }
+
+    /**
+     * Lấy dữ liệu theo điều kiện tổng hợp với các mối quan hệ
+     * 
+     * @param array $params Tham số tìm kiếm, lọc, sắp xếp
+     * @param array $relations Các mối quan hệ cần lấy
+     * @param array $options Tùy chọn phân trang
+     * @return array
+     */
+    public function getByParamsWithRelations(array $params = [], array $relations = [], array $options = [])
+    {
+        $results = $this->getByParams($params, $options);
+        
+        foreach ($results as $item) {
+            foreach ($relations as $relation) {
+                if (isset($this->relations[$relation])) {
+                    $config = $this->relations[$relation];
+                    $item->$relation = $this->fetchRelation($relation, $config, $item);
+                }
+            }
+        }
+        
+        return $results;
+    }
+
+    /**
+     * Lấy dữ liệu theo điều kiện tổng hợp không phân trang (cho export)
+     * 
+     * @param array $params Tham số tìm kiếm, lọc, sắp xếp
+     * @return array
+     */
+    public function getAllByParams(array $params = [])
+    {
+        $builder = $this->builder();
+        
+        // Xử lý tìm kiếm theo từ khóa hoặc giá trị tìm kiếm chung
+        $searchKeyword = $params['search'] ?? ($params['keyword'] ?? '');
+        if (!empty($searchKeyword) && !empty($this->searchableFields)) {
+            $builder->groupStart();
+            foreach ($this->searchableFields as $field) {
+                 // Kiểm tra nếu field có dạng table.column
+                 $fieldName = strpos($field, '.') !== false ? $field : $this->table . '.' . $field;
+                $builder->orLike($fieldName, $searchKeyword);
+            }
+            $builder->groupEnd();
+        }
+        
+        // Xử lý điều kiện lọc
+        if (!empty($params['filters'])) {
+            foreach ($params['filters'] as $field => $value) {
+                if (in_array($field, $this->filterableFields) && $value !== '') {
+                    // Kiểm tra nếu field có dạng table.column
+                    $fieldName = strpos($field, '.') !== false ? $field : $this->table . '.' . $field;
+                    if (is_array($value)) {
+                        $builder->whereIn($fieldName, $value);
+                    } else {
+                        $builder->where($fieldName, $value);
+                    }
+                }
+            }
+        }
+        
+        // Xử lý điều kiện sắp xếp
+        $sort = $params['sort'] ?? $this->defaultSort;
+        if (!empty($sort)) {
+            // Tách trường và hướng sắp xếp
+             $sortParts = explode(' ', $sort);
+             $sortField = $sortParts[0];
+             $sortOrder = strtoupper($sortParts[1] ?? 'ASC');
+             // Kiểm tra nếu field có dạng table.column
+             $fieldName = strpos($sortField, '.') !== false ? $sortField : $this->table . '.' . $sortField;
+             $builder->orderBy($fieldName, $sortOrder);
+        }
+        
+        // Điều kiện soft delete sẽ được xử lý bởi các phương thức như onlyDeleted() hoặc withDeleted()
+        // Nếu không gọi các phương thức đó, mặc định sẽ chỉ lấy bản ghi không bị xóa (do $useSoftDeletes = true)
+
+        // Thực hiện truy vấn để lấy tất cả kết quả
+        $results = $builder->get()->getResult($this->returnType);
+        
+        // Load relations nếu được yêu cầu
+        return $this->loadRelationsForResults($results);
+    }
+
+    /**
+     * Cập nhật bản ghi với kiểm tra dữ liệu rỗng
+     * 
+     * Phương thức này mở rộng từ phương thức update() của CodeIgniter\Model 
+     * để xử lý trường hợp khi dữ liệu cập nhật rỗng, thay vì báo lỗi sẽ trả về true.
+     * 
+     * @param int|array|string $id ID của bản ghi cần cập nhật
+     * @param object|array $data Dữ liệu cần cập nhật
+     * @return boolean Kết quả cập nhật
+     */
+    public function safeUpdate($id, $data = null)
+    {   
+        // Chuyển đổi dữ liệu sang dạng array
+        if (is_object($data)) {
+            // Nếu là entity, sử dụng toArray() hoặc cast về array
+            if (method_exists($data, 'toArray')) {
+                $dataArray = $data->toArray();
+            } else {
+                $dataArray = (array) $data;
+            }
+        } else {
+            $dataArray = $data;
+        }
+        
+        // Nếu không có dữ liệu hoặc dữ liệu rỗng, trả về true thay vì báo lỗi
+        if (empty($dataArray)) {
+            log_message('debug', 'safeUpdate(): Không có dữ liệu để cập nhật. Bỏ qua và trả về true.');
+            return true;
+        }
+        
+        // Lọc chỉ những trường có trong $allowedFields
+        $filteredData = [];
+        foreach ($dataArray as $key => $value) {
+            if (in_array($key, $this->allowedFields)) {
+                $filteredData[$key] = $value;
+            }
+        }
+        
+        // Nếu sau khi lọc, dữ liệu vẫn rỗng, trả về true
+        if (empty($filteredData)) {
+            log_message('debug', 'safeUpdate(): Sau khi lọc qua allowedFields, không có dữ liệu hợp lệ để cập nhật. Bỏ qua và trả về true.');
+            return true;
+        }
+        
+        // Sử dụng phương thức update gốc của Model
+        return $this->update($id, $filteredData);
+    }
+    
+    /**
+     * Cập nhật bản ghi kể cả khi không có dữ liệu thay đổi
+     * 
+     * Phương thức này tạm thời đặt giá trị $allowEmptyInserts = true
+     * để cho phép cập nhật ngay cả khi không có dữ liệu
+     * 
+     * @param int|array|string $id ID của bản ghi cần cập nhật
+     * @param object|array $data Dữ liệu cần cập nhật
+     * @return boolean Kết quả cập nhật
+     */
+    public function forceUpdate($id, $data = null)
+    {
+        // Lưu giá trị $allowEmptyInserts hiện tại
+        $currentAllowEmptyInserts = $this->allowEmptyInserts;
+        
+        // Tạm thời cho phép cập nhật rỗng
+        $this->allowEmptyInserts = true;
+        
+        try {
+            // Thực hiện cập nhật
+            $result = $this->update($id, $data);
+        } finally {
+            // Khôi phục giá trị $allowEmptyInserts
+            $this->allowEmptyInserts = $currentAllowEmptyInserts;
+        }
+        
+        return $result;
     }
 }

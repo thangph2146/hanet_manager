@@ -4,7 +4,6 @@ namespace App\Modules\bachoc\Models;
 
 use App\Models\BaseModel;
 use App\Modules\bachoc\Entities\BacHoc;
-use App\Modules\bachoc\Libraries\Pager;
 use CodeIgniter\I18n\Time;
 
 class BacHocModel extends BaseModel
@@ -20,153 +19,45 @@ class BacHocModel extends BaseModel
     protected $deletedField = 'deleted_at';
     
     // Số lượng liên kết trang hiển thị xung quanh trang hiện tại   
-    protected $surroundCount = 2;
+    // Loại bỏ surroundCount vì đã có trong BaseModel hoặc Controller xử lý pager
+    // protected $surroundCount = 2; 
     
     protected $allowedFields = [
         'ten_bac_hoc',
         'ma_bac_hoc',
         'status',
-        'created_at',
-        'updated_at',
-        'deleted_at'
+        'created_at', // Giữ lại để BaseModel biết có timestamps
+        'updated_at', // Giữ lại để BaseModel biết có timestamps
+        'deleted_at'  // Giữ lại để BaseModel biết có soft deletes
     ];
     
     protected $returnType = BacHoc::class;
     
-    // Trường có thể tìm kiếm
+    // Trường có thể tìm kiếm (BaseModel sẽ sử dụng)
     protected $searchableFields = [
         'ten_bac_hoc',
         'ma_bac_hoc'
     ];
     
-    // Trường có thể lọc
+    // Trường có thể lọc (BaseModel sẽ sử dụng)
     protected $filterableFields = [
         'status'
     ];
     
-    // Các quy tắc xác thực
-    protected $validationRules = [];
+    // Các quy tắc xác thực sẽ được lấy từ Entity
+    protected $validationRules = []; 
     protected $validationMessages = [];
     protected $skipValidation = false;
     
-    // Template pager
-    public $pager = null;
-    
-    /**
-     * Lấy tất cả bản ghi bậc học
-     *
-     * @param int $limit Số lượng bản ghi trên mỗi trang
-     * @param int $offset Vị trí bắt đầu lấy dữ liệu
-     * @param string $sort Trường sắp xếp
-     * @param string $order Thứ tự sắp xếp (ASC, DESC)
-     * @return array
-     */
-    public function getAll($limit = 10, $offset = 0, $sort = 'created_at', $order = 'DESC')
+    public function __construct()
     {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        
-        // Chỉ lấy bản ghi chưa xóa
-        $this->builder->where('deleted_at IS NULL');
-        
-        if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
-        }
-        
-        $total = $this->countAll();
-        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
-        
-        if ($this->pager === null) {
-            $this->pager = new Pager($total, $limit, $currentPage);
-        } else {
-            $this->pager->setTotal($total)
-                        ->setPerPage($limit)
-                        ->setCurrentPage($currentPage);
-        }
-        
-        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
-        return $result ?: [];
-    }
-    
-    /**
-     * Lấy tất cả bản ghi bậc học đã xóa
-     *
-     * @param int $limit Số lượng bản ghi trên mỗi trang
-     * @param int $offset Vị trí bắt đầu lấy dữ liệu
-     * @param string $sort Trường sắp xếp
-     * @param string $order Thứ tự sắp xếp (ASC, DESC)
-     * @return array
-     */
-    public function getAllDeleted($limit = 10, $offset = 0, $sort = 'deleted_at', $order = 'DESC')
-    {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        
-        // Chỉ lấy bản ghi đã xóa
-        $this->builder->where('deleted_at IS NOT NULL');
-        
-        if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
-        }
-        
-        $total = $this->countAllDeleted();
-        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
-        
-        if ($this->pager === null) {
-            $this->pager = new Pager($total, $limit, $currentPage);
-        } else {
-            $this->pager->setTotal($total)
-                        ->setPerPage($limit)
-                        ->setCurrentPage($currentPage);
-        }
-        
-        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
-        return $result ?: [];
+        parent::__construct();
     }
 
     /**
-     * Đếm tổng số bản ghi bậc học
-     *
-     * @param array $conditions Điều kiện bổ sung
-     * @return int
-     */
-    public function countAll($conditions = [])
-    {
-        $builder = $this->builder();
-        
-        // Mặc định chỉ đếm bản ghi chưa xóa
-        $builder->where('deleted_at IS NULL');
-        
-        if (!empty($conditions)) {
-            $builder->where($conditions);
-        }
-        
-        return $builder->countAllResults();
-    }
-    
-    /**
-     * Đếm tổng số bản ghi bậc học đã xóa
-     *
-     * @param array $conditions Điều kiện bổ sung
-     * @return int
-     */
-    public function countAllDeleted($conditions = [])
-    {
-        $builder = $this->builder();
-        
-        // Mặc định chỉ đếm bản ghi đã xóa
-        $builder->where('deleted_at IS NOT NULL');
-        
-        if (!empty($conditions)) {
-            $builder->where($conditions);
-        }
-        
-        return $builder->countAllResults();
-    }
-    
-    /**
      * Lấy tất cả bản ghi đang hoạt động
-     *
+     * Sử dụng phương thức getByConditions từ BaseModel
+     * 
      * @param int $limit Số lượng bản ghi trên mỗi trang
      * @param int $offset Vị trí bắt đầu lấy dữ liệu
      * @param string $sort Trường sắp xếp
@@ -175,280 +66,92 @@ class BacHocModel extends BaseModel
      */
     public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'created_at', string $order = 'DESC')
     {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        $this->builder->where('status', 1);
-        $this->builder->where('deleted_at IS NULL');
+        // Tính toán page từ offset và limit nếu cần
+        $page = $offset >= 0 && $limit > 0 ? floor($offset / $limit) + 1 : 1;
         
-        if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
-        }
-        
-        $total = $this->countAllActive();
-        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
-        
-        if ($this->pager === null) {
-            $this->pager = new Pager($total, $limit, $currentPage);
-        } else {
-            $this->pager->setTotal($total)
-                        ->setPerPage($limit)
-                        ->setCurrentPage($currentPage);
-        }
-        
-        if ($limit > 0) {
-            $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
-            return $result ?: [];
-        }
-        
-        return $this->findAll();
+        // Gọi getByConditions của BaseModel
+        return $this->getByConditions(
+            ['status' => 1], 
+            [
+                'limit' => $limit,
+                'page' => $page, // Sử dụng page thay vì offset
+                'sort' => "{$sort} {$order}" // Kết hợp sort và order
+            ]
+        );
     }
     
     /**
      * Đếm tổng số bản ghi đang hoạt động
+     * Sử dụng countAll từ BaseModel
      *
      * @param array $conditions Điều kiện bổ sung
      * @return int
      */
     public function countAllActive($conditions = [])
     {
-        $builder = $this->builder();
-        $builder->where('status', 1);
-        $builder->where('deleted_at IS NULL');
-        
-        if (!empty($conditions)) {
-            $builder->where($conditions);
-        }
-        
-        return $builder->countAllResults();
-    }
-    
-    /**
-     * Tìm kiếm bậc học dựa vào các tiêu chí
-     *
-     * @param array $criteria Các tiêu chí tìm kiếm
-     * @param array $options Tùy chọn phân trang và sắp xếp
-     * @return array
-     */
-    public function search(array $criteria = [], array $options = [])
-    {
-        $builder = $this->builder();
-        
-        // Xử lý withDeleted nếu cần
-        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
-            $builder->where($this->table . '.deleted_at IS NOT NULL');
-        } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa
-            $builder->where($this->table . '.deleted_at IS NULL');
-        }
-        
-        if (!empty($criteria['keyword'])) {
-            $keyword = trim($criteria['keyword']);
-            
-            $builder->groupStart();
-            foreach ($this->searchableFields as $index => $field) {
-                if ($index === 0) {
-                    $builder->like($field, $keyword);
-                } else {
-                    $builder->orLike($field, $keyword);
-                }
-            }
-            $builder->groupEnd();
-        }
-        
-        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
-            $status = (int)$criteria['status'];
-            $builder->where($this->table . '.status', $status);
-        }
-        
-        // Xác định trường sắp xếp và thứ tự sắp xếp
-        $sort = $options['sort'] ?? 'created_at';
-        $order = $options['order'] ?? 'DESC';
-        
-        // Xử lý giới hạn và phân trang
-        $limit = $options['limit'] ?? 10;
-        $offset = $options['offset'] ?? 0;
-        
-        // Thực hiện truy vấn với phân trang
-        if ($limit > 0) {
-            $builder->limit($limit, $offset);
-        }
-        
-        // Sắp xếp kết quả
-        $builder->orderBy($sort, $order);
-        
-        // Thực hiện truy vấn
-        $result = $builder->get()->getResult($this->returnType);
-        
-        // Thiết lập pager nếu cần
-        if ($limit > 0) {
-            $totalRows = $this->countSearchResults($criteria);
-            $this->pager = new Pager(
-                $totalRows,
-                $limit,
-                floor($offset / $limit) + 1
-            );
-            $this->pager->setSurroundCount($this->surroundCount ?? 2);
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * Đếm tổng số kết quả tìm kiếm
-     *
-     * @param array $criteria Tiêu chí tìm kiếm
-     * @return int
-     */
-    public function countSearchResults(array $criteria = [])
-    {
-        $builder = $this->builder();
-        
-        // Xử lý withDeleted nếu cần
-        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
-            $builder->where($this->table . '.deleted_at IS NOT NULL');
-        } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa
-            $builder->where($this->table . '.deleted_at IS NULL');
-        }
-        
-        if (!empty($criteria['keyword'])) {
-            $keyword = trim($criteria['keyword']);
-            
-            $builder->groupStart();
-            foreach ($this->searchableFields as $index => $field) {
-                if ($index === 0) {
-                    $builder->like($field, $keyword);
-                } else {
-                    $builder->orLike($field, $keyword);
-                }
-            }
-            $builder->groupEnd();
-        }
-        
-        if (isset($criteria['status']) || array_key_exists('status', $criteria)) {
-            $status = (int)$criteria['status'];
-            $builder->where($this->table . '.status', $status);
-        }
-        
-        return $builder->countAllResults();
+        $baseConditions = ['status' => 1];
+        // Thêm điều kiện không bị xóa mềm
+        $baseConditions[$this->deletedField . ' IS NULL'] = null; 
+        $mergedConditions = array_merge($baseConditions, $conditions);
+        // Gọi countAll của BaseModel
+        return $this->countAll($mergedConditions); 
     }
     
     /**
      * Chuẩn bị các quy tắc xác thực dựa trên tình huống
+     * Phương thức này vẫn cần thiết để tùy chỉnh validation rules từ Entity.
      * 
      * @param string $scenario Tình huống xác thực ('insert' hoặc 'update')
-     * @param array $data Dữ liệu cần xác thực
+     * @param array $data Dữ liệu cần xác thực (chứa ID khi update)
      */
     public function prepareValidationRules(string $scenario = 'insert', array $data = [])
     {
-        $entity = new BacHoc();
-        $this->validationRules = $entity->getValidationRules();
-        $this->validationMessages = $entity->getValidationMessages();
+        // Lấy validation rules và messages từ Entity
+        $entity = new $this->returnType(); 
+        if (method_exists($entity, 'getValidationRules')) {
+            $this->validationRules = $entity->getValidationRules();
+        }
+        if (method_exists($entity, 'getValidationMessages')) {
+            $this->validationMessages = $entity->getValidationMessages();
+        }
         
-        // Loại trừ các trường timestamp và primary key khi thêm mới
+        // Loại bỏ các trường không cần thiết cho validation
         unset($this->validationRules['created_at']);
         unset($this->validationRules['updated_at']);
         unset($this->validationRules['deleted_at']);
-        // Loại bỏ validation cho bac_hoc_id trong mọi trường hợp
-        unset($this->validationRules['bac_hoc_id']);
-        unset($this->validationRules['bin']);
+        unset($this->validationRules[$this->primaryKey]); // Loại bỏ primary key
         
-        if ($scenario === 'update' && isset($data['bac_hoc_id'])) {
-            foreach ($this->validationRules as $field => &$rules) {
-                // Kiểm tra nếu $rules là một mảng
-                if (is_array($rules) && isset($rules['rules'])) {
-                    // Kiểm tra nếu chuỗi quy tắc chứa is_unique
-                    if (strpos($rules['rules'], 'is_unique') !== false) {
-                        $rules['rules'] = str_replace('{bac_hoc_id}', $data['bac_hoc_id'], $rules['rules']);
+        // Bỏ qua rule 'bin' nếu có trong Entity (thường không validate)
+        if (isset($this->validationRules['bin'])) {
+             unset($this->validationRules['bin']);
+        }
+
+        // Điều chỉnh quy tắc 'is_unique' cho trường hợp update
+        if ($scenario === 'update' && isset($data[$this->primaryKey])) {
+            $primaryKeyValue = $data[$this->primaryKey];
+            foreach ($this->validationRules as $field => &$ruleSet) {
+                // Xử lý cả trường hợp rules là string hoặc array
+                $rulesString = is_array($ruleSet) ? ($ruleSet['rules'] ?? '') : $ruleSet;
+                
+                if (strpos($rulesString, 'is_unique') !== false) {
+                    // Thay thế placeholder {id} hoặc tương tự bằng giá trị thực tế
+                    $newRulesString = preg_replace('/\{.*\}/', $primaryKeyValue, $rulesString); 
+                    
+                    if (is_array($ruleSet)) {
+                        $ruleSet['rules'] = $newRulesString;
+                    } else {
+                        $ruleSet = $newRulesString;
                     }
-                } 
-                // Nếu $rules là một chuỗi
-                else if (is_string($rules) && strpos($rules, 'is_unique') !== false) {
-                    $rules = str_replace('{bac_hoc_id}', $data['bac_hoc_id'], $rules);
                 }
             }
+            // Giải phóng biến tham chiếu
+            unset($ruleSet); 
         }
-    }
-    
-    /**
-     * Thiết lập số lượng liên kết trang hiển thị xung quanh trang hiện tại
-     * 
-     * @param int $count Số lượng liên kết trang hiển thị (mỗi bên)
-     * @return $this
-     */
-    public function setSurroundCount(int $count)
-    {
-        if ($this->pager !== null) {
-            $this->pager->setSurroundCount($count);
-        }
-        
-        return $this;
-    }
-    
-    /**
-     * Lấy đối tượng phân trang 
-     * 
-     * @return Pager|null
-     */
-    public function getPager()
-    {
-        return $this->pager;
-    }
-    
-    /**
-     * Tìm bản ghi với các quan hệ
-     *
-     * @param int $id ID bản ghi cần tìm
-     * @param array $relations Các quan hệ cần lấy theo
-     * @param bool $validate Có kiểm tra dữ liệu trước khi trả về không
-     * @return object|null Đối tượng tìm thấy hoặc null nếu không tìm thấy
-     */
-    public function findWithRelations($id, $relations = [], $validate = false)
-    {
-        // Trong trường hợp đơn giản, chúng ta chỉ gọi phương thức find
-        // Nhưng trong thực tế, có thể cần xử lý thêm các quan hệ
-        return $this->find($id);
-    }
-    
-    /**
-     * Tìm kiếm các bản ghi đã xóa
-     *
-     * @param array $criteria Tiêu chí tìm kiếm
-     * @param array $options Tùy chọn tìm kiếm (limit, offset, sort, order)
-     * @return array
-     */
-    public function searchDeleted(array $criteria = [], array $options = [])
-    {
-        // Đảm bảo withDeleted được thiết lập
-        $this->withDeleted();
-        
-        // Đặt điều kiện để chỉ lấy các bản ghi đã xóa
-        $criteria['deleted'] = true;
-        
-        // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
-        return $this->search($criteria, $options);
-    }
-    
-    /**
-     * Đếm số lượng bản ghi đã xóa theo tiêu chí tìm kiếm
-     *
-     * @param array $criteria Tiêu chí tìm kiếm
-     * @return int
-     */
-    public function countDeletedResults(array $criteria = [])
-    {
-        // Đảm bảo withDeleted được thiết lập
-        $this->withDeleted();
-        
-        // Đặt điều kiện để chỉ đếm các bản ghi đã xóa
-        $criteria['deleted'] = true;
-        
-        // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
-        return $this->countSearchResults($criteria);
     }
     
     /**
      * Kiểm tra xem tên bậc học đã tồn tại chưa
+     * Phương thức này đặc thù cho BacHocModel nên giữ lại.
      *
      * @param string $tenBacHoc
      * @param int|null $excludeId ID của bản ghi cần loại trừ khi kiểm tra (cho update)
@@ -456,9 +159,26 @@ class BacHocModel extends BaseModel
      */
     public function isTenBacHocExists(string $tenBacHoc, ?int $excludeId = null): bool
     {
+        return $this->isDuplicate('ten_bac_hoc', $tenBacHoc, $excludeId);
+    }
+
+    /**
+     * Hàm kiểm tra trùng lặp chung (có thể đưa vào BaseModel nếu dùng nhiều)
+     *
+     * @param string $field Tên trường cần kiểm tra
+     * @param mixed $value Giá trị cần kiểm tra
+     * @param int|null $excludeId ID của bản ghi cần loại trừ
+     * @return bool
+     */
+    protected function isDuplicate(string $field, $value, ?int $excludeId = null): bool
+    {
         $builder = $this->builder();
-        $builder->where('ten_bac_hoc', $tenBacHoc);
-        $builder->where('deleted_at IS NULL');
+        $builder->where($field, $value);
+        
+        // Luôn kiểm tra trong các bản ghi chưa bị xóa mềm
+        if ($this->useSoftDeletes) {
+            $builder->where($this->deletedField . ' IS NULL');
+        }
         
         if ($excludeId !== null) {
             $builder->where($this->primaryKey . ' !=', $excludeId);
@@ -466,4 +186,6 @@ class BacHocModel extends BaseModel
         
         return $builder->countAllResults() > 0;
     }
-} 
+
+ 
+}

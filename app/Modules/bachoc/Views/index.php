@@ -29,191 +29,193 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
 <?= $this->endSection() ?>  
 
 <?= $this->section('content') ?>
-<div class="card shadow-sm">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Danh sách bậc học</h5>
-        <div>
-            <button type="button" class="btn btn-sm btn-outline-primary me-2" id="refresh-table">
-                <i class='bx bx-refresh'></i> Làm mới
-            </button>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class='bx bx-export'></i> Xuất
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= site_url($route_url . '/exportExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
-                    <li><a class="dropdown-item" href="<?= site_url($route_url . '/exportPdf' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-pdf">PDF</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <div class="card-body p-0">
-        <div class="p-3 bg-light border-bottom">
-            <div class="row">
-                <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <form id="form-delete-multiple" action="<?= site_url($route_url . '/deleteMultiple') ?>" method="post" class="d-inline">
-                        <?= csrf_field() ?>
-                        <button type="button" id="delete-selected-multiple" class="btn btn-danger btn-sm me-2" disabled>
-                            <i class='bx bx-trash'></i> Xóa mục đã chọn
-                        </button>
-                    </form>
-                    <form id="form-status-multiple" action="<?= site_url($route_url . '/statusMultiple') ?>" method="post" class="d-inline">       
-                        <?= csrf_field() ?>
-                        <button type="button" id="status-selected-multiple" class="btn btn-warning btn-sm me-2" disabled>
-                            <i class='bx bx-toggle-right'></i> Đổi trạng thái
-                        </button>
-                    </form>
-                    <a href="<?= site_url($route_url . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
-                        <i class='bx bx-trash'></i> Danh sách đã xóa
-                    </a>
-                </div>
-                <div class="col-12 col-md-6">
-                    <form action="<?= site_url($route_url) ?>" method="get" id="search-form">
-                        <input type="hidden" name="page" value="1">
-                        <input type="hidden" name="perPage" value="<?= $perPage ?>">
-                        <div class="input-group search-box">
-                            <input type="text" class="form-control form-control-sm" id="table-search" name="keyword" placeholder="Tìm kiếm..." value="<?= $keyword ?? '' ?>">
-                            <select name="status" class="form-select form-select-sm" style="max-width: 140px;">
-                                <option value="">-- Trạng thái --</option>
-                                <option value="1" <?= (isset($status) && $status == '1') ? 'selected' : '' ?>>Hoạt động</option>
-                                <option value="0" <?= (isset($status) && $status == '0') ? 'selected' : '' ?>>Không hoạt động</option>
-                            </select>
-                            <button class="btn btn-outline-secondary btn-sm" type="submit">
-                                <i class='bx bx-search'></i>
-                            </button>
-                            <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
-                            <a href="<?= site_url($route_url) ?>" class="btn btn-outline-danger btn-sm">
-                                <i class='bx bx-x'></i>
-                            </a>
-                            <?php endif; ?>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <?php if (session()->has('error')) : ?>
-            <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
-                <?= session('error') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
+<div class="container-fluid">
 
-        <?php if (session()->has('success')) : ?>
-            <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
-                <?= session('success') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800"><?= $title ?></h1>
+    <?= session()->getFlashdata('message'); ?>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách</h6>
+            <div class="d-flex gap-1">
+                 <!-- Nút thêm mới -->
+                 <a href="<?= base_url('admin/' . $module_name . '/new') ?>" class="btn btn-primary btn-sm">
+                     <i class="fas fa-plus"></i> Thêm mới
+                 </a>
+                 <!-- Nút Export -->
+                 <div class="btn-group">
+                     <button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                         <i class="fas fa-file-export"></i> Export
+                     </button>
+                     <ul class="dropdown-menu dropdown-menu-end">
+                         <li><a class="dropdown-item" href="<?= base_url('admin/' . $module_name . '/exportPdf') . '?' . http_build_query($searchData ?? []) ?>"><i class="fas fa-file-pdf me-2"></i> PDF</a></li>
+                         <li><a class="dropdown-item" href="<?= base_url('admin/' . $module_name . '/exportExcel') . '?' . http_build_query($searchData ?? []) ?>"><i class="fas fa-file-excel me-2"></i> Excel</a></li>
+                     </ul>
+                 </div>
+                 <!-- Nút Thùng rác -->
+                 <a href="<?= base_url('admin/' . $module_name . '/listdeleted') ?>" class="btn btn-secondary btn-sm">
+                     <i class="fas fa-trash"></i> Thùng rác
+                 </a>
             </div>
-        <?php endif; ?>
-        
-        <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
-            <div class="alert alert-info m-3">
-                <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm:</h6>
-                <div class="small">
-                    <?php if (!empty($keyword)): ?>
-                        <span class="badge bg-primary me-2">Từ khóa: <?= esc($keyword) ?></span>
-                    <?php endif; ?>
-                    <?php if (isset($status) && $status !== ''): ?>
-                        <span class="badge bg-secondary me-2">Trạng thái: <?= $status == 1 ? 'Hoạt động' : 'Không hoạt động' ?></span>
-                    <?php endif; ?>
-                    <a href="<?= site_url($route_url) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
-                </div>
-            </div>
-        <?php endif; ?>
-        <div class="table-responsive">
-            <div class="table-container">
-                <table id="dataTable" class="table table-striped table-hover m-0 w-100">
-                    <thead class="table-light">
+        </div>
+        <div class="card-body">
+            <?php 
+                // Khởi tạo thư viện FilterForm
+                $filterForm = new \App\Modules\bachoc\Libraries\FilterForm();
+                // Dữ liệu cần truyền vào form: chỉ cần cấu hình các trường
+                $filterData = [
+                    // 'search' và 'filters' sẽ được thư viện tự động lấy từ request
+                    'searchFields' => $searchFields ?? [], // Các trường có thể tìm kiếm
+                    'filterFields' => $filterFields ?? [], // Các trường có thể lọc
+                    'moduleName' => $moduleName ?? 'bachoc' // Tên module (nếu cần)
+                ];
+            ?>
+            <!-- Render form bằng thư viện -->
+            <?= $filterForm->render($filterData) ?>
+            
+            <!-- Bảng dữ liệu -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
                         <tr>
-                            <th width="5%" class="text-center align-middle">
-                                <div class="form-check">
-                                    <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
-                                </div>
+                            <th class="text-center" style="width: 30px;">
+                                <input type="checkbox" id="select-all">
                             </th>
-                            <th width="5%" class="align-middle">ID</th>
-                            <th width="20%" class="align-middle">Bậc học</th>
-                            <th width="20%" class="align-middle">Mã bậc học</th>
-                            <th width="10%" class="text-center align-middle">Trạng thái</th>
-                            <th width="20%" class="text-center align-middle">Thao tác</th>
+                            <th>
+                                <?php 
+                                $sortParam = ($sort === 'ten_bac_hoc ASC') ? 'ten_bac_hoc DESC' : 'ten_bac_hoc ASC';
+                                $sortIcon = getSortIcon($sort, 'ten_bac_hoc');
+                                ?>
+                                <a href="<?= getCurrentUrlWithSort('ten_bac_hoc', $sortParam) ?>">
+                                    Tên Bậc học <?= $sortIcon ?>
+                                </a>
+                            </th>
+                            <th>
+                                <?php 
+                                $sortParam = ($sort === 'ma_bac_hoc ASC') ? 'ma_bac_hoc DESC' : 'ma_bac_hoc ASC';
+                                $sortIcon = getSortIcon($sort, 'ma_bac_hoc');
+                                ?>
+                                <a href="<?= getCurrentUrlWithSort('ma_bac_hoc', $sortParam) ?>">
+                                    Mã Bậc học <?= $sortIcon ?>
+                                </a>
+                            </th>
+                            <th class="text-center">
+                                <?php 
+                                $sortParam = ($sort === 'status ASC') ? 'status DESC' : 'status ASC';
+                                $sortIcon = getSortIcon($sort, 'status');
+                                ?>
+                                <a href="<?= getCurrentUrlWithSort('status', $sortParam) ?>">
+                                    Trạng thái <?= $sortIcon ?>
+                                </a>
+                            </th>
+                            <th class="text-center">
+                                <?php 
+                                $sortParam = ($sort === 'created_at ASC') ? 'created_at DESC' : 'created_at ASC';
+                                $sortIcon = getSortIcon($sort, 'created_at');
+                                ?>
+                                <a href="<?= getCurrentUrlWithSort('created_at', $sortParam) ?>">
+                                    Ngày tạo <?= $sortIcon ?>
+                                </a>
+                            </th>
+                            <th class="text-center">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if (!empty($processedData)) : ?>
-                            <?php foreach ($processedData as $item) : ?>
+                        <?php if (!empty($items)) : ?>
+                            <?php foreach ($items as $item) : ?>
                                 <tr>
                                     <td class="text-center">
-                                        <div class="form-check">
-                                            <input class="form-check-input checkbox-item cursor-pointer" 
-                                            type="checkbox" name="selected_items[]" 
-                                            value="<?= $item->bac_hoc_id ?>">
-                                        </div>
+                                        <input type="checkbox" name="ids[]" class="checkbox-item" value="<?= $item->bac_hoc_id ?>">
                                     </td>
-                                    <td><?= esc($item->bac_hoc_id) ?></td>  
-                                    <td><?= esc($item->ten_bac_hoc) ?></td> 
+                                    <td><?= esc($item->ten_bac_hoc) ?></td>
                                     <td><?= esc($item->ma_bac_hoc) ?></td>
+                                    <td class="text-center"><?= $item->getStatusLabel() ?></td>
+                                    <td class="text-center"><?= $item->getCreatedAtFormatted('d/m/Y H:i') ?></td>
                                     <td class="text-center">
-                                        <?= $item->getStatusLabel() ?>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <a href="<?= site_url($route_url . "/view/{$item->bac_hoc_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
-                                                <i class="bx bx-info-circle text-white"></i>
-                                            </a>
-                                            <a href="<?= site_url($route_url . "/edit/{$item->bac_hoc_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
-                                                <i class="bx bx-edit"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
-                                                    data-id="<?= $item->bac_hoc_id ?>" 
-                                                    data-name="ID: <?= esc($item->bac_hoc_id) ?> - <?= esc($item->ten_bac_hoc) ?>"
-                                                    data-bs-toggle="tooltip" title="Xóa">
-                                                <i class="bx bx-trash"></i>
-                                            </button>
-                                        </div>
+                                        <a href="<?= base_url('admin/' . $module_name . '/show/' . $item->bac_hoc_id) ?>" class="btn btn-info btn-sm text-white">Xem</a>
+                                        <a href="<?= base_url('admin/' . $module_name . '/edit/' . $item->bac_hoc_id) ?>" class="btn btn-primary btn-sm">Sửa</a>
+                                        <button class="btn btn-danger btn-sm btn-delete" data-id="<?= $item->bac_hoc_id ?>" data-name="<?= esc($item->ten_bac_hoc) ?>" data-url="<?= base_url('admin/' . $module_name . '/delete/' . $item->bac_hoc_id) ?>">Xóa</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="6" class="text-center py-3">
-                                    <div class="empty-state">
-                                        <i class="bx bx-folder-open"></i>
-                                        <p>Không có dữ liệu</p>
-                                    </div>
-                                </td>
+                                <td colspan="6" class="text-center">Không tìm thấy dữ liệu.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
-        </div>
-        <?php if (!empty($processedData)): ?>
-            <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-2">
-                <div class="col-sm-12 col-md-5">
-                    <div class="dataTables_info">
-                        Hiển thị từ <?= (($pager->getCurrentPage() - 1) * $perPage + 1) ?> đến <?= min(($pager->getCurrentPage() - 1) * $perPage + $perPage, $total) ?> trong số <?= $total ?> bản ghi
-                    </div>
+
+            <!-- Thanh điều hướng và phân trang -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="d-flex gap-1">
+                    <button class="btn btn-danger btn-sm" id="delete-selected-multiple" data-url="<?= base_url('admin/' . $module_name . '/deleteMultiple') ?>" style="display: none;">
+                        <i class="bx bx-trash"></i> Xóa mục đã chọn
+                    </button>
+                    <button class="btn btn-primary btn-sm" id="status-selected-multiple" data-url="<?= base_url('admin/' . $module_name . '/statusMultiple') ?>" style="display: none;">
+                        <i class="bx bx-toggle-right"></i> Đổi trạng thái mục đã chọn
+                    </button>
                 </div>
-                <div class="col-sm-12 col-md-7">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <div class="me-2">
-                            <select id="perPageSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
-                                <option value="10" <?= $perPage == 10 ? 'selected' : '' ?>>10</option>
-                                <option value="25" <?= $perPage == 25 ? 'selected' : '' ?>>25</option>
-                                <option value="50" <?= $perPage == 50 ? 'selected' : '' ?>>50</option>
-                                <option value="100" <?= $perPage == 100 ? 'selected' : '' ?>>100</option>
-                            </select>
-                        </div>
-                        <div class="pagination-container">
-                            <?php if ($pager) : ?>
-                                <?= $pager->links() ?>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+                <!-- Hiển thị phân trang -->
+                <div class="pagination-container">
+                    <?= $pager // Hiển thị links phân trang ?>
                 </div>
             </div>
-        <?php endif; ?>
+        </div>
     </div>
+
 </div>
+<!-- /.container-fluid -->
+
+<!-- Scripts -->
+<?php 
+    // Tải HTML helper để sử dụng script_tag()
+    helper('html');
+
+    // Cách mới: Sử dụng moduleName làm namespace
+// Truyền URL và namespace vào Javascript
+$scriptUrl = base_url($module_name . '/master_scripts.php?module=' . $module_name);
+// Truyền URL vào Javascript
+echo script_tag($route_url_php . '/master_scripts.php?module=' . $module_name);
+?>
+
+<?php 
+// Hàm helper để tạo URL sắp xếp
+function getCurrentUrlWithSort($field, $direction) {
+    $currentUrl = current_url();
+    $queryParams = service('request')->getGet();
+    $queryParams['sort'] = $field . ' ' . $direction;
+    // Loại bỏ page để quay về trang đầu khi sắp xếp
+    unset($queryParams['page']); 
+    return $currentUrl . '?' . http_build_query($queryParams);
+}
+
+// Hàm helper để lấy icon sắp xếp
+function getSortIcon($currentSort, $field) {
+    if ($currentSort === $field . ' ASC') {
+        return '<i class="fas fa-sort-up"></i>';
+    } elseif ($currentSort === $field . ' DESC') {
+        return '<i class="fas fa-sort-down"></i>';
+    } else {
+        return '<i class="fas fa-sort text-muted"></i>'; // Icon mặc định
+    }
+}
+
+// Chuẩn bị dữ liệu tìm kiếm/lọc/sắp xếp cho link export
+$searchData = [
+    'search' => $search ?? '',
+    'filters' => $filters ?? [],
+    'sort' => $sort ?? ''
+];
+// Loại bỏ các giá trị rỗng khỏi mảng filter
+if (isset($searchData['filters']) && is_array($searchData['filters'])) {
+    $searchData['filters'] = array_filter($searchData['filters'], function($value) {
+        return $value !== '' && $value !== null;
+    });
+}
+?>
 
 <!-- Modal Xác nhận xóa -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -228,10 +230,10 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
                 <p class="text-danger mb-0"><i class="bx bx-info-circle"></i> Lưu ý: Hành động này có thể ảnh hưởng đến dữ liệu liên quan!</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times"></i> Hủy</button>
                 <form id="delete-form" action="" method="post">
                     <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-danger">Xóa</button>
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Xóa</button>
                 </form>
             </div>
         </div>
@@ -251,8 +253,11 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
                 <p class="text-danger mb-0"><i class="bx bx-info-circle"></i> Lưu ý: Hành động này có thể ảnh hưởng đến dữ liệu liên quan!</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" id="confirm-delete-multiple" class="btn btn-danger">Xóa</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bx bx-x"></i> Hủy</button>
+                <form id="form-delete-multiple" action="<?= base_url('admin/' . $module_name . '/deleteMultiple') ?>" method="post" style="display: inline;">
+                    <?= csrf_field() ?>
+                </form>
+                <button type="button" id="confirm-delete-multiple" class="btn btn-danger"><i class="bx bx-trash"></i> Xóa</button>
             </div>
         </div>
     </div>
@@ -270,14 +275,17 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
                 <p>Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> mục đã chọn?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" id="confirm-status-multiple" class="btn btn-primary">Xác nhận</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bx bx-x"></i> Hủy</button>
+                <form id="form-status-multiple" action="<?= base_url('admin/' . $module_name . '/statusMultiple') ?>" method="post" style="display: inline;">
+                    <?= csrf_field() ?>
+                </form>
+                <button type="button" id="confirm-status-multiple" class="btn btn-primary"><i class="bx bx-check"></i> Xác nhận</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Loading indicator (hidden by default) -->
+<!-- Loading indicator -->
 <div id="loading-indicator" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
     <div class="spinner-border text-light" role="status">
         <span class="visually-hidden">Đang tải...</span>

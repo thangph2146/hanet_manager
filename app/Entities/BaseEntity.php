@@ -429,4 +429,262 @@ abstract class BaseEntity extends Entity
         $this->concatFields = $fields;
         return $this;
     }
+
+    /**
+     * Lấy giá trị của trường theo tên
+     * 
+     * @param string $field Tên trường
+     * @param mixed $default Giá trị mặc định nếu không tìm thấy
+     * @return mixed
+     */
+    public function getField(string $field, $default = null)
+    {
+        return $this->attributes[$field] ?? $default;
+    }
+
+    /**
+     * Lấy giá trị của nhiều trường theo tên
+     * 
+     * @param array $fields Danh sách tên trường
+     * @return array
+     */
+    public function getFields(array $fields): array
+    {
+        $result = [];
+        foreach ($fields as $field) {
+            $result[$field] = $this->getField($field);
+        }
+        return $result;
+    }
+
+    /**
+     * Lấy giá trị của trường theo tên và chuyển đổi kiểu dữ liệu
+     * 
+     * @param string $field Tên trường
+     * @param string $type Kiểu dữ liệu cần chuyển đổi
+     * @param mixed $default Giá trị mặc định nếu không tìm thấy
+     * @return mixed
+     */
+    public function getFieldAs(string $field, string $type, $default = null)
+    {
+        $value = $this->getField($field, $default);
+        
+        switch ($type) {
+            case 'int':
+            case 'integer':
+                return (int)$value;
+            case 'float':
+                return (float)$value;
+            case 'string':
+                return (string)$value;
+            case 'bool':
+            case 'boolean':
+                return (bool)$value;
+            case 'array':
+                return is_array($value) ? $value : [];
+            case 'object':
+                return is_object($value) ? $value : null;
+            case 'json':
+                return $this->castAsJson($value);
+            case 'date':
+                return $this->mutateDate($value);
+            default:
+                return $value;
+        }
+    }
+
+    /**
+     * Lấy giá trị của nhiều trường theo tên và chuyển đổi kiểu dữ liệu
+     * 
+     * @param array $fields Danh sách tên trường và kiểu dữ liệu
+     * @return array
+     */
+    public function getFieldsAs(array $fields): array
+    {
+        $result = [];
+        foreach ($fields as $field => $type) {
+            $result[$field] = $this->getFieldAs($field, $type);
+        }
+        return $result;
+    }
+
+    /**
+     * Lấy giá trị của trường theo tên và định dạng
+     * 
+     * @param string $field Tên trường
+     * @param string $format Định dạng cần chuyển đổi
+     * @param mixed $default Giá trị mặc định nếu không tìm thấy
+     * @return mixed
+     */
+    public function getFieldFormatted(string $field, string $format, $default = null)
+    {
+        $value = $this->getField($field, $default);
+        
+        switch ($format) {
+            case 'currency':
+                return number_format($value, 0, ',', '.');
+            case 'date':
+                return date('d/m/Y', strtotime($value));
+            case 'datetime':
+                return date('d/m/Y H:i:s', strtotime($value));
+            case 'time':
+                return date('H:i:s', strtotime($value));
+            case 'phone':
+                return preg_replace('/(\d{3})(\d{3})(\d{4})/', '$1-$2-$3', $value);
+            case 'email':
+                return strtolower($value);
+            case 'url':
+                return strtolower($value);
+            case 'slug':
+                return url_title($value, '-', true);
+            case 'title':
+                return ucwords(strtolower($value));
+            case 'upper':
+                return strtoupper($value);
+            case 'lower':
+                return strtolower($value);
+            default:
+                return $value;
+        }
+    }
+
+    /**
+     * Lấy giá trị của nhiều trường theo tên và định dạng
+     * 
+     * @param array $fields Danh sách tên trường và định dạng
+     * @return array
+     */
+    public function getFieldsFormatted(array $fields): array
+    {
+        $result = [];
+        foreach ($fields as $field => $format) {
+            $result[$field] = $this->getFieldFormatted($field, $format);
+        }
+        return $result;
+    }
+
+    /**
+     * Lấy giá trị của trường theo tên và xử lý trước khi trả về
+     * 
+     * @param string $field Tên trường
+     * @param callable $callback Hàm xử lý giá trị
+     * @param mixed $default Giá trị mặc định nếu không tìm thấy
+     * @return mixed
+     */
+    public function getFieldWithCallback(string $field, callable $callback, $default = null)
+    {
+        $value = $this->getField($field, $default);
+        return $callback($value);
+    }
+
+    /**
+     * Lấy giá trị của nhiều trường theo tên và xử lý trước khi trả về
+     * 
+     * @param array $fields Danh sách tên trường và hàm xử lý
+     * @return array
+     */
+    public function getFieldsWithCallback(array $fields): array
+    {
+        $result = [];
+        foreach ($fields as $field => $callback) {
+            $result[$field] = $this->getFieldWithCallback($field, $callback);
+        }
+        return $result;
+    }
+
+    /**
+     * Lấy giá trị của trường theo tên và xử lý trước khi trả về
+     * 
+     * @param string $field Tên trường
+     * @param array $options Tùy chọn xử lý
+     * @param mixed $default Giá trị mặc định nếu không tìm thấy
+     * @return mixed
+     */
+    public function getFieldWithOptions(string $field, array $options = [], $default = null)
+    {
+        $value = $this->getField($field, $default);
+        
+        // Xử lý các tùy chọn
+        if (!empty($options['type'])) {
+            $value = $this->getFieldAs($field, $options['type'], $default);
+        }
+        
+        if (!empty($options['format'])) {
+            $value = $this->getFieldFormatted($field, $options['format']);
+        }
+        
+        if (!empty($options['callback']) && is_callable($options['callback'])) {
+            $value = $options['callback']($value);
+        }
+        
+        return $value;
+    }
+
+    /**
+     * Lấy giá trị của nhiều trường theo tên và xử lý trước khi trả về
+     * 
+     * @param array $fields Danh sách tên trường và tùy chọn xử lý
+     * @return array
+     */
+    public function getFieldsWithOptions(array $fields): array
+    {
+        $result = [];
+        foreach ($fields as $field => $options) {
+            $result[$field] = $this->getFieldWithOptions($field, $options);
+        }
+        return $result;
+    }
+
+    /**
+     * Lấy giá trị của trường theo tên và xử lý trước khi trả về
+     * 
+     * @param string $field Tên trường
+     * @param array $options Tùy chọn xử lý
+     * @param mixed $default Giá trị mặc định nếu không tìm thấy
+     * @return mixed
+     */
+    public function getFieldWithValidation(string $field, array $options = [], $default = null)
+    {
+        $value = $this->getField($field, $default);
+        
+        // Xử lý các tùy chọn
+        if (!empty($options['type'])) {
+            $value = $this->getFieldAs($field, $options['type'], $default);
+        }
+        
+        if (!empty($options['format'])) {
+            $value = $this->getFieldFormatted($field, $options['format']);
+        }
+        
+        if (!empty($options['callback']) && is_callable($options['callback'])) {
+            $value = $options['callback']($value);
+        }
+        
+        // Xử lý validation
+        if (!empty($options['validation'])) {
+            $validation = \Config\Services::validation();
+            $validation->setRule($field, $options['validation']['label'] ?? $field, $options['validation']['rules']);
+            
+            if (!$validation->run([$field => $value])) {
+                $value = $default;
+            }
+        }
+        
+        return $value;
+    }
+
+    /**
+     * Lấy giá trị của nhiều trường theo tên và xử lý trước khi trả về
+     * 
+     * @param array $fields Danh sách tên trường và tùy chọn xử lý
+     * @return array
+     */
+    public function getFieldsWithValidation(array $fields): array
+    {
+        $result = [];
+        foreach ($fields as $field => $options) {
+            $result[$field] = $this->getFieldWithValidation($field, $options);
+        }
+        return $result;
+    }
 }

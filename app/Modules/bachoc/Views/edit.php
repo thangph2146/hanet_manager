@@ -1,29 +1,30 @@
 <?= $this->extend('layouts/default') ?>
-<?= $this->section('linkHref') ?>
 <?php 
 // Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
-$route_url = isset($route_url) ? $route_url : 'admin/bachoc';
 $module_name = isset($module_name) ? $module_name : 'bachoc';
+// Tạo URL action cho form
+$action = site_url($route_url . '/update/' . ($item->bac_hoc_id ?? ''));
 
 // Khởi tạo thư viện MasterScript
 $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $module_name);
 ?>
+<?= $this->section('linkHref') ?>
 <?= $masterScript->pageCss('form') ?>
-<?= $masterScript->pageSectionCss('form') ?>
+<?= $masterScript->pageSectionCss('modal') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>CẬP NHẬT BẬC HỌC<?= $this->endSection() ?>
+<?= $this->section('title') ?>CHỈNH SỬA BẬC HỌC<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-    'title' => 'Cập nhật bậc học',
+    'title' => 'Chỉnh sửa bậc học',
     'dashboard_url' => site_url($route_url),
     'breadcrumbs' => [
         ['title' => 'Quản lý Bậc Học', 'url' => site_url($route_url)],
-        ['title' => 'Cập nhật', 'active' => true]
+        ['title' => 'Chỉnh sửa', 'active' => true]
     ],
     'actions' => [
-		['url' => site_url($route_url), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
-	]
+        ['url' => site_url($route_url), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+    ]
 ]) ?>
 <?= $this->endSection() ?>
 
@@ -38,9 +39,9 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
         <?= form_close() ?>
     </div>
 </div>
-<?= $this->endSection() ?>  
+<?= $this->endSection() ?>
 
-<?= $this->section('script') ?>
+<?= $this->section('script_ext') ?>
 <?= $masterScript->pageJs('form') ?>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

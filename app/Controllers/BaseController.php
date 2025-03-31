@@ -8,6 +8,7 @@ use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use Config\Services;
 
 /**
  * Class BaseController
@@ -50,6 +51,7 @@ abstract class BaseController extends Controller
     ];
 
     // Các thuộc tính chung cho module
+    protected $route_url = '';
     protected $moduleName = '';
     protected $modulePath = '';
     protected $viewPath = '';
@@ -76,7 +78,6 @@ abstract class BaseController extends Controller
     {
         // Do Not Edit This Line
         parent::initController($request, $response, $logger);
-
         // Preload any models, libraries, etc, here.
 
         // E.g.: $this->session = \Config\Services::session();
@@ -90,9 +91,11 @@ abstract class BaseController extends Controller
         // Lấy tên module từ namespace
         $className = get_class($this);
         $namespaceParts = explode('\\', $className);
-        $this->moduleName = $namespaceParts[1] ?? '';
+        $this->moduleName = $namespaceParts[2] ?? '';
         $this->modulePath = "app/Modules/{$this->moduleName}";
-        $this->viewPath = "Modules/{$this->moduleName}/Views";
+        
+        // Đặt viewPath thành tên namespace (tên module)
+        $this->viewPath = "App\\Modules\\{$this->moduleName}\\Views\\"; 
         
         // Tạo tên model và entity
         $controllerName = end($namespaceParts);
@@ -131,7 +134,7 @@ abstract class BaseController extends Controller
             'limit' => $this->perPage
         ]);
 
-        return view("{$this->viewPath}/index", $data);
+        return view($this->viewPath . '::index', $data);
     }
 
     public function create()
@@ -152,7 +155,7 @@ abstract class BaseController extends Controller
             }
         }
 
-        return view("{$this->viewPath}/create", $data);
+        return view($this->viewPath . '::create', $data);
     }
 
     public function edit($id)
@@ -171,16 +174,33 @@ abstract class BaseController extends Controller
         ];
 
         if ($this->request->getMethod() === 'post') {
-            if ($this->validate($this->validationRules, $this->validationMessages)) {
-                $entity = new $this->entityName($this->request->getPost());
-                
-                if ($model->update($id, $entity)) {
-                    return redirect()->to("/{$this->moduleName}")->with('success', 'Cập nhật thành công');
-                }
+            return $this->update($id);
+        }
+
+        return view($this->viewPath . 'edit', $data);
+    }
+
+    /**
+     * Xử lý cập nhật dữ liệu
+     * 
+     * @param int $id ID của bản ghi cần cập nhật
+     * @return \CodeIgniter\HTTP\RedirectResponse
+     */
+    protected function update($id)
+    {
+        if ($this->validate($this->validationRules, $this->validationMessages)) {
+            $model = new $this->modelName();
+            $entity = new $this->entityName($this->request->getPost());
+            
+            if ($model->update($id, $entity)) {
+                return redirect()->to("/{$this->moduleName}")->with('success', 'Cập nhật thành công');
             }
         }
 
-        return view("{$this->viewPath}/edit", $data);
+        // Nếu có lỗi validation, quay lại form với dữ liệu cũ
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Vui lòng kiểm tra lại thông tin');
     }
 
     public function delete($id)
@@ -208,7 +228,7 @@ abstract class BaseController extends Controller
             'item' => $item
         ];
 
-        return view("{$this->viewPath}/show", $data);
+        return view($this->viewPath . 'show', $data);
     }
 
     // Các phương thức tiện ích
@@ -247,9 +267,259 @@ abstract class BaseController extends Controller
         return date('Y-m-d H:i:s', strtotime($date));
     }
 
-    protected function jsonResponse($data, $status = 200)
+    /**
+     * Xử lý request và trả về response dạng JSON
+     * 
+     * @param mixed $data Dữ liệu cần trả về
+     * @param int $status Mã trạng thái HTTP
+     * @param string $message Thông báo
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonResponse($data = null, int $status = 200, string $message = '')
     {
-        return $this->response->setJSON($data)->setStatusCode($status);
+        $response = [
+            'status' => $status,
+            'message' => $message,
+            'data' => $data
+        ];
+        
+        return $this->response->setJSON($response)->setStatusCode($status);
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với phân trang
+     * 
+     * @param array $data Dữ liệu cần trả về
+     * @param int $total Tổng số bản ghi
+     * @param int $page Trang hiện tại
+     * @param int $limit Số bản ghi mỗi trang
+     * @param string $message Thông báo
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonResponseWithPagination(array $data, int $total, int $page, int $limit, string $message = '')
+    {
+        $response = [
+            'status' => 200,
+            'message' => $message,
+            'data' => $data,
+            'pagination' => [
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'total_pages' => ceil($total / $limit)
+            ]
+        ];
+        
+        return $this->response->setJSON($response);
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với lỗi
+     * 
+     * @param string $message Thông báo lỗi
+     * @param int $status Mã trạng thái HTTP
+     * @param array $errors Chi tiết lỗi
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonErrorResponse(string $message, int $status = 400, array $errors = [])
+    {
+        $response = [
+            'status' => $status,
+            'message' => $message,
+            'errors' => $errors
+        ];
+        
+        return $this->response->setJSON($response)->setStatusCode($status);
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với validation
+     * 
+     * @param array $data Dữ liệu cần validate
+     * @param array $rules Quy tắc validation
+     * @param array $messages Thông báo lỗi
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonValidationResponse(array $data, array $rules, array $messages = [])
+    {
+        $validation = \Config\Services::validation();
+        $validation->setRules($rules, $messages);
+        
+        if (!$validation->run($data)) {
+            return $this->jsonErrorResponse(
+                'Dữ liệu không hợp lệ',
+                422,
+                $validation->getErrors()
+            );
+        }
+        
+        return $this->jsonResponse($data);
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với file upload
+     * 
+     * @param string $field Tên trường file
+     * @param string $path Đường dẫn lưu file
+     * @param array $options Tùy chọn upload
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonFileUploadResponse(string $field, string $path, array $options = [])
+    {
+        $file = $this->request->getFile($field);
+        
+        if (!$file->isValid()) {
+            return $this->jsonErrorResponse(
+                'File không hợp lệ',
+                400,
+                ['file' => $file->getErrorString()]
+            );
+        }
+        
+        $newName = $file->getRandomName();
+        $file->move($path, $newName);
+        
+        return $this->jsonResponse([
+            'filename' => $newName,
+            'path' => $path . $newName
+        ]);
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với file download
+     * 
+     * @param string $path Đường dẫn file
+     * @param string $filename Tên file
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonFileDownloadResponse(string $path, string $filename)
+    {
+        if (!file_exists($path)) {
+            return $this->jsonErrorResponse('File không tồn tại', 404);
+        }
+        
+        return $this->response->download($path, $filename);
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với file delete
+     * 
+     * @param string $path Đường dẫn file
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonFileDeleteResponse(string $path)
+    {
+        if (!file_exists($path)) {
+            return $this->jsonErrorResponse('File không tồn tại', 404);
+        }
+        
+        unlink($path);
+        
+        return $this->jsonResponse(null, 200, 'Xóa file thành công');
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với cache
+     * 
+     * @param string $key Khóa cache
+     * @param callable $callback Hàm lấy dữ liệu
+     * @param int $ttl Thời gian cache (giây)
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonCacheResponse(string $key, callable $callback, int $ttl = 3600)
+    {
+        $cache = \Config\Services::cache();
+        
+        if ($data = $cache->get($key)) {
+            return $this->jsonResponse($data);
+        }
+        
+        $data = $callback();
+        $cache->save($key, $data, $ttl);
+        
+        return $this->jsonResponse($data);
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với queue
+     * 
+     * @param string $queue Tên queue
+     * @param array $data Dữ liệu cần xử lý
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonQueueResponse(string $queue, array $data)
+    {
+        $queue = \Config\Services::queue();
+        
+        $queue->push($queue, $data);
+        
+        return $this->jsonResponse(null, 202, 'Đã thêm vào queue');
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với event
+     * 
+     * @param string $event Tên event
+     * @param array $data Dữ liệu cần xử lý
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonEventResponse(string $event, array $data)
+    {
+        $events = \Config\Services::events();
+        
+        $events->trigger($event, $data);
+        
+        return $this->jsonResponse(null, 202, 'Đã kích hoạt event');
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với log
+     * 
+     * @param string $level Cấp độ log
+     * @param string $message Nội dung log
+     * @param array $context Ngữ cảnh log
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonLogResponse(string $level, string $message, array $context = [])
+    {
+        $logger = \Config\Services::logger();
+        
+        $logger->log($level, $message, $context);
+        
+        return $this->jsonResponse(null, 200, 'Đã ghi log');
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với session
+     * 
+     * @param string $key Khóa session
+     * @param mixed $value Giá trị session
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonSessionResponse(string $key, $value)
+    {
+        $session = \Config\Services::session();
+        
+        $session->set($key, $value);
+        
+        return $this->jsonResponse(null, 200, 'Đã lưu session');
+    }
+
+    /**
+     * Xử lý request và trả về response dạng JSON với cookie
+     * 
+     * @param string $key Khóa cookie
+     * @param mixed $value Giá trị cookie
+     * @param array $options Tùy chọn cookie
+     * @return \CodeIgniter\HTTP\Response
+     */
+    protected function jsonCookieResponse(string $key, $value, array $options = [])
+    {
+        $response = $this->response;
+        
+        $response->setCookie($key, $value, $options);
+        
+        return $this->jsonResponse(null, 200, 'Đã lưu cookie');
     }
 
     // Các phương thức xử lý form
@@ -498,4 +768,196 @@ abstract class BaseController extends Controller
         $this->concatFields = $fields;
         return $this;
     }
+
+    // Các phương thức export (cần cài đặt thư viện ví dụ: TCPDF, PhpSpreadsheet)
+    public function exportPdf()
+    {
+        $params = $this->getSearchParams();
+        $model = new $this->modelName();
+        $items = $model->getAllByParams($params); // Sử dụng phương thức mới
+
+        // Logic tạo PDF (ví dụ sử dụng TCPDF)
+        // $pdf = new \TCPDF();
+        // ... Cấu hình và thêm dữ liệu vào PDF ...
+        // $pdf->Output('danh_sach_' . $this->moduleName . '.pdf', 'D'); 
+
+        // Tạm thời trả về thông báo
+        return redirect()->back()->with('info', 'Chức năng Export PDF đang được phát triển.');
+    }
+
+    public function exportExcel()
+    {
+        $params = $this->getSearchParams();
+        $model = new $this->modelName();
+        $items = $model->getAllByParams($params); // Sử dụng phương thức mới
+
+        // Logic tạo Excel (ví dụ sử dụng PhpSpreadsheet)
+        // $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        // $sheet = $spreadsheet->getActiveSheet();
+        // ... Thêm dữ liệu vào sheet ...
+        // $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        // header('Content-Disposition: attachment;filename="danh_sach_' . $this->moduleName . '.xlsx"');
+        // $writer->save('php://output');
+        // exit;
+
+        // Tạm thời trả về thông báo
+        return redirect()->back()->with('info', 'Chức năng Export Excel đang được phát triển.');
+    }
+
+    public function exportDeletedPdf()
+    {
+        $params = $this->getSearchParams();
+        $model = new $this->modelName();
+        $items = $model->onlyDeleted()->getAllByParams($params); // Lấy dữ liệu đã xóa
+
+        // Logic tạo PDF cho dữ liệu đã xóa
+        // ...
+
+        return redirect()->back()->with('info', 'Chức năng Export Deleted PDF đang được phát triển.');
+    }
+
+    public function exportDeletedExcel()
+    {
+        $params = $this->getSearchParams();
+        $model = new $this->modelName();
+        $items = $model->onlyDeleted()->getAllByParams($params); // Lấy dữ liệu đã xóa
+
+        // Logic tạo Excel cho dữ liệu đã xóa
+        // ...
+
+        return redirect()->back()->with('info', 'Chức năng Export Deleted Excel đang được phát triển.');
+    }
+
+    /**
+     * Hiển thị danh sách các bản ghi đã bị xóa (Soft Delete).
+     */
+    public function listdeleted()
+    {
+        $model = new $this->modelName();
+        $params = $this->getSearchParams();
+        
+        // Sử dụng onlyDeleted() để chỉ lấy các bản ghi đã xóa
+        // Và sử dụng getByParams để lấy dữ liệu với phân trang
+        $items = $model->onlyDeleted()->getByParams($params, [
+            'limit' => $this->perPage,
+            'page' => $params['page'] 
+        ]);
+        
+        $pager = $model->pager ?? service('pager');
+
+        $data = [
+            'title' => 'Danh sách đã xóa - ' . ucfirst($this->moduleName),
+            'items' => $items,
+            'pager' => $pager->links(),
+            'search' => $params['search'],
+            'filters' => $params['filters'],
+            'sort' => $params['sort'],
+            'searchFields' => $this->searchFields,
+            'filterFields' => $this->filterFields,
+            'sortFields' => $this->sortFields,
+            'moduleName' => $this->moduleName, 
+            'viewPath' => $this->viewPath 
+        ];
+        
+        return view($this->viewPath . 'listdeleted', $data);
+    }
+
+    /**
+     * Placeholder method to get headers for Excel export.
+     * Override this method in your specific controller.
+     *
+     * @return array
+     */
+    protected function getExportHeaders(): array
+    {
+        // Example: return ['ID', 'Name', 'Email', 'Created At'];
+        // Lấy các trường từ $allowedFields của model hoặc định nghĩa cứng
+        $model = new $this->modelName();
+        $allowedFields = $model->allowedFields ?? [];
+        // Loại bỏ các trường không cần thiết cho export (ví dụ: timestamps, deleted_at nếu không muốn)
+        return array_diff($allowedFields, [$model->createdField, $model->updatedField, $model->deletedField]);
+    }
+
+    /**
+     * Placeholder method to get row data for Excel export.
+     * Override this method in your specific controller.
+     *
+     * @param object|array $item The item entity or array.
+     * @return array
+     */
+    protected function getExportRowData($item): array
+    {
+         // Example: return [$item->id, $item->name, $item->email, $item->created_at];
+         $data = [];
+         $headers = $this->getExportHeaders(); // Lấy danh sách headers đã định nghĩa
+         foreach ($headers as $field) {
+             // Xử lý để lấy giá trị đúng từ object hoặc array
+             if (is_object($item) && isset($item->$field)) {
+                 $value = $item->$field;
+             } elseif (is_array($item) && isset($item[$field])) {
+                 $value = $item[$field];
+             } else {
+                 $value = ''; // Hoặc giá trị mặc định khác
+             }
+             
+             // Bạn có thể thêm định dạng dữ liệu ở đây nếu cần
+             // Ví dụ: định dạng ngày tháng, số,...
+             // if ($field === 'status') $value = ($value == 1) ? 'Active' : 'Inactive';
+             // if ($field === 'created_at' && $value instanceof \CodeIgniter\I18n\Time) $value = $value->toDateTimeString();
+             
+             $data[] = $value;
+         }
+         return $data;
+    }
+
+     /**
+      * Placeholder method to get headers for deleted data Excel export.
+      * Override this method in your specific controller.
+      *
+      * @return array
+      */
+     protected function getDeletedExportHeaders(): array
+     {
+         // Thường sẽ giống getExportHeaders() nhưng có thể thêm cột ngày xóa
+         $headers = $this->getExportHeaders();
+         $model = new $this->modelName();
+         if ($model->useSoftDeletes && !in_array($model->deletedField, $headers)) {
+             $headers[] = $model->deletedField; // Thêm cột ngày xóa
+         }
+         return $headers;
+     }
+
+     /**
+      * Placeholder method to get row data for deleted data Excel export.
+      * Override this method in your specific controller.
+      *
+      * @param object|array $item The item entity or array.
+      * @return array
+      */
+     protected function getDeletedExportRowData($item): array
+     {
+         // Thường sẽ giống getExportRowData() nhưng lấy thêm dữ liệu cột ngày xóa
+         $data = [];
+         $headers = $this->getDeletedExportHeaders();
+         $model = new $this->modelName();
+         
+         foreach ($headers as $field) {
+              if (is_object($item) && isset($item->$field)) {
+                  $value = $item->$field;
+              } elseif (is_array($item) && isset($item[$field])) {
+                  $value = $item[$field];
+              } else {
+                  $value = ''; 
+              }
+              
+               // Định dạng ngày xóa nếu cần
+              // if ($field === $model->deletedField && $value instanceof \CodeIgniter\I18n\Time) {
+              //     $value = $value->toDateTimeString();
+              // }
+              
+             $data[] = $value;
+         }
+         return $data;
+     }
 }
