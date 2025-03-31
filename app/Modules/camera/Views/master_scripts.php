@@ -3,6 +3,12 @@
  * Master script file for ThamGiaSuKien module
  * Contains common CSS and JS for all views
  */
+// Lấy biến route_url từ biến được truyền vào từ view
+$GLOBALS['route_url'] = isset($route_url) ? $route_url : 'admin/camera';
+if (isset($route_url_php)) {
+    $GLOBALS['route_url'] = $route_url_php;
+}
+
 // CSS section
 function page_css($type = 'all') {
     ob_start();

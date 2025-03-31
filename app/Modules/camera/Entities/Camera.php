@@ -234,6 +234,54 @@ class Camera extends BaseEntity
     }
     
     /**
+     * Lấy ngày tạo
+     *
+     * @return Time|null
+     */
+    public function getCreatedAt(): ?Time
+    {
+        if (empty($this->attributes['created_at'])) {
+            return null;
+        }
+        
+        return $this->attributes['created_at'] instanceof Time 
+            ? $this->attributes['created_at'] 
+            : new Time($this->attributes['created_at']);
+    }
+    
+    /**
+     * Lấy ngày cập nhật
+     *
+     * @return Time|null
+     */
+    public function getUpdatedAt(): ?Time
+    {
+        if (empty($this->attributes['updated_at'])) {
+            return null;
+        }
+        
+        return $this->attributes['updated_at'] instanceof Time 
+            ? $this->attributes['updated_at'] 
+            : new Time($this->attributes['updated_at']);
+    }
+    
+    /**
+     * Lấy ngày xóa
+     *
+     * @return Time|null
+     */
+    public function getDeletedAt(): ?Time
+    {
+        if (empty($this->attributes['deleted_at'])) {
+            return null;
+        }
+        
+        return $this->attributes['deleted_at'] instanceof Time 
+            ? $this->attributes['deleted_at'] 
+            : new Time($this->attributes['deleted_at']);
+    }
+    
+    /**
      * Lấy các quy tắc xác thực
      *
      * @return array

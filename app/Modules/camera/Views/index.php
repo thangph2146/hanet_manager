@@ -1,6 +1,11 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
-<?php include __DIR__ . '/master_scripts.php'; ?>
+<?php 
+// Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
+$route_url = isset($route_url) ? $route_url : 'admin/camera';
+$route_url_php = $route_url;
+include __DIR__ . '/master_scripts.php'; 
+?>
 <?= page_css('table') ?>
 <?= page_section_css('modal') ?>
 <?= $this->endSection() ?>
@@ -9,13 +14,13 @@
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
 	'title' => 'Danh sách camera',
-	'dashboard_url' => site_url($module_name),
+	'dashboard_url' => site_url($route_url),
 	'breadcrumbs' => [
-		['title' => 'Quản lý camera', 'url' => site_url($module_name)],
+		['title' => 'Quản lý camera', 'url' => site_url($route_url)],
 		['title' => 'Danh sách', 'active' => true]
 	],
 	'actions' => [
-		['url' => site_url('/' . $module_name . '/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
+		['url' => site_url('/' . $route_url . '/new'), 'title' => 'Thêm mới', 'icon' => 'bx bx-plus-circle']
 	]
 ]) ?>
 <?= $this->endSection() ?>  
@@ -33,7 +38,7 @@
                     <i class='bx bx-export'></i> Xuất
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="<?= site_url($module_name . '/exportExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
+                    <li><a class="dropdown-item" href="<?= site_url($route_url . '/exportExcel' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>" id="export-excel">Excel</a></li>
                     <li><a class="dropdown-item" href="#" id="export-pdf">PDF</a></li>
                 </ul>
             </div>
@@ -43,24 +48,24 @@
         <div class="p-3 bg-light border-bottom">
             <div class="row">
                 <div class="col-12 col-md-6 mb-2 mb-md-0">
-                    <form id="form-delete-multiple" action="<?= site_url($module_name . '/deleteMultiple') ?>" method="post" class="d-inline">
+                    <form id="form-delete-multiple" action="<?= site_url($route_url . '/deleteMultiple') ?>" method="post" class="d-inline">
                         <?= csrf_field() ?>
                         <button type="button" id="delete-selected-multiple" class="btn btn-danger btn-sm me-2" disabled>
                             <i class='bx bx-trash'></i> Xóa mục đã chọn
                         </button>
                     </form>
-                    <form id="form-status-multiple" action="<?= site_url($module_name . '/statusMultiple') ?>" method="post" class="d-inline">       
+                    <form id="form-status-multiple" action="<?= site_url($route_url . '/statusMultiple') ?>" method="post" class="d-inline">       
                         <?= csrf_field() ?>
                         <button type="button" id="status-selected-multiple" class="btn btn-warning btn-sm" disabled>
                             <i class='bx bx-toggle-right'></i> Đổi trạng thái
                         </button>
                     </form>
-                    <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
+                    <a href="<?= site_url($route_url . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
                         <i class='bx bx-trash'></i> Danh sách đã xóa
                     </a>
                 </div>
                 <div class="col-12 col-md-6">
-                    <form action="<?= site_url($module_name) ?>" method="get" id="search-form">
+                    <form action="<?= site_url($route_url) ?>" method="get" id="search-form">
                         <input type="hidden" name="page" value="1">
                         <input type="hidden" name="perPage" value="<?= $perPage ?>">
                         <div class="input-group search-box">
@@ -74,7 +79,7 @@
                                 <i class='bx bx-search'></i>
                             </button>
                             <?php if (!empty($keyword) || (isset($status) && $status !== '')): ?>
-                            <a href="<?= site_url($module_name) ?>" class="btn btn-outline-danger btn-sm">
+                            <a href="<?= site_url($route_url) ?>" class="btn btn-outline-danger btn-sm">
                                 <i class='bx bx-x'></i>
                             </a>
                             <?php endif; ?>
@@ -108,7 +113,7 @@
                     <?php if (isset($status) && $status !== ''): ?>
                         <span class="badge bg-secondary me-2">Trạng thái: <?= $status == 1 ? 'Hoạt động' : 'Không hoạt động' ?></span>
                     <?php endif; ?>
-                    <a href="<?= site_url($module_name) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
+                    <a href="<?= site_url($route_url) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
                 </div>
             </div>
         <?php endif; ?>
@@ -148,7 +153,7 @@
                                     <td><?= esc($item->getIpCamera()) ?></td>
                                     <td><?= esc($item->getPort()) ?></td>
                                     <td>
-                                        <form action="<?= site_url($module_name . '/statusMultiple') ?>" 
+                                        <form action="<?= site_url($route_url . '/statusMultiple') ?>" 
                                             method="post" class="d-inline">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="selected_ids[]" value="<?= $item->getId() ?>">
@@ -162,10 +167,10 @@
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                            <a href="<?= site_url($module_name . "/view/{$item->getId()}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                            <a href="<?= site_url($route_url . "/view/{$item->getId()}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
                                                 <i class="bx bx-info-circle text-white"></i>
                                             </a>
-                                            <a href="<?= site_url($module_name . "/edit/{$item->getId()}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
+                                            <a href="<?= site_url($route_url . "/edit/{$item->getId()}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
                                                 <i class="bx bx-edit"></i>
                                             </a>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
@@ -249,19 +254,19 @@
     </div>
 </div>
 
-<!-- Modal xác nhận xóa nhiều -->
+<!-- Modal xác nhận xóa nhiều mục -->
 <div class="modal fade" id="deleteMultipleModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa nhiều</h5>
+                <h5 class="modal-title">Xác nhận xóa nhiều mục</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="text-center icon-wrapper mb-3">
                     <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> bản ghi đã chọn?</p>
+                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="delete-multiple-count" class="fw-bold">0</span> mục đã chọn?</p>
                 <div class="alert alert-warning mt-3">
                     <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
                 </div>
@@ -274,23 +279,35 @@
     </div>
 </div>
 
-<!-- Modal xác nhận đổi trạng thái nhiều -->
+<!-- Modal đổi trạng thái nhiều mục -->
 <div class="modal fade" id="statusMultipleModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận đổi trạng thái</h5>
+                <h5 class="modal-title">Đổi trạng thái nhiều mục</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center icon-wrapper mb-3">
-                    <i class="bx bx-toggle-right text-warning" style="font-size: 4rem;"></i>
+                <div class="mb-3">
+                    <p>Bạn đã chọn <span id="status-multiple-count" class="fw-bold">0</span> mục. Chọn trạng thái mới:</p>
+                    <div class="mt-3 d-flex justify-content-center">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="status_value" id="status_active" value="1" checked>
+                            <label class="form-check-label" for="status_active">Hoạt động</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="status_value" id="status_inactive" value="0">
+                            <label class="form-check-label" for="status_inactive">Không hoạt động</label>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> bản ghi đã chọn?</p>
+                <div class="alert alert-info">
+                    <i class="bx bx-info-circle me-1"></i> Hành động này sẽ thay đổi trạng thái của tất cả các mục đã chọn.
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" id="confirm-status-multiple" class="btn btn-warning">Đổi trạng thái</button>
+                <button type="button" id="confirm-status-multiple" class="btn btn-warning">Cập nhật</button>
             </div>
         </div>
     </div>
@@ -302,7 +319,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= page_js('table', $module_name) ?>
-<?= page_section_js('table', $module_name) ?>
-<?= page_table_js($module_name) ?>
+<?= page_js('table', $route_url) ?>
+<?= page_section_js('table', $route_url) ?>
+<?= page_table_js($route_url) ?>
 <?= $this->endSection() ?> 
