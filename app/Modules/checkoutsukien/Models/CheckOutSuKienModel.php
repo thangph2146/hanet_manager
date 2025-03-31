@@ -986,26 +986,6 @@ class CheckOutSuKienModel extends BaseModel
         return $builder->countAllResults();
     }
     
-    /**
-     * Định dạng ngày giờ từ chuỗi đầu vào của form (Y-m-d\TH:i) sang định dạng datetime
-     *
-     * @param string $dateTimeString Chuỗi datetime từ form input
-     * @return string|null Chuỗi datetime đã được định dạng hoặc null nếu là chuỗi rỗng
-     */
-    public function formatDateTime($dateTimeString)
-    {
-        if (empty($dateTimeString)) {
-            return null;
-        }
-        
-        try {
-            $time = new \CodeIgniter\I18n\Time($dateTimeString);
-            return $time->toDateTimeString();
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi định dạng thời gian: ' . $e->getMessage());
-            return null;
-        }
-    }
     
     /**
      * Ghi đè phương thức errors để thêm thông tin debug

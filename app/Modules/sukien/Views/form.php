@@ -859,75 +859,101 @@ $mat_khau_online = old('mat_khau_online', $mat_khau_online);
                             Lịch trình chi tiết
                         </h6>
                         
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover" id="schedule-table">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 25%">Thời gian</th>
-                                        <th style="width: 45%">Nội dung</th>
-                                        <th style="width: 20%">Ghi chú</th>
-                                        <th style="width: 10%">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $hasScheduleItems = false;
-                                    if (!empty($lich_trinh)) {
-                                        if (is_string($lich_trinh)) {
-                                            $lich_trinh = json_decode($lich_trinh, true);
-                                        }
-                                        
-                                        if (is_array($lich_trinh) && count($lich_trinh) > 0) {
-                                            $hasScheduleItems = true;
-                                            
-                                            // Kiểm tra cấu trúc lịch trình
-                                            $isNestedArray = isset($lich_trinh[0]) && is_array($lich_trinh[0]);
-                                            
-                                            if ($isNestedArray) {
-                                                // Lịch trình là mảng các mục
-                                                foreach ($lich_trinh as $index => $item) {
-                                                    echo '<tr>';
-                                                    echo '<td><input type="datetime-local" class="form-control" name="lich_trinh[thoi_gian][]" value="' . esc($item['thoi_gian'] ?? '') . '" placeholder="Thời gian"></td>';
-                                                    echo '<td><input type="text" class="form-control" name="lich_trinh[noi_dung][]" value="' . esc($item['noi_dung'] ?? '') . '" placeholder="Nội dung"></td>';
-                                                    echo '<td><textarea class="form-control" name="lich_trinh[ghi_chu][]" placeholder="Ghi chú">' . esc($item['ghi_chu'] ?? '') . '</textarea></td>';
-                                                    echo '<td><button type="button" class="btn btn-danger btn-sm remove-schedule-row"><i class="bx bx-trash"></i></button></td>';
-                                                    echo '</tr>';
-                                                }
-                                            } else if (isset($lich_trinh['thoi_gian']) && is_array($lich_trinh['thoi_gian'])) {
-                                                // Lịch trình là mảng các thuộc tính
-                                                for ($i = 0; $i < count($lich_trinh['thoi_gian']); $i++) {
-                                                    echo '<tr>';
-                                                    echo '<td><input type="datetime-local" class="form-control" name="lich_trinh[thoi_gian][]" value="' . esc($lich_trinh['thoi_gian'][$i] ?? '') . '" placeholder="Thời gian"></td>';
-                                                    echo '<td><input type="text" class="form-control" name="lich_trinh[noi_dung][]" value="' . esc($lich_trinh['noi_dung'][$i] ?? '') . '" placeholder="Nội dung"></td>';
-                                                    echo '<td><textarea class="form-control" name="lich_trinh[ghi_chu][]" placeholder="Ghi chú">' . esc($lich_trinh['ghi_chu'][$i] ?? '') . '</textarea></td>';
-                                                    echo '<td><button type="button" class="btn btn-danger btn-sm remove-schedule-row"><i class="bx bx-trash"></i></button></td>';
-                                                    echo '</tr>';
-                                                }
-                                            }
-                                        }
+                        <div id="lich-trinh-container">
+                            <?php 
+                            $lichTrinh = is_string($lich_trinh) ? json_decode($lich_trinh, true) : $lich_trinh;
+                            
+                            // Kiểm tra xem lịch trình có phải là mảng hợp lệ không
+                            $lichTrinhItems = [];
+                            
+                            // Nếu là cấu trúc mảng theo thuộc tính
+                            if (isset($lichTrinh['thoi_gian']) && is_array($lichTrinh['thoi_gian'])) {
+                                $totalItems = count($lichTrinh['thoi_gian']);
+                                for ($i = 0; $i < $totalItems; $i++) {
+                                    $lichTrinhItems[] = [
+                                        'thoi_gian' => $lichTrinh['thoi_gian'][$i] ?? '',
+                                        'noi_dung' => $lichTrinh['noi_dung'][$i] ?? '',
+                                        'ghi_chu' => $lichTrinh['ghi_chu'][$i] ?? ''
+                                    ];
+                                }
+                            } 
+                            // Nếu là mảng các đối tượng
+                            else if (is_array($lichTrinh) && isset($lichTrinh[0])) {
+                                foreach ($lichTrinh as $item) {
+                                    if (is_array($item) || is_object($item)) {
+                                        $item = (array)$item;
+                                        $lichTrinhItems[] = [
+                                            'thoi_gian' => $item['thoi_gian'] ?? '',
+                                            'noi_dung' => $item['noi_dung'] ?? '',
+                                            'ghi_chu' => $item['ghi_chu'] ?? ''
+                                        ];
                                     }
-                                    
-                                    if (!$hasScheduleItems) {
-                                        // Hiển thị một dòng trống mặc định
-                                        echo '<tr>';
-                                        echo '<td><input type="datetime-local" class="form-control" name="lich_trinh[thoi_gian][]" placeholder="Thời gian"></td>';
-                                        echo '<td><input type="text" class="form-control" name="lich_trinh[noi_dung][]" placeholder="Nội dung"></td>';
-                                        echo '<td><textarea class="form-control" name="lich_trinh[ghi_chu][]" placeholder="Ghi chú"></textarea></td>';
-                                        echo '<td><button type="button" class="btn btn-danger btn-sm remove-schedule-row"><i class="bx bx-trash"></i></button></td>';
-                                        echo '</tr>';
-                                    }
-                                    ?>
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td colspan="4">
-                                            <button type="button" class="btn btn-sm btn-success" id="add-schedule-row">
-                                                <i class='bx bx-plus'></i> Thêm dòng
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                                }
+                            }
+                            
+                            // Nếu không có dữ liệu, tạo một mục mặc định
+                            if (empty($lichTrinhItems)) {
+                                $now = date('Y-m-d\TH:i');
+                                $lichTrinhItems[] = [
+                                    'thoi_gian' => $now,
+                                    'noi_dung' => '',
+                                    'ghi_chu' => ''
+                                ];
+                            }
+                            
+                            // Hiển thị các mục lịch trình
+                            foreach ($lichTrinhItems as $index => $item): 
+                            ?>
+                            <div class="lich-trinh-item mb-3">
+                                <div class="card border shadow-none">
+                                    <div class="card-body p-3">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Thời gian</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light"><i class='bx bx-calendar-event'></i></span>
+                                                    <input type="datetime-local" class="form-control lich-trinh-thoi-gian" 
+                                                        value="<?= esc($item['thoi_gian']) ?>" 
+                                                        placeholder="Chọn thời gian">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Nội dung</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light"><i class='bx bx-notepad'></i></span>
+                                                    <input type="text" class="form-control lich-trinh-noi-dung" 
+                                                        value="<?= esc($item['noi_dung']) ?>" 
+                                                        placeholder="Nhập nội dung">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label fw-semibold">Ghi chú</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light"><i class='bx bx-message-detail'></i></span>
+                                                    <input type="text" class="form-control lich-trinh-ghi-chu" 
+                                                        value="<?= esc($item['ghi_chu']) ?>" 
+                                                        placeholder="Nhập ghi chú">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 d-flex align-items-end">
+                                                <button type="button" class="btn btn-outline-danger w-100 remove-lich-trinh">
+                                                    <i class='bx bx-trash'></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        
+                        <input type="hidden" name="lich_trinh" id="lich_trinh_json" 
+                            value='<?= is_array($lich_trinh) ? json_encode($lich_trinh) : esc($lich_trinh) ?>'>
+                        
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-success" id="add-lich-trinh">
+                                <i class='bx bx-plus'></i> Thêm lịch trình
+                            </button>
                         </div>
                         <div class="form-text text-muted">
                             <i class='bx bx-info-circle me-1'></i>
@@ -957,17 +983,11 @@ $(document).ready(function() {
     function toggleEventTypeSections() {
         var hinhThuc = $('#hinh_thuc').val();
         
-        if (hinhThuc === 'offline') {
-            $('#section-offline').show();
-            $('#section-online').hide();
-        } 
-        else if (hinhThuc === 'online') {
-            $('#section-offline').hide();
-            $('#section-online').show();
-        }
-        else if (hinhThuc === 'hybrid') {
-            $('#section-offline').show();
-            $('#section-online').show();
+        // Hiển thị/ẩn trường Online dựa vào hình thức
+        if (hinhThuc === 'online' || hinhThuc === 'hybrid') {
+            $('#online-link-field, #online-password-field').show();
+        } else {
+            $('#online-link-field, #online-password-field').hide();
         }
     }
     
@@ -992,38 +1012,11 @@ $(document).ready(function() {
         // Kiểm tra nếu thời gian kết thúc trước thời gian bắt đầu
         if (endDate <= startDate) {
             // Hiển thị thông báo lỗi
-            if (!$('#time-error-message').length) {
-                $('<div id="time-error-message" class="alert alert-danger mt-2">' +
-                  'Thời gian kết thúc phải sau thời gian bắt đầu</div>')
-                .insertAfter('#thoi_gian_ket_thuc');
-            } else {
-                $('#time-error-message').text('Thời gian kết thúc phải sau thời gian bắt đầu').show();
-            }
+            $('#time-error-message').text('Thời gian kết thúc phải sau thời gian bắt đầu').show();
             return false;
         } else {
             // Ẩn thông báo lỗi nếu có
             $('#time-error-message').hide();
-            
-            // Tính và hiển thị thời lượng sự kiện
-            var diff = Math.abs(endDate - startDate);
-            var days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            
-            var duration = "";
-            if (days > 0) duration += days + " ngày ";
-            if (hours > 0) duration += hours + " giờ ";
-            if (minutes > 0) duration += minutes + " phút";
-            
-            // Hiển thị thời lượng
-            if (!$('#event-duration-container').length) {
-                $('<div id="event-duration-container" class="alert alert-info mt-2">' +
-                  '<i class="bx bx-time me-1"></i> Thời lượng sự kiện: <span id="event-duration"></span>' +
-                  '</div>').insertAfter('#thoi_gian_ket_thuc');
-            }
-            $('#event-duration').text(duration);
-            $('#event-duration-container').show();
-            
             return true;
         }
     }
@@ -1083,81 +1076,132 @@ $(document).ready(function() {
         }
     });
     
-    // Xử lý thêm dòng lịch trình
-    $('#add-schedule-row').on('click', function() {
-        var newRow = `
-            <tr>
-                <td><input type="datetime-local" class="form-control" name="lich_trinh[thoi_gian][]" placeholder="Thời gian"></td>
-                <td><input type="text" class="form-control" name="lich_trinh[noi_dung][]" placeholder="Nội dung"></td>
-                <td><textarea class="form-control" name="lich_trinh[ghi_chu][]" placeholder="Ghi chú"></textarea></td>
-                <td><button type="button" class="btn btn-danger btn-sm remove-schedule-row"><i class="bx bx-trash"></i></button></td>
-            </tr>
+    // Xử lý lịch trình với cách tiếp cận mới
+    const lichTrinhContainer = document.getElementById('lich-trinh-container');
+    const addLichTrinhButton = document.getElementById('add-lich-trinh');
+    const hiddenLichTrinhInput = document.getElementById('lich_trinh_json');
+
+    // Hàm cập nhật JSON lịch trình
+    function updateLichTrinhJSON() {
+        const items = lichTrinhContainer.querySelectorAll('.lich-trinh-item');
+        let data = [];
+        
+        items.forEach(item => {
+            const thoiGian = item.querySelector('.lich-trinh-thoi-gian').value;
+            const noiDung = item.querySelector('.lich-trinh-noi-dung').value;
+            const ghiChu = item.querySelector('.lich-trinh-ghi-chu').value;
+            
+            data.push({
+                thoi_gian: thoiGian,
+                noi_dung: noiDung,
+                ghi_chu: ghiChu
+            });
+        });
+        
+        // Sắp xếp theo thời gian
+        data.sort((a, b) => {
+            return new Date(a.thoi_gian) - new Date(b.thoi_gian);
+        });
+        
+        hiddenLichTrinhInput.value = JSON.stringify(data);
+    }
+
+    // Thêm lịch trình mới
+    addLichTrinhButton.addEventListener('click', function() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = ('0' + (now.getMonth() + 1)).slice(-2);
+        const day = ('0' + now.getDate()).slice(-2);
+        const hours = ('0' + now.getHours()).slice(-2);
+        const minutes = ('0' + now.getMinutes()).slice(-2);
+        const currentDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+        const newItem = document.createElement('div');
+        newItem.className = 'lich-trinh-item mb-3';
+        newItem.innerHTML = `
+            <div class="card border shadow-none">
+                <div class="card-body p-3">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Thời gian</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class='bx bx-calendar-event'></i></span>
+                                <input type="datetime-local" class="form-control lich-trinh-thoi-gian" 
+                                    value="${currentDateTime}" 
+                                    placeholder="Chọn thời gian">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Nội dung</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class='bx bx-notepad'></i></span>
+                                <input type="text" class="form-control lich-trinh-noi-dung" 
+                                    placeholder="Nhập nội dung">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Ghi chú</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class='bx bx-message-detail'></i></span>
+                                <input type="text" class="form-control lich-trinh-ghi-chu" 
+                                    placeholder="Nhập ghi chú">
+                            </div>
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-danger w-100 remove-lich-trinh">
+                                <i class='bx bx-trash'></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
-        $('#schedule-table tbody').append(newRow);
-    });
-    
-    // Xử lý xóa dòng lịch trình
-    $(document).on('click', '.remove-schedule-row', function() {
-        // Nếu chỉ còn 1 dòng, chỉ xóa nội dung
-        if ($('#schedule-table tbody tr').length <= 1) {
-            $(this).closest('tr').find('input, textarea').val('');
-        } else {
-            $(this).closest('tr').remove();
-        }
-    });
-    
-    // Xử lý kiểm tra form trước khi submit
-    $('#form-<?= $module_name ?>').on('submit', function(e) {
-        // Kiểm tra thời gian
-        if (!validateDates()) {
-            e.preventDefault();
-            $('html, body').animate({
-                scrollTop: $('#thoi_gian_bat_dau').offset().top - 100
-            }, 500);
-            $('#thoi_gian_ket_thuc').focus();
-            return false;
-        }
         
-        // Thực hiện kiểm tra bổ sung theo hình thức sự kiện
-        var hinhThuc = $('#hinh_thuc').val();
+        lichTrinhContainer.appendChild(newItem);
         
-        // Kiểm tra trường bắt buộc cho sự kiện offline/hybrid
-        if (hinhThuc === 'offline' || hinhThuc === 'hybrid') {
-            if (!$('#dia_diem').val().trim()) {
-                if (!$('#dia_diem-error').length) {
-                    $('<div id="dia_diem-error" class="alert alert-danger mt-2">Địa điểm là bắt buộc với sự kiện có hình thức offline/hybrid</div>')
-                    .insertAfter('#dia_diem');
-                } else {
-                    $('#dia_diem-error').show();
+        // Gắn sự kiện cho các elements mới
+        newItem.querySelector('.lich-trinh-thoi-gian').addEventListener('input', updateLichTrinhJSON);
+        newItem.querySelector('.lich-trinh-noi-dung').addEventListener('input', updateLichTrinhJSON);
+        newItem.querySelector('.lich-trinh-ghi-chu').addEventListener('input', updateLichTrinhJSON);
+        newItem.querySelector('.remove-lich-trinh').addEventListener('click', function() {
+            const item = this.closest('.lich-trinh-item');
+            if (lichTrinhContainer.querySelectorAll('.lich-trinh-item').length > 1) {
+                if (confirm('Bạn có chắc chắn muốn xóa mục lịch trình này?')) {
+                    // Thêm hiệu ứng fade out
+                    item.style.transition = 'opacity 0.5s';
+                    item.style.opacity = '0';
+                    setTimeout(() => {
+                        item.remove();
+                        updateLichTrinhJSON();
+                    }, 500);
                 }
-                e.preventDefault();
-                $('#dia_diem').focus();
-                return false;
             } else {
-                $('#dia_diem-error').hide();
+                // Nếu chỉ còn 1 phần tử, xóa dữ liệu nhưng giữ lại phần tử
+                item.querySelector('.lich-trinh-thoi-gian').value = getCurrentDateTime();
+                item.querySelector('.lich-trinh-noi-dung').value = '';
+                item.querySelector('.lich-trinh-ghi-chu').value = '';
+                updateLichTrinhJSON();
             }
-        }
+        });
         
-        // Kiểm tra trường bắt buộc cho sự kiện online/hybrid
-        if (hinhThuc === 'online' || hinhThuc === 'hybrid') {
-            if (!$('#link_online').val().trim()) {
-                if (!$('#link_online-error').length) {
-                    $('<div id="link_online-error" class="alert alert-danger mt-2">Link tham gia trực tuyến là bắt buộc với sự kiện có hình thức online/hybrid</div>')
-                    .insertAfter('#link_online');
-                } else {
-                    $('#link_online-error').show();
-                }
-                e.preventDefault();
-                $('#link_online').focus();
-                return false;
-            } else {
-                $('#link_online-error').hide();
-            }
-        }
+        // Cập nhật JSON
+        updateLichTrinhJSON();
         
-        return true;
+        // Focus vào trường nội dung
+        newItem.querySelector('.lich-trinh-noi-dung').focus();
     });
 
+    // Hàm hỗ trợ lấy thời gian hiện tại theo định dạng datetime-local
+    function getCurrentDateTime() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = ('0' + (now.getMonth() + 1)).slice(-2);
+        const day = ('0' + now.getDate()).slice(-2);
+        const hours = ('0' + now.getHours()).slice(-2);
+        const minutes = ('0' + now.getMinutes()).slice(-2);
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+    
     // Khởi tạo trình soạn thảo nếu có
     if (typeof ClassicEditor !== 'undefined') {
         ClassicEditor
@@ -1166,33 +1210,6 @@ $(document).ready(function() {
                 console.error(error);
             });
     }
-    
-    // Xử lý hiển thị danh sách diễn giả
-    function processDienGiaInfo() {
-        const dienGiaData = $('#dien_gia_info').val();
-        
-        try {
-            // Thử giải mã JSON
-            let dienGiaList = JSON.parse(dienGiaData);
-            
-            // Nếu là mảng, hiển thị theo dạng từng dòng
-            if (Array.isArray(dienGiaList)) {
-                $('#dien_gia_info').val(dienGiaList.join('\n'));
-            }
-        } catch (e) {
-            // Nếu không phải JSON, giữ nguyên giá trị
-            console.log('Thông tin diễn giả không phải định dạng JSON');
-        }
-    }
-    
-    // Xử lý hiển thị ban đầu
-    processDienGiaInfo();
-    
-    // Cập nhật số lượng diễn giả khi thêm/xóa thông tin
-    $('#dien_gia_info').on('change keyup', function() {
-        const lines = $(this).val().split('\n').filter(line => line.trim() !== '');
-        $('#so_luong_dien_gia').val(lines.length);
-    });
 });
 </script>
 <?= $this->endSection() ?> 

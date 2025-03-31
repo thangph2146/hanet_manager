@@ -475,33 +475,4 @@ class PhongKhoaModel extends BaseModel
         return $data;
     }
     
-    /**
-     * Định dạng thời gian
-     *
-     * @param string|null $datetime Chuỗi thời gian cần định dạng
-     * @return string|null Thời gian đã định dạng
-     */
-    protected function formatDateTime(?string $datetime): ?string
-    {
-        if (empty($datetime)) {
-            return null;
-        }
-        
-        try {
-            // Thử parse thời gian
-            $time = Time::parse($datetime);
-            
-            // Kiểm tra xem thời gian có hợp lệ không
-            if ($time === false) {
-                log_message('error', 'Thời gian không hợp lệ: ' . $datetime);
-                return null;
-            }
-            
-            // Format lại thời gian theo định dạng chuẩn
-            return $time->format('Y-m-d H:i:s');
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi định dạng thời gian: ' . $e->getMessage() . ' - Input: ' . $datetime);
-            return null;
-        }
-    }
 } 

@@ -4,6 +4,7 @@ namespace Config;
 
 // Create a new instance of our RouteCollection class.
 $routes = Services::routes();
+$module_url = 'admin/diengia';
 $module_name = 'diengia';
 $controller_name = 'DienGia';
 // Định nghĩa routes cho module Nganh

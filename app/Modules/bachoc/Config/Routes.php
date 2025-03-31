@@ -4,10 +4,11 @@ namespace Config;
 
 // Create a new instance of our RouteCollection class.
 $routes = Services::routes();
-$module_name = 'bachoc';
+$module_url = 'admin/bachoc';
+$module_namespace = 'bachoc';
 $controller_name = 'BacHoc';
 // Định nghĩa routes cho module Nganh
-$routes->group($module_name, ['namespace' => 'App\Modules\\' . $module_name . '\Controllers'], 
+$routes->group($module_url, ['namespace' => 'App\Modules\\' . $module_namespace . '\Controllers'], 
 function ($routes) use ($controller_name) {
     $routes->get('/', $controller_name . '::index');
     $routes->get('dashboard', $controller_name . '::dashboard');
