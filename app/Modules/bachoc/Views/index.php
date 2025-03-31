@@ -54,12 +54,6 @@ include __DIR__ . '/master_scripts.php';
                             <i class='bx bx-trash'></i> Xóa mục đã chọn
                         </button>
                     </form>
-                    <form id="form-status-multiple" action="<?= site_url($route_url . '/statusMultiple') ?>" method="post" class="d-inline">       
-                        <?= csrf_field() ?>
-                        <button type="button" id="status-selected-multiple" class="btn btn-warning btn-sm" disabled>
-                            <i class='bx bx-toggle-right'></i> Đổi trạng thái
-                        </button>
-                    </form>
                     <a href="<?= site_url($route_url . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
                         <i class='bx bx-trash'></i> Danh sách đã xóa
                     </a>
@@ -274,29 +268,6 @@ include __DIR__ . '/master_scripts.php';
         </div>
     </div>
 </div>
-
-<!-- Modal xác nhận đổi trạng thái nhiều -->
-<div class="modal fade" id="statusMultipleModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xác nhận đổi trạng thái</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center icon-wrapper mb-3">
-                    <i class="bx bx-toggle-right text-warning" style="font-size: 4rem;"></i>
-                </div>
-                <p class="text-center">Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> bản ghi đã chọn?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" id="confirm-status-multiple" class="btn btn-warning">Đổi trạng thái</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 
 <script>
     var base_url = '<?= site_url() ?>';
