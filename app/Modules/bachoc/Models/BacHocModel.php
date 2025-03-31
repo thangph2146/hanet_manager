@@ -3,7 +3,7 @@
 namespace App\Modules\bachoc\Models;
 
 use App\Models\BaseModel;
-use App\Modules\bachoc\Entities\Bachoc;
+use App\Modules\bachoc\Entities\BacHoc;
 use App\Modules\bachoc\Libraries\Pager;
 use CodeIgniter\I18n\Time;
 
@@ -31,7 +31,7 @@ class BacHocModel extends BaseModel
         'deleted_at'
     ];
     
-    protected $returnType = Bachoc::class;
+    protected $returnType = BacHoc::class;
     
     // Trường có thể tìm kiếm
     protected $searchableFields = [
@@ -341,7 +341,7 @@ class BacHocModel extends BaseModel
      */
     public function prepareValidationRules(string $scenario = 'insert', array $data = [])
     {
-        $entity = new Bachoc();
+        $entity = new BacHoc();
         $this->validationRules = $entity->getValidationRules();
         $this->validationMessages = $entity->getValidationMessages();
         

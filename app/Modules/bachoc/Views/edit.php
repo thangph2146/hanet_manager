@@ -3,11 +3,13 @@
 <?php 
 // Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
 $route_url = isset($route_url) ? $route_url : 'admin/bachoc';
-$route_url_php = $route_url;
-include __DIR__ . '/master_scripts.php'; 
+$module_name = isset($module_name) ? $module_name : 'bachoc';
+
+// Khởi tạo thư viện MasterScript
+$masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $module_name);
 ?>
-<?= page_css('form') ?>
-<?= page_section_css('modal') ?>
+<?= $masterScript->pageCss('form') ?>
+<?= $masterScript->pageSectionCss('form') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>CẬP NHẬT BẬC HỌC<?= $this->endSection() ?>
 
@@ -28,7 +30,7 @@ include __DIR__ . '/master_scripts.php';
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
     <div class="card-body">
-        <?= form_open($action, ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+        <?= form_open($action, ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
             <?php
             // Include form fields with data
             include __DIR__ . '/form.php';
@@ -39,5 +41,20 @@ include __DIR__ . '/master_scripts.php';
 <?= $this->endSection() ?>  
 
 <?= $this->section('script') ?>
-<?= page_js('form', $route_url) ?>
+<?= $masterScript->pageJs('form') ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('form-<?= $module_name ?>');
+        
+        // Validate form khi submit
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            form.classList.add('was-validated');
+        });
+    });
+</script>
 <?= $this->endSection() ?> 

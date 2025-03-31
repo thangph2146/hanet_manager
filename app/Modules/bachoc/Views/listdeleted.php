@@ -3,11 +3,13 @@
 <?php 
 // Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
 $route_url = isset($route_url) ? $route_url : 'admin/bachoc';
-$route_url_php = $route_url;
-include __DIR__ . '/master_scripts.php'; 
+$module_name = isset($module_name) ? $module_name : 'bachoc';
+
+// Khởi tạo thư viện MasterScript
+$masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $module_name);
 ?>
-<?= page_css('table') ?>
-<?= page_section_css('modal') ?>
+<?= $masterScript->pageCss('table') ?>
+<?= $masterScript->pageSectionCss('modal') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>THÙNG RÁC - BẬC HỌC<?= $this->endSection() ?>
 
@@ -126,7 +128,8 @@ include __DIR__ . '/master_scripts.php';
                             <th width="5%" class="align-middle">ID</th>
                             <th width="20%" class="align-middle">Bậc học</th>
                             <th width="10%" class="align-middle">Mã bậc học</th>
-                            <th width="10%" class="align-middle">Trạng thái</th>
+                            <th width="10%" class="text-center align-middle">Trạng thái</th>
+                            <th width="15%" class="text-center align-middle">Ngày xóa</th>
                             <th width="20%" class="text-center align-middle">Thao tác</th>
                         </tr>
                     </thead>
@@ -144,23 +147,23 @@ include __DIR__ . '/master_scripts.php';
                                     <td><?= esc($item->bac_hoc_id) ?></td>  
                                     <td><?= esc($item->ten_bac_hoc) ?></td> 
                                     <td><?= esc($item->ma_bac_hoc) ?></td>
-                                    <td>
-                                        <button class="btn btn-sm <?= $item->status == 1 ? 'btn-success' : 'btn-danger' ?> status-toggle" 
-                                                title="<?= $item->status == 1 ? 'Đang hoạt động - Click để tắt' : 'Đang tắt - Click để bật' ?>">
-                                                <?= $item->status == 1 ? 'Hoạt động' : 'Không hoạt động' ?>
-                                        </button>
+                                    <td class="text-center">
+                                        <?= $item->getStatusLabel() ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?= $item->getDeletedAtFormatted() ?>
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
                                             <button type="button" class="btn btn-success btn-sm btn-restore w-100 h-100" 
                                                     data-id="<?= $item->bac_hoc_id ?>" 
-                                                    data-name="ID: <?= esc($item->bac_hoc_id) ?>"
+                                                    data-name="<?= esc($item->ten_bac_hoc) ?>"
                                                     data-bs-toggle="tooltip" title="Khôi phục">
                                                 <i class="bx bx-revision"></i>
                                             </button>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
                                                     data-id="<?= $item->bac_hoc_id ?>" 
-                                                    data-name="ID: <?= esc($item->bac_hoc_id) ?>"
+                                                    data-name="<?= esc($item->ten_bac_hoc) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa vĩnh viễn">
                                                 <i class="bx bx-trash"></i>
                                             </button>
@@ -170,7 +173,7 @@ include __DIR__ . '/master_scripts.php';
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="8" class="text-center py-3">
+                                <td colspan="7" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class="bx bx-folder-open"></i>
                                         <p>Không có dữ liệu</p>
@@ -193,16 +196,16 @@ include __DIR__ . '/master_scripts.php';
                     <div class="d-flex justify-content-end align-items-center">
                         <div class="me-2">
                             <select id="perPageSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
-                                <option value="5" <?= $perPage == 5 ? 'selected' : '' ?>>5</option>
                                 <option value="10" <?= $perPage == 10 ? 'selected' : '' ?>>10</option>
-                                <option value="15" <?= $perPage == 15 ? 'selected' : '' ?>>15</option>
                                 <option value="25" <?= $perPage == 25 ? 'selected' : '' ?>>25</option>
                                 <option value="50" <?= $perPage == 50 ? 'selected' : '' ?>>50</option>
+                                <option value="100" <?= $perPage == 100 ? 'selected' : '' ?>>100</option>
                             </select>
-                            <span class="ms-1">bản ghi/trang</span>
                         </div>
-                        <div>
-                            <?= $pager->render() ?>
+                        <div class="pagination-container">
+                            <?php if ($pager) : ?>
+                                <?= $pager->links() ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -211,72 +214,38 @@ include __DIR__ . '/master_scripts.php';
     </div>
 </div>
 
-<!-- Modal xác nhận khôi phục -->
-<div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
+<!-- Modal Xác nhận khôi phục -->
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận khôi phục</h5>
+                <h5 class="modal-title" id="restoreModalLabel">Xác nhận khôi phục</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center icon-wrapper mb-3">
-                    <i class="bx bx-revision text-success" style="font-size: 4rem;"></i>
-                </div>
-                <p class="text-center">Bạn có chắc chắn muốn khôi phục bản ghi tham gia sự kiện:</p>
-                <p class="text-center fw-bold" id="restore-item-name"></p>
+                <p>Bạn có chắc chắn muốn khôi phục bậc học: <span id="restore-item-name" class="fw-bold"></span>?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <?= form_open('', ['id' => 'restore-form']) ?>
+                <form id="restore-form" action="" method="post">
+                    <?= csrf_field() ?>
                     <button type="submit" class="btn btn-success">Khôi phục</button>
-                <?= form_close() ?>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal xác nhận xóa vĩnh viễn -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+<!-- Modal Xác nhận khôi phục nhiều -->
+<div class="modal fade" id="restoreMultipleModal" tabindex="-1" aria-labelledby="restoreMultipleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa vĩnh viễn</h5>
+                <h5 class="modal-title" id="restoreMultipleModalLabel">Xác nhận khôi phục nhiều mục</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center icon-wrapper mb-3">
-                    <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
-                </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn bản ghi tham gia sự kiện:</p>
-                <p class="text-center fw-bold" id="delete-item-name"></p>
-                <div class="alert alert-danger mt-3">
-                    <i class="bx bx-info-circle me-1"></i> Cảnh báo: Dữ liệu sẽ bị xóa vĩnh viễn và không thể khôi phục!
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <?= form_open('', ['id' => 'delete-form']) ?>
-                    <button type="submit" class="btn btn-danger">Xóa vĩnh viễn</button>
-                <?= form_close() ?>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal xác nhận khôi phục nhiều -->
-<div class="modal fade" id="restoreMultipleModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xác nhận khôi phục nhiều</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center icon-wrapper mb-3">
-                    <i class="bx bx-revision text-success" style="font-size: 4rem;"></i>
-                </div>
-                <p class="text-center">Bạn có chắc chắn muốn khôi phục <span id="restore-count" class="fw-bold"></span> bản ghi đã chọn?</p>
+                <p>Bạn có chắc chắn muốn khôi phục <span id="restore-count" class="fw-bold"></span> mục đã chọn?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -286,22 +255,40 @@ include __DIR__ . '/master_scripts.php';
     </div>
 </div>
 
-<!-- Modal xác nhận xóa vĩnh viễn nhiều -->
-<div class="modal fade" id="deleteMultipleModal" tabindex="-1" aria-hidden="true">
+<!-- Modal Xác nhận xóa vĩnh viễn -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa vĩnh viễn</h5>
+                <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa vĩnh viễn</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center icon-wrapper mb-3">
-                    <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
-                </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa vĩnh viễn <span id="delete-count" class="fw-bold"></span> bản ghi đã chọn?</p>
-                <div class="alert alert-danger mt-3">
-                    <i class="bx bx-info-circle me-1"></i> Cảnh báo: Dữ liệu sẽ bị xóa vĩnh viễn và không thể khôi phục!
-                </div>
+                <p>Bạn có chắc chắn muốn xóa vĩnh viễn bậc học: <span id="delete-item-name" class="fw-bold"></span>?</p>
+                <p class="text-danger mb-0"><i class="bx bx-error-circle"></i> Lưu ý: Hành động này không thể hoàn tác!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form id="delete-form" action="" method="post">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-danger">Xóa vĩnh viễn</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác nhận xóa vĩnh viễn nhiều -->
+<div class="modal fade" id="deleteMultipleModal" tabindex="-1" aria-labelledBy="deleteMultipleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteMultipleModalLabel">Xác nhận xóa vĩnh viễn nhiều mục</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa vĩnh viễn <span id="selected-count" class="fw-bold"></span> mục đã chọn?</p>
+                <p class="text-danger mb-0"><i class="bx bx-error-circle"></i> Lưu ý: Hành động này không thể hoàn tác!</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -311,15 +298,16 @@ include __DIR__ . '/master_scripts.php';
     </div>
 </div>
 
-
-<script>
-    var base_url = '<?= site_url() ?>';
-    var route_url = '<?= $route_url ?>';
-</script>
+<!-- Loading indicator (hidden by default) -->
+<div id="loading-indicator" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Đang tải...</span>
+    </div>
+</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= page_js('table', $route_url) ?>
-<?= page_section_js('table', $route_url) ?>
-<?= page_table_js($route_url) ?>
+<?= $masterScript->pageJs('table') ?>
+<?= $masterScript->pageSectionJs('table') ?>
+<?= $masterScript->pageTableJs() ?>
 <?= $this->endSection() ?> 

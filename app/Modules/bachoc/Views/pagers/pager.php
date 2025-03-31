@@ -92,4 +92,4 @@ $endRecord = min($total, $currentPage * $perPage);
         </ul>
     </nav>
     <?php endif ?> 
-</div> 
+</div>
