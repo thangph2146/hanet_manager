@@ -1,6 +1,6 @@
 <?php
 /**
- * Master script file for ThamGiaSuKien module
+ * Master script file for BacHoc module
  * Contains common CSS and JS for all views
  */
 // Lấy biến route_url từ biến được truyền vào từ view

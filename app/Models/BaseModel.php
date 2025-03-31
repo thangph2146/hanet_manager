@@ -19,12 +19,27 @@ class BaseModel extends Model
     protected $filterableFields = [];
     protected $beforeSpaceRemoval = [];
     protected $concatFields = [];
+    protected $allowedFields = [];
+    protected $validationRules = [];
+    protected $validationMessages = [];
+    protected $skipValidation = false;
+    protected $cleanValidationRules = true;
+    protected $DBDebug = true;
+    protected $DBGroup = 'default';
+    protected $tempReturnType = null;
+    protected $tempUseSoftDeletes = null;
+    protected $tempWithDeleted = false;
+    protected $tempOnlyDeleted = false;
 
     // Common validation rules that can be extended
     protected $commonValidationRules = [
         'status' => 'permit_empty|in_list[0,1]',
         'email' => 'permit_empty|valid_email',
         'phone' => 'permit_empty|numeric|min_length[10]|max_length[15]',
+        'password' => 'required|min_length[6]',
+        'confirm_password' => 'required|matches[password]',
+        'image' => 'permit_empty|uploaded[image]|max_size[image,2048]|is_image[image]|mime_in[image,image/jpg,image/jpeg,image/png]',
+        'file' => 'permit_empty|uploaded[file]|max_size[file,2048]|mime_in[file,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document]'
     ];
 
     public function __construct()
@@ -90,25 +105,19 @@ class BaseModel extends Model
     // Enhanced relationship handling
     public function withRelations(array $relations = [])
     {
-        // Nếu $relations là mảng đơn giản gồm các chuỗi (tên quan hệ)
-        // thì chuyển đổi thành mảng kết hợp
         $relationsToLoad = [];
         
         foreach ($relations as $key => $value) {
-            // Nếu key là số nguyên và giá trị là chuỗi, đây là mảng đơn giản
             if (is_int($key) && is_string($value)) {
                 if (isset($this->relations[$value])) {
                     $relationsToLoad[$value] = $this->relations[$value];
                 }
             } else {
-                // Nếu key là chuỗi, đây là mảng kết hợp đã có cấu hình
                 $relationsToLoad[$key] = $value;
             }
         }
         
-        // Lưu lại danh sách quan hệ cần tải mà không ghi đè toàn bộ $this->relations
         $this->relationsToLoad = $relationsToLoad;
-        
         return $this;
     }
 
@@ -122,36 +131,27 @@ class BaseModel extends Model
      */
     public function findWithRelations($id, $relations = [], $validate = false)
     {
-        // Tìm bản ghi
         $data = $this->find($id);
         if (!$data) {
             return null;
         }
         
-        // Xử lý deleted_at nếu là null hoặc chuỗi rỗng
         if (property_exists($data, 'deleted_at') && ($data->deleted_at === '' || $data->deleted_at === '0000-00-00 00:00:00')) {
             $data->deleted_at = null;
         }
         
-        // Đã loại bỏ validation để tránh lỗi với trường deleted_at
-        
-        // Xác định quan hệ cần tải
         $relationsToLoad = [];
         
-        // Nếu $relations là true, tải tất cả các mối quan hệ
         if ($relations === true) {
             $relationsToLoad = array_keys($this->relations);
         } 
-        // Nếu $relations là mảng, tải các mối quan hệ được chỉ định
         elseif (is_array($relations) && !empty($relations)) {
             $relationsToLoad = $relations;
         }
-        // Nếu không có quan hệ nào được chỉ định, sử dụng quan hệ hiện tại
         else {
             $relationsToLoad = array_keys($this->relations);
         }
         
-        // Tải các mối quan hệ
         foreach ($relationsToLoad as $relation) {
             if (is_string($relation) && isset($this->relations[$relation])) {
                 $config = $this->relations[$relation];
@@ -164,7 +164,6 @@ class BaseModel extends Model
 
     protected function fetchRelation($relationName, $config, $data)
     {
-        // Kiểm tra nếu $config là chuỗi thì lấy cấu hình từ $this->relations
         if (is_string($config)) {
             if (!isset($this->relations[$relationName])) {
                 return null;    
@@ -178,7 +177,6 @@ class BaseModel extends Model
         $localKey = $config['localKey'] ?? $this->primaryKey;
         $entityClass = $config['entity'] ?? 'App\Entities\BaseEntity';
         
-        // Nếu entity class là BaseEntity (lớp trừu tượng), đặt thành null
         if ($entityClass === 'App\Entities\BaseEntity') {
             $entityClass = null;
         }
@@ -271,19 +269,16 @@ class BaseModel extends Model
                 return $results;
 
             case 'n-1':
-                // Sử dụng khóa ngoại thay vì cố định 'id'
                 $foreignPrimaryKey = isset($config['foreignPrimaryKey']) ? $config['foreignPrimaryKey'] : 'id';
                 $result = $query->where($foreignPrimaryKey, $data->$foreignKey)
                                ->get()
                                ->getRow();
                 
-                // Kiểm tra entity class có được chỉ định hay không và có thể khởi tạo được không
                 if ($result) {
                     if ($entityClass && class_exists($entityClass)) {
                         try {
                             return new $entityClass((array) $result);
                         } catch (\Exception $e) {
-                            // Nếu có lỗi khi tạo đối tượng, trả về kết quả trực tiếp
                             return $result;
                         }
                     }
@@ -428,7 +423,6 @@ class BaseModel extends Model
         
         $results = $builder->get()->getResult($this->returnType);
         
-        // Nếu có relationsToLoad, tải các quan hệ cho kết quả
         return $this->loadRelationsForResults($results);
     }
     
@@ -444,13 +438,11 @@ class BaseModel extends Model
             return $results;
         }
         
-        // Kiểm tra xem có mối quan hệ nào cần tải không
         $relationsToLoad = !empty($this->relationsToLoad) ? $this->relationsToLoad : $this->relations;
         if (empty($relationsToLoad)) {
             return $results;
         }
         
-        // Tải quan hệ cho từng mục trong kết quả
         foreach ($results as $index => $item) {
             foreach ($relationsToLoad as $relation => $config) {
                 $item->$relation = $this->fetchRelation($relation, $config, $item);
@@ -537,10 +529,7 @@ class BaseModel extends Model
      */
     public function findAll(?int $limit = null, int $offset = 0)
     {
-        // Lấy kết quả gốc từ lớp cha
         $results = parent::findAll($limit, $offset);
-        
-        // Sử dụng phương thức chung để tải quan hệ
         return $this->loadRelationsForResults($results);
     }
 
@@ -555,10 +544,7 @@ class BaseModel extends Model
      */
     public function paginate(?int $perPage = null, string $group = 'default', ?int $page = null, int $segment = 0)
     {
-        // Lấy kết quả phân trang gốc từ lớp cha
         $results = parent::paginate($perPage, $group, $page, $segment);
-        
-        // Sử dụng phương thức chung để tải quan hệ
         return $this->loadRelationsForResults($results);
     }
 
@@ -581,5 +567,60 @@ class BaseModel extends Model
             log_message('error', 'Lỗi định dạng thời gian: ' . $e->getMessage());
             return null;
         }
+    }
+
+    // Các phương thức mới cho xử lý dữ liệu
+    public function getRelations(): array
+    {
+        return $this->relations;
+    }
+
+    public function getSearchableFields(): array
+    {
+        return $this->searchableFields;
+    }
+
+    public function getFilterableFields(): array
+    {
+        return $this->filterableFields;
+    }
+
+    public function getBeforeSpaceRemoval(): array
+    {
+        return $this->beforeSpaceRemoval;
+    }
+
+    public function getConcatFields(): array
+    {
+        return $this->concatFields;
+    }
+
+    public function getCommonValidationRules(): array
+    {
+        return $this->commonValidationRules;
+    }
+
+    public function setSearchableFields(array $fields): self
+    {
+        $this->searchableFields = $fields;
+        return $this;
+    }
+
+    public function setFilterableFields(array $fields): self
+    {
+        $this->filterableFields = $fields;
+        return $this;
+    }
+
+    public function setBeforeSpaceRemoval(array $fields): self
+    {
+        $this->beforeSpaceRemoval = $fields;
+        return $this;
+    }
+
+    public function setConcatFields(array $fields): self
+    {
+        $this->concatFields = $fields;
+        return $this;
     }
 }

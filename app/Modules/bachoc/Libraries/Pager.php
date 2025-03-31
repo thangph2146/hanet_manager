@@ -579,6 +579,17 @@ class Pager
         return ($this->currentPage - 1) * $this->perPage;
     }
     
+    /**
+     * Lấy HTML cho các liên kết phân trang
+     * Phương thức này được sử dụng trong các views để hiển thị các liên kết phân trang
+     * 
+     * @return string HTML của các liên kết phân trang
+     */
+    public function links()
+    {
+        return $this->render();
+    }
+    
     public function getLinks(): array
     {
         $links = [];

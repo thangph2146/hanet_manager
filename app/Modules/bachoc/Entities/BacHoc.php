@@ -34,7 +34,7 @@ class BacHoc extends BaseEntity
         'uk_ten_bac_hoc' => ['ten_bac_hoc']
     ];
     
-    // Các quy tắc xác thực cụ thể cho Bachoc
+    // Các quy tắc xác thực cụ thể cho BacHoc
     protected $validationRules = [
         'ten_bac_hoc' => [
             'rules' => 'required|max_length[100]|is_unique[bac_hoc.ten_bac_hoc,bac_hoc_id,{bac_hoc_id}]',

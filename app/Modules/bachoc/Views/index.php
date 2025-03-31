@@ -3,11 +3,14 @@
 <?php 
 // Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
 $route_url = isset($route_url) ? $route_url : 'admin/bachoc';
+$module_name = isset($module_name) ? $module_name : 'bachoc';
 $route_url_php = $route_url;
-include __DIR__ . '/master_scripts.php'; 
+
+// Khởi tạo thư viện MasterScript
+$masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $module_name);
 ?>
-<?= page_css('table') ?>
-<?= page_section_css('modal') ?>
+<?= $masterScript->pageCss('table') ?>
+<?= $masterScript->pageSectionCss('modal') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>DANH SÁCH BẬC HỌC<?= $this->endSection() ?>
 
@@ -52,6 +55,12 @@ include __DIR__ . '/master_scripts.php';
                         <?= csrf_field() ?>
                         <button type="button" id="delete-selected-multiple" class="btn btn-danger btn-sm me-2" disabled>
                             <i class='bx bx-trash'></i> Xóa mục đã chọn
+                        </button>
+                    </form>
+                    <form id="form-status-multiple" action="<?= site_url($route_url . '/statusMultiple') ?>" method="post" class="d-inline">       
+                        <?= csrf_field() ?>
+                        <button type="button" id="status-selected-multiple" class="btn btn-warning btn-sm me-2" disabled>
+                            <i class='bx bx-toggle-right'></i> Đổi trạng thái
                         </button>
                     </form>
                     <a href="<?= site_url($route_url . '/listdeleted') ?>" class="btn btn-outline-danger btn-sm">
@@ -124,7 +133,7 @@ include __DIR__ . '/master_scripts.php';
                             <th width="5%" class="align-middle">ID</th>
                             <th width="20%" class="align-middle">Bậc học</th>
                             <th width="20%" class="align-middle">Mã bậc học</th>
-                            <th width="10%" class="align-middle">Trạng thái</th>
+                            <th width="10%" class="text-center align-middle">Trạng thái</th>
                             <th width="20%" class="text-center align-middle">Thao tác</th>
                         </tr>
                     </thead>
@@ -142,18 +151,8 @@ include __DIR__ . '/master_scripts.php';
                                     <td><?= esc($item->bac_hoc_id) ?></td>  
                                     <td><?= esc($item->ten_bac_hoc) ?></td> 
                                     <td><?= esc($item->ma_bac_hoc) ?></td>
-                                    <td>
-                                        <form action="<?= site_url($route_url . '/statusMultiple') ?>" 
-                                            method="post" class="d-inline">
-                                            <?= csrf_field() ?>
-                                            <input type="hidden" name="selected_ids[]" value="<?= $item->bac_hoc_id ?>">
-                                            <input type="hidden" name="return_url" value="<?= current_url() ?>">
-                                            <button type="submit" class="btn btn-sm <?= $item->status == 1 ? 'btn-success' : 'btn-danger' ?> status-toggle" 
-                                                    data-bs-toggle="tooltip" 
-                                                    title="<?= $item->status == 1 ? 'Đang hoạt động - Click để tắt' : 'Đang tắt - Click để bật' ?>">
-                                                <?= $item->status == 1 ? 'Hoạt động' : 'Không hoạt động' ?>
-                                            </button>
-                                        </form>
+                                    <td class="text-center">
+                                        <?= $item->getStatusLabel() ?>
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1 action-btn-group">
@@ -165,7 +164,7 @@ include __DIR__ . '/master_scripts.php';
                                             </a>
                                             <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
                                                     data-id="<?= $item->bac_hoc_id ?>" 
-                                                    data-name="ID: <?= esc($item->bac_hoc_id) ?>"
+                                                    data-name="ID: <?= esc($item->bac_hoc_id) ?> - <?= esc($item->ten_bac_hoc) ?>"
                                                     data-bs-toggle="tooltip" title="Xóa">
                                                 <i class="bx bx-trash"></i>
                                             </button>
@@ -175,7 +174,7 @@ include __DIR__ . '/master_scripts.php';
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="8" class="text-center py-3">
+                                <td colspan="6" class="text-center py-3">
                                     <div class="empty-state">
                                         <i class="bx bx-folder-open"></i>
                                         <p>Không có dữ liệu</p>
@@ -198,16 +197,16 @@ include __DIR__ . '/master_scripts.php';
                     <div class="d-flex justify-content-end align-items-center">
                         <div class="me-2">
                             <select id="perPageSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
-                                <option value="5" <?= $perPage == 5 ? 'selected' : '' ?>>5</option>
                                 <option value="10" <?= $perPage == 10 ? 'selected' : '' ?>>10</option>
-                                <option value="15" <?= $perPage == 15 ? 'selected' : '' ?>>15</option>
                                 <option value="25" <?= $perPage == 25 ? 'selected' : '' ?>>25</option>
                                 <option value="50" <?= $perPage == 50 ? 'selected' : '' ?>>50</option>
+                                <option value="100" <?= $perPage == 100 ? 'selected' : '' ?>>100</option>
                             </select>
-                            <span class="ms-1">bản ghi/trang</span>
                         </div>
-                        <div>
-                            <?= $pager->render() ?>
+                        <div class="pagination-container">
+                            <?php if ($pager) : ?>
+                                <?= $pager->links() ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -216,50 +215,40 @@ include __DIR__ . '/master_scripts.php';
     </div>
 </div>
 
-<!-- Modal xác nhận xóa -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+<!-- Modal Xác nhận xóa -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa</h5>
+                <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center icon-wrapper mb-3">
-                    <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
-                </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa bản ghi tham gia sự kiện:</p>
-                <p class="text-center fw-bold" id="delete-item-name"></p>
-                <div class="alert alert-warning mt-3">
-                    <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
-                </div>
+                <p>Bạn có chắc chắn muốn xóa bậc học: <span id="delete-item-name" class="fw-bold"></span>?</p>
+                <p class="text-danger mb-0"><i class="bx bx-info-circle"></i> Lưu ý: Hành động này có thể ảnh hưởng đến dữ liệu liên quan!</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <?= form_open('', ['id' => 'delete-form']) ?>
+                <form id="delete-form" action="" method="post">
+                    <?= csrf_field() ?>
                     <button type="submit" class="btn btn-danger">Xóa</button>
-                <?= form_close() ?>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal xác nhận xóa nhiều -->
-<div class="modal fade" id="deleteMultipleModal" tabindex="-1" aria-hidden="true">
+<!-- Modal Xác nhận xóa nhiều -->
+<div class="modal fade" id="deleteMultipleModal" tabindex="-1" aria-labelledby="deleteMultipleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa nhiều</h5>
+                <h5 class="modal-title" id="deleteMultipleModalLabel">Xác nhận xóa nhiều mục</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center icon-wrapper mb-3">
-                    <i class="bx bx-error-circle text-danger" style="font-size: 4rem;"></i>
-                </div>
-                <p class="text-center">Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> bản ghi đã chọn?</p>
-                <div class="alert alert-warning mt-3">
-                    <i class="bx bx-info-circle me-1"></i> Dữ liệu sẽ được chuyển vào thùng rác và có thể khôi phục.
-                </div>
+                <p>Bạn có chắc chắn muốn xóa <span id="selected-count" class="fw-bold"></span> mục đã chọn?</p>
+                <p class="text-danger mb-0"><i class="bx bx-info-circle"></i> Lưu ý: Hành động này có thể ảnh hưởng đến dữ liệu liên quan!</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -269,14 +258,35 @@ include __DIR__ . '/master_scripts.php';
     </div>
 </div>
 
-<script>
-    var base_url = '<?= site_url() ?>';
-    var route_url = '<?= $route_url ?>';
-</script>
+<!-- Modal Xác nhận đổi trạng thái nhiều -->
+<div class="modal fade" id="statusMultipleModal" tabindex="-1" aria-labelledby="statusMultipleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusMultipleModalLabel">Xác nhận đổi trạng thái</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn thay đổi trạng thái của <span id="status-count" class="fw-bold"></span> mục đã chọn?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="confirm-status-multiple" class="btn btn-primary">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading indicator (hidden by default) -->
+<div id="loading-indicator" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Đang tải...</span>
+    </div>
+</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= page_js('table', $route_url) ?>
-<?= page_section_js('table', $route_url) ?>
-<?= page_table_js($route_url) ?>
+<?= $masterScript->pageJs('table') ?>
+<?= $masterScript->pageSectionJs('table') ?>
+<?= $masterScript->pageTableJs() ?>
 <?= $this->endSection() ?> 

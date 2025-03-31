@@ -4,6 +4,7 @@ namespace App\Modules\bachoc\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\bachoc\Models\BacHocModel;
+use App\Libraries\Breadcrumb;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -19,19 +20,21 @@ use CodeIgniter\I18n\Time;
 use App\Modules\bachoc\Traits\ExportTrait;
 use App\Modules\bachoc\Traits\RelationTrait;
 
-class Bachoc extends BaseController
+class BacHoc extends BaseController
 {
     use ResponseTrait;
     use ExportTrait;
     use RelationTrait;
     
     protected $model;
+    protected $breadcrumb;
     protected $alert;
     protected $moduleUrl;
     protected $title;
     protected $module_name = 'bachoc';
     protected $controller_name = 'BacHoc';
     protected $route_url = 'admin/bachoc';
+    protected $masterScript;
     
     public function __construct()
     {
@@ -39,22 +42,29 @@ class Bachoc extends BaseController
         $this->session = service('session');
 
         // Khởi tạo các thành phần cần thiết
-        $this->model = new BachocModel();
+        $this->model = new BacHocModel();
+        $this->breadcrumb = new Breadcrumb();
         $this->alert = new Alert();
         
         // Thông tin module
         $this->moduleUrl = base_url($this->route_url);
         $this->title = 'Bậc Học';
         
+        // Khởi tạo thư viện MasterScript với route_url và module_name
+        $this->masterScript = new \App\Modules\bachoc\Libraries\MasterScript($this->route_url, $this->module_name);
+        
         // Khởi tạo các model quan hệ
         $this->initializeRelationTrait();
     }
     
     /**
-     * Hiển thị danh sách tham gia sự kiện
+     * Hiển thị danh sách bậc học
      */
     public function index()
     {
+        // Cập nhật breadcrumb
+        $this->breadcrumb->add('Danh sách', current_url());
+        
         // Lấy và xử lý tham số tìm kiếm
         $params = $this->prepareSearchParams($this->request);
         $params = $this->processSearchParams($params);
@@ -66,7 +76,7 @@ class Bachoc extends BaseController
         $criteria = $this->buildSearchCriteria($params);
         $options = $this->buildSearchOptions($params);
         
-        // Lấy dữ liệu tham gia sự kiện và thông tin phân trang
+        // Lấy dữ liệu bậc học và thông tin phân trang
         $pageData = $this->model->search($criteria, $options);
         // Lấy tổng số kết quả
         $pager = $this->model->getPager();
@@ -99,8 +109,10 @@ class Bachoc extends BaseController
         
         // Chuẩn bị dữ liệu cho view
         $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
-        // Thêm route_url vào viewData để sử dụng trong view
+        // Thêm route_url và masterScript vào viewData để sử dụng trong view
         $viewData['route_url'] = $this->route_url;
+        $viewData['module_name'] = $this->module_name;
+        $viewData['masterScript'] = $this->masterScript;
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
     }
@@ -110,16 +122,22 @@ class Bachoc extends BaseController
      */
     public function new()
     {
+        // Cập nhật breadcrumb
+        $this->breadcrumb->add('Thêm mới', current_url());
+        
         // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
         $viewData = $this->prepareFormData($this->module_name);
         
         // Thêm dữ liệu cho view
+        $viewData['breadcrumb'] = $this->breadcrumb->render();
         $viewData['title'] = 'Thêm mới ' . $this->title;
         $viewData['validation'] = $this->validator;
+        $viewData['moduleUrl'] = $this->moduleUrl;
         $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
         $viewData['action'] = site_url($this->route_url . '/create');
         $viewData['method'] = 'POST';
         $viewData['route_url'] = $this->route_url;
+        $viewData['masterScript'] = $this->masterScript;
         
         return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
     }
@@ -161,7 +179,7 @@ class Bachoc extends BaseController
     public function view($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
+            $this->alert->set('danger', 'ID bậc học không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -172,7 +190,7 @@ class Bachoc extends BaseController
         $data = $this->model->find($id);
         
         if (empty($data)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu năm học', true);
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu bậc học', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -180,13 +198,18 @@ class Bachoc extends BaseController
         $processedData = $this->processData([$data]);
         $data = $processedData[0] ?? $data;
         
+        // Cập nhật breadcrumb
+        $this->breadcrumb->add('Chi tiết', current_url());
+        
         // Chuẩn bị dữ liệu cho view
         $viewData = [
+            'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chi tiết ' . $this->title,
             'data' => $data,
             'moduleUrl' => $this->moduleUrl,
             'module_name' => $this->module_name,
-            'route_url' => $this->route_url
+            'route_url' => $this->route_url,
+            'masterScript' => $this->masterScript
         ];
         
         return view('App\Modules\\' . $this->module_name . '\Views\view', $viewData);
@@ -198,7 +221,7 @@ class Bachoc extends BaseController
     public function edit($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
+            $this->alert->set('danger', 'ID bậc học không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -206,20 +229,26 @@ class Bachoc extends BaseController
         $data = $this->model->findWithRelations($id);
         
         if (empty($data)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu khóa học', true);
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu bậc học', true);
             return redirect()->to($this->moduleUrl);
         }
+        
+        // Cập nhật breadcrumb
+        $this->breadcrumb->add('Chỉnh sửa', current_url());
         
         // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
         $viewData = $this->prepareFormData($this->module_name, $data);
         
         // Thêm dữ liệu cho view
+        $viewData['breadcrumb'] = $this->breadcrumb->render();
         $viewData['title'] = 'Chỉnh sửa ' . $this->title;
         $viewData['validation'] = $this->validator;
+        $viewData['moduleUrl'] = $this->moduleUrl;
         $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
         $viewData['action'] = site_url($this->route_url . '/update/' . $id);
         $viewData['method'] = 'POST';
         $viewData['route_url'] = $this->route_url;
+        $viewData['masterScript'] = $this->masterScript;
         
         return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
     }
@@ -230,15 +259,15 @@ class Bachoc extends BaseController
     public function update($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
+            $this->alert->set('danger', 'ID bậc học không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
-        // Lấy thông tin tham gia sự kiện với relationship
+        // Lấy thông tin bậc học với relationship
         $existingRecord = $this->model->findWithRelations($id);
         
         if (empty($existingRecord)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu khóa học', true);
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu bậc học', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -259,7 +288,7 @@ class Bachoc extends BaseController
         }
     
         // Chuẩn bị quy tắc validation cho cập nhật
-        $this->model->prepareValidationRules('update', ['tham_gia_su_kien_id' => $id]);
+        $this->model->prepareValidationRules('update', $id);
         
         // Kiểm tra dữ liệu
         if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
@@ -267,7 +296,7 @@ class Bachoc extends BaseController
         }
         
         try {
-            // Lưu dữ liệu trực tiếp
+            // Cập nhật dữ liệu
             if ($this->model->update($id, $data)) {
                 $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
@@ -288,13 +317,13 @@ class Bachoc extends BaseController
     public function delete($id = null, $backToUrl = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
+            $this->alert->set('danger', 'ID bậc học không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Thực hiện xóa mềm (sử dụng deleted_at thay vì bin)
         if ($this->model->delete($id)) {
-            $this->alert->set('success', 'Đã xóa dữ liệu khóa học thành công', true);
+            $this->alert->set('success', 'Đã xóa dữ liệu bậc học thành công', true);
         } else {
             $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
         }
@@ -382,7 +411,7 @@ class Bachoc extends BaseController
     public function restore($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
+            $this->alert->set('danger', 'ID bậc học không hợp lệ', true);
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         

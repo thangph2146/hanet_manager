@@ -3,10 +3,13 @@
 <?php 
 // Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
 $route_url = isset($route_url) ? $route_url : 'admin/bachoc';
-$route_url_php = $route_url;
-include __DIR__ . '/master_scripts.php'; 
+$module_name = isset($module_name) ? $module_name : 'bachoc';
+
+// Khởi tạo thư viện MasterScript
+$masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $module_name);
 ?>
-<?= page_css('view', $route_url) ?>
+<?= $masterScript->pageCss('view') ?>
+<?= $masterScript->pageSectionCss('modal') ?>
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>CHI TIẾT BẬC HỌC<?= $this->endSection() ?>
 
@@ -19,6 +22,7 @@ include __DIR__ . '/master_scripts.php';
         ['title' => 'Chi tiết', 'active' => true]
     ],
     'actions' => [
+        ['url' => site_url($route_url . '/edit/' . $data->bac_hoc_id), 'title' => 'Chỉnh sửa', 'icon' => 'bx bx-edit'],
         ['url' => site_url($route_url), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
     ]
 ]) ?>
@@ -82,42 +86,20 @@ include __DIR__ . '/master_scripts.php';
                     <tr>
                         <th>Trạng thái</th>
                         <td>
-                            <?php if ($data->status == 1): ?>
-                                <span class="badge bg-success">Đang hoạt động</span>
-                            <?php else: ?>
-                                <span class="badge bg-danger">Đã khóa</span>
-                            <?php endif; ?>
+                            <?= $data->getStatusLabel() ?>
                         </td>
                     </tr>
                     <tr>
                         <th>Ngày tạo</th>
-                        <td>
-                            <?php if (!empty($data->created_at)): ?>
-                                <?= date('d/m/Y H:i:s', strtotime($data->created_at)) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
+                        <td><?= $data->getCreatedAtFormatted() ?></td>
                     </tr>
                     <tr>
                         <th>Cập nhật lần cuối</th>
-                        <td>
-                            <?php if (!empty($data->updated_at)): ?>
-                                <?= date('d/m/Y H:i:s', strtotime($data->updated_at)) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa cập nhật</span>
-                            <?php endif; ?>
-                        </td>
+                        <td><?= $data->getUpdatedAtFormatted() ?></td>
                     </tr>
                     <tr>
                         <th>Ngày xóa</th>
-                        <td>
-                            <?php if (!empty($data->deleted_at)): ?>
-                                <?= date('d/m/Y H:i:s', strtotime($data->deleted_at)) ?>
-                            <?php else: ?>
-                                <span class="text-muted fst-italic">Chưa xóa</span>
-                            <?php endif; ?>
-                        </td>
+                        <td><?= $data->getDeletedAtFormatted() ?></td>
                     </tr>
                 </tbody>
             </table>
@@ -146,5 +128,5 @@ include __DIR__ . '/master_scripts.php';
 <?= $this->endSection() ?>
 
 <?= $this->section('script_ext') ?>
-<?= page_js('view', $route_url) ?>
+<?= $masterScript->pageJs('view') ?>
 <?= $this->endSection() ?>
