@@ -270,7 +270,8 @@ trait ExportTrait
             'filters' => $this->formatFilters($filters),
             'data' => $data,
             'includeDeletedAt' => $includeDeleted,
-            'total_records' => count($data)
+            'total_records' => count($data),
+            'route_url' => $this->route_url
         ];
         
         // Render view

@@ -369,6 +369,7 @@ class CameraModel extends BaseModel
         unset($this->validationRules['created_at']);
         unset($this->validationRules['updated_at']);
         unset($this->validationRules['deleted_at']);
+        unset($this->validationRules['bin']);
         // Loại bỏ validation cho camera_id trong mọi trường hợp
         unset($this->validationRules['camera_id']);
         unset($this->validationRules['username']);

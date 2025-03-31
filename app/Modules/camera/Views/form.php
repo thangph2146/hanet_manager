@@ -16,7 +16,7 @@ $status = isset($data) ? (string)$data->status : '1';
 $id = isset($data) ? $data->getId() : '';
 
 // Set default values for form action and method
-$action = isset($action) ? $action : site_url($module_name . '/create');
+$action = isset($action) ? $action : site_url($route_url . '/create');
 $method = isset($method) ? $method : 'POST';
 
 // Xác định tiêu đề form dựa trên mode
@@ -238,7 +238,7 @@ $status = old('status', $status);
                 </span>
                 
                 <div class="d-flex gap-2">
-                    <a href="<?= site_url($module_name) ?>" class="btn btn-light">
+                    <a href="<?= site_url($route_url) ?>" class="btn btn-light">
                         <i class='bx bx-arrow-back me-1'></i> Quay lại
                     </a>
                     <button class="btn btn-primary px-4" type="submit">
