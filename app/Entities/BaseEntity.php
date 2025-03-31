@@ -22,6 +22,11 @@ abstract class BaseEntity extends Entity
     protected $changed = [];
     protected $tempData = [];
     protected $tempDataRemoved = [];
+    protected $useTimestamps = true;
+    protected $useSoftDeletes = true;
+    protected $relations = [];
+    protected $beforeSpaceRemoval = [];
+    protected $concatFields = [];
 
     public function __construct(array $data = [])
     {
@@ -290,5 +295,138 @@ abstract class BaseEntity extends Entity
         }
         
         return true;
+    }
+
+    // Các phương thức mới cho xử lý dữ liệu
+    public function getTableName(): string
+    {
+        return $this->tableName;
+    }
+
+    public function getFillable(): array
+    {
+        return $this->fillable;
+    }
+
+    public function getGuarded(): array
+    {
+        return $this->guarded;
+    }
+
+    public function getJsonFields(): array
+    {
+        return $this->jsonFields;
+    }
+
+    public function getHiddenFields(): array
+    {
+        return $this->hiddenFields;
+    }
+
+    public function getValidationRules(): array
+    {
+        return $this->validationRules;
+    }
+
+    public function getValidationMessages(): array
+    {
+        return $this->validationMessages;
+    }
+
+    public function isTimestampEnabled(): bool
+    {
+        return $this->useTimestamps;
+    }
+
+    public function isSoftDeleteEnabled(): bool
+    {
+        return $this->useSoftDeletes;
+    }
+
+    public function getRelations(): array
+    {
+        return $this->relations;
+    }
+
+    public function getBeforeSpaceRemoval(): array
+    {
+        return $this->beforeSpaceRemoval;
+    }
+
+    public function getConcatFields(): array
+    {
+        return $this->concatFields;
+    }
+
+    public function setTableName(string $name): self
+    {
+        $this->tableName = $name;
+        return $this;
+    }
+
+    public function setFillable(array $fields): self
+    {
+        $this->fillable = $fields;
+        return $this;
+    }
+
+    public function setGuarded(array $fields): self
+    {
+        $this->guarded = $fields;
+        return $this;
+    }
+
+    public function setJsonFields(array $fields): self
+    {
+        $this->jsonFields = $fields;
+        return $this;
+    }
+
+    public function setHiddenFields(array $fields): self
+    {
+        $this->hiddenFields = $fields;
+        return $this;
+    }
+
+    public function setValidationRules(array $rules): self
+    {
+        $this->validationRules = $rules;
+        return $this;
+    }
+
+    public function setValidationMessages(array $messages): self
+    {
+        $this->validationMessages = $messages;
+        return $this;
+    }
+
+    public function setUseTimestamps(bool $enabled): self
+    {
+        $this->useTimestamps = $enabled;
+        return $this;
+    }
+
+    public function setUseSoftDeletes(bool $enabled): self
+    {
+        $this->useSoftDeletes = $enabled;
+        return $this;
+    }
+
+    public function setRelations(array $relations): self
+    {
+        $this->relations = $relations;
+        return $this;
+    }
+
+    public function setBeforeSpaceRemoval(array $fields): self
+    {
+        $this->beforeSpaceRemoval = $fields;
+        return $this;
+    }
+
+    public function setConcatFields(array $fields): self
+    {
+        $this->concatFields = $fields;
+        return $this;
     }
 }

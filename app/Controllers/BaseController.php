@@ -49,7 +49,7 @@ abstract class BaseController extends Controller
         'pagination'
     ];
 
-    // Các thuộc tính chung
+    // Các thuộc tính chung cho module
     protected $moduleName = '';
     protected $modulePath = '';
     protected $viewPath = '';
@@ -62,6 +62,12 @@ abstract class BaseController extends Controller
     protected $filterFields = [];
     protected $sortFields = [];
     protected $defaultSort = 'created_at DESC';
+    protected $uploadPath = 'uploads/';
+    protected $allowedFileTypes = 'gif|jpg|jpeg|png|pdf|doc|docx|xls|xlsx';
+    protected $maxFileSize = 2048; // KB
+    protected $relations = [];
+    protected $beforeSpaceRemoval = [];
+    protected $concatFields = [];
 
     /**
      * Constructor.
@@ -206,11 +212,18 @@ abstract class BaseController extends Controller
     }
 
     // Các phương thức tiện ích
-    protected function uploadFile($field, $path, $allowedTypes = 'gif|jpg|jpeg|png|pdf')
+    protected function uploadFile($field, $path = null, $allowedTypes = null)
     {
+        $path = $path ?? $this->uploadPath;
+        $allowedTypes = $allowedTypes ?? $this->allowedFileTypes;
+        
         $file = $this->request->getFile($field);
 
         if ($file->isValid() && !$file->hasMoved()) {
+            if ($file->getSize() > $this->maxFileSize * 1024) {
+                return null;
+            }
+
             $newName = $file->getRandomName();
             $file->move($path, $newName);
             return $newName;
@@ -237,5 +250,252 @@ abstract class BaseController extends Controller
     protected function jsonResponse($data, $status = 200)
     {
         return $this->response->setJSON($data)->setStatusCode($status);
+    }
+
+    // Các phương thức xử lý form
+    protected function getFormData()
+    {
+        $data = $this->request->getPost();
+        
+        // Xử lý các trường đặc biệt
+        foreach ($data as $key => $value) {
+            if (is_string($value)) {
+                $data[$key] = trim($value);
+            }
+        }
+        
+        return $data;
+    }
+
+    protected function validateForm($rules = null, $messages = null)
+    {
+        $rules = $rules ?? $this->validationRules;
+        $messages = $messages ?? $this->validationMessages;
+        
+        return $this->validate($rules, $messages);
+    }
+
+    // Các phương thức xử lý phân trang
+    protected function getPagination($total, $perPage = null)
+    {
+        $perPage = $perPage ?? $this->perPage;
+        $pager = service('pager');
+        
+        return $pager->makeLinks(
+            $this->request->getGet('page') ?? 1,
+            $perPage,
+            $total,
+            'default_full'
+        );
+    }
+
+    // Các phương thức xử lý tìm kiếm và lọc
+    protected function getSearchParams()
+    {
+        return [
+            'search' => $this->request->getGet('search'),
+            'filters' => $this->request->getGet('filters') ?? [],
+            'sort' => $this->request->getGet('sort') ?? $this->defaultSort,
+            'page' => $this->request->getGet('page') ?? 1
+        ];
+    }
+
+    // Các phương thức getter/setter
+    public function getModuleName(): string
+    {
+        return $this->moduleName;
+    }
+
+    public function getModulePath(): string
+    {
+        return $this->modulePath;
+    }
+
+    public function getViewPath(): string
+    {
+        return $this->viewPath;
+    }
+
+    public function getModelName(): string
+    {
+        return $this->modelName;
+    }
+
+    public function getEntityName(): string
+    {
+        return $this->entityName;
+    }
+
+    public function getValidationRules(): array
+    {
+        return $this->validationRules;
+    }
+
+    public function getValidationMessages(): array
+    {
+        return $this->validationMessages;
+    }
+
+    public function getPerPage(): int
+    {
+        return $this->perPage;
+    }
+
+    public function getSearchFields(): array
+    {
+        return $this->searchFields;
+    }
+
+    public function getFilterFields(): array
+    {
+        return $this->filterFields;
+    }
+
+    public function getSortFields(): array
+    {
+        return $this->sortFields;
+    }
+
+    public function getDefaultSort(): string
+    {
+        return $this->defaultSort;
+    }
+
+    public function getUploadPath(): string
+    {
+        return $this->uploadPath;
+    }
+
+    public function getAllowedFileTypes(): string
+    {
+        return $this->allowedFileTypes;
+    }
+
+    public function getMaxFileSize(): int
+    {
+        return $this->maxFileSize;
+    }
+
+    public function getRelations(): array
+    {
+        return $this->relations;
+    }
+
+    public function getBeforeSpaceRemoval(): array
+    {
+        return $this->beforeSpaceRemoval;
+    }
+
+    public function getConcatFields(): array
+    {
+        return $this->concatFields;
+    }
+
+    public function setModuleName(string $name): self
+    {
+        $this->moduleName = $name;
+        return $this;
+    }
+
+    public function setModulePath(string $path): self
+    {
+        $this->modulePath = $path;
+        return $this;
+    }
+
+    public function setViewPath(string $path): self
+    {
+        $this->viewPath = $path;
+        return $this;
+    }
+
+    public function setModelName(string $name): self
+    {
+        $this->modelName = $name;
+        return $this;
+    }
+
+    public function setEntityName(string $name): self
+    {
+        $this->entityName = $name;
+        return $this;
+    }
+
+    public function setValidationRules(array $rules): self
+    {
+        $this->validationRules = $rules;
+        return $this;
+    }
+
+    public function setValidationMessages(array $messages): self
+    {
+        $this->validationMessages = $messages;
+        return $this;
+    }
+
+    public function setPerPage(int $perPage): self
+    {
+        $this->perPage = $perPage;
+        return $this;
+    }
+
+    public function setSearchFields(array $fields): self
+    {
+        $this->searchFields = $fields;
+        return $this;
+    }
+
+    public function setFilterFields(array $fields): self
+    {
+        $this->filterFields = $fields;
+        return $this;
+    }
+
+    public function setSortFields(array $fields): self
+    {
+        $this->sortFields = $fields;
+        return $this;
+    }
+
+    public function setDefaultSort(string $sort): self
+    {
+        $this->defaultSort = $sort;
+        return $this;
+    }
+
+    public function setUploadPath(string $path): self
+    {
+        $this->uploadPath = $path;
+        return $this;
+    }
+
+    public function setAllowedFileTypes(string $types): self
+    {
+        $this->allowedFileTypes = $types;
+        return $this;
+    }
+
+    public function setMaxFileSize(int $size): self
+    {
+        $this->maxFileSize = $size;
+        return $this;
+    }
+
+    public function setRelations(array $relations): self
+    {
+        $this->relations = $relations;
+        return $this;
+    }
+
+    public function setBeforeSpaceRemoval(array $fields): self
+    {
+        $this->beforeSpaceRemoval = $fields;
+        return $this;
+    }
+
+    public function setConcatFields(array $fields): self
+    {
+        $this->concatFields = $fields;
+        return $this;
     }
 }

@@ -36,6 +36,10 @@ class BaseModel extends Model
         'status' => 'permit_empty|in_list[0,1]',
         'email' => 'permit_empty|valid_email',
         'phone' => 'permit_empty|numeric|min_length[10]|max_length[15]',
+        'password' => 'required|min_length[6]',
+        'confirm_password' => 'required|matches[password]',
+        'image' => 'permit_empty|uploaded[image]|max_size[image,2048]|is_image[image]|mime_in[image,image/jpg,image/jpeg,image/png]',
+        'file' => 'permit_empty|uploaded[file]|max_size[file,2048]|mime_in[file,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document]'
     ];
 
     public function __construct()
@@ -563,5 +567,60 @@ class BaseModel extends Model
             log_message('error', 'Lỗi định dạng thời gian: ' . $e->getMessage());
             return null;
         }
+    }
+
+    // Các phương thức mới cho xử lý dữ liệu
+    public function getRelations(): array
+    {
+        return $this->relations;
+    }
+
+    public function getSearchableFields(): array
+    {
+        return $this->searchableFields;
+    }
+
+    public function getFilterableFields(): array
+    {
+        return $this->filterableFields;
+    }
+
+    public function getBeforeSpaceRemoval(): array
+    {
+        return $this->beforeSpaceRemoval;
+    }
+
+    public function getConcatFields(): array
+    {
+        return $this->concatFields;
+    }
+
+    public function getCommonValidationRules(): array
+    {
+        return $this->commonValidationRules;
+    }
+
+    public function setSearchableFields(array $fields): self
+    {
+        $this->searchableFields = $fields;
+        return $this;
+    }
+
+    public function setFilterableFields(array $fields): self
+    {
+        $this->filterableFields = $fields;
+        return $this;
+    }
+
+    public function setBeforeSpaceRemoval(array $fields): self
+    {
+        $this->beforeSpaceRemoval = $fields;
+        return $this;
+    }
+
+    public function setConcatFields(array $fields): self
+    {
+        $this->concatFields = $fields;
+        return $this;
     }
 }
