@@ -369,10 +369,11 @@ class ThamGiaSuKien extends BaseController
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
         
-        // Lấy dữ liệu bị xóa và thông tin phân trang
-        $pageData = $this->model->getAllDeleted($params['perPage'], ($params['page'] - 1) * $params['perPage'], $params['sort'], $params['order']);
-        $pager = $this->model->getPager();
-        $total = $pager ? $pager->getTotal() : $this->model->countAllDeleted();
+        // Lấy danh sách bản ghi đã xóa thông qua model
+        $result = $this->model->getDeletedRecords($params);
+        $pageData = $result['data'];
+        $total = $result['total'];
+        $pager = $result['pager'];
         
         // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
         $pageCount = ceil($total / $params['perPage']);
@@ -392,10 +393,6 @@ class ThamGiaSuKien extends BaseController
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
             $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'phuong_thuc_diem_danh']);
             $pager->setRouteUrl($this->route_url);
-            
-            // Đảm bảo perPage và currentPage được thiết lập đúng
-            $pager->setPerPage($params['perPage']);
-            $pager->setCurrentPage($params['page']);
         }
         
         // Cập nhật breadcrumb
@@ -433,10 +430,10 @@ class ThamGiaSuKien extends BaseController
             return redirect()->to($this->moduleUrl . '/listdeleted');
         }
         
+        
         // Lấy URL trả về từ form hoặc từ HTTP_REFERER
         $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
-        log_message('debug', 'Restore - Return URL: ' . ($returnUrl ?? 'None'));
-        
+        log_message('debug', 'Restore - Return URL: ' . ($returnUrl ?? 'None'));        
         // Khôi phục bản ghi bằng cách đặt deleted_at thành NULL
         if ($this->model->update($id, ['deleted_at' => null])) {
             $this->alert->set('success', 'Đã khôi phục dữ liệu từ thùng rác', true);

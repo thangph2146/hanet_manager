@@ -352,7 +352,7 @@ function page_section_js($section, $module_name) {
 }
 
 // Thêm hàm đồng bộ JavaScript cho bảng ThamGiaSuKien
-function page_table_js($module_name) {
+function page_table_js($route_url) {
     
     ob_start();
     ?>
@@ -420,9 +420,9 @@ function page_table_js($module_name) {
             
             // Kiểm tra xem đang ở trang listdeleted hay không
             if (isListDeletedPage) {
-                deleteUrl = '<?= site_url($module_name . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+                deleteUrl = '<?= site_url($route_url . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             } else {
-                deleteUrl = '<?= site_url($module_name . '/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+                deleteUrl = '<?= site_url($route_url . '/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             }
             
             $('#delete-form').attr('action', deleteUrl);
@@ -439,7 +439,7 @@ function page_table_js($module_name) {
             const pathAndQuery = window.location.pathname + window.location.search;
             
             // Tạo URL khôi phục với tham số truy vấn return_url
-            const restoreUrl = '<?= site_url($module_name . '/restore/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            const restoreUrl = '<?= site_url($route_url . '/restore/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             $('#restore-form').attr('action', restoreUrl);
             
             $('#restoreModal').modal('show');
@@ -455,7 +455,7 @@ function page_table_js($module_name) {
             const pathAndQuery = window.location.pathname + window.location.search;
             
             // Tạo URL xóa với tham số truy vấn return_url
-            const deleteUrl = '<?= site_url($module_name . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            const deleteUrl = '<?= site_url($route_url . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             $('#delete-form').attr('action', deleteUrl);
             
             $('#deleteModal').modal('show');
@@ -724,9 +724,9 @@ function page_table_js($module_name) {
             // Xác định loại export dựa trên URL hiện tại
             let exportUrl = '';
             if (isListDeletedPage) {
-                exportUrl = '<?= site_url($module_name . "/exportDeletedExcel") ?>';
+                exportUrl = '<?= site_url($route_url . "/exportDeletedExcel") ?>';
             } else {
-                exportUrl = '<?= site_url($module_name . "/exportExcel") ?>';
+                exportUrl = '<?= site_url($route_url . "/exportExcel") ?>';
             }
             
             const params = [];
@@ -762,9 +762,9 @@ function page_table_js($module_name) {
             // Xác định loại export dựa trên URL hiện tại
             let exportUrl = '';
             if (isListDeletedPage) {
-                exportUrl = '<?= site_url($module_name . "/exportDeletedPdf") ?>';
+                exportUrl = '<?= site_url($route_url . "/exportDeletedPdf") ?>';
             } else {
-                exportUrl = '<?= site_url($module_name . "/exportPdf") ?>';
+                exportUrl = '<?= site_url($route_url . "/exportPdf") ?>';
             }
             
             const params = [];

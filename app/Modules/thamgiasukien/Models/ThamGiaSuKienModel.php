@@ -108,14 +108,11 @@ class ThamGiaSuKienModel extends BaseModel
      */
     public function getAllDeleted($limit = 10, $offset = 0, $sort = 'deleted_at', $order = 'DESC')
     {
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select('*');
-        
-        // Chỉ lấy bản ghi đã xóa
-        $this->builder->where('deleted_at IS NOT NULL');
+        // Sử dụng onlyDeleted để chỉ lấy các bản ghi đã xóa
+        $this->onlyDeleted();
         
         if ($sort && $order) {
-            $this->builder->orderBy($sort, $order);
+            $this->orderBy($sort, $order);
         }
         
         $total = $this->countAllDeleted();
@@ -129,8 +126,7 @@ class ThamGiaSuKienModel extends BaseModel
                         ->setCurrentPage($currentPage);
         }
         
-        $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
-        return $result ?: [];
+        return $this->findAll($limit, $offset);
     }
 
     /**
@@ -141,16 +137,12 @@ class ThamGiaSuKienModel extends BaseModel
      */
     public function countAll($conditions = [])
     {
-        $builder = $this->builder();
-        
         // Mặc định chỉ đếm bản ghi chưa xóa
-        $builder->where('deleted_at IS NULL');
-        
         if (!empty($conditions)) {
-            $builder->where($conditions);
+            $this->where($conditions);
         }
         
-        return $builder->countAllResults();
+        return $this->countAllResults();
     }
     
     /**
@@ -161,16 +153,14 @@ class ThamGiaSuKienModel extends BaseModel
      */
     public function countAllDeleted($conditions = [])
     {
-        $builder = $this->builder();
-        
-        // Mặc định chỉ đếm bản ghi đã xóa
-        $builder->where('deleted_at IS NOT NULL');
+        // Sử dụng onlyDeleted để chỉ đếm các bản ghi đã xóa
+        $this->onlyDeleted();
         
         if (!empty($conditions)) {
-            $builder->where($conditions);
+            $this->where($conditions);
         }
         
-        return $builder->countAllResults();
+        return $this->countAllResults();
     }
     
     /**
@@ -242,13 +232,9 @@ class ThamGiaSuKienModel extends BaseModel
     {
         $builder = $this->builder();
         
-        // Xử lý withDeleted nếu cần
-        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
-            $builder->where($this->table . '.deleted_at IS NOT NULL');
-        } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa
-            $builder->where($this->table . '.deleted_at IS NULL');
-        }
+        // Không cần thiết lập điều kiện deleted_at vì nó đã được xử lý tự động bởi framework
+        // Nếu đã gọi onlyDeleted() trước đó, framework sẽ tự thêm điều kiện deleted_at IS NOT NULL
+        // Nếu không, mặc định framework sẽ lấy các bản ghi có deleted_at IS NULL
         
         if (!empty($criteria['keyword'])) {
             $keyword = trim($criteria['keyword']);
@@ -324,13 +310,8 @@ class ThamGiaSuKienModel extends BaseModel
     {
         $builder = $this->builder();
         
-        // Xử lý withDeleted nếu cần
-        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
-            $builder->where($this->table . '.deleted_at IS NOT NULL');
-        } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa
-            $builder->where($this->table . '.deleted_at IS NULL');
-        }
+        // Mặc định chỉ lấy dữ liệu chưa xóa, trừ khi đã sử dụng onlyDeleted trước đó
+        // Không cần thiết lập điều kiện deleted vì nó sẽ được tự động xử lý bởi framework
         
         if (!empty($criteria['keyword'])) {
             $keyword = trim($criteria['keyword']);
@@ -444,19 +425,16 @@ class ThamGiaSuKienModel extends BaseModel
     }
     
     /**
-     * Tìm kiếm các bản ghi đã xóa
+     * Tìm kiếm bản ghi đã xóa theo tiêu chí
      *
      * @param array $criteria Tiêu chí tìm kiếm
-     * @param array $options Tùy chọn tìm kiếm (limit, offset, sort, order)
+     * @param array $options Tùy chọn phân trang và sắp xếp
      * @return array
      */
     public function searchDeleted(array $criteria = [], array $options = [])
     {
-        // Đảm bảo withDeleted được thiết lập
-        $this->withDeleted();
-        
-        // Đặt điều kiện để chỉ lấy các bản ghi đã xóa
-        $criteria['deleted'] = true;
+        // Sử dụng onlyDeleted để chỉ lấy các bản ghi đã xóa
+        $this->onlyDeleted();
         
         // Sử dụng phương thức search hiện tại với tham số đã sửa đổi
         return $this->search($criteria, $options);
@@ -470,11 +448,8 @@ class ThamGiaSuKienModel extends BaseModel
      */
     public function countDeletedResults(array $criteria = [])
     {
-        // Đảm bảo withDeleted được thiết lập
-        $this->withDeleted();
-        
-        // Đặt điều kiện để chỉ đếm các bản ghi đã xóa
-        $criteria['deleted'] = true;
+        // Sử dụng onlyDeleted để chỉ đếm các bản ghi đã xóa
+        $this->onlyDeleted();
         
         // Sử dụng phương thức countSearchResults hiện tại với tham số đã sửa đổi
         return $this->countSearchResults($criteria);
@@ -532,5 +507,60 @@ class ThamGiaSuKienModel extends BaseModel
             'su_kien_id' => $suKienId,
             'deleted_at IS NULL' => null
         ])->countAllResults() > 0;
+    }
+
+    /**
+     * Lấy danh sách các bản ghi đã xóa với phân trang và tìm kiếm
+     *
+     * @param array $params Các tham số tìm kiếm và phân trang
+     * @return array Danh sách các bản ghi đã xóa
+     */
+    public function getDeletedRecords($params = [])
+    {
+        // Sử dụng onlyDeleted để chỉ lấy các bản ghi đã xóa
+        $this->onlyDeleted();
+        
+        // Lấy builder và áp dụng các điều kiện tìm kiếm
+        $builder = $this->builder();
+        
+        // Áp dụng điều kiện tìm kiếm
+        if (!empty($params['keyword'])) {
+            $keyword = $params['keyword'];
+            $builder->groupStart();
+            $builder->like('ghi_chu', $keyword);
+            $builder->orLike('phuong_thuc_diem_danh', $keyword);
+            $builder->orLike('thoi_gian_diem_danh', $keyword);
+            $builder->groupEnd();
+        }
+        
+        if (!empty($params['phuong_thuc_diem_danh'])) {
+            $builder->where('phuong_thuc_diem_danh', $params['phuong_thuc_diem_danh']);
+        }
+        
+        // Lấy tổng số bản ghi
+        $total = $builder->countAllResults(false);
+        
+        // Áp dụng sắp xếp
+        $sort = $params['sort'] ?? 'deleted_at';
+        $order = $params['order'] ?? 'DESC';
+        $builder->orderBy($sort, $order);
+        
+        // Áp dụng phân trang
+        $limit = $params['perPage'] ?? 10;
+        $offset = isset($params['page']) ? ($params['page'] - 1) * $limit : 0;
+        
+        // Lấy kết quả từ builder nhưng sử dụng findAll để đảm bảo các sự kiện Model được gọi
+        $results = $this->findAll($limit, $offset);
+        
+        // Tạo đối tượng phân trang
+        $currentPage = isset($params['page']) ? $params['page'] : 1;
+        $this->pager = new \App\Modules\thamgiasukien\Libraries\Pager($total, $limit, $currentPage);
+        $this->pager->setSurroundCount($this->surroundCount);
+        
+        return [
+            'data' => $results,
+            'total' => $total,
+            'pager' => $this->pager
+        ];
     }
 } 

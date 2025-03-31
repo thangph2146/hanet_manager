@@ -220,6 +220,21 @@ trait RelationTrait
     }
 
     /**
+     * Chuẩn bị tham số tìm kiếm cho danh sách đã xóa
+     */
+    protected function prepareDeletedSearchParams($request)
+    {
+        return [
+            'page' => (int)($request->getGet('page') ?? 1),
+            'perPage' => (int)($request->getGet('perPage') ?? 10),
+            'sort' => $request->getGet('sort') ?? 'deleted_at',
+            'order' => $request->getGet('order') ?? 'DESC',
+            'keyword' => $request->getGet('keyword') ?? '',
+            'phuong_thuc_diem_danh' => $request->getGet('phuong_thuc_diem_danh')
+        ];
+    }
+
+    /**
      * Xử lý tham số tìm kiếm
      */
     protected function processSearchParams($params)
@@ -232,6 +247,18 @@ trait RelationTrait
         if ($params['status'] !== null && $params['status'] !== '') {
             $params['status'] = (int)$params['status'];
         }
+
+        return $params;
+    }
+
+    /**
+     * Xử lý tham số tìm kiếm cho danh sách đã xóa
+     */
+    protected function processDeletedSearchParams($params)
+    {
+        // Kiểm tra và điều chỉnh các tham số không hợp lệ
+        if ($params['page'] < 1) $params['page'] = 1;
+        if ($params['perPage'] < 1) $params['perPage'] = 10;
 
         return $params;
     }
