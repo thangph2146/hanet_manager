@@ -2,27 +2,23 @@
 <?= $this->section('linkHref') ?>
 <?php 
  
-$module_name = isset($module_name) ? $module_name : 'quanlybachoc';
-
-// Khởi tạo thư viện MasterScript
-$masterScript = new \App\Modules\quanlybachoc\Libraries\MasterScript($module_name);
+// Khởi tạo thư viện MasterScript với cú pháp đúng
+$masterScriptClass = "\App\Modules\\" . $module_name . '\Libraries\MasterScript';
+$masterScript = new $masterScriptClass($module_name);
 ?>
 <?= $masterScript->pageCss('form') ?>
 <?= $masterScript->pageSectionCss('form') ?>
 <?= $this->endSection() ?>
-<?= $this->section('title') ?>THÊM MỚI BẬC HỌC<?= $this->endSection() ?>
+<?= $this->section('title') ?>$title<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => 'Thêm mới Bậc Học',
+	'title' => $title,
 	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
-		['title' => 'Quản lý Bậc Học', 'url' => site_url($module_name)],
-		['title' => 'Thêm mới', 'active' => true]
+		['title' => $title_home, 'url' => site_url($module_name)],
+		['title' => $title, 'active' => true]
 	],
-	'actions' => [
-		['url' => site_url($module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
-	]
 ]) ?>
 <?= $this->endSection() ?>
 
@@ -30,7 +26,7 @@ $masterScript = new \App\Modules\quanlybachoc\Libraries\MasterScript($module_nam
 <div class="card shadow-sm">
 	<div class="card-body">
 		<?= form_open($action, ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
-			<?= view('App\Modules\quanlybachoc\Views\components\_form', [
+			<?= view('App\Modules\\' . $module_name . '\Views\components\_form', [
                 'module_name' => $module_name,
                 'data' => $data ?? null,
                 'validation' => $validation ?? null

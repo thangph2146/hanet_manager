@@ -210,7 +210,7 @@ class QuanLyBacHoc extends BaseController
     /**
      * Hiển thị chi tiết
      */
-    public function view($id = null)
+    public function detail($id = null)
     {
         if (empty($id)) {
             $this->alert->set('danger', 'ID bậc học không hợp lệ', true);
@@ -246,7 +246,7 @@ class QuanLyBacHoc extends BaseController
             'masterScript' => $this->masterScript
         ];
         
-        return view('App\Modules\\' . $this->module_name . '\Views\view', $viewData);
+        return view('App\Modules\\' . $this->module_name . '\Views\detail', $viewData);
     }
     
     /**

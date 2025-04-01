@@ -1,9 +1,9 @@
 <?php
 /**
- * Component hiển thị bảng dữ liệu bậc học
+ * Component hiển thị bảng dữ liệu camera
  * 
  * Các biến cần truyền vào:
- * @var array $processedData Dữ liệu các bậc học
+ * @var array $processedData Dữ liệu các camera
  * @var string $module_name Tên module
  */
 ?>
@@ -19,8 +19,8 @@
                         </div>
                     </th>
                     <th width="5%" class="align-middle">ID</th>
-                    <th width="20%" class="align-middle">Bậc học</th>
-                    <th width="20%" class="align-middle">Mã bậc học</th>
+                    <th width="20%" class="align-middle">Tên camera</th>
+                    <th width="20%" class="align-middle">Mã camera</th>
                     <th width="10%" class="text-center align-middle">Trạng thái</th>
                     <th width="20%" class="text-center align-middle">Thao tác</th>
                 </tr>
@@ -32,37 +32,37 @@
                             <td class="text-center">
                                 <div class="form-check">
                                     <input class="form-check-input checkbox-item cursor-pointer" 
-                                    type="checkbox" name="selected_items[]" 
-                                    value="<?= $item->bac_hoc_id ?>">
+                                    type="checkbox" name="selected_ids[]" 
+                                    value="<?= $item->camera_id ?>">
                                 </div>
                             </td>
-                            <td><?= esc($item->bac_hoc_id) ?></td>  
-                            <td><?= esc($item->ten_bac_hoc) ?></td> 
-                            <td><?= esc($item->ma_bac_hoc) ?></td>
+                            <td><?= esc($item->camera_id) ?></td>  
+                            <td><?= esc($item->ten_camera) ?></td> 
+                            <td><?= esc($item->ma_camera) ?></td>
                             <td class="text-center">
                                 <form action="<?= site_url($module_name . '/statusMultiple') ?>" 
                                     method="post" class="d-inline">
                                     <?= csrf_field() ?>
-                                    <input type="hidden" name="selected_ids[]" value="<?= $item->bac_hoc_id ?>">
+                                    <input type="hidden" name="selected_ids[]" value="<?= $item->camera_id ?>">
                                     <input type="hidden" name="return_url" value="<?= current_url() ?>">
-                                            <button type="submit" class="btn btn-sm <?= $item->isActive() ? 'btn-success' : 'btn-danger' ?> status-toggle" 
-                                                    data-bs-toggle="tooltip" 
-                                                    title="<?= $item->isActive() ? 'Đang hoạt động - Click để tắt' : 'Đang tắt - Click để bật' ?>">
-                                                <?= $item->getStatusLabel() ?>
-                                </button>
-                            </form>
+                                    <button type="submit" class="btn btn-sm <?= $item->status == 1 ? 'btn-success' : 'btn-danger' ?> status-toggle" 
+                                            data-bs-toggle="tooltip" 
+                                            title="<?= $item->status == 1 ? 'Đang hoạt động - Click để tắt' : 'Đang tắt - Click để bật' ?>">
+                                        <?= $item->status == 1 ? 'Hoạt động' : 'Không hoạt động' ?>
+                                    </button>
+                                </form>
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                    <a href="<?= site_url($module_name . "/detail/{$item->bac_hoc_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                    <a href="<?= site_url($module_name . "/detail/{$item->camera_id}") ?>" class="btn btn-info btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Xem chi tiết">
                                         <i class="bx bx-info-circle text-white"></i>
                                     </a>
-                                    <a href="<?= site_url($module_name . "/edit/{$item->bac_hoc_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
+                                    <a href="<?= site_url($module_name . "/edit/{$item->camera_id}") ?>" class="btn btn-primary btn-sm w-100 h-100" data-bs-toggle="tooltip" title="Sửa">
                                         <i class="bx bx-edit"></i>
                                     </a>
                                     <button type="button" class="btn btn-danger btn-sm btn-delete w-100 h-100" 
-                                            data-id="<?= $item->bac_hoc_id ?>" 
-                                            data-name="ID: <?= esc($item->bac_hoc_id) ?> - <?= esc($item->ten_bac_hoc) ?>"
+                                            data-id="<?= $item->camera_id ?>" 
+                                            data-name="ID: <?= esc($item->camera_id) ?> - <?= esc($item->ten_camera) ?>"
                                             data-bs-toggle="tooltip" title="Xóa">
                                         <i class="bx bx-trash"></i>
                                     </button>

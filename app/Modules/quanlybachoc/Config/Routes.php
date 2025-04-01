@@ -33,7 +33,7 @@ function ($routes) use ($controller_name) {
     $routes->post('deletePermanentMultiple', $controller_name . '::deletePermanentMultiple');
     $routes->post('statusMultiple', $controller_name . '::statusMultiple');
     $routes->get('deleted', $controller_name . '::deleted');
-    $routes->get('view/(:num)', $controller_name . '::view/$1');
+    $routes->get('detail/(:num)', $controller_name . '::detail/$1');
     $routes->get('exportPdf', $controller_name . '::exportPdf');
     $routes->get('exportExcel', $controller_name . '::exportExcel');
     $routes->get('exportDeletedPdf', $controller_name . '::exportDeletedPdf');
