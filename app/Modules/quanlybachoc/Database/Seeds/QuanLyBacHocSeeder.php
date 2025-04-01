@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\bachoc\Database\Seeds;
+namespace App\Modules\quanlybachoc\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
 use CodeIgniter\I18n\Time;
 
-class BacHocSeeder extends Seeder
+class QuanLyBacHocSeeder extends Seeder
 {
     public function run()
     {
@@ -137,6 +137,6 @@ class BacHocSeeder extends Seeder
             echo "Đã tạo " . count($data) . " bản ghi bậc học.\n";
         }
         
-        echo "Seeder BacHocSeeder đã được chạy thành công! Đã tạo dữ liệu mẫu cho bậc học.\n";
+        echo "Seeder QuanLyBacHocSeeder đã được chạy thành công! Đã tạo dữ liệu mẫu cho bậc học.\n";
     }
 } 

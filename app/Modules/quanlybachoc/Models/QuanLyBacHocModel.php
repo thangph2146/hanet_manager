@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Modules\bachoc\Models;
+namespace App\Modules\quanlybachoc\Models;
 
 use App\Models\BaseModel;
-use App\Modules\bachoc\Entities\BacHoc;
-use App\Modules\bachoc\Libraries\Pager;
+use App\Modules\quanlybachoc\Entities\QuanLyBacHoc;
+use App\Modules\quanlybachoc\Libraries\Pager;
 use CodeIgniter\I18n\Time;
 
-class BacHocModel extends BaseModel
+class QuanLyBacHocModel extends BaseModel
 {
     protected $table = 'bac_hoc';
     protected $primaryKey = 'bac_hoc_id';
@@ -31,7 +31,7 @@ class BacHocModel extends BaseModel
         'deleted_at'
     ];
     
-    protected $returnType = BacHoc::class;
+    protected $returnType = QuanLyBacHoc::class;
     
     // Trường có thể tìm kiếm
     protected $searchableFields = [
@@ -341,7 +341,7 @@ class BacHocModel extends BaseModel
      */
     public function prepareValidationRules(string $scenario = 'insert', array $data = [])
     {
-        $entity = new BacHoc();
+        $entity = new QuanLyBacHoc();
         $this->validationRules = $entity->getValidationRules();
         $this->validationMessages = $entity->getValidationMessages();
         

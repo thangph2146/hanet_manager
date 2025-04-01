@@ -1,12 +1,11 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php 
-// Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
-$route_url = isset($route_url) ? $route_url : 'admin/bachoc';
-$module_name = isset($module_name) ? $module_name : 'bachoc';
+ 
+$module_name = isset($module_name) ? $module_name : 'quanlybachoc';
 
 // Khởi tạo thư viện MasterScript
-$masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $module_name);
+$masterScript = new \App\Modules\quanlybachoc\Libraries\MasterScript($module_name);
 ?>
 <?= $masterScript->pageCss('view') ?>
 <?= $masterScript->pageSectionCss('modal') ?>
@@ -16,14 +15,14 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
     'title' => 'Chi tiết bậc học',
-    'dashboard_url' => site_url($route_url),
+    'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Bậc Học', 'url' => site_url($route_url)],
+        ['title' => 'Quản lý Bậc Học', 'url' => site_url($module_name)],
         ['title' => 'Chi tiết', 'active' => true]
     ],
     'actions' => [
-        ['url' => site_url($route_url . '/edit/' . $data->bac_hoc_id), 'title' => 'Chỉnh sửa', 'icon' => 'bx bx-edit'],
-        ['url' => site_url($route_url), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+        ['url' => site_url($module_name . '/edit/' . $data->bac_hoc_id), 'title' => 'Chỉnh sửa', 'icon' => 'bx bx-edit'],
+        ['url' => site_url($module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
     ]
 ]) ?>
 <?= $this->endSection() ?>
@@ -33,7 +32,7 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">Chi tiết bậc học ID: <?= esc($data->bac_hoc_id) ?></h5>
         <div class="d-flex gap-2">  
-            <a href="<?= site_url($route_url . '/edit/' . $data->bac_hoc_id) ?>" class="btn btn-sm btn-primary">
+            <a href="<?= site_url($module_name . '/edit/' . $data->bac_hoc_id) ?>" class="btn btn-sm btn-primary">
                 <i class="bx bx-edit me-1"></i> Chỉnh sửa
             </a>
             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
@@ -120,7 +119,7 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <a href="<?= site_url($route_url . '/delete/' . $data->bac_hoc_id) ?>" class="btn btn-danger">Xóa</a>
+                <a href="<?= site_url($module_name . '/delete/' . $data->bac_hoc_id) ?>" class="btn btn-danger">Xóa</a>
             </div>
         </div>
     </div>

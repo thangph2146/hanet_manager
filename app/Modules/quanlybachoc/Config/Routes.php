@@ -6,11 +6,10 @@ namespace Config;
 $routes = Services::routes();
 
 // Cấu hình URL route cho module, sử dụng 'admin/bachoc' thay vì 'bachoc'
-$route_url = 'admin/bachoc';
-$module_namespace = 'bachoc';
-$controller_name = 'BacHoc';
+$module_name = 'quanlybachoc';
+$controller_name = 'QuanLyBacHoc';
 // Định nghĩa routes cho module Bachoc
-$routes->group($route_url, ['namespace' => 'App\Modules\\' . $module_namespace . '\Controllers'], 
+$routes->group($module_name, ['namespace' => 'App\Modules\\' . $module_name . '\Controllers'], 
 function ($routes) use ($controller_name) {
     $routes->get('/', $controller_name . '::index');
     $routes->get('dashboard', $controller_name . '::dashboard');

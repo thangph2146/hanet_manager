@@ -1,12 +1,12 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php 
-// Lấy giá trị route_url từ controller hoặc sử dụng giá trị mặc định
-$route_url = isset($route_url) ? $route_url : 'admin/bachoc';
-$module_name = isset($module_name) ? $module_name : 'bachoc';
+// Lấy giá trị module_name từ controller hoặc sử dụng giá trị mặc định
+ 
+$module_name = isset($module_name) ? $module_name : 'quanlybachoc';
 
 // Khởi tạo thư viện MasterScript
-$masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $module_name);
+$masterScript = new \App\Modules\quanlybachoc\Libraries\MasterScript($module_name);
 ?>
 <?= $masterScript->pageCss('form') ?>
 <?= $masterScript->pageSectionCss('form') ?>
@@ -16,13 +16,13 @@ $masterScript = new \App\Modules\bachoc\Libraries\MasterScript($route_url, $modu
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
     'title' => 'Cập nhật bậc học',
-    'dashboard_url' => site_url($route_url),
+    'dashboard_url' => site_url($module_name),
     'breadcrumbs' => [
-        ['title' => 'Quản lý Bậc Học', 'url' => site_url($route_url)],
+        ['title' => 'Quản lý Bậc Học', 'url' => site_url($module_name)],
         ['title' => 'Cập nhật', 'active' => true]
     ],
     'actions' => [
-		['url' => site_url($route_url), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
+		['url' => site_url($module_name), 'title' => 'Quay lại', 'icon' => 'bx bx-arrow-back']
 	]
 ]) ?>
 <?= $this->endSection() ?>

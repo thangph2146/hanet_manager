@@ -140,7 +140,7 @@
 
     <div class="footer">
         <p>Tổng số bản ghi: <?= $total_records ?></p>
-        <p>URL: <?= site_url(isset($route_url) ? $route_url : 'admin/bachoc') ?></p>
+        <p>URL: <?= site_url(isset($module_name) ? $module_name : 'quanlybachoc') ?></p>
     </div>
 </body>
 </html> 

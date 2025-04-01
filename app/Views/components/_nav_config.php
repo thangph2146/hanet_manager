@@ -101,15 +101,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Người Dùng',
-                        'url' => site_url('admin/nguoidung')
+                        'url' => site_url('quanlynguoidung')
                     ],
                     [
                         'title' => 'Danh sách Người Dùng bị xóa',
-                        'url' => site_url('admin/nguoidung/listdeleted')
+                        'url' => site_url('quanlynguoidung/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Người Dùng mới',
-                        'url' => site_url('admin/nguoidung/new')
+                        'url' => site_url('quanlynguoidung/new')
                     ]
                 ]
             ],
@@ -119,15 +119,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Loại Người Dùng',
-                        'url' => site_url('admin/loainguoidung')
+                        'url' => site_url('quanlyloainguoidung')
                     ],
                     [
                         'title' => 'Danh sách Loại Người Dùng bị xóa',
-                        'url' => site_url('admin/loainguoidung/listdeleted')
+                        'url' => site_url('quanlyloainguoidung/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Loại Người Dùng mới',
-                        'url' => site_url('admin/loainguoidung/new')
+                        'url' => site_url('quanlyloainguoidung/new')
                     ]
                 ]
             ],
@@ -137,15 +137,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Face người dùng',
-                        'url' => site_url('admin/facenguoidung')
+                        'url' => site_url('quanlyfacenguoidung')
                     ],
                     [
                         'title' => 'Face người dùng bị xóa',
-                        'url' => site_url('admin/facenguoidung/listdeleted')
+                        'url' => site_url('quanlyfacenguoidung/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Face người dùng mới',
-                        'url' => site_url('admin/facenguoidung/new')
+                        'url' => site_url('quanlyfacenguoidung/new')
                     ]
                 ]
             ],
@@ -161,15 +161,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Phòng Khoa',
-                        'url' => site_url('admin/phongkhoa')
+                        'url' => site_url('quanlyphongkhoa')
                     ],
                     [
                         'title' => 'Danh sách Phòng Khoa bị xóa',
-                        'url' => site_url('admin/phongkhoa/listdeleted')
+                        'url' => site_url('quanlyphongkhoa/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Phòng Khoa mới',
-                        'url' => site_url('admin/phongkhoa/new')
+                        'url' => site_url('quanlyphongkhoa/new')
                     ]
                 ]
             ],
@@ -179,15 +179,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Năm học',
-                        'url' => site_url('admin/namhoc')
+                        'url' => site_url('quanlynamhoc')
                     ],
                     [
                         'title' => 'Danh sách Năm học bị xóa',
-                        'url' => site_url('admin/namhoc/listdeleted')
+                        'url' => site_url('quanlynamhoc/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Năm học mới',
-                        'url' => site_url('admin/namhoc/new')
+                        'url' => site_url('quanlynamhoc/new')
                     ]
                 ]
             ],
@@ -197,15 +197,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Khóa Học',
-                        'url' => site_url('admin/khoahoc')
+                        'url' => site_url('quanlykhoahoc')
                     ],
                     [
                         'title' => 'Danh sách Khóa Học bị xóa',
-                        'url' => site_url('admin/khoahoc/listdeleted')
+                        'url' => site_url('quanlykhoahoc/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Khóa Học mới',
-                        'url' => site_url('admin/khoahoc/new')
+                        'url' => site_url('quanlykhoahoc/new')
                     ]
                 ]
             ],
@@ -215,15 +215,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Bậc Học',
-                        'url' => site_url('admin/bachoc')
+                        'url' => site_url('quanlybachoc')
                     ],
                     [
                         'title' => 'Danh sách Bậc Học bị xóa',
-                        'url' => site_url('admin/bachoc/listdeleted')
+                        'url' => site_url('quanlybachoc/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Bậc Học mới',
-                        'url' => site_url('admin/bachoc/new')
+                        'url' => site_url('quanlybachoc/new')
                     ]
                 ]
             ],
@@ -233,15 +233,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Hệ Đào Tạo',
-                        'url' => site_url('admin/hedaotao')
+                        'url' => site_url('quanlyhedaotao')
                     ],
                     [
                         'title' => 'Danh sách Hệ Đào Tạo bị xóa',
-                        'url' => site_url('admin/hedaotao/listdeleted')
+                        'url' => site_url('quanlyhedaotao/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Hệ Đào Tạo mới',
-                        'url' => site_url('admin/hedaotao/new')
+                        'url' => site_url('quanlyhedaotao/new')
                     ]
                 ]
             ],
@@ -251,15 +251,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Ngành',
-                        'url' => site_url('admin/nganh')
+                        'url' => site_url('quanlynganh')
                     ],
                     [
                         'title' => 'Danh sách Ngành bị xóa',
-                        'url' => site_url('admin/nganh/listdeleted')
+                        'url' => site_url('quanlynganh/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Ngành mới',
-                        'url' => site_url('admin/nganh/new')
+                        'url' => site_url('quanlynganh/new')
                     ]
                 ]
             ],
@@ -275,15 +275,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Sự Kiện',
-                        'url' => site_url('admin/sukien')
+                        'url' => site_url('quanlysukien')
                     ],
                     [
                         'title' => 'Danh sách Sự Kiện bị xóa',
-                        'url' => site_url('admin/sukien/listdeleted')
+                        'url' => site_url('quanlysukien/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Sự Kiện mới',
-                        'url' => site_url('admin/sukien/new')
+                        'url' => site_url('quanlysukien/new')
                     ]
                 ]
             ],
@@ -293,15 +293,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Loại Sự Kiện',
-                        'url' => site_url('admin/loaisukien')
+                        'url' => site_url('quanlyloaisukien')
                     ],
                     [
                         'title' => 'Danh sách Loại Sự Kiện bị xóa',
-                        'url' => site_url('admin/loaisukien/listdeleted')
+                        'url' => site_url('quanlyloaisukien/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Loại Sự Kiện mới',
-                        'url' => site_url('admin/loaisukien/new')
+                        'url' => site_url('quanlyloaisukien/new')
                     ]
                 ]
             ],
@@ -311,15 +311,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Diễn giả',
-                        'url' => site_url('admin/diengia')
+                        'url' => site_url('quanlydiengia')
                     ],
                     [
                         'title' => 'Danh sách Diễn giả bị xóa',
-                        'url' => site_url('admin/diengia/listdeleted')
+                        'url' => site_url('quanlydiengia/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Diễn giả mới',
-                        'url' => site_url('admin/diengia/new')
+                        'url' => site_url('quanlydiengia/new')
                     ]
                 ]
             ],
@@ -329,15 +329,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Template',
-                        'url' => site_url('admin/template')
+                        'url' => site_url('quanlytemplate')
                     ],
                     [
                         'title' => 'Danh sách Template bị xóa',
-                        'url' => site_url('admin/template/listdeleted')
+                        'url' => site_url('quanlytemplate/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Template mới',
-                        'url' => site_url('admin/template/new')
+                        'url' => site_url('quanlytemplate/new')
                     ]
                 ]
             ],
@@ -347,15 +347,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Sự Kiện Diễn Giả',
-                        'url' => site_url('admin/sukiendiengia')
+                        'url' => site_url('quanlysukien/sukiendiengia')
                     ],
                     [
                         'title' => 'Danh sách Sự Kiện Diễn Giả bị xóa',
-                        'url' => site_url('admin/sukiendiengia/listdeleted')
+                        'url' => site_url('quanlysukien/sukiendiengia/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Sự Kiện Diễn Giả mới',
-                        'url' => site_url('admin/sukiendiengia/new')
+                        'url' => site_url('quanlysukien/sukiendiengia/new')
                     ]
                 ]
             ],
@@ -371,15 +371,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Đăng Ký Sự Kiện',
-                        'url' => site_url('admin/dangkysukien')
+                        'url' => site_url('quanlydangkysukien')
                     ],
                     [
                         'title' => 'Danh sách Đăng Ký Sự Kiện bị xóa',
-                        'url' => site_url('admin/dangkysukien/listdeleted')
+                        'url' => site_url('quanlydangkysukien/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Đăng Ký Sự Kiện mới',
-                        'url' => site_url('admin/dangkysukien/new')
+                        'url' => site_url('quanlydangkysukien/new')
                     ]
                 ]
             ],
@@ -389,15 +389,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Form Đăng Ký Sự Kiện',
-                        'url' => site_url('admin/formdangkysukien')
+                        'url' => site_url('quanlyformdangkysukien')
                     ],
                     [
                         'title' => 'Danh sách Form Đăng Ký Sự Kiện bị xóa',
-                        'url' => site_url('admin/formdangkysukien/listdeleted')
+                        'url' => site_url('quanlyformdangkysukien/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Form Đăng Ký Sự Kiện mới',
-                        'url' => site_url('admin/formdangkysukien/new')
+                        'url' => site_url('quanlyformdangkysukien/new')
                     ]
                 ]
             ],
@@ -407,15 +407,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Tham Gia Sự Kiện',
-                        'url' => site_url('admin/thamgiasukien')
+                        'url' => site_url('quanlythamgiasukien')
                     ],
                     [
                         'title' => 'Danh sách Tham Gia Sự Kiện bị xóa',
-                        'url' => site_url('admin/thamgiasukien/listdeleted')
+                        'url' => site_url('quanlythamgiasukien/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Tham Gia Sự Kiện mới',
-                        'url' => site_url('admin/thamgiasukien/new')
+                        'url' => site_url('quanlythamgiasukien/new')
                     ]
                 ]
             ],
@@ -425,27 +425,27 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Check In Sự Kiện',
-                        'url' => site_url('admin/checkinsukien')
+                        'url' => site_url('quanlycheckinsukien')
                     ],
                     [
                         'title' => 'Danh sách Check In Sự Kiện bị xóa',
-                        'url' => site_url('admin/checkinsukien/listdeleted')
+                        'url' => site_url('quanlycheckinsukien/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Check In Sự Kiện mới',
-                        'url' => site_url('admin/checkinsukien/new')
+                        'url' => site_url('quanlycheckinsukien/new')
                     ],
                     [
                         'title' => 'Danh Sách Check Out Sự Kiện',
-                        'url' => site_url('admin/checkoutsukien')
+                        'url' => site_url('quanlycheckoutsukien')
                     ],
                     [
                         'title' => 'Danh sách Check Out Sự Kiện bị xóa',
-                        'url' => site_url('admin/checkoutsukien/listdeleted')
+                        'url' => site_url('quanlycheckoutsukien/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Check Out Sự Kiện mới',
-                        'url' => site_url('admin/checkoutsukien/new')
+                        'url' => site_url('quanlycheckoutsukien/new')
                     ]
                 ]
             ],
@@ -461,15 +461,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Màn Hình',
-                        'url' => site_url('admin/manhinh')
+                        'url' => site_url('quanlymanhinh')
                     ],
                     [
                         'title' => 'Danh sách Màn Hình bị xóa',
-                        'url' => site_url('admin/manhinh/listdeleted')
+                        'url' => site_url('quanlymanhinh/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Màn Hình mới',
-                        'url' => site_url('admin/manhinh/new')
+                        'url' => site_url('quanlymanhinh/new')
                     ]
                 ]
             ],
@@ -479,15 +479,15 @@ function nav_config() {
                 'submenu' => [
                     [
                         'title' => 'Danh Sách Camera',
-                        'url' => site_url('admin/camera')
+                        'url' => site_url('quanlycamera')
                     ],
                     [
                         'title' => 'Danh sách Camera bị xóa',
-                        'url' => site_url('admin/camera/listdeleted')
+                        'url' => site_url('quanlycamera/listdeleted')
                     ],
                     [
                         'title' => 'Thêm Camera mới',
-                        'url' => site_url('admin/camera/new')
+                        'url' => site_url('quanlycamera/new')
                     ]
                 ]
             ],

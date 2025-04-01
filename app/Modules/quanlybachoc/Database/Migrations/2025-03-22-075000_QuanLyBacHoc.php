@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Database\Migrations;
+namespace App\Modules\quanlybachoc\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class Bachoc extends Migration
+class QuanLyBacHoc extends Migration
 {
     public function up()
     {

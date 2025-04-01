@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\bachoc\Entities;
+namespace App\Modules\quanlybachoc\Entities;
 
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
 
-class BacHoc extends BaseEntity
+class QuanLyBacHoc extends BaseEntity
 {
     protected $tableName = 'bac_hoc';
     protected $primaryKey = 'bac_hoc_id';

@@ -3,10 +3,10 @@
  * Master script file for BacHoc module
  * Contains common CSS and JS for all views
  */
-// Lấy biến route_url từ biến được truyền vào từ view
-$GLOBALS['route_url'] = 'admin/bachoc';
-if (isset($route_url_php)) {
-    $GLOBALS['route_url'] = $route_url_php;
+// Lấy biến module_name từ biến được truyền vào từ view
+$GLOBALS['module_name'] = 'quanlybachoc';
+if (isset($module_name_php)) {
+    $GLOBALS['module_name'] = $module_name_php;
 }
 
 // CSS section
@@ -410,8 +410,8 @@ function page_section_js($section, $module_name) {
 
 // Thêm hàm đồng bộ JavaScript cho bảng ThamGiaSuKien
 function page_table_js($module_name) {
-    // Lấy route_url từ biến JS hoặc mặc định là $module_name
-    $route_url = isset($GLOBALS['route_url']) ? $GLOBALS['route_url'] : (isset($module_name) ? $module_name : 'admin/bachoc');
+    // Lấy module_name từ biến JS hoặc mặc định là $module_name
+    $module_name = isset($GLOBALS['module_name']) ? $GLOBALS['module_name'] : (isset($module_name) ? $module_name : 'admin/bachoc');
     
     ob_start();
     ?>
@@ -479,9 +479,9 @@ function page_table_js($module_name) {
             
             // Kiểm tra xem đang ở trang listdeleted hay không
             if (isListDeletedPage) {
-                deleteUrl = '<?= site_url($route_url . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+                deleteUrl = '<?= site_url($module_name . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             } else {
-                deleteUrl = '<?= site_url($route_url . '/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+                deleteUrl = '<?= site_url($module_name . '/delete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             }
             
             $('#delete-form').attr('action', deleteUrl);
@@ -498,7 +498,7 @@ function page_table_js($module_name) {
             const pathAndQuery = window.location.pathname + window.location.search;
             
             // Tạo URL khôi phục với tham số truy vấn return_url
-            const restoreUrl = '<?= site_url($route_url . '/restore/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            const restoreUrl = '<?= site_url($module_name . '/restore/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             $('#restore-form').attr('action', restoreUrl);
             
             $('#restoreModal').modal('show');
@@ -514,7 +514,7 @@ function page_table_js($module_name) {
             const pathAndQuery = window.location.pathname + window.location.search;
             
             // Tạo URL xóa với tham số truy vấn return_url
-            const deleteUrl = '<?= site_url($route_url . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
+            const deleteUrl = '<?= site_url($module_name . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
             $('#delete-form').attr('action', deleteUrl);
             
             $('#deleteModal').modal('show');

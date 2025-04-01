@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\bachoc\Controllers;
+namespace App\Modules\quanlybachoc\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\bachoc\Models\BacHocModel;
+use App\Modules\quanlybachoc\Models\QuanLyBacHocModel;
 use App\Libraries\Breadcrumb;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
@@ -17,10 +17,10 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use CodeIgniter\I18n\Time;
-use App\Modules\bachoc\Traits\ExportTrait;
-use App\Modules\bachoc\Traits\RelationTrait;
+use App\Modules\quanlybachoc\Traits\ExportTrait;
+use App\Modules\quanlybachoc\Traits\RelationTrait;
 
-class BacHoc extends BaseController
+class QuanLyBacHoc extends BaseController
 {
     use ResponseTrait;
     use ExportTrait;
@@ -31,9 +31,8 @@ class BacHoc extends BaseController
     protected $alert;
     protected $moduleUrl;
     protected $title;
-    protected $module_name = 'bachoc';
-    protected $controller_name = 'BacHoc';
-    protected $route_url = 'admin/bachoc';
+    protected $module_name = 'quanlybachoc';
+    protected $controller_name = 'QuanLyBacHoc';
     protected $masterScript;
     
     public function __construct()
@@ -42,16 +41,16 @@ class BacHoc extends BaseController
         $this->session = service('session');
 
         // Khởi tạo các thành phần cần thiết
-        $this->model = new BacHocModel();
+        $this->model = new QuanLyBacHocModel();
         $this->breadcrumb = new Breadcrumb();
         $this->alert = new Alert();
         
         // Thông tin module
-        $this->moduleUrl = base_url($this->route_url);
+        $this->moduleUrl = base_url($this->module_name);
         $this->title = 'Bậc Học';
         
-        // Khởi tạo thư viện MasterScript với route_url và module_name
-        $this->masterScript = new \App\Modules\bachoc\Libraries\MasterScript($this->route_url, $this->module_name);
+        // Khởi tạo thư viện MasterScript với module_name và module_name
+        $this->masterScript = new \App\Modules\quanlybachoc\Libraries\MasterScript($this->module_name, $this->module_name);
         
         // Khởi tạo các model quan hệ
         $this->initializeRelationTrait();
@@ -88,7 +87,7 @@ class BacHoc extends BaseController
             // Tạo URL mới với trang cuối cùng
             $redirectParams = $_GET;
             $redirectParams['page'] = $pageCount;
-            $redirectUrl = site_url($this->route_url) . '?' . http_build_query($redirectParams);
+            $redirectUrl = site_url($this->module_name) . '?' . http_build_query($redirectParams);
             
             // Chuyển hướng đến trang cuối cùng
             return redirect()->to($redirectUrl);
@@ -97,8 +96,8 @@ class BacHoc extends BaseController
         // Lấy pager từ model và thiết lập các tham số
         $pager = $this->model->getPager();
         if ($pager !== null) {
-            $pager->setPath($this->route_url);
-            $pager->setRouteUrl($this->route_url);
+            $pager->setPath($this->module_name);
+            $pager->setRouteUrl($this->module_name);
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
             $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'bac_hoc_id']);
             
@@ -109,8 +108,8 @@ class BacHoc extends BaseController
         
         // Chuẩn bị dữ liệu cho view
         $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
-        // Thêm route_url và masterScript vào viewData để sử dụng trong view
-        $viewData['route_url'] = $this->route_url;
+        // Thêm module_name và masterScript vào viewData để sử dụng trong view
+        $viewData['module_name'] = $this->module_name;
         $viewData['module_name'] = $this->module_name;
         $viewData['masterScript'] = $this->masterScript;
         // Hiển thị view
@@ -134,9 +133,9 @@ class BacHoc extends BaseController
         $viewData['validation'] = $this->validator;
         $viewData['moduleUrl'] = $this->moduleUrl;
         $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
-        $viewData['action'] = site_url($this->route_url . '/create');
+        $viewData['action'] = site_url($this->module_name . '/create');
         $viewData['method'] = 'POST';
-        $viewData['route_url'] = $this->route_url;
+        $viewData['module_name'] = $this->module_name;
         $viewData['masterScript'] = $this->masterScript;
         
         return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
@@ -208,7 +207,7 @@ class BacHoc extends BaseController
             'data' => $data,
             'moduleUrl' => $this->moduleUrl,
             'module_name' => $this->module_name,
-            'route_url' => $this->route_url,
+            'module_name' => $this->module_name,
             'masterScript' => $this->masterScript
         ];
         
@@ -245,9 +244,9 @@ class BacHoc extends BaseController
         $viewData['validation'] = $this->validator;
         $viewData['moduleUrl'] = $this->moduleUrl;
         $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
-        $viewData['action'] = site_url($this->route_url . '/update/' . $id);
+        $viewData['action'] = site_url($this->module_name . '/update/' . $id);
         $viewData['method'] = 'POST';
-        $viewData['route_url'] = $this->route_url;
+        $viewData['module_name'] = $this->module_name;
         $viewData['masterScript'] = $this->masterScript;
         
         return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
@@ -391,15 +390,15 @@ class BacHoc extends BaseController
             $pager->setSurroundCount(3);
         }
         
-        $pager->setPath($this->route_url . '/listdeleted');
+        $pager->setPath($this->module_name . '/listdeleted');
         $pager->setOnly(['keyword', 'perPage', 'sort', 'order', 'status', 'bac_hoc_id']);
         $pager->setPerPage($params['perPage']);
         $pager->setCurrentPage($params['page']);
         
         // Chuẩn bị dữ liệu cho view
         $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
-        // Thêm route_url vào viewData để sử dụng trong view
-        $viewData['route_url'] = $this->route_url;
+        // Thêm module_name vào viewData để sử dụng trong view
+        $viewData['module_name'] = $this->module_name;
         
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);

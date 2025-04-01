@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\bachoc\Traits;
+namespace App\Modules\quanlybachoc\Traits;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -267,7 +267,6 @@ trait ExportTrait
             'data' => $data,
             'includeDeletedAt' => $includeDeleted,
             'total_records' => count($data),
-            'route_url' => $this->route_url
         ];
         
         // Render view

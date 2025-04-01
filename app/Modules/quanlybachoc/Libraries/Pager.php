@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\bachoc\Libraries;
+namespace App\Modules\quanlybachoc\Libraries;
 
 /**
  * Lớp Pager - cung cấp chức năng phân trang cho module Bachoc
@@ -15,15 +15,8 @@ class Pager
      * 
      * @var string
      */
-    protected $module_name = 'bachoc';
+    protected $module_name = 'quanlybachoc';
 
-    /**
-     * Đường dẫn cho routes
-     * 
-     * @var string
-     */
-    protected $route_url = 'admin/bachoc';
-    
     /**
      * Đường dẫn cơ sở cho các liên kết trang
      * 
@@ -173,12 +166,12 @@ class Pager
     /**
      * Thiết lập đường dẫn route
      * 
-     * @param string $route_url
+     * @param string $module_name
      * @return self
      */
-    public function setRouteUrl($route_url)
+    public function setRouteUrl($module_name)
     {
-        $this->route_url = $route_url;
+        $this->module_name = $module_name;
         return $this;
     }
     

@@ -4,22 +4,21 @@
  * Thư viện để gọi và quản lý scripts và styles trong module bachoc
  */
 
-namespace App\Modules\bachoc\Libraries;
+namespace App\Modules\quanlybachoc\Libraries;
 
 class MasterScript {
-    protected $route_url = 'admin/bachoc';
-    protected $module_name = 'bachoc';
+    protected $module_name = 'quanlybachoc';
     
     /**
-     * Constructor - thiết lập giá trị route_url và module_name
+     * Constructor - thiết lập giá trị module_name và module_name
      * 
-     * @param string $route_url Đường dẫn URL của route
+     * @param string $module_name Đường dẫn URL của route
      * @param string $module_name Tên module
      */
-    public function __construct($route_url = null, $module_name = null)
+    public function __construct($module_name = null)
     {
-        if (!empty($route_url)) {
-            $this->route_url = $route_url;
+        if (!empty($module_name)) {
+            $this->module_name = $module_name;
         }
         
         if (!empty($module_name)) {
@@ -36,7 +35,7 @@ class MasterScript {
     public function pageCss($type = 'all')
     {
         include_once APPPATH . 'Modules/' . $this->module_name . '/Views/master_scripts.php';
-        return page_css($type, $this->route_url);
+        return page_css($type, $this->module_name);
     }
     
     /**
@@ -48,7 +47,7 @@ class MasterScript {
     public function pageJs($type = 'all')
     {
         include_once APPPATH . 'Modules/' . $this->module_name . '/Views/master_scripts.php';
-        return page_js($type, $this->route_url);
+        return page_js($type, $this->module_name);
     }
     
     /**
@@ -72,7 +71,7 @@ class MasterScript {
     public function pageSectionJs($section)
     {
         include_once APPPATH . 'Modules/' . $this->module_name . '/Views/master_scripts.php';
-        return page_section_js($section, $this->route_url);
+        return page_section_js($section, $this->module_name);
     }
     
     /**
@@ -83,29 +82,29 @@ class MasterScript {
     public function pageTableJs()
     {
         include_once APPPATH . 'Modules/' . $this->module_name . '/Views/master_scripts.php';
-        return page_table_js($this->route_url);
+        return page_table_js($this->module_name);
     }
     
     /**
-     * Thiết lập giá trị route_url mới
+     * Thiết lập giá trị module_name mới
      * 
-     * @param string $route_url Đường dẫn URL của route
+     * @param string $module_name Đường dẫn URL của route
      * @return $this
      */
-    public function setRouteUrl($route_url)
+    public function setRouteUrl($module_name)
     {
-        $this->route_url = $route_url;
+        $this->module_name = $module_name;
         return $this;
     }
     
     /**
-     * Lấy giá trị route_url hiện tại
+     * Lấy giá trị module_name hiện tại
      * 
      * @return string
      */
     public function getRouteUrl()
     {
-        return $this->route_url;
+        return $this->module_name;
     }
     
     /**

@@ -6,7 +6,7 @@ use CodeIgniter\I18n\Time;
 use App\Modules\phongkhoa\Models\PhongKhoaModel;
 use App\Modules\loainguoidung\Models\LoaiNguoiDungModel;
 use App\Modules\namhoc\Models\NamHocModel;
-use App\Modules\bachoc\Models\BacHocModel;
+use App\Modules\quanlybachoc\Models\QuanLyBacHocModel;
 use App\Modules\hedaotao\Models\HeDaoTaoModel;
 use App\Modules\nganh\Models\NganhModel;
 use App\Modules\khoahoc\Models\KhoaHocModel;
@@ -31,7 +31,7 @@ trait RelationTrait
         $this->phongKhoaModel = new PhongKhoaModel();
         $this->loaiNguoiDungModel = new LoaiNguoiDungModel();
         $this->namHocModel = new NamHocModel();
-        $this->bacHocModel = new BacHocModel();
+        $this->quanLyBacHocModel = new QuanLyBacHocModel();
         $this->heDaoTaoModel = new HeDaoTaoModel();
         $this->nganhModel = new NganhModel();
         $this->khoaHocModel = new KhoaHocModel();
@@ -53,7 +53,7 @@ trait RelationTrait
         $phongKhoaList = $this->phongKhoaModel->getAllActive(100, 0, 'ten_phong_khoa', 'ASC');
         $loaiNguoiDungList = $this->loaiNguoiDungModel->getAllActive(100, 0, 'ten_loai', 'ASC');
         $namHocList = $this->namHocModel->getAllActive(100, 0, 'ten_nam_hoc', 'ASC');
-        $bacHocList = $this->bacHocModel->getAllActive(100, 0, 'ten_bac_hoc', 'ASC');
+        $bacHocList = $this->quanLyBacHocModel->getAllActive(100, 0, 'ten_bac_hoc', 'ASC');
         $heDaoTaoList = $this->heDaoTaoModel->getAllActive(100, 0, 'ten_he_dao_tao', 'ASC');
         $nganhList = $this->nganhModel->getAllActive(100, 0, 'ten_nganh', 'ASC');
         $khoaHocList = $this->khoaHocModel->getAllActive(100, 0, 'ten_khoa_hoc', 'ASC');
@@ -79,7 +79,7 @@ trait RelationTrait
             $namHocInfo = $this->namHocModel->find($params['nam_hoc_id']);
         }
         if (!empty($params['bac_hoc_id'])) {
-            $bacHocInfo = $this->bacHocModel->find($params['bac_hoc_id']);
+            $bacHocInfo = $this->quanLyBacHocModel->find($params['bac_hoc_id']);
         }
         if (!empty($params['he_dao_tao_id'])) {
             $heDaoTaoInfo = $this->heDaoTaoModel->find($params['he_dao_tao_id']);
@@ -208,7 +208,7 @@ trait RelationTrait
         }
         if (!empty($bacHocIds)) {
             $bacHocIds = array_unique($bacHocIds);
-            $bacHocs = $this->bacHocModel->find($bacHocIds);
+            $bacHocs = $this->quanLyBacHocModel->find($bacHocIds);
         }
         if (!empty($heDaoTaoIds)) {
             $heDaoTaoIds = array_unique($heDaoTaoIds);
