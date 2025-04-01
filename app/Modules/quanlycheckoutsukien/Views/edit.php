@@ -1,8 +1,6 @@
 <?= $this->extend('layouts/default') ?>
 <?= $this->section('linkHref') ?>
 <?php 
- 
-$module_name = isset($module_name) ? $module_name : 'quanlycamera';
 $masterScriptClass = "\App\Modules\\" . $module_name . '\Libraries\MasterScript';
 $masterScript = new $masterScriptClass($module_name);
 ?>

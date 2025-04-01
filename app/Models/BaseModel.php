@@ -386,6 +386,46 @@ class BaseModel extends Model
         return true;
     }
 
+    /**
+     * Khôi phục bản ghi từ thùng rác (đặt deleted_at = null)
+     * 
+     * @param int $id ID của bản ghi cần khôi phục
+     * @return bool Kết quả khôi phục
+     */
+    public function restoreFromTrash($id)
+    {
+        // Sử dụng query builder trực tiếp để cập nhật deleted_at = null
+        $builder = $this->db->table($this->table);
+        $builder->set($this->deletedField, null);
+        $builder->where($this->primaryKey, $id);
+        
+        $result = $builder->update();
+        
+        return $result;
+    }
+
+    /**
+     * Khôi phục nhiều bản ghi từ thùng rác
+     * 
+     * @param array $ids Mảng ID các bản ghi cần khôi phục
+     * @return int Số bản ghi đã khôi phục thành công
+     */
+    public function restoreMultipleFromTrash(array $ids)
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+        
+        // Sử dụng query builder trực tiếp để cập nhật deleted_at = null
+        $builder = $this->db->table($this->table);
+        $builder->set($this->deletedField, null);
+        $builder->whereIn($this->primaryKey, $ids);
+        
+        $result = $builder->update();
+        $affectedRows = $this->db->affectedRows();
+        
+        return $affectedRows;
+    }
     // Advanced search functionality
     public function search(array $criteria = [], array $options = [])
     {

@@ -1,25 +1,23 @@
 <?= $this->extend('layouts/default') ?>
-<?= $this->section('linkHref') ?>
-<?php 
- 
-$module_name = isset($module_name) ? $module_name : 'quanlycamera';
-$masterScriptClass = "\App\Modules\\" . $module_name . '\Libraries\MasterScript';
-$masterScript = new $masterScriptClass($module_name);
-?>
-<?= $masterScript->pageCss('form') ?>
-<?= $masterScript->pageSectionCss('form') ?>
-<?= $this->endSection() ?>
-<?= $this->section('title') ?>$title<?= $this->endSection() ?>
+	<?= $this->section('linkHref') ?>
+		<?php 
+			$masterScriptClass = "\App\Modules\\" . $module_name . '\Libraries\MasterScript';
+			$masterScript = new $masterScriptClass($module_name);
+		?>
+		<?= $masterScript->pageCss('form') ?>
+		<?= $masterScript->pageSectionCss('form') ?>
+	<?= $this->endSection() ?>
+	<?= $this->section('title') ?>$title<?= $this->endSection() ?>
 
-<?= $this->section('bread_cum_link') ?>
-<?= view('components/_breakcrump', [
-	'title' => $title_home,
-	'dashboard_url' => site_url($module_name),
-	'breadcrumbs' => [
-		['title' => $title_home, 'url' => site_url($module_name)],
-		['title' => $title, 'active' => true]
-	],
-]) ?>
+	<?= $this->section('bread_cum_link') ?>
+	<?= view('components/_breakcrump', [	
+		'title' => $title,
+		'dashboard_url' => site_url($module_name),
+		'breadcrumbs' => [
+			['title' => $title_home, 'url' => site_url($module_name)],
+			['title' => $title, 'active' => true]
+		],
+	]) ?>	
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
