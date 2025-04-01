@@ -30,10 +30,11 @@ $masterScript = new \App\Modules\quanlybachoc\Libraries\MasterScript($module_nam
 <div class="card shadow-sm">
 	<div class="card-body">
 		<?= form_open($action, ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
-			<?php
-			// Include form fields
-			include __DIR__ . '/form.php';
-			?>
+			<?= view('App\Modules\quanlybachoc\Views\components\_form', [
+                'module_name' => $module_name,
+                'data' => $data ?? null,
+                'validation' => $validation ?? null
+            ]) ?>
 		<?= form_close() ?>
 	</div>
 </div>

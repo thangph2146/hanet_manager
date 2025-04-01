@@ -149,11 +149,27 @@ class QuanLyBacHoc extends BaseController
         // Lấy dữ liệu từ form
         $data = $this->request->getPost();
         
-        $this->model->prepareValidationRules('insert');
+        // Loại bỏ bac_hoc_id khi thêm mới vì là trường auto_increment
+        if (isset($data['bac_hoc_id'])) {
+            unset($data['bac_hoc_id']);
+        }
+        
+        // Chuẩn bị quy tắc validation cho thêm mới
+        $this->model->prepareValidationRules('insert', $data);
         
         // Kiểm tra dữ liệu
         if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            // Lấy danh sách lỗi
+            $errors = $this->validator->getErrors();
+            
+            // Ghi log chi tiết lỗi
+            log_message('error', '[' . $this->controller_name . '::create] Lỗi validation: ' . json_encode($errors, JSON_UNESCAPED_UNICODE));
+            
+            // Hiển thị thông báo lỗi
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Vui lòng kiểm tra lại các thông tin bắt buộc')
+                ->with('errors', $errors);
         }
         
         try {
@@ -162,13 +178,32 @@ class QuanLyBacHoc extends BaseController
                 $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
+                // Nếu có lỗi từ model
+                $modelErrors = $this->model->errors();
+                if (!empty($modelErrors)) {
+                    log_message('error', '[' . $this->controller_name . '::create] Lỗi model: ' . json_encode($modelErrors, JSON_UNESCAPED_UNICODE));
+                    
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', 'Có lỗi khi lưu dữ liệu')
+                        ->with('errors', $modelErrors);
+                }
+                
                 throw new \RuntimeException('Không thể thêm mới ' . $this->title);
             }
         } catch (\Exception $e) {
             log_message('error', '[' . $this->controller_name . '::create] ' . $e->getMessage());
+            
+            // Nếu lỗi là Integrity Constraint Violation (ví dụ: trùng khóa)
+            if (strpos($e->getMessage(), 'Integrity constraint violation') !== false) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Dữ liệu đã tồn tại, vui lòng kiểm tra lại thông tin');
+            }
+            
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title);
+                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title . ': ' . $e->getMessage());
         }
     }
     
@@ -291,7 +326,17 @@ class QuanLyBacHoc extends BaseController
         
         // Kiểm tra dữ liệu
         if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            // Lấy danh sách lỗi
+            $errors = $this->validator->getErrors();
+            
+            // Ghi log chi tiết lỗi
+            log_message('error', '[' . $this->controller_name . '::update] Lỗi validation: ' . json_encode($errors, JSON_UNESCAPED_UNICODE));
+            
+            // Hiển thị thông báo lỗi
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Vui lòng kiểm tra lại các thông tin bắt buộc')
+                ->with('errors', $errors);
         }
         
         try {
@@ -300,13 +345,32 @@ class QuanLyBacHoc extends BaseController
                 $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
+                // Nếu có lỗi từ model
+                $modelErrors = $this->model->errors();
+                if (!empty($modelErrors)) {
+                    log_message('error', '[' . $this->controller_name . '::update] Lỗi model: ' . json_encode($modelErrors, JSON_UNESCAPED_UNICODE));
+                    
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', 'Có lỗi khi lưu dữ liệu')
+                        ->with('errors', $modelErrors);
+                }
+                
                 throw new \RuntimeException('Không thể cập nhật ' . $this->title);
             }
         } catch (\Exception $e) {
             log_message('error', '[' . $this->controller_name . '::update] ' . $e->getMessage());
+            
+            // Nếu lỗi là Integrity Constraint Violation (ví dụ: trùng khóa)
+            if (strpos($e->getMessage(), 'Integrity constraint violation') !== false) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Dữ liệu đã tồn tại, vui lòng kiểm tra lại thông tin');
+            }
+            
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title);
+                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title . ': ' . $e->getMessage());
         }
     }
     

@@ -46,7 +46,24 @@ class QuanLyBacHocModel extends BaseModel
     
     // Các quy tắc xác thực
     protected $validationRules = [];
-    protected $validationMessages = [];
+    protected $validationMessages = [
+        'ten_bac_hoc' => [
+            'required' => 'Tên bậc học không được để trống',
+            'max_length' => 'Tên bậc học không được vượt quá {param} ký tự',
+            'min_length' => 'Tên bậc học phải có ít nhất {param} ký tự',
+            'is_unique' => 'Tên bậc học này đã tồn tại, vui lòng chọn tên khác'
+        ],
+        'ma_bac_hoc' => [
+            'required' => 'Mã bậc học không được để trống',
+            'max_length' => 'Mã bậc học không được vượt quá {param} ký tự',
+            'alpha_numeric_space' => 'Mã bậc học chỉ được chứa chữ cái, số và khoảng trắng',
+            'is_unique' => 'Mã bậc học này đã tồn tại, vui lòng chọn mã khác'
+        ],
+        'status' => [
+            'required' => 'Trạng thái không được để trống',
+            'in_list' => 'Trạng thái không hợp lệ'
+        ]
+    ];
     protected $skipValidation = false;
     
     // Template pager
@@ -334,39 +351,88 @@ class QuanLyBacHocModel extends BaseModel
     }
     
     /**
-     * Chuẩn bị các quy tắc xác thực dựa trên tình huống
-     * 
-     * @param string $scenario Tình huống xác thực ('insert' hoặc 'update')
-     * @param array $data Dữ liệu cần xác thực
+     * Chuẩn bị quy tắc validation dựa vào kịch bản (insert/update)
+     *
+     * @param string $scenario Kịch bản validation (insert/update)
+     * @param mixed $data Dữ liệu cần validate hoặc ID của bản ghi cần cập nhật
+     * @return void
      */
-    public function prepareValidationRules(string $scenario = 'insert', array $data = [])
+    public function prepareValidationRules($scenario = 'insert', $data = null)
     {
-        $entity = new QuanLyBacHoc();
-        $this->validationRules = $entity->getValidationRules();
-        $this->validationMessages = $entity->getValidationMessages();
+        // Khởi tạo ID là null
+        $id = null;
         
-        // Loại trừ các trường timestamp và primary key khi thêm mới
-        unset($this->validationRules['created_at']);
-        unset($this->validationRules['updated_at']);
-        unset($this->validationRules['deleted_at']);
-        // Loại bỏ validation cho bac_hoc_id trong mọi trường hợp
-        unset($this->validationRules['bac_hoc_id']);
-        unset($this->validationRules['bin']);
+        // Xác định ID tùy thuộc vào loại dữ liệu
+        if (is_array($data) && isset($data[$this->primaryKey])) {
+            $id = $data[$this->primaryKey];
+        } elseif (is_numeric($data) || is_string($data)) {
+            $id = $data;
+        }
         
-        if ($scenario === 'update' && isset($data['bac_hoc_id'])) {
-            foreach ($this->validationRules as $field => &$rules) {
-                // Kiểm tra nếu $rules là một mảng
-                if (is_array($rules) && isset($rules['rules'])) {
-                    // Kiểm tra nếu chuỗi quy tắc chứa is_unique
-                    if (strpos($rules['rules'], 'is_unique') !== false) {
-                        $rules['rules'] = str_replace('{bac_hoc_id}', $data['bac_hoc_id'], $rules['rules']);
-                    }
-                } 
-                // Nếu $rules là một chuỗi
-                else if (is_string($rules) && strpos($rules, 'is_unique') !== false) {
-                    $rules = str_replace('{bac_hoc_id}', $data['bac_hoc_id'], $rules);
-                }
+        // Thiết lập quy tắc validation cho các trường
+        $this->validationRules = [
+            'ten_bac_hoc' => [
+                'rules' => 'required|min_length[2]|max_length[255]',
+                'errors' => $this->validationMessages['ten_bac_hoc']
+            ],
+            'ma_bac_hoc' => [
+                'rules' => 'required|max_length[50]|alpha_numeric_space',
+                'errors' => $this->validationMessages['ma_bac_hoc']
+            ],
+            'status' => [
+                'rules' => 'required|in_list[0,1]',
+                'errors' => $this->validationMessages['status']
+            ],
+            'created_at' => [
+                'rules' => 'permit_empty|valid_date[Y-m-d H:i:s]',
+                'errors' => [
+                    'valid_date' => 'Ngày tạo không đúng định dạng'
+                ]
+            ],
+            'updated_at' => [
+                'rules' => 'permit_empty|valid_date[Y-m-d H:i:s]',
+                'errors' => [
+                    'valid_date' => 'Ngày cập nhật không đúng định dạng'
+                ]
+            ],
+            'deleted_at' => [
+                'rules' => 'permit_empty|valid_date[Y-m-d H:i:s]',
+                'errors' => [
+                    'valid_date' => 'Ngày xóa không đúng định dạng'
+                ]
+            ]
+        ];
+        
+        // Thêm quy tắc is_unique cho trường hợp thêm mới
+        if ($scenario === 'insert') {
+            // Quy tắc cho trường tên bậc học phải là duy nhất
+            $this->validationRules['ten_bac_hoc']['rules'] .= '|is_unique[bac_hoc.ten_bac_hoc,deleted_at,NULL]';
+            
+            // Quy tắc cho trường mã bậc học phải là duy nhất
+            $this->validationRules['ma_bac_hoc']['rules'] .= '|is_unique[bac_hoc.ma_bac_hoc,deleted_at,NULL]';
+            
+            // Không validate các trường thời gian khi thêm mới (sẽ tự động được thiết lập)
+            unset($this->validationRules['created_at']);
+            unset($this->validationRules['updated_at']);
+            unset($this->validationRules['deleted_at']);
+            
+            // Không validate primary key khi thêm mới
+            if (isset($this->validationRules[$this->primaryKey])) {
+                unset($this->validationRules[$this->primaryKey]);
             }
+        } 
+        // Quy tắc cho trường hợp cập nhật
+        elseif ($scenario === 'update' && $id) {
+            // Quy tắc cho trường tên bậc học phải là duy nhất nhưng loại trừ bản ghi hiện tại
+            $this->validationRules['ten_bac_hoc']['rules'] .= "|is_unique[bac_hoc.ten_bac_hoc,bac_hoc_id,$id,deleted_at,NULL]";
+            
+            // Quy tắc cho trường mã bậc học phải là duy nhất nhưng loại trừ bản ghi hiện tại
+            $this->validationRules['ma_bac_hoc']['rules'] .= "|is_unique[bac_hoc.ma_bac_hoc,bac_hoc_id,$id,deleted_at,NULL]";
+            
+            // Không validate các trường thời gian khi cập nhật (updated_at sẽ tự động được thiết lập)
+            unset($this->validationRules['created_at']);
+            unset($this->validationRules['updated_at']);
+            unset($this->validationRules['deleted_at']);
         }
     }
     

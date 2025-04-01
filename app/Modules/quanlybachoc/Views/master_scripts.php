@@ -105,10 +105,6 @@ function page_css($type = 'all') {
             z-index: 3;
         }
         
-        .pagination-container {
-            margin-bottom: 1rem;
-        }
-        
         /* Nút select số bản ghi */
         #perPage {
             min-width: 70px;
