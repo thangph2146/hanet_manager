@@ -242,6 +242,7 @@ class QuanLyCamera extends BaseController
             $this->alert->set('danger', 'ID không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
+        $fillData = $this->model->find($id);
 
         // Lấy dữ liệu từ form
         $data = $this->request->getPost();
@@ -265,8 +266,14 @@ class QuanLyCamera extends BaseController
         }
         
         try {
+            $fillData->fill($data);
+            if (! $fillData->hasChanged()) {
+                return redirect()->back()
+                                 ->with('warning', 'Cập nhật ' . $this->title . ' dữ liệu không có gì thay đổi!')
+                                 ->withInput();
+            }
             // Cập nhật dữ liệu
-            if ($this->model->update($id, $data)) {
+            if ($this->model->protect(FALSE)->save($fillData)) {
                 $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
