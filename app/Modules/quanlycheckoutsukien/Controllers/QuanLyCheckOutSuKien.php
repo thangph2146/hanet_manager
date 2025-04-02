@@ -248,7 +248,10 @@ class QuanLyCheckOutSuKien extends BaseController
             'title' => $this->title,
             'title_home' => $this->title_home,
             'action' => site_url($this->module_name . '/update/' . $id),
-            'data' => $data
+            'data' => $data,
+            'pager' => null,
+            'perPage' => 1,
+            'total' => 1
         ]);
     }
     
@@ -394,7 +397,10 @@ class QuanLyCheckOutSuKien extends BaseController
             'dangKySuKien' => $dangKySuKien,
             'moduleUrl' => $this->moduleUrl,
             'module_name' => $this->module_name,
-            'masterScript' => $this->masterScript
+            'masterScript' => $this->masterScript,
+            'pager' => null,
+            'perPage' => 1,
+            'total' => 1
         ];
         
         return view('App\Modules\\' . $this->module_name . '\Views\detail', $viewData);

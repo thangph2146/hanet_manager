@@ -662,6 +662,13 @@ class CheckOutSuKien extends BaseEntity
                 $this->instance_suKien = $suKien;
                 return $this->instance_suKien;
             }
+            // Nếu không có ID nhưng có tên sự kiện, vẫn tạo đối tượng tạm thời
+            else {
+                $suKien = new SuKien();
+                $suKien->ten_su_kien = $this->attributes['ten_su_kien'];
+                $this->instance_suKien = $suKien;
+                return $this->instance_suKien;
+            }
         }
         
         // Nếu không có ID sự kiện, trả về null
