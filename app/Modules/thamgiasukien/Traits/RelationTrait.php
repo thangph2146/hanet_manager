@@ -3,7 +3,7 @@
 namespace App\Modules\thamgiasukien\Traits;
 
 use CodeIgniter\I18n\Time;
-use App\Modules\sukien\Models\SuKienModel;
+use App\Modules\quanlysukien\Models\SuKienModel;
 use App\Modules\nguoidung\Models\NguoiDungModel;
 
 trait RelationTrait

@@ -106,12 +106,6 @@ $routes->GET('students/logout', 'Students::logout');
 $routes->POST('sidebar/update-state', 'SidebarController::updateState');
 $routes->GET('sidebar/get-state', 'SidebarController::getState');
 
-// New routes for TestDeletedRecords
-$routes->get('quanlycheckoutsukien/test-deleted-records', '\App\Modules\quanlycheckoutsukien\Controllers\TestDeletedRecords::index');
-$routes->get('quanlycheckoutsukien/test-deleted-records/detail/(:num)', '\App\Modules\quanlycheckoutsukien\Controllers\TestDeletedRecords::detail/$1');
-$routes->get('quanlycheckoutsukien/test-deleted-records/get-all', '\App\Modules\quanlycheckoutsukien\Controllers\TestDeletedRecords::getAllDeleted');
-$routes->get('quanlycheckoutsukien/test-deleted-records/compare-methods', '\App\Modules\quanlycheckoutsukien\Controllers\TestDeletedRecords::compareModelMethods');
-
 /*
  * --------------------------------------------------------------------
  * Additional Routing

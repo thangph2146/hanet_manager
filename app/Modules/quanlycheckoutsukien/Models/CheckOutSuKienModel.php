@@ -964,7 +964,7 @@ class CheckOutSuKienModel extends BaseModel
         foreach ($results as $index => $item) {
             // Tải quan hệ với sự kiện
             if (isset($this->relations['sukien']) && !empty($item->su_kien_id)) {
-                $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+                $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
                 $suKien = $suKienModel->withDeleted()->find($item->su_kien_id);
                 if ($suKien) {
                     $item->sukien = $suKien;

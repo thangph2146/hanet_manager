@@ -688,7 +688,7 @@ class CheckOutSuKien extends BaseEntity
         }
         
         // Lấy thông tin sự kiện từ cơ sở dữ liệu
-        $suKienModel = model('App\Modules\sukien\Models\SuKienModel');
+        $suKienModel = model('App\Modules\quanlysukien\Models\SuKienModel');
         $this->instance_suKien = $suKienModel->find($this->getSuKienId());
         
         return $this->instance_suKien;

@@ -659,7 +659,7 @@ class DangKySuKien extends BaseEntity
             return null;
         }
         
-        $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+        $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
         return $suKienModel->find($suKienId);
     }
     

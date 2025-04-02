@@ -192,7 +192,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instances to find data instead of trying to use find() on entity objects
-        $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+        $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
         $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
         
         $suKien = $suKienModel->find($suKienId);

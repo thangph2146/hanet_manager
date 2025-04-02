@@ -5,7 +5,7 @@ namespace App\Modules\sukiendiengia\Controllers;
 use App\Controllers\BaseController;
 use App\Modules\sukiendiengia\Models\SuKienDienGiaModel;
 use App\Modules\diengia\Models\DienGiaModel;
-use App\Modules\sukien\Models\SuKienModel;
+use App\Modules\quanlysukien\Models\SuKienModel;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\HTTP\ResponseInterface;

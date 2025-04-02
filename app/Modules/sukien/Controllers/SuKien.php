@@ -3,1244 +3,465 @@
 namespace App\Modules\sukien\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\sukien\Models\SuKienModel;
-use App\Modules\loaisukien\Models\LoaiSuKienModel;
-use App\Libraries\Alert;
-use CodeIgniter\Database\Exceptions\DataException;
-use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\API\ResponseTrait;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use Dompdf\Dompdf;
-use Dompdf\Options;
-use CodeIgniter\I18n\Time;
-use App\Modules\sukien\Traits\ExportTrait;
-use App\Modules\sukien\Traits\RelationTrait;
+use App\Modules\sukien\Models\SukienModel;
+use App\Modules\sukien\Models\LoaiSukienModel;
+use App\Modules\sukien\Models\DangKySukienModel;
+use App\Modules\sukien\Models\CheckinSukienModel;
+use App\Modules\sukien\Models\CheckoutSukienModel;
 
-class SuKien extends BaseController
+class Sukien extends BaseController
 {
-    use ResponseTrait;
-    use ExportTrait;
-    use RelationTrait;
+    protected $sukienModel;
+    protected $loaiSukienModel;
+    protected $dangKySukienModel;
+    protected $checkinModel;
+    protected $checkoutModel;
     
-    protected $model;
-    protected $loaiSuKienModel;
-    protected $alert;
-    protected $moduleUrl;
-    protected $title = 'Sự kiện';
-    protected $module_name = 'sukien';
-    protected $controller_name = 'SuKien';
-    protected $primary_key = 'su_kien_id';
-    // Search
-    protected $field_sort = 'thoi_gian_bat_dau';
-    protected $field_order = 'DESC';
-
-    // Export
-    protected $export_excel = 'danh_sach_su_kien_excel';
-    protected $export_excel_title = 'DANH SÁCH SỰ KIỆN (Excel)';
-
-    protected $export_pdf = 'danh_sach_su_kien_pdf';
-    protected $export_pdf_title = 'DANH SÁCH SỰ KIỆN (PDF)';
-
-    protected $export_excel_deleted = 'danh_sach_su_kien_da_xoa_excel';
-    protected $export_excel_deleted_title = 'DANH SÁCH SỰ KIỆN ĐÃ XÓA (Excel)';
-
-    protected $export_pdf_deleted = 'danh_sach_su_kien_da_xoa_pdf';
-    protected $export_pdf_deleted_title = 'DANH SÁCH SỰ KIỆN ĐÃ XÓA (PDF)';
-
-    protected $pager_only = [
-        'keyword', 
-        'perPage', 
-        'sort', 
-        'order', 
-        'loai_su_kien_id',
-        'status',
-        'hinh_thuc'
-    ];
-
-    protected $sukien;
-    protected $validation;
-    
-    /**
-     * Constructor
-     */
     public function __construct()
     {
-        // Khởi tạo session sớm
-        $this->session = service('session');
-        
-        // Khởi tạo các thành phần cần thiết
-        $this->model = new \App\Modules\sukien\Models\SuKienModel();
-        $this->alert = new \App\Libraries\Alert();
-        
-        // Thông tin module
-        $this->moduleUrl = base_url($this->module_name);
-        
-        // Khởi tạo các model quan hệ
-        $this->initializeRelationTrait();
-        
-        // Khởi tạo model loại sự kiện nếu cần
-        if (class_exists('App\Modules\loaisukien\Models\LoaiSuKienModel')) {
-            $this->loaiSuKienModel = new \App\Modules\loaisukien\Models\LoaiSuKienModel();
-        }
-        
-        // Khởi tạo validation
-        $this->validation = \Config\Services::validation();
-        
-        // Đăng ký các quy tắc validation tùy chỉnh
-        $this->setCustomValidationRules();
-        
-        // Các thuộc tính khác
-        $this->pageTitle = 'Quản lý sự kiện';
-        $this->viewPrefix = 'App\Modules\sukien\Views';
-        $this->routePrefix = 'sukien';
-        
-        // Thiết lập tên file xuất dữ liệu
-        $this->export_excel = 'danh_sach_su_kien_' . date('dmY_His') . '.xlsx';
-        $this->export_excel_deleted = 'danh_sach_su_kien_da_xoa_' . date('dmY_His') . '.xlsx';
-        $this->export_pdf = 'danh_sach_su_kien_' . date('dmY_His') . '.pdf';
-        $this->export_pdf_deleted = 'danh_sach_su_kien_da_xoa_' . date('dmY_His') . '.pdf';
-        
-        // Thiết lập tiêu đề xuất dữ liệu
-        $this->export_excel_title = 'DANH SÁCH SỰ KIỆN';
-        $this->export_excel_deleted_title = 'DANH SÁCH SỰ KIỆN ĐÃ XÓA';
-        $this->export_pdf_title = 'DANH SÁCH SỰ KIỆN';
-        $this->export_pdf_deleted_title = 'DANH SÁCH SỰ KIỆN ĐÃ XÓA';
-        
-        // Đảm bảo sukien model được khởi tạo 
-        $this->sukien = $this->model;
+        $this->sukienModel = new SukienModel();
+        $this->loaiSukienModel = new LoaiSukienModel();
+        $this->dangKySukienModel = new DangKySukienModel();
+        $this->checkinModel = new CheckinSukienModel();
+        $this->checkoutModel = new CheckoutSukienModel();
     }
     
-    /**
-     * Thiết lập các quy tắc validate tùy chỉnh
-     */
-    protected function setCustomValidationRules()
-    {
-        // Lấy validation service từ container
-        $validation = \Config\Services::validation();
-        
-        // Không cần reset tại đây vì các rule đã được thiết lập trong Config/Validation.php
-        
-        // Đảm bảo các validation rule đã được đăng ký đúng cách trong app/Config/Validation.php
-        // Bao gồm datetime_greater_than và required_if
-    }
-
-    /**
-     * Phương thức validate thời gian kết thúc phải lớn hơn thời gian bắt đầu
-     *
-     * @param string $str Giá trị cần kiểm tra
-     * @param string $field Tên trường tham chiếu
-     * @param array $data Dữ liệu từ form
-     * @return bool
-     */
-    public function validateDatetimeGreaterThan(string $str, string $field, array $data): bool
-    {
-        // Lấy tên trường cần so sánh từ tham số trong rule
-        // datetime_greater_than[thoi_gian_bat_dau] -> thoi_gian_bat_dau
-        $compareField = preg_replace('/.*\[(.*)\]/', '$1', $field);
-        
-        // Nếu trường so sánh không tồn tại trong dữ liệu, return false
-        if (!isset($data[$compareField])) {
-            return false;
-        }
-        
-        // Nếu giá trị của trường hiện tại hoặc trường so sánh trống, return true
-        if (empty($str) || empty($data[$compareField])) {
-            return true;
-        }
-        
-        // Chuyển đổi thành đối tượng datetime để so sánh
-        try {
-            $dateEnd = new \DateTime($str);
-            $dateStart = new \DateTime($data[$compareField]);
-            
-            // So sánh các giá trị datetime
-            return $dateEnd > $dateStart;
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
-    
-    /**
-     * Hiển thị danh sách sự kiện
-     */
     public function index()
     {
-        // Lấy và xử lý tham số tìm kiếm
-        $params = $this->prepareSearchParams($this->request);
-        $params = $this->processSearchParams($params);
+        // Lấy 3 sự kiện sắp tới (hiển thị ở carousel)
+        $featured_events = $this->sukienModel->getFeaturedEvents();
         
-        // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
-        $this->model->setSurroundCount(3);
+        // Lấy 6 sự kiện sắp diễn ra gần nhất (dành cho phần upcoming events)
+        $upcoming_events = $this->sukienModel->getUpcomingEvents(6);
         
-        // Xây dựng tiêu chí và tùy chọn tìm kiếm
-        $criteria = $this->buildSearchCriteria($params);
-        $options = $this->buildSearchOptions($params);
+        // Thêm số lượng đăng ký và số lượt xem cho các sự kiện
+        foreach ($featured_events as &$event) {
+            if (isset($event['id_su_kien'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+                $event['registration_count'] = count($registrations);
+            } else {
+                $event['registration_count'] = 0;
+            }
+        }
         
-        // Lấy dữ liệu sự kiện và thông tin phân trang thông qua model
-        $pageData = $this->model->search($criteria, $options);
+        foreach ($upcoming_events as &$event) {
+            if (isset($event['id_su_kien'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+                $event['registration_count'] = count($registrations);
+            } else {
+                $event['registration_count'] = 0;
+            }
+        }
         
-        // Lấy tổng số kết quả thông qua model
-        $pager = $this->model->getPager();
-        $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($criteria);
+        // Tìm sự kiện sắp diễn ra gần nhất
+        $job_fair_event = null;
+        $current_time = time();
         
-        // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
-        $pageCount = ceil($total / $params['perPage']);
-        if ($total > 0 && $params['page'] > $pageCount) {
-            // Tạo URL mới với trang cuối cùng
-            $redirectParams = $_GET;
-            $redirectParams['page'] = $pageCount;
-            $redirectUrl = site_url($this->module_name) . '?' . http_build_query($redirectParams);
+        // Lọc các sự kiện chưa kết thúc và sắp xếp theo thời gian bắt đầu
+        $valid_events = array_filter($upcoming_events, function($event) use ($current_time) {
+            $event_start_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_bat_dau']);
+            $event_end_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_ket_thuc']);
+            return $event_end_time > $current_time;
+        });
+        
+        // Sắp xếp theo thời gian bắt đầu
+        usort($valid_events, function($a, $b) {
+            $time_a = strtotime($a['ngay_to_chuc'] . ' ' . $a['gio_bat_dau']);
+            $time_b = strtotime($b['ngay_to_chuc'] . ' ' . $b['gio_bat_dau']);
+            return $time_a - $time_b;
+        });
+        
+        // Lấy sự kiện gần nhất
+        if (!empty($valid_events)) {
+            $job_fair_event = reset($valid_events);
             
-            // Chuyển hướng đến trang cuối cùng
-            return redirect()->to($redirectUrl);
-        }
-        
-        // Lấy pager từ model và thiết lập các tham số
-        $pager = $this->model->getPager();
-        if ($pager !== null) {
-            $pager->setPath($this->module_name);
-            // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly($this->pager_only);
+            // Kiểm tra xem sự kiện đã bắt đầu chưa
+            $event_start_time = strtotime($job_fair_event['ngay_to_chuc'] . ' ' . $job_fair_event['gio_bat_dau']);
             
-            // Đảm bảo perPage và currentPage được thiết lập đúng
-            $pager->setPerPage($params['perPage']);
-            $pager->setCurrentPage($params['page']);
+            // Nếu sự kiện đã bắt đầu, tìm sự kiện tiếp theo
+            if ($current_time > $event_start_time) {
+                // Bỏ qua sự kiện hiện tại và lấy sự kiện tiếp theo
+                next($valid_events);
+                $next_event = current($valid_events);
+                if ($next_event) {
+                    $job_fair_event = $next_event;
+                }
+            }
+            
+            // Thêm thông tin đăng ký cho sự kiện nổi bật
+            if ($job_fair_event && isset($job_fair_event['id_su_kien'])) {
+                $registrations = $this->sukienModel->getRegistrations($job_fair_event['id_su_kien']);
+                $job_fair_event['registration_count'] = count($registrations);
+            }
         }
         
-        // Chuẩn bị dữ liệu cho view
-        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
-        
-        // Thêm danh sách loại sự kiện nếu cần
-        if (isset($this->loaiSuKienModel)) {
-            $viewData['loaiSuKienList'] = $this->loaiSuKienModel->findAll();
-        }
-        
-        // Hiển thị view
-        return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
-    }
-    
-    /**
-     * Hiển thị form thêm mới
-     */
-    public function new()
-    {
-        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
-        $viewData = $this->prepareFormData($this->module_name);
-        
-        // Thêm danh sách loại sự kiện
-        if (isset($this->loaiSuKienModel)) {
-            $viewData['loaiSuKienList'] = $this->loaiSuKienModel->findAll();
-        }
-        
-        // Thêm dữ liệu cho view
-        $viewData['title'] = 'Thêm mới ' . $this->title;
-        $viewData['validation'] = \Config\Services::validation();
-        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
-        $viewData['action'] = site_url($this->module_name . '/create');
-        $viewData['method'] = 'POST';
-        
-        return view('App\Modules\\' . $this->module_name . '\Views\new', $viewData);
-    }
-    
-    /**
-     * Xử lý thêm mới dữ liệu
-     */
-    public function create()
-    {
-        // Lấy dữ liệu từ form
-        $data = $this->request->getPost();
-        
-        // Xử lý các trường thời gian
-        $dateTimeFields = [
-            'thoi_gian_bat_dau', 'thoi_gian_ket_thuc', 'bat_dau_dang_ky',
-            'ket_thuc_dang_ky', 'han_huy_dang_ky', 'gio_bat_dau', 'gio_ket_thuc'
+        // Lấy thông tin counter
+        $stats = [
+            'total_events' => $this->sukienModel->getTotalEvents(),
+            'total_participants' => $this->sukienModel->getTotalParticipants(),
+            'total_speakers' => $this->sukienModel->getTotalSpeakers(),
+            'founding_year' => 1976 // Năm thành lập trường
         ];
         
-        foreach ($dateTimeFields as $field) {
-            if (!empty($data[$field])) {
-                $data[$field] = $this->model->formatDateTime($data[$field]);
-            } else {
-                $data[$field] = null;
-            }
-        }
+        // Dữ liệu mẫu cho diễn giả
+        $speakers = $this->sukienModel->getSpeakers();
         
-        // Xử lý upload file poster nếu có
-        $poster = $this->request->getFile('su_kien_poster');
-        if ($poster && $poster->isValid() && !$poster->hasMoved()) {
-            try {
-                // Tạo thư mục nếu chưa tồn tại
-                $uploadPath = ROOTPATH . 'public/uploads/sukien';
-                if (!file_exists($uploadPath)) {
-                    mkdir($uploadPath, 0777, true);
-                }
-                
-                $newName = $poster->getRandomName();
-                $poster->move($uploadPath, $newName);
-                
-                // Lưu thông tin vào dữ liệu JSON
-                $data['su_kien_poster'] = json_encode([
-                    'path' => 'uploads/sukien/' . $newName,
-                    'name' => $poster->getClientName(),
-                    'type' => $poster->getClientMimeType(),
-                    'size' => $poster->getSize()
-                ]);
-            } catch (\Exception $e) {
-                log_message('error', 'Lỗi upload poster: ' . $e->getMessage());
-            }
-        }
+        // Chuẩn bị dữ liệu SEO
+        $data = [
+            'title' => 'Sự Kiện Đại Học Ngân Hàng TP.HCM',
+            'description' => 'Trang thông tin sự kiện của Trường Đại học Ngân hàng TP.HCM',
+            'keywords' => 'sự kiện, hội thảo, workshop, ngân hàng, đại học',
+            'upcoming_events' => $upcoming_events,
+            'job_fair_event' => $job_fair_event,
+            'stats' => $stats,
+            'speakers' => $speakers
+        ];
+        
+        return view('App\Modules\sukien\Views\welcome', $data);
+    }
 
-        // Xử lý slug nếu chưa có
-        if (empty($data['slug']) && !empty($data['ten_su_kien'])) {
-            $data['slug'] = $this->model->createSlug($data['ten_su_kien']);
-        }
-        
-        // Xử lý lịch trình nếu có
-        if (isset($data['lich_trinh']) && is_array($data['lich_trinh'])) {
-            // Chuyển đổi dữ liệu dạng cột thành mảng dạng hàng
-            $lichTrinh = [];
-            
-            // Kiểm tra cấu trúc dữ liệu để xử lý phù hợp
-            if (isset($data['lich_trinh']['thoi_gian']) && is_array($data['lich_trinh']['thoi_gian'])) {
-                $count = count($data['lich_trinh']['thoi_gian']);
-                
-                for ($i = 0; $i < $count; $i++) {
-                    // Bỏ qua các dòng trống
-                    if (empty($data['lich_trinh']['thoi_gian'][$i]) && 
-                        empty($data['lich_trinh']['noi_dung'][$i]) && 
-                        empty($data['lich_trinh']['ghi_chu'][$i])) {
-                        continue;
-                    }
-                    
-                    $lichTrinh[] = [
-                        'thoi_gian' => $data['lich_trinh']['thoi_gian'][$i] ?? '',
-                        'noi_dung' => $data['lich_trinh']['noi_dung'][$i] ?? '',
-                        'ghi_chu' => $data['lich_trinh']['ghi_chu'][$i] ?? ''
-                    ];
-                }
-            }
-            
-            // Chuyển đổi thành JSON
-            $data['lich_trinh'] = json_encode($lichTrinh);
-        }
-        
-        // Xử lý thông tin diễn giả nếu có
-        if (isset($data['dien_gia_info']) && !empty($data['dien_gia_info'])) {
-            // Kiểm tra nếu chuỗi đã là JSON
-            if (!is_array($data['dien_gia_info']) && is_string($data['dien_gia_info'])) {
-                $decoded = json_decode($data['dien_gia_info'], true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    // Nếu không phải là JSON, coi như danh sách các dòng
-                    $lines = array_filter(array_map('trim', explode("\n", $data['dien_gia_info'])));
-                    $data['dien_gia_info'] = json_encode($lines);
-                }
-            } elseif (is_array($data['dien_gia_info'])) {
-                // Nếu đã là mảng, chuyển thành JSON
-                $data['dien_gia_info'] = json_encode($data['dien_gia_info']);
-            }
-        }
-        
-        // Xử lý các trường checkbox (chuyển đổi thành boolean)
-        $checkboxFields = [
-            'cho_phep_check_in', 'cho_phep_check_out', 
-            'yeu_cau_face_id', 'cho_phep_checkin_thu_cong'
-        ];
-        
-        foreach ($checkboxFields as $field) {
-            $data[$field] = isset($data[$field]) ? 1 : 0;
-        }
-        
-        // Xử lý các trường số
-        $numericFields = [
-            'loai_su_kien_id', 'so_luong_tham_gia', 'so_luong_dien_gia',
-            'status', 'version', 'so_luot_xem', 'tong_dang_ky', 
-            'tong_check_in', 'tong_check_out'
-        ];
-        
-        foreach ($numericFields as $field) {
-            if (isset($data[$field]) && $data[$field] !== '') {
-                $data[$field] = (int)$data[$field];
-            }
-        }
-        
-        // Chuẩn bị các quy tắc validation
-        $this->model->prepareValidationRules('insert', $data);
-        
-        // Kiểm tra dữ liệu
-        if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-        
-        try {
-            // Lưu dữ liệu thông qua model
-            if ($this->model->insert($data)) {
-                $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
-                return redirect()->to($this->moduleUrl);
-            } else {
-                throw new \RuntimeException('Không thể thêm mới ' . $this->title);
-            }
-        } catch (\Exception $e) {
-            log_message('error', '[' . $this->controller_name . '::create] ' . $e->getMessage());
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi thêm mới ' . $this->title . ': ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Hiển thị chi tiết
-     */
-    public function view($id = null)
+    public function list()
     {
-        if (empty($id)) {
-            $this->alert->set('danger', 'ID không hợp lệ', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
-        // Lấy thông tin dữ liệu cơ bản thông qua model
-        $data = $this->model->find($id);
-        
-        if (empty($data)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
-        // Tăng số lượt xem
-        $this->model->increaseViewCount($id);
-        
-        // Lấy loại sự kiện
-        if (isset($this->loaiSuKienModel)) {
-            $data->loaiSuKien = $this->loaiSuKienModel->find($data->getLoaiSuKienId());
-        }
+        // Lấy thông tin tìm kiếm nếu có
+        $search = $this->request->getGet('search');
+        $page = (int)$this->request->getGet('page') ?? 1;
+        $per_page = 9; // Số sự kiện mỗi trang
         
         // Chuẩn bị dữ liệu cho view
-        $viewData = [
-            'title' => 'Chi tiết ' . $this->title,
-            'data' => $data,
-            'moduleUrl' => $this->moduleUrl,
-            'module_name' => $this->module_name,
-            'loaiSuKienList' => isset($this->loaiSuKienModel) ? $this->loaiSuKienModel->findAll() : []
-        ];
+        $data = [];
         
-        return view('App\Modules\\' . $this->module_name . '\Views\view', $viewData);
-    }
-    
-    /**
-     * Hiển thị form chỉnh sửa
-     */
-    public function edit($id = null)
-    {
-        if (empty($id)) {
-            $this->alert->set('danger', 'ID không hợp lệ', true);
-            return redirect()->to($this->moduleUrl);
-        }
+        // Lấy danh sách loại sự kiện từ LoaiSukienModel thay vì SukienModel
+        $data['event_types'] = $this->loaiSukienModel->getAllEventTypes();
         
-        // Lấy thông tin từ model
-        $data = $this->model->find($id);
-        
-        if (empty($data)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
-        // Sử dụng prepareFormData để chuẩn bị dữ liệu cho form
-        $viewData = $this->prepareFormData($this->module_name, $data);
-        
-        // Thêm danh sách loại sự kiện
-        if (isset($this->loaiSuKienModel)) {
-            $viewData['loaiSuKienList'] = $this->loaiSuKienModel->findAll();
-        }
-        
-        // Thêm dữ liệu cho view
-        $viewData['title'] = 'Chỉnh sửa ' . $this->title;
-        $viewData['validation'] = \Config\Services::validation();
-        $viewData['errors'] = session()->getFlashdata('errors') ?? ($this->validator ? $this->validator->getErrors() : []);
-        $viewData['action'] = site_url($this->module_name . '/update/' . $id);
-        $viewData['method'] = 'POST';
-        
-        return view('App\Modules\\' . $this->module_name . '\Views\edit', $viewData);
-    }
-    
-    /**
-     * Cập nhật sự kiện
-     * 
-     * @param int|null $id ID của sự kiện cần cập nhật
-     * @return ResponseInterface|string
-     */
-    public function update($id = null)
-    {
-        if (empty($id)) {
-            $this->alert->set('danger', 'ID không hợp lệ', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
-        // Nếu là phương thức GET, chuyển đến trang edit
-        if ($this->request->getMethod() === 'get') {
-            return $this->edit($id);
-        }
-        
-        // Kiểm tra xem bản ghi tồn tại không
-        $existingData = $this->model->find($id);
-        
-        if (empty($existingData)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
-        // Thiết lập các quy tắc validation trước
-        $this->setCustomValidationRules();
-        
-        // Lấy dữ liệu từ form
-        $data = $this->request->getPost();
-        
-        // Đảm bảo có ID của bản ghi đang cập nhật
-        $data[$this->primary_key] = $id;
-        
-        // Xử lý các trường thời gian
-        $dateTimeFields = [
-            'thoi_gian_bat_dau', 'thoi_gian_ket_thuc', 'bat_dau_dang_ky',
-            'ket_thuc_dang_ky', 'han_huy_dang_ky', 'gio_bat_dau', 'gio_ket_thuc'
-        ];
-        
-        foreach ($dateTimeFields as $field) {
-            if (!empty($data[$field])) {
-                $data[$field] = $this->model->formatDateTime($data[$field]);
-            } else {
-                $data[$field] = null;
-            }
-        }
-        
-        // Chuẩn bị quy tắc validation cho cập nhật
-        $rules = $this->model->prepareValidationRules('update', $data);
-        
-        // Kiểm tra dữ liệu
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-        
-        // Xử lý upload file poster nếu có
-        $poster = $this->request->getFile('su_kien_poster');
-        if ($poster && $poster->isValid() && !$poster->hasMoved()) {
-            try {
-                // Tạo thư mục nếu chưa tồn tại
-                $uploadPath = ROOTPATH . 'public/uploads/sukien';
-                if (!file_exists($uploadPath)) {
-                    mkdir($uploadPath, 0777, true);
-                }
-                
-                $newName = $poster->getRandomName();
-                $poster->move($uploadPath, $newName);
-                
-                // Lưu thông tin vào dữ liệu JSON
-                $data['su_kien_poster'] = json_encode([
-                    'path' => 'uploads/sukien/' . $newName,
-                    'name' => $poster->getClientName(),
-                    'type' => $poster->getClientMimeType(),
-                    'size' => $poster->getSize()
-                ]);
-                
-                // Xóa file ảnh cũ nếu có
-                if (!empty($existingData->su_kien_poster)) {
-                    try {
-                        $oldPosterData = json_decode($existingData->getSuKienPoster());
-                        if (isset($oldPosterData->path)) {
-                            $oldFilePath = ROOTPATH . 'public/' . $oldPosterData->path;
-                            if (file_exists($oldFilePath)) {
-                                @unlink($oldFilePath);
-                            }
-                        }
-                    } catch (\Exception $e) {
-                        log_message('error', 'Lỗi xóa poster cũ: ' . $e->getMessage());
-                    }
-                }
-            } catch (\Exception $e) {
-                log_message('error', 'Lỗi upload poster: ' . $e->getMessage());
-            }
+        // Xử lý tìm kiếm
+        if (!empty($search)) {
+            // Tìm kiếm sự kiện theo từ khóa
+            $events = $this->sukienModel->searchEvents($search);
+            $data['search'] = $search;
+            
+            // Chuẩn bị dữ liệu SEO
+            $data['meta_title'] = 'Tìm kiếm: ' . $search . ' - Sự Kiện HUB';
+            $data['meta_description'] = 'Kết quả tìm kiếm cho "' . $search . '" - Sự kiện tại Trường Đại học Ngân hàng TP.HCM';
+            $data['meta_keywords'] = $search . ', sự kiện hub, tìm kiếm sự kiện';
         } else {
-            // Giữ lại dữ liệu poster cũ nếu không upload mới
-            unset($data['su_kien_poster']);
-        }
-
-        // Xử lý slug nếu chưa có
-        if (empty($data['slug']) && !empty($data['ten_su_kien'])) {
-            $data['slug'] = $this->model->createSlug($data['ten_su_kien'], $id);
-        }
-        
-        // Xử lý lịch trình nếu có
-        if (isset($data['lich_trinh']) && is_array($data['lich_trinh'])) {
-            // Chuyển đổi dữ liệu dạng cột thành mảng dạng hàng
-            $lichTrinh = [];
+            // Lấy tất cả sự kiện
+            $events = $this->sukienModel->getAllEvents();
             
-            // Kiểm tra cấu trúc dữ liệu để xử lý phù hợp
-            if (isset($data['lich_trinh']['thoi_gian']) && is_array($data['lich_trinh']['thoi_gian'])) {
-                $count = count($data['lich_trinh']['thoi_gian']);
-                
-                for ($i = 0; $i < $count; $i++) {
-                    // Bỏ qua các dòng trống
-                    if (empty($data['lich_trinh']['thoi_gian'][$i]) && 
-                        empty($data['lich_trinh']['noi_dung'][$i]) && 
-                        empty($data['lich_trinh']['ghi_chu'][$i])) {
-                        continue;
-                    }
-                    
-                    $lichTrinh[] = [
-                        'thoi_gian' => $data['lich_trinh']['thoi_gian'][$i] ?? '',
-                        'noi_dung' => $data['lich_trinh']['noi_dung'][$i] ?? '',
-                        'ghi_chu' => $data['lich_trinh']['ghi_chu'][$i] ?? ''
-                    ];
-                }
-            }
-            
-            // Chuyển đổi thành JSON
-            $data['lich_trinh'] = json_encode($lichTrinh);
+            // Chuẩn bị dữ liệu SEO
+            $data['meta_title'] = 'Danh Sách Sự Kiện - Đại Học Ngân Hàng TP.HCM';
+            $data['meta_description'] = 'Khám phá tất cả các sự kiện tại Trường Đại học Ngân hàng TP.HCM. Hội thảo, workshop, ngày hội việc làm và nhiều hoạt động khác.';
+            $data['meta_keywords'] = 'sự kiện hub, danh sách sự kiện, đại học ngân hàng, hội thảo, workshop';
         }
         
-        // Xử lý thông tin diễn giả nếu có
-        if (isset($data['dien_gia_info']) && !empty($data['dien_gia_info'])) {
-            // Kiểm tra nếu chuỗi đã là JSON
-            if (!is_array($data['dien_gia_info']) && is_string($data['dien_gia_info'])) {
-                $decoded = json_decode($data['dien_gia_info'], true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    // Nếu không phải là JSON, coi như danh sách các dòng
-                    $lines = array_filter(array_map('trim', explode("\n", $data['dien_gia_info'])));
-                    $data['dien_gia_info'] = json_encode($lines);
-                }
-            } elseif (is_array($data['dien_gia_info'])) {
-                // Nếu đã là mảng, chuyển thành JSON
-                $data['dien_gia_info'] = json_encode($data['dien_gia_info']);
-            }
-        }
-        
-        // Xử lý các trường checkbox (chuyển đổi thành boolean)
-        $checkboxFields = [
-            'cho_phep_check_in', 'cho_phep_check_out', 
-            'yeu_cau_face_id', 'cho_phep_checkin_thu_cong', 'cho_phep_dang_ky'
-        ];
-        
-        foreach ($checkboxFields as $field) {
-            $data[$field] = isset($data[$field]) ? 1 : 0;
-        }
-        
-        // Xử lý các trường số
-        $numericFields = [
-            'loai_su_kien_id', 'so_luong_tham_gia', 'so_luong_dien_gia',
-            'status', 'version', 'so_luot_xem', 'tong_dang_ky', 
-            'tong_check_in', 'tong_check_out'
-        ];
-        
-        foreach ($numericFields as $field) {
-            if (isset($data[$field]) && $data[$field] !== '') {
-                $data[$field] = (int)$data[$field];
-            }
-        }
-        
-        try {
-            // Lưu dữ liệu thông qua model
-            if ($this->model->update($id, $data)) {
-                $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
-                
-                // Xử lý URL trả về
-                $returnUrl = $this->request->getPost('return_url');
-                $redirectUrl = $this->processReturnUrl($returnUrl);
-                
-                return redirect()->to($redirectUrl);
+        // Thêm số lượng đăng ký cho mỗi sự kiện
+        foreach ($events as &$event) {
+            if (isset($event['id_su_kien'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+                $event['registration_count'] = count($registrations);
             } else {
-                throw new \RuntimeException('Không thể cập nhật ' . $this->title);
+                $event['registration_count'] = 0;
             }
-        } catch (\Exception $e) {
-            log_message('error', '[' . $this->controller_name . '::update] ' . $e->getMessage());
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Có lỗi xảy ra khi cập nhật ' . $this->title . ': ' . $e->getMessage());
         }
+        
+        // Xử lý phân trang
+        $total_events = count($events);
+        $total_pages = ceil($total_events / $per_page);
+        
+        if ($page < 1) $page = 1;
+        if ($page > $total_pages && $total_pages > 0) $page = $total_pages;
+        
+        // Phân trang thủ công
+        $offset = ($page - 1) * $per_page;
+        $data['events'] = array_slice($events, $offset, $per_page);
+        
+        // Thông tin phân trang
+        $data['pager'] = [
+            'total_pages' => $total_pages,
+            'current_page' => $page,
+            'has_previous' => $page > 1,
+            'has_next' => $page < $total_pages,
+            'previous_page' => $page - 1,
+            'next_page' => $page + 1
+        ];
+        
+        // Thiết lập canonical URL
+        $current_url = current_url();
+        $query_string = $this->request->getUri()->getQuery();
+        $base_url = $query_string ? $current_url . '?' . $query_string : $current_url;
+        
+        // Loại bỏ tham số page từ URL canonical nếu trang là 1
+        if ($page === 1 && strpos($query_string, 'page=') !== false) {
+            $query_params = [];
+            parse_str($query_string, $query_params);
+            unset($query_params['page']);
+            $base_url = $current_url;
+            if (!empty($query_params)) {
+                $base_url .= '?' . http_build_query($query_params);
+            }
+        }
+        
+        $data['canonical_url'] = $base_url;
+        
+        return view('App\Modules\sukien\Views\list', $data);
+    }
+
+    /**
+     * Phương thức mới: Chuyển hướng từ ID sang slug
+     */
+    public function redirectToSlug($id)
+    {
+        // Lấy thông tin sự kiện từ ID
+        $event = $this->sukienModel->getEventById($id);
+        
+        if (empty($event)) {
+            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+        }
+        
+        // Chuyển hướng đến URL với slug
+        return redirect()->to('/su-kien/detail/' . $event['slug'], 301);
+    }
+
+    public function detail($slug)
+    {
+        // Lấy thông tin sự kiện từ slug
+        $event = $this->sukienModel->getEventBySlug($slug);
+        
+        if (empty($event)) {
+            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+        }
+        
+        // Kiểm tra xem URL hiện tại có khớp với slug không, nếu không thì redirect
+        $current_slug = $this->request->getUri()->getSegment(3);
+        if ($current_slug !== $slug) {
+            return redirect()->to('/su-kien/detail/' . $slug, 301);
+        }
+        
+        // Tăng số lượt xem cho sự kiện
+        $this->sukienModel->incrementViews($event['id_su_kien']);
+        
+        // Lấy danh sách người đăng ký sự kiện
+        $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+        
+        // Lấy số lượng người đăng ký   
+        $registrationCount = count($registrations);
+        
+        // Lấy số lượng người đã tham gia
+        $attendedCount = 0;
+        foreach ($registrations as $reg) {
+            if ($reg['da_tham_gia'] == 1) {
+                $attendedCount++;
+            }
+        }
+        
+        // Lấy các sự kiện liên quan (cùng loại)
+        $related_events = $this->sukienModel->getRelatedEvents($event['id_su_kien'], $event['loai_su_kien'], 3);
+        
+        // Thêm số lượng đăng ký cho sự kiện liên quan
+        foreach ($related_events as &$related) {
+            if (isset($related['id_su_kien'])) {
+                $relatedRegistrations = $this->sukienModel->getRegistrations($related['id_su_kien']);
+                $related['registration_count'] = count($relatedRegistrations);
+            } else {
+                $related['registration_count'] = 0;
+            }
+        }
+        
+        // Lấy lịch trình sự kiện
+        $event_schedule = $this->sukienModel->getEventSchedule($event['id_su_kien']);
+        
+        // Chuẩn bị dữ liệu có cấu trúc cho SEO
+        $structured_data = $this->generateEventStructuredData($event);
+        
+        // Chuẩn bị dữ liệu SEO
+        $seo_data = [
+            'meta_title' => $event['ten_su_kien'] . ' - Sự Kiện HUB',
+            'meta_description' => $this->truncate($event['mo_ta_su_kien'], 160),
+            'meta_keywords' => $event['keywords'] ?? ($event['ten_su_kien'] . ', ' . $event['loai_su_kien'] . ', sự kiện hub, đại học ngân hàng'),
+            'og_image' => base_url($event['hinh_anh']),
+            'structured_data' => $structured_data,
+            'canonical_url' => site_url('su-kien/detail/' . $slug)
+        ];
+        
+        return view('App\Modules\sukien\Views\detail', array_merge(
+            [
+                'event' => $event, 
+                'related_events' => $related_events,
+                'registrations' => $registrations,
+                'registrationCount' => $registrationCount,
+                'attendedCount' => $attendedCount,
+                'participants' => $registrations,
+                'event_schedule' => $event_schedule
+            ], 
+            $seo_data
+        ));
     }
     
-    /**
-     * Định dạng chuỗi thời gian thành định dạng chuẩn
-     * 
-     * @param string $dateTime Chuỗi thời gian đầu vào
-     * @return string|null Chuỗi thời gian đã định dạng hoặc null nếu không hợp lệ
-     */
-    protected function formatDateTime($dateTime)
+    public function category($category_slug)
     {
-        if (empty($dateTime)) {
-            return null;
+        // Lấy thông tin loại sự kiện từ slug
+        $category = $this->loaiSukienModel->getEventTypeBySlug($category_slug);
+        
+        if (empty($category)) {
+            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy danh mục');
         }
         
-        try {
-            // Thử chuyển đổi chuỗi sang đối tượng Time
-            $time = new Time($dateTime);
-            return $time->toDateTimeString();
-        } catch (\Exception $e) {
-            // Thử các định dạng khác nếu không chuyển đổi được
-            $formats = [
-                'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y',
-                'Y-m-d H:i:s', 'Y-m-d H:i', 'Y-m-d'
+        $category_name = $category['loai_su_kien'];
+        
+        // Lấy sự kiện thuộc danh mục đã chọn
+        $events = $this->sukienModel->getEventsByCategory($category_name);
+        
+        // Thêm số lượng đăng ký cho mỗi sự kiện
+        foreach ($events as &$event) {
+            if (isset($event['id_su_kien'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+                $event['registration_count'] = count($registrations);
+            } else {
+                $event['registration_count'] = 0;
+            }
+        }
+        
+        // Lấy danh sách loại sự kiện
+        $event_types = $this->loaiSukienModel->getAllEventTypes();
+        
+        // Chuẩn bị dữ liệu SEO
+        $data = [
+            'events' => $events,
+            'category' => $category_name,
+            'event_types' => $event_types,
+            'meta_title' => 'Sự Kiện ' . $category_name . ' - Đại Học Ngân Hàng TP.HCM',
+            'meta_description' => 'Khám phá các sự kiện ' . $category_name . ' tại Trường Đại học Ngân hàng TP.HCM. Cập nhật các ' . strtolower($category_name) . ' mới nhất.',
+            'meta_keywords' => 'sự kiện ' . strtolower($category_name) . ', ' . strtolower($category_name) . ' hub, đại học ngân hàng',
+            'canonical_url' => site_url('su-kien/loai/' . $category_slug)
+        ];
+        
+        return view('App\Modules\sukien\Views\list', $data);
+    }
+    
+    public function register()
+    {
+        // Xử lý đăng ký sự kiện
+        if ($this->request->getMethod() === 'post') {
+            // Quy tắc validation
+            $rules = [
+                'id_su_kien' => 'required|numeric',
+                'ho_ten' => 'required|min_length[3]|max_length[255]',
+                'email' => 'required|valid_email',
+                'so_dien_thoai' => 'required|numeric|min_length[10]|max_length[15]',
+                'ma_sinh_vien' => 'permit_empty|alpha_numeric|min_length[5]|max_length[20]',
             ];
             
-            foreach ($formats as $format) {
-                $parsedDate = \DateTime::createFromFormat($format, $dateTime);
-                if ($parsedDate !== false) {
-                    return $parsedDate->format('Y-m-d H:i:s');
-                }
-            }
-        }
-        
-        // Trả về null nếu không thể chuyển đổi
-        return null;
-    }
-    
-    /**
-     * Xóa mềm (chuyển vào thùng rác)
-     */
-    public function delete($id = null, $backToUrl = null)
-    {
-        if (empty($id)) {
-            $this->alert->set('danger', 'ID không hợp lệ', true);
-            return redirect()->to($this->moduleUrl);
-        }
-        
-        // Thực hiện xóa mềm thông qua model
-        if ($this->model->delete($id)) {
-            $this->alert->set('success', 'Đã xóa dữ liệu thành công', true);
-        } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
-        }
-        
-        // Lấy URL trả về từ tham số truy vấn hoặc từ tham số đường dẫn
-        $returnUrl = $this->request->getGet('return_url') ?? $backToUrl;
-        
-        // Xử lý URL chuyển hướng
-        $redirectUrl = $this->processReturnUrl($returnUrl);
-        
-        return redirect()->to($redirectUrl);
-    }
-    
-    /**
-     * Xóa nhiều sự kiện (chuyển vào thùng rác)
-     */
-    public function deleteMultiple()
-    {
-        // Lấy các ID được chọn và URL trả về
-        $selectedItems = $this->request->getPost('selected_ids');
-        $returnUrl = $this->request->getPost('return_url');
-        
-        if (empty($selectedItems)) {
-            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để xóa', true);
-            
-            // Chuyển hướng đến URL đích đã xử lý
-            $redirectUrl = $this->processReturnUrl($returnUrl);
-            return redirect()->to($redirectUrl);
-        }
-
-        // Đảm bảo $selectedItems là mảng
-        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
-        
-        // Lấy các tham số hiện tại
-        $currentParams = $this->prepareSearchParams($this->request);
-        
-        // Thực hiện xóa nhiều và lấy kết quả
-        $result = $this->model->deleteMultiple($idArray, $currentParams);
-        
-        if ($result['success']) {
-            $this->alert->set('success', "Đã chuyển {$result['success']} dữ liệu vào thùng rác", true);
-        } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa dữ liệu', true);
-        }
-        
-        // Xử lý URL trả về với trang hiện tại
-        $redirectUrl = $this->processReturnUrl($returnUrl);
-        
-        return redirect()->to($redirectUrl);
-    }
-    
-    /**
-     * Hiển thị danh sách đã xóa
-     */
-    public function listdeleted()
-    {
-        // Lấy và xử lý tham số tìm kiếm
-        $params = $this->prepareSearchParams($this->request);
-        $params = $this->processSearchParams($params);
-        
-        // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
-        $this->model->setSurroundCount(3);
-        
-        // Xây dựng tiêu chí và tùy chọn tìm kiếm
-        $criteria = $this->buildSearchCriteria($params);
-        $options = $this->buildSearchOptions($params);
-        
-        // Thêm điều kiện để chỉ lấy các bản ghi đã xóa
-        $criteria['deleted'] = true;
-        
-        // Lấy dữ liệu đã xóa thông qua model
-        $pageData = $this->model->searchDeleted($criteria, $options);
-        
-        // Lấy tổng số kết quả
-        $total = $this->model->countDeletedSearchResults($criteria);
-        
-        // Lấy pager từ model và thiết lập các tham số
-        $pager = $this->model->getPager();
-        if ($pager !== null) {
-            $pager->setPath($this->module_name . '/listdeleted');
-            $pager->setOnly($this->pager_only);
-            $pager->setPerPage($params['perPage']);
-            $pager->setCurrentPage($params['page']);
-        }
-        
-        // Chuẩn bị dữ liệu cho view
-        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
-        
-        // Thêm danh sách loại sự kiện để hiển thị tên thay vì ID
-        if (isset($this->loaiSuKienModel)) {
-            $viewData['loaiSuKienList'] = $this->loaiSuKienModel->findAll();
-        }
-        
-        // Hiển thị view
-        return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);
-    }
-    
-    /**
-     * Khôi phục từ thùng rác
-     */
-    public function restore($id = null)
-    {
-        if (empty($id)) {
-            $this->alert->set('danger', 'ID không hợp lệ', true);
-            return redirect()->to($this->moduleUrl . '/listdeleted');
-        }
-        
-        // Lấy URL trả về từ form hoặc từ HTTP_REFERER
-        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
-        
-        // Khôi phục bản ghi thông qua model
-        try {
-            $data = $this->model->onlyDeleted()->find($id);
-            
-            if ($data) {
-                $this->model->update($id, ['deleted_at' => null]);
-                $this->alert->set('success', 'Đã khôi phục dữ liệu từ thùng rác', true);
-            } else {
-                $this->alert->set('danger', 'Không tìm thấy dữ liệu đã xóa', true);
-            }
-        } catch (\Exception $e) {
-            log_message('error', '[' . $this->controller_name . '::restore] ' . $e->getMessage());
-            $this->alert->set('danger', 'Có lỗi xảy ra khi khôi phục dữ liệu', true);
-        }
-        
-        // Chuyển hướng đến URL đích đã xử lý
-        $redirectUrl = $this->processReturnUrl($returnUrl);
-        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
-    }
-    
-    /**
-     * Khôi phục nhiều bản ghi
-     */
-    public function restoreMultiple()
-    {
-        // Lấy các ID được chọn và URL trả về
-        $selectedItems = $this->request->getPost('selected_ids');
-        $returnUrl = $this->request->getPost('return_url');
-        
-        if (empty($selectedItems)) {
-            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để khôi phục', true);
-            
-            // Chuyển hướng đến URL đích đã xử lý
-            $redirectUrl = $this->processReturnUrl($returnUrl);
-            return redirect()->to($redirectUrl);
-        }
-
-        // Đảm bảo $selectedItems là mảng
-        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
-        
-        // Lấy các tham số hiện tại
-        $currentParams = $this->prepareSearchParams($this->request);
-        
-        // Thực hiện khôi phục nhiều và lấy kết quả
-        $result = $this->model->restoreMultiple($idArray, $currentParams);
-        
-        if ($result['success']) {
-            $this->alert->set('success', "Đã khôi phục {$result['success']} dữ liệu từ thùng rác", true);
-        } else {
-            $this->alert->set('danger', 'Có lỗi xảy ra, không thể khôi phục dữ liệu', true);
-        }
-        
-        // Xử lý URL trả về với trang hiện tại
-        $redirectUrl = $this->processReturnUrl($returnUrl);
-        
-        return redirect()->to($redirectUrl);
-    }
-    
-    /**
-     * Xóa vĩnh viễn một bản ghi
-     */
-    public function permanentDelete($id = null)
-    {
-        if (empty($id)) {
-            $this->alert->set('danger', 'ID không hợp lệ', true);
-            return redirect()->to($this->moduleUrl . '/listdeleted');
-        }
-        
-        // Lấy URL trả về từ form hoặc từ HTTP_REFERER
-        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
-        
-        // Xóa vĩnh viễn thông qua model
-        try {
-            if ($this->model->delete($id, true)) { // true = xóa vĩnh viễn
-                $this->alert->set('success', 'Đã xóa vĩnh viễn dữ liệu', true);
-            } else {
-                $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
-            }
-        } catch (\Exception $e) {
-            log_message('error', '[' . $this->controller_name . '::permanentDelete] ' . $e->getMessage());
-            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa dữ liệu', true);
-        }
-        
-        // Chuyển hướng đến URL đích đã xử lý
-        $redirectUrl = $this->processReturnUrl($returnUrl);
-        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
-    }
-    
-    /**
-     * Xóa vĩnh viễn nhiều bản ghi
-     */
-    public function permanentDeleteMultiple()
-    {
-        // Lấy các ID được chọn và URL trả về
-        $selectedItems = $this->request->getPost('selected_ids');
-        $returnUrl = $this->request->getPost('return_url');
-        
-        if (empty($selectedItems)) {
-            $this->alert->set('warning', 'Chưa chọn dữ liệu nào để xóa vĩnh viễn', true);
-            
-            // Chuyển hướng đến URL đích đã xử lý
-            $redirectUrl = $this->processReturnUrl($returnUrl);
-            return redirect()->to($redirectUrl);
-        }
-
-        // Đảm bảo $selectedItems là mảng
-        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
-        
-        $successCount = 0;
-        $errorCount = 0;
-        
-        foreach ($idArray as $id) {
-            try {
-                if ($this->model->delete($id, true)) { // true = xóa vĩnh viễn
-                    $successCount++;
-                } else {
-                    $errorCount++;
-                }
-            } catch (\Exception $e) {
-                log_message('error', '[' . $this->controller_name . '::permanentDeleteMultiple] ' . $e->getMessage() . ' - ID: ' . $id);
-                $errorCount++;
-            }
-        }
-        
-        if ($successCount > 0) {
-            $this->alert->set('success', "Đã xóa vĩnh viễn {$successCount} dữ liệu thành công", true);
-        }
-        
-        if ($errorCount > 0) {
-            $this->alert->set('warning', "Có {$errorCount} dữ liệu không thể xóa", true);
-        }
-        
-        // Xử lý URL trả về với trang hiện tại
-        $redirectUrl = $this->processReturnUrl($returnUrl);
-        
-        return redirect()->to($redirectUrl);
-    }
-    
-    /**
-     * Xuất danh sách ra file Excel
-     */
-    public function exportExcel()
-    {
-        $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? $this->field_sort;
-        $order = $this->request->getGet('order') ?? $this->field_order;
-        $loaiSuKienId = $this->request->getGet('loai_su_kien_id');
-        $hinhThuc = $this->request->getGet('hinh_thuc');
-        $status = $this->request->getGet('status');
-
-        // Xây dựng tiêu chí tìm kiếm
-        $criteria = [
-            'keyword' => $keyword
-        ];
-        
-        if (!empty($loaiSuKienId)) {
-            $criteria['loai_su_kien_id'] = $loaiSuKienId;
-        }
-        
-        if (isset($status) && $status !== '') {
-            $criteria['status'] = $status;
-        }
-        
-        if (!empty($hinhThuc)) {
-            $criteria['hinh_thuc'] = $hinhThuc;
-        }
-        
-        // Tùy chọn tìm kiếm
-        $options = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả dữ liệu
-        ];
-
-        // Lấy dữ liệu từ model
-        $data = $this->model->search($criteria, $options);
-
-        // Xử lý dữ liệu và xuất Excel
-        $this->exportData($data, 'excel', $criteria);
-    }
-
-    /**
-     * Xuất danh sách ra file PDF
-     */
-    public function exportPdf()
-    {
-        $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? $this->field_sort;
-        $order = $this->request->getGet('order') ?? $this->field_order;
-        $loaiSuKienId = $this->request->getGet('loai_su_kien_id');
-        $hinhThuc = $this->request->getGet('hinh_thuc');
-        $status = $this->request->getGet('status');
-
-        // Xây dựng tiêu chí tìm kiếm
-        $criteria = [
-            'keyword' => $keyword
-        ];
-        
-        if (!empty($loaiSuKienId)) {
-            $criteria['loai_su_kien_id'] = $loaiSuKienId;
-        }
-        
-        if (isset($status) && $status !== '') {
-            $criteria['status'] = $status;
-        }
-        
-        if (!empty($hinhThuc)) {
-            $criteria['hinh_thuc'] = $hinhThuc;
-        }
-        
-        // Tùy chọn tìm kiếm
-        $options = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả dữ liệu
-        ];
-
-        // Lấy dữ liệu từ model
-        $data = $this->model->search($criteria, $options);
-
-        // Xử lý dữ liệu và xuất PDF
-        $this->exportData($data, 'pdf', $criteria);
-    }
-
-    /**
-     * Xuất danh sách đã xóa ra file Excel
-     */
-    public function exportDeletedExcel()
-    {
-        $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? 'deleted_at';
-        $order = $this->request->getGet('order') ?? 'DESC';
-        $loaiSuKienId = $this->request->getGet('loai_su_kien_id');
-        $hinhThuc = $this->request->getGet('hinh_thuc');
-        $status = $this->request->getGet('status');
-
-        // Xây dựng tiêu chí tìm kiếm
-        $criteria = [
-            'keyword' => $keyword,
-            'deleted' => true
-        ];
-        
-        if (!empty($loaiSuKienId)) {
-            $criteria['loai_su_kien_id'] = $loaiSuKienId;
-        }
-        
-        if (isset($status) && $status !== '') {
-            $criteria['status'] = $status;
-        }
-        
-        if (!empty($hinhThuc)) {
-            $criteria['hinh_thuc'] = $hinhThuc;
-        }
-        
-        // Tùy chọn tìm kiếm
-        $options = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả dữ liệu
-        ];
-
-        // Lấy dữ liệu từ model
-        $data = $this->model->searchDeleted($criteria, $options);
-
-        // Xử lý dữ liệu và xuất Excel
-        $this->exportData($data, 'excel', $criteria, true);
-    }
-
-    /**
-     * Xuất danh sách đã xóa ra file PDF
-     */
-    public function exportDeletedPdf()
-    {
-        $keyword = $this->request->getGet('keyword');
-        $sort = $this->request->getGet('sort') ?? 'deleted_at';
-        $order = $this->request->getGet('order') ?? 'DESC';
-        $loaiSuKienId = $this->request->getGet('loai_su_kien_id');
-        $hinhThuc = $this->request->getGet('hinh_thuc');
-        $status = $this->request->getGet('status');
-
-        // Xây dựng tiêu chí tìm kiếm
-        $criteria = [
-            'keyword' => $keyword,
-            'deleted' => true
-        ];
-        
-        if (!empty($loaiSuKienId)) {
-            $criteria['loai_su_kien_id'] = $loaiSuKienId;
-        }
-        
-        if (isset($status) && $status !== '') {
-            $criteria['status'] = $status;
-        }
-        
-        if (!empty($hinhThuc)) {
-            $criteria['hinh_thuc'] = $hinhThuc;
-        }
-        
-        // Tùy chọn tìm kiếm
-        $options = [
-            'sort' => $sort,
-            'order' => $order,
-            'limit' => 0 // Lấy tất cả dữ liệu
-        ];
-
-        // Lấy dữ liệu từ model
-        $data = $this->model->searchDeleted($criteria, $options);
-
-        // Xử lý dữ liệu và xuất PDF
-        $this->exportData($data, 'pdf', $criteria, true);
-    }
-    
-    /**
-     * Xử lý URL trả về, loại bỏ domain nếu cần
-     * 
-     * @param string|null $returnUrl URL trả về
-     * @return string URL đích đã được xử lý
-     */
-    private function processReturnUrl($returnUrl)
-    {
-        // Mặc định là URL module
-        $redirectUrl = $this->moduleUrl;
-        
-        if (!empty($returnUrl)) {
-            // Giải mã URL
-            $decodedUrl = urldecode($returnUrl);
-            
-            // Kiểm tra nếu URL chứa domain, chỉ lấy phần path và query
-            if (strpos($decodedUrl, 'http') === 0) {
-                $urlParts = parse_url($decodedUrl);
-                $path = $urlParts['path'] ?? '';
-                $query = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
-                $decodedUrl = $path . $query;
-            }
-            
-            // Xử lý đường dẫn tương đối
-            if (strpos($decodedUrl, '/') === 0) {
-                $decodedUrl = substr($decodedUrl, 1);
-            }
-            
-            // Cập nhật URL đích
-            $redirectUrl = $decodedUrl;
-        }
-        
-        return $redirectUrl;
-    }
-    
-    /**
-     * Phương thức hỗ trợ xuất dữ liệu
-     */
-    private function exportData($data, $type, $criteria, $isDeleted = false)
-    {
-        // Lấy danh sách loại sự kiện từ model
-        $loaiSuKienList = [];
-        if (isset($this->loaiSuKienModel)) {
-            $loaiSuKienList = $this->loaiSuKienModel->findAll();
-        }
-        
-        // Chuẩn bị dữ liệu đã được format
-        $formattedData = [];
-        foreach ($data as $item) {
-            // Tìm tên loại sự kiện từ ID
-            $loaiSuKienName = '';
-            
-            foreach ($loaiSuKienList as $loaiSuKien) {
-                if ($loaiSuKien->getId() == $item->getLoaiSuKienId()) {
-                    $loaiSuKienName = $loaiSuKien->getTenLoaiSuKien();
-                    break;
-                }
-            }
-            
-            // Định dạng trạng thái
-            $statusText = $item->getStatus() ? 'Hoạt động' : 'Không hoạt động';
-            
-            // Định dạng hình thức
-            $hinhThucText = '';
-            switch ($item->getHinhThuc()) {
-                case 'offline':
-                    $hinhThucText = 'Trực tiếp';
-                    break;
-                case 'online':
-                    $hinhThucText = 'Trực tuyến';
-                    break;
-                case 'hybrid':
-                    $hinhThucText = 'Kết hợp';
-                    break;
-                default:
-                    $hinhThucText = $item->getHinhThuc();
-            }
-            
-            // Định dạng thời gian
-            $thoiGianBatDau = $item->getThoiGianBatDau() ? $item->getThoiGianBatDau()->format('d/m/Y H:i') : '';
-            $thoiGianKetThuc = $item->getThoiGianKetThuc() ? $item->getThoiGianKetThuc()->format('d/m/Y H:i') : '';
-            
-            // Thêm vào dữ liệu đã format
-            $formattedData[] = [
-                'ID' => $item->getId(),
-                'Tên sự kiện' => $item->getTenSuKien(),
-                'Loại sự kiện' => $loaiSuKienName,
-                'Thời gian bắt đầu' => $thoiGianBatDau,
-                'Thời gian kết thúc' => $thoiGianKetThuc,
-                'Địa điểm' => $item->getDiaDiem(),
-                'Trạng thái' => $statusText,
-                'Hình thức' => $hinhThucText,
-                'Tổng đăng ký' => $item->getTongDangKy(),
-                'Tổng check-in' => $item->getTongCheckIn(),
-                'Tổng check-out' => $item->getTongCheckOut()
+            // Thông báo lỗi tùy chỉnh
+            $messages = [
+                'id_su_kien' => [
+                    'required' => 'Không tìm thấy thông tin sự kiện',
+                    'numeric' => 'Thông tin sự kiện không hợp lệ'
+                ],
+                'ho_ten' => [
+                    'required' => 'Vui lòng nhập họ tên',
+                    'min_length' => 'Họ tên phải có ít nhất 3 ký tự',
+                    'max_length' => 'Họ tên không được vượt quá 255 ký tự'
+                ],
+                'email' => [
+                    'required' => 'Vui lòng nhập email',
+                    'valid_email' => 'Email không hợp lệ'
+                ],
+                'so_dien_thoai' => [
+                    'required' => 'Vui lòng nhập số điện thoại',
+                    'numeric' => 'Số điện thoại chỉ được chứa số',
+                    'min_length' => 'Số điện thoại phải có ít nhất 10 số',
+                    'max_length' => 'Số điện thoại không được vượt quá 15 số'
+                ],
+                'ma_sinh_vien' => [
+                    'alpha_numeric' => 'Mã sinh viên chỉ được chứa chữ cái và số',
+                    'min_length' => 'Mã sinh viên phải có ít nhất 5 ký tự',
+                    'max_length' => 'Mã sinh viên không được vượt quá 20 ký tự'
+                ]
             ];
-        }
-        
-        // Tiêu đề file
-        $title = $isDeleted ? 
-            ($type === 'pdf' ? $this->export_pdf_deleted_title : $this->export_excel_deleted_title) : 
-            ($type === 'pdf' ? $this->export_pdf_title : $this->export_excel_title);
-        
-        // Tên file
-        $filename = $isDeleted ? 
-            ($type === 'pdf' ? $this->export_pdf_deleted : $this->export_excel_deleted) : 
-            ($type === 'pdf' ? $this->export_pdf : $this->export_excel);
-        
-        // Xuất dữ liệu
-        if ($type === 'pdf') {
-            $this->exportToPdf($formattedData, $title, $filename);
+            
+            if ($this->validate($rules, $messages)) {
+                // Dữ liệu hợp lệ, xử lý đăng ký
+                $data = [
+                    'id_su_kien' => $this->request->getPost('id_su_kien'),
+                    'ho_ten' => $this->request->getPost('ho_ten'),
+                    'email' => $this->request->getPost('email'),
+                    'so_dien_thoai' => $this->request->getPost('so_dien_thoai'),
+                    'ma_sinh_vien' => $this->request->getPost('ma_sinh_vien'),
+                    'thoi_gian_dang_ky' => date('Y-m-d H:i:s')
+                ];
+                
+                // Mô phỏng đăng ký thành công
+                // Trong thực tế sẽ lưu vào database
+                $event = $this->sukienModel->getEvent($data['id_su_kien']);
+                
+                // Chuyển hướng với thông báo thành công
+                $success_message = 'Bạn đã đăng ký thành công sự kiện: ' . $event['ten_su_kien'];
+                return redirect()->to('/su-kien/detail/' . $event['slug'])->with('success', $success_message);
+            } else {
+                // Dữ liệu không hợp lệ, quay lại với thông báo lỗi
+                $event_id = $this->request->getPost('id_su_kien');
+                $event = $this->sukienModel->getEvent($event_id);
+                
+                if (!$event) {
+                    return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+                }
+                
+                return redirect()->to('/su-kien/detail/' . $event['slug'])->with('error', $this->validator->listErrors());
+            }
         } else {
-            $this->exportToExcel($formattedData, $title, $filename);
+            // Không cho phép truy cập trực tiếp
+            return redirect()->to('/su-kien/list');
         }
+    }
+    
+    /**
+     * Tạo dữ liệu có cấu trúc cho sự kiện theo schema.org
+     */
+    private function generateEventStructuredData($event)
+    {
+        $startDate = date('c', strtotime($event['ngay_to_chuc'])); // Định dạng ISO 8601
+        $endDate = date('c', strtotime($event['ngay_to_chuc'] . ' +' . ($event['thoi_gian'] ?: 2) . ' hours'));
+        
+        $structured_data = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Event',
+            'name' => $event['ten_su_kien'],
+            'description' => $event['mo_ta_su_kien'],
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'location' => [
+                '@type' => 'Place',
+                'name' => $event['dia_diem'],
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'addressLocality' => 'Hồ Chí Minh',
+                    'addressCountry' => 'VN'
+                ]
+            ],
+            'organizer' => [
+                '@type' => 'Organization',
+                'name' => 'Trường Đại học Ngân hàng TP.HCM',
+                'url' => 'https://hub.edu.vn'
+            ],
+            'image' => base_url($event['hinh_anh']),
+            'url' => site_url('su-kien/detail/' . $event['slug'])
+        ];
+        
+        return json_encode($structured_data);
+    }
+    
+    /**
+     * Hàm cắt chuỗi theo độ dài và giữ nguyên từ
+     */
+    private function truncate($string, $length = 100, $append = "...")
+    {
+        $string = trim($string);
+        
+        if (strlen($string) > $length) {
+            $string = wordwrap($string, $length);
+            $string = explode("\n", $string, 2);
+            $string = $string[0] . $append;
+        }
+        
+        return $string;
     }
 } 

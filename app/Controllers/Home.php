@@ -2,14 +2,14 @@
 
 namespace App\Controllers;
 
-use App\Modules\sukien\Models\SukienModel;
+use App\Modules\sukien\Models\SuKienModel;
 
 class Home extends BaseController
 {
     public function index()
     {
         // Khởi tạo SukienModel để lấy dữ liệu
-        $sukienModel = new SukienModel();
+        $sukienModel = new SuKienModel();
         
         // Lấy 6 sự kiện sắp diễn ra gần nhất (dành cho phần upcoming events)
         $upcoming_events = $sukienModel->getUpcomingEvents(6);

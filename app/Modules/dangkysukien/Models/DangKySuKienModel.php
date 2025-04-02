@@ -779,7 +779,7 @@ class DangKySuKienModel extends BaseModel
         
         // TODO: Có thể lấy từ cấu hình sự kiện từ bảng su_kien
         try {
-            $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+            $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
             $suKien = $suKienModel->find($suKienId);
             
             if ($suKien && !empty($suKien->thoi_luong_dk_full)) {

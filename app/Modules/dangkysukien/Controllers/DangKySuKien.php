@@ -4,7 +4,7 @@ namespace App\Modules\dangkysukien\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\dangkysukien\Models\DangKySuKienModel;
-use App\Modules\sukien\Models\SuKienModel;
+use App\Modules\quanlysukien\Models\SuKienModel;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -674,7 +674,7 @@ class DangKySuKien extends BaseController
         $order = $this->request->getGet('order') ?? $this->field_order;
 
         // Lấy danh sách sự kiện
-        $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+        $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
         $suKienList = $suKienModel->findAll();
 
         // Thiết lập danh sách sự kiện cho trait

@@ -118,7 +118,7 @@ if (is_object($data)) {
                             <option value="">-- Chọn sự kiện --</option>
                             <?php 
                             // Lấy danh sách sự kiện từ controller
-                            $suKienModel = model('App\Modules\sukien\Models\SuKienModel');
+                            $suKienModel = model('App\Modules\quanlysukien\Models\SuKienModel');
                             $suKienList = $suKienModel->findAll();
                             foreach ($suKienList as $suKien): 
                             ?>

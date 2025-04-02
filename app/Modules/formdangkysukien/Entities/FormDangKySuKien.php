@@ -4,7 +4,7 @@ namespace App\Modules\formdangkysukien\Entities;
 
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
-use App\Modules\sukien\Entities\SuKien;
+use App\Modules\quanlysukien\Entities\SuKien;
 
 class FormDangKySuKien extends BaseEntity
 {
@@ -154,7 +154,7 @@ class FormDangKySuKien extends BaseEntity
         $suKienId = $this->getSuKienId();
         
         if ($suKienId > 0) {
-            $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+            $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
             $suKien = $suKienModel->find($suKienId);
             
             if ($suKien && method_exists($suKien, 'getTenSuKien')) {
@@ -175,7 +175,7 @@ class FormDangKySuKien extends BaseEntity
         $suKienId = $this->getSuKienId();
         
         if ($suKienId > 0) {
-            $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+            $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
             return $suKienModel->find($suKienId);
         }
         

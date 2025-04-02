@@ -23,7 +23,7 @@ $hinhThucThamGiaOptions = [
 ];
 
 // Lấy danh sách sự kiện
-$suKienModel = model('App\Modules\sukien\Models\SuKienModel');
+$suKienModel = model('App\Modules\quanlysukien\Models\SuKienModel');
 $suKienList = $suKienModel->findAll();
 ?>
 
