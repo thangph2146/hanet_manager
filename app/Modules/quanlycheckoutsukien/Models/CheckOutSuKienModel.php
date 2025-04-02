@@ -713,6 +713,10 @@ class CheckOutSuKienModel extends BaseModel
         $sort = $options['sort'] ?? $this->primaryKey;
         $order = $options['order'] ?? 'DESC';
         
+        // Ghi log thông tin về criteria để debug
+        log_message('debug', '[searchDeleted] Criteria: ' . json_encode($criteria));
+        log_message('debug', '[searchDeleted] Options: ' . json_encode($options));
+        
         // Khởi tạo builder trực tiếp từ database
         $this->builder = $this->db->table($this->table);
         $this->builder->select($this->table . '.*, su_kien.ten_su_kien');
@@ -901,12 +905,14 @@ class CheckOutSuKienModel extends BaseModel
         if (!empty($criteria['start_date'])) {
             $tuNgay = $criteria['start_date'];
             $builder->where($this->table . '.thoi_gian_check_out >=', $tuNgay);
+            log_message('debug', '[CheckOutSuKienModel::applySearchCriteria] Lọc từ ngày: ' . $tuNgay);
         }
         
         // Lọc theo thời gian check-out đến ngày
         if (!empty($criteria['end_date'])) {
             $denNgay = $criteria['end_date'];
             $builder->where($this->table . '.thoi_gian_check_out <=', $denNgay);
+            log_message('debug', '[CheckOutSuKienModel::applySearchCriteria] Lọc đến ngày: ' . $denNgay);
         }
         
         // Tìm kiếm theo từ khóa
@@ -971,5 +977,26 @@ class CheckOutSuKienModel extends BaseModel
         }
         
         return $results;
+    }
+
+    /**
+     * Định dạng datetime theo chuẩn d/m/Y H:i:s
+     *
+     * @param string|null $dateTimeString
+     * @return string|null
+     */
+    public function formatDateTime($dateTimeString)
+    {
+        if (empty($dateTimeString)) {
+            return null;
+        }
+        
+        try {
+            $dateTime = new Time($dateTimeString);
+            return $dateTime->format('d/m/Y H:i:s');
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi định dạng ngày tháng: ' . $e->getMessage());
+            return $dateTimeString;
+        }
     }
 } 

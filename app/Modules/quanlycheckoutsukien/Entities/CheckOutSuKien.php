@@ -511,6 +511,17 @@ class CheckOutSuKien extends BaseEntity
     }
     
     /**
+     * Lấy thời gian check-out đã định dạng theo 'd/m/Y H:i:s'
+     *
+     * @return string|null
+     */
+    public function getThoiGianCheckOutDateTimeFormatted(): ?string
+    {
+        $this->date_time = $this->getThoiGianCheckOut();
+        return $this->getDateTimeFormatted();
+    }
+    
+    /**
      * Lấy thời gian tham dự đã định dạng
      *
      * @return string|null

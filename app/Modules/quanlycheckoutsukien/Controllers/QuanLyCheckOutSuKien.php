@@ -464,7 +464,7 @@ class QuanLyCheckOutSuKien extends BaseController
         if (!empty($pageData)) {
             foreach ($pageData as $index => $item) {
                 log_message('debug', "[QuanLyCheckOutSuKien::listdeleted] Record {$index}: ID={$item->checkout_sukien_id}, deleted_at=" . 
-                    ($item->deleted_at ? $item->deleted_at->toDateTimeString() : 'NULL'));
+                    ($item->deleted_at ? $item->getDeletedAtFormatted() : 'NULL'));
             }
         }
         
@@ -493,7 +493,7 @@ class QuanLyCheckOutSuKien extends BaseController
             $pager->setPath($this->module_name . '/listdeleted');
             $pager->setRouteUrl($this->module_name . '/listdeleted');
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'checkin_type', 'hinh_thuc_tham_gia']);
+            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'checkout_type', 'hinh_thuc_tham_gia', 'start_date', 'end_date']);
             
             // Đảm bảo perPage và currentPage được thiết lập đúng
             $pager->setPerPage($params['perPage']);
@@ -513,6 +513,11 @@ class QuanLyCheckOutSuKien extends BaseController
             'perPage' => $params['perPage'],
             'keyword' => $params['keyword'] ?? '',
             'status' => $params['status'] ?? '',
+            'su_kien_id' => $params['su_kien_id'] ?? '',
+            'checkout_type' => $params['checkout_type'] ?? '',
+            'hinh_thuc_tham_gia' => $params['hinh_thuc_tham_gia'] ?? '',
+            'start_date' => $params['start_date'] ?? '',
+            'end_date' => $params['end_date'] ?? '',
             'module_name' => $this->module_name,
             'masterScript' => $this->masterScript
         ];
@@ -820,11 +825,17 @@ class QuanLyCheckOutSuKien extends BaseController
         
         // Lọc theo khoảng thời gian
         if (!empty($params['start_date'])) {
-            $criteria['start_date'] = $params['start_date'];
+            // Chuyển đổi thời gian từ datetime-local sang định dạng d/m/Y H:i:s
+            $startDate = new Time($params['start_date']);
+            $criteria['start_date'] = $startDate->format('Y-m-d H:i:s');
+            log_message('debug', '[QuanLyCheckOutSuKien::buildSearchCriteria] Lọc từ ngày: ' . $startDate->format('d/m/Y H:i:s'));
         }
         
         if (!empty($params['end_date'])) {
-            $criteria['end_date'] = $params['end_date'];
+            // Chuyển đổi thời gian từ datetime-local sang định dạng d/m/Y H:i:s
+            $endDate = new Time($params['end_date']);
+            $criteria['end_date'] = $endDate->format('Y-m-d H:i:s');
+            log_message('debug', '[QuanLyCheckOutSuKien::buildSearchCriteria] Lọc đến ngày: ' . $endDate->format('d/m/Y H:i:s'));
         }
         
         return $criteria;

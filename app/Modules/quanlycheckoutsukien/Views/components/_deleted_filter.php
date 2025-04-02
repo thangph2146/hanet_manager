@@ -93,26 +93,20 @@ $suKienList = $suKienModel->findAll();
         <div class="col-12 col-sm-6 col-md-3">
             <div class="input-group">
                 <span class="input-group-text">Từ</span>
-                <input type="date" class="form-control" name="start_date" value="<?= isset($start_date) ? $start_date : '' ?>">
+                <input type="datetime-local" class="form-control" name="start_date" value="<?= isset($start_date) ? (new DateTime($start_date))->format('Y-m-d\TH:i') : '' ?>">
             </div>
         </div>
         
         <div class="col-12 col-sm-6 col-md-3">
             <div class="input-group">
                 <span class="input-group-text">Đến</span>
-                <input type="date" class="form-control" name="end_date" value="<?= isset($end_date) ? $end_date : '' ?>">
+                <input type="datetime-local" class="form-control" name="end_date" value="<?= isset($end_date) ? (new DateTime($end_date))->format('Y-m-d\TH:i') : '' ?>">
                 <button type="submit" class="btn btn-primary">Lọc</button>
             </div>
         </div>
         
         <div class="col-12 col-sm-6 col-md-3">
             <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-danger">Xóa lọc</a>
-            <a href="<?= site_url($module_name . '/exportDeletedExcel?' . http_build_query($_GET)) ?>" class="btn btn-success">
-                <i class="bx bx-export"></i> Xuất Excel
-            </a>
-            <a href="<?= site_url($module_name . '/exportDeletedPdf?' . http_build_query($_GET)) ?>" class="btn btn-danger">
-                <i class="bx bxs-file-pdf"></i> Xuất PDF
-            </a>
         </div>
         
     </form>
@@ -173,11 +167,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <?php endif; ?>
             
             <?php if (isset($start_date) && $start_date !== ''): ?>
-                <span class="badge bg-dark me-2">Từ ngày: <?= date('d/m/Y', strtotime($start_date)) ?></span>
+                <span class="badge bg-dark me-2">Từ ngày: <?= date('d/m/Y H:i:s', strtotime($start_date)) ?></span>
             <?php endif; ?>
             
             <?php if (isset($end_date) && $end_date !== ''): ?>
-                <span class="badge bg-dark me-2">Đến ngày: <?= date('d/m/Y', strtotime($end_date)) ?></span>
+                <span class="badge bg-dark me-2">Đến ngày: <?= date('d/m/Y H:i:s', strtotime($end_date)) ?></span>
             <?php endif; ?>
             
             <a href="<?= site_url($module_name . '/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>

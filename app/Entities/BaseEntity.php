@@ -441,4 +441,9 @@ abstract class BaseEntity extends Entity
     {   
         return $this->deleted_at === null ? '---' : $this->deleted_at->format('d/m/Y H:i:s');    
     }
+    
+    public function getDateTimeFormatted(): string
+    {
+        return $this->date_time === null ? '---' : $this->date_time->format('d/m/Y H:i:s');
+    }
 }
