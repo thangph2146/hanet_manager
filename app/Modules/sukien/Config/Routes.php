@@ -28,4 +28,13 @@ $routes->group($module_url, ['namespace' => 'App\Modules\sukien\Controllers'], f
     
     // Sitemap cho SEO
     $routes->get('sitemap.xml', $sitemap_controller_name . '::index');
+    
+    // Route cho màn hình check-in
+    $routes->get('checkin-display/(:any)', $controller_name . '::displayCheckin/$1');
+    $routes->get('checkin-display', $controller_name . '::displayCheckin');
+    $routes->get('api/checkin-display', $controller_name . '::getCheckinDisplay');
+    
+    // Thêm vào app/Modules/sukien/Config/Routes.php
+    $routes->post('webhook-hanet', $controller_name . '::processHanetWebhook');
+    $routes->post('webhook-proxy', $controller_name . '::webhookProxy');
 });

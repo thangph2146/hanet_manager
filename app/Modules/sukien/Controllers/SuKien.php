@@ -464,4 +464,298 @@ class Sukien extends BaseController
         
         return $string;
     }
+
+    public function checkout()
+    {
+        // Xử lý logic check-out
+        if ($this->request->isAJAX()) {
+            $data = $this->request->getPost();
+            
+            // Thực hiện check-out
+            $success = $this->checkoutModel->save($data);
+            
+            // Trả về kết quả dưới dạng JSON
+            return $this->response->setJSON([
+                'success' => $success,
+                'message' => $success ? 'Check-out thành công' : 'Có lỗi xảy ra khi check-out'
+            ]);
+        }
+        
+        return $this->response->setStatusCode(404);
+    }
+    
+    /**
+     * Hiển thị màn hình check-in với thông tin người tham gia
+     * 
+     * @param string $token Token xác thực người dùng (nếu có)
+     * @return mixed Hiển thị view check-in
+     */
+    public function displayCheckin($token = null)
+    {
+        // Nếu không có token, có thể chuyển hướng hoặc trả về lỗi
+        if (empty($token)) {
+            // Đọc thông tin từ query string nếu không có token
+            $title = $this->request->getGet('title') ?? 'PGS.TS';
+            $personName = $this->request->getGet('personName') ?? 'Nguyen Van A';
+            $avatar = $this->request->getGet('avatar') ?? 'default-avatar.jpg';
+            $date = $this->request->getGet('date') ?? date('Y-m-d');
+            $placeID = $this->request->getGet('placeID') ?? 'Hoi truong A';
+            $place = $this->request->getGet('place') ?? 'HUB - 56 Hoàng Diệu 2';
+            $checkinTime = $this->request->getGet('checkinTime') ?? time() * 1000;
+            $text1 = $this->request->getGet('text1') ?? 'Chao mung den voi su kien';
+            $text2 = $this->request->getGet('text2') ?? 'Welcome';
+            $bgType = $this->request->getGet('bgType') ?? '1'; // Loại background (1-4)
+        } else {
+            // Trong thực tế, bạn sẽ truy vấn thông tin người dùng từ token
+            // Ví dụ: $userData = $this->userModel->getUserByToken($token);
+            
+            // Ở đây chúng ta sử dụng dữ liệu mẫu
+            $title = 'PGS.TS';
+            $personName = 'Nguyen Van A';
+            $avatar = 'default-avatar.jpg';
+            $date = date('Y-m-d');
+            $placeID = 'Hoi truong A';
+            $place = 'HUB - 56 Hoàng Diệu 2';
+            $checkinTime = time() * 1000; // JavaScript sử dụng timestamp tính bằng mili giây
+            $text1 = 'Chao mung den voi su kien';
+            $text2 = 'Welcome';
+            $bgType = '1'; // Mặc định sử dụng background loại 1
+        }
+        
+        // Chuẩn bị dữ liệu để truyền vào view
+        $data = [
+            'title' => $title,
+            'personName' => $personName,
+            'avatar' => $avatar,
+            'date' => $date,
+            'placeID' => $placeID,
+            'place' => $place,
+            'checkinTime' => $checkinTime,
+            'text1' => $text1,
+            'text2' => $text2,
+            'bgType' => $bgType
+        ];
+        
+        // Trả về view hiển thị màn hình check-in
+        return view('App\Modules\sukien\Views\checkin_display', $data);
+    }
+    
+    /**
+     * Hiển thị màn hình check-in thông qua API - Phương thức GET
+     * 
+     * @return \CodeIgniter\HTTP\Response
+     */
+    public function getCheckinDisplay()
+    {
+        // Đây là endpoint API để lấy thông tin hiển thị check-in
+        $title = $this->request->getGet('title') ?? 'PGS.TS';
+        $personName = $this->request->getGet('personName') ?? 'Nguyen Van A';
+        $avatar = $this->request->getGet('avatar') ?? 'default-avatar.jpg';
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
+        $placeID = $this->request->getGet('placeID') ?? 'Hoi truong A';
+        $place = $this->request->getGet('place') ?? 'HUB - 56 Hoàng Diệu 2';
+        $checkinTime = $this->request->getGet('checkinTime') ?? time() * 1000;
+        $text1 = $this->request->getGet('text1') ?? 'Chao mung den voi su kien';
+        $text2 = $this->request->getGet('text2') ?? 'Welcome';
+        $bgType = $this->request->getGet('bgType') ?? '1'; // Loại background (1-4)
+        
+        // Tạo dữ liệu phản hồi
+        $response = [
+            'success' => true,
+            'data' => [
+                'title' => $title,
+                'personName' => $personName,
+                'avatar' => $avatar,
+                'date' => $date,
+                'placeID' => $placeID,
+                'place' => $place,
+                'checkinTime' => $checkinTime,
+                'text1' => $text1,
+                'text2' => $text2,
+                'bgType' => $bgType
+            ]
+        ];
+        
+        return $this->response->setJSON($response);
+    }
+
+    /**
+     * Xử lý webhook từ HANET qua URL https://checkin.hub.edu.vn/hook
+     */
+    public function processHanetWebhook()
+    {
+        // Ghi log để kiểm tra dữ liệu webhook
+        log_message('info', 'Nhận webhook từ HANET: ' . json_encode($this->request->getJSON(true)));
+        
+        // Nhận dữ liệu từ HANET
+        $payload = $this->request->getJSON(true);
+        
+        if (empty($payload)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ'
+            ]);
+        }
+        
+        // Chuẩn bị dữ liệu để gửi qua WebSocket
+        $checkinData = [
+            'type' => 'checkin',
+            'title' => $payload['title'] ?? 'PGS.TS',
+            'personName' => $payload['personName'] ?? $payload['name'] ?? 'Nguyen Van A',
+            'avatar' => $payload['avatar'] ?? $payload['image'] ?? 'default-avatar.jpg',
+            'date' => date('Y-m-d'),
+            'placeID' => $payload['placeID'] ?? $payload['locationId'] ?? 'Hoi truong A',
+            'place' => $payload['place'] ?? $payload['location'] ?? 'HUB - 56 Hoàng Diệu 2',
+            'checkinTime' => $payload['checkinTime'] ?? (time() * 1000),
+            'text1' => $payload['welcomeText'] ?? 'Chao mung den voi su kien',
+            'text2' => $payload['welcomeTextEn'] ?? 'Welcome',
+            'eventId' => $payload['eventId'] ?? $payload['event_id'] ?? '0'
+        ];
+        
+        // Lưu thông tin check-in vào database nếu cần
+        $this->saveCheckinData($checkinData);
+        
+        // Gửi dữ liệu qua WebSocket server
+        $this->pushToWebSocketServer($checkinData);
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Dữ liệu check-in đã được xử lý'
+        ]);
+    }
+
+    /**
+     * Lưu thông tin check-in vào database
+     */
+    private function saveCheckinData($data)
+    {
+        try {
+            // Chuẩn bị dữ liệu để lưu vào database
+            $dbData = [
+                'person_id' => $data['personId'] ?? uniqid(),
+                'event_id' => $data['eventId'],
+                'checkin_time' => $data['checkinTime'],
+                'title' => $data['title'],
+                'full_name' => $data['personName'],
+                'place_id' => $data['placeID'],
+                'place' => $data['place'],
+                'img_path' => $data['avatar'],
+                'status' => 1,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+            
+            // Lưu vào database sử dụng model
+            $this->checkinModel->insert($dbData);
+            log_message('info', 'Đã lưu dữ liệu check-in: ' . $data['personName']);
+            return true;
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi khi lưu dữ liệu check-in: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Gửi dữ liệu qua WebSocket server
+     */
+    private function pushToWebSocketServer($data)
+    {
+        try {
+            // Kết nối đến WebSocket server
+            $client = stream_socket_client('tcp://127.0.0.1:8080', $errno, $errstr, 30);
+            
+            if (!$client) {
+                log_message('error', "Không thể kết nối đến WebSocket server: $errstr ($errno)");
+                return false;
+            }
+            
+            // Gửi dữ liệu JSON
+            $jsonData = json_encode($data);
+            fwrite($client, $jsonData);
+            fclose($client);
+            
+            log_message('info', 'Đã gửi dữ liệu đến WebSocket server thành công');
+            return true;
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi khi gửi dữ liệu qua WebSocket: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Proxy webhook từ HANET (https://checkin.hub.edu.vn/hook)
+     */
+    public function webhookProxy()
+    {
+        // Nhận dữ liệu từ webhook
+        $payload = $this->request->getJSON(true);
+        
+        if (empty($payload)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ'
+            ]);
+        }
+        
+        // Gửi request đến webhook chính
+        $client = \Config\Services::curlrequest();
+        
+        try {
+            $response = $client->post('https://checkin.hub.edu.vn/hook', [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ],
+                'json' => $payload
+            ]);
+            
+            // Lấy kết quả từ webhook chính
+            $result = json_decode($response->getBody(), true);
+            
+            // Xử lý dữ liệu check-in và gửi qua WebSocket
+            $this->processHanetData($payload);
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Dữ liệu đã được chuyển tiếp và xử lý',
+                'webhook_response' => $result
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi khi gửi dữ liệu đến webhook: ' . $e->getMessage());
+            
+            // Vẫn xử lý dữ liệu check-in ngay cả khi webhook chính gặp lỗi
+            $this->processHanetData($payload);
+            
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Có lỗi khi gửi đến webhook chính, nhưng dữ liệu đã được xử lý cục bộ'
+            ]);
+        }
+    }
+
+    /**
+     * Xử lý dữ liệu từ HANET và gửi qua WebSocket
+     */
+    private function processHanetData($payload)
+    {
+        // Chuẩn bị dữ liệu để gửi qua WebSocket
+        $checkinData = [
+            'type' => 'checkin',
+            'title' => $payload['title'] ?? 'PGS.TS',
+            'personName' => $payload['personName'] ?? $payload['name'] ?? 'Nguyen Van A',
+            'avatar' => $payload['avatar'] ?? $payload['image'] ?? 'default-avatar.jpg',
+            'date' => date('Y-m-d'),
+            'placeID' => $payload['placeID'] ?? $payload['locationId'] ?? 'Hoi truong A',
+            'place' => $payload['place'] ?? $payload['location'] ?? 'HUB - 56 Hoàng Diệu 2',
+            'checkinTime' => $payload['checkinTime'] ?? (time() * 1000),
+            'text1' => $payload['welcomeText'] ?? 'Chao mung den voi su kien',
+            'text2' => $payload['welcomeTextEn'] ?? 'Welcome',
+            'eventId' => $payload['eventId'] ?? $payload['event_id'] ?? '0'
+        ];
+        
+        // Lưu thông tin check-in vào database
+        $this->saveCheckinData($checkinData);
+        
+        // Gửi dữ liệu qua WebSocket server
+        $this->pushToWebSocketServer($checkinData);
+    }
 } 

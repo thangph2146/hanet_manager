@@ -1,0 +1,314 @@
+/**
+ * CSS cho màn hình check-in sự kiện
+ */
+
+:root {
+    --main-color: #0d6efd;
+    --accent-color: #6610f2;
+    --text-color: #fff;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100%;
+    overflow: hidden;
+}
+
+.container-fluid {
+    height: 100vh;
+    padding: 0;
+}
+
+.checkin-container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    color: var(--text-color);
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Background loại 1 - Phong cách sự kiện đại học */
+.bg-type-1 {
+    background: linear-gradient(135deg, #3a1c71, #d76d77, #ffaf7b);
+}
+
+/* Background loại 2 - Phong cách talkshow */
+.bg-type-2 {
+    background: linear-gradient(135deg, #1a2980, #26d0ce);
+}
+
+/* Background loại 3 - Phong cách công nghệ */
+.bg-type-3 {
+    background: linear-gradient(135deg, #000428, #004e92);
+}
+
+/* Background loại 4 - Phong cách hội nghị */
+.bg-type-4 {
+    background: linear-gradient(135deg, #16222a, #3a6073);
+}
+
+/* Background mới lấy cảm hứng từ giao diện HANET */
+.bg-type-5 {
+    background: linear-gradient(135deg, #1d2671, #c33764);
+}
+
+.bg-type-6 {
+    background: linear-gradient(135deg, #000046, #1CB5E0);
+}
+
+.bg-type-7 {
+    background: linear-gradient(135deg, #4b6cb7, #182848);
+}
+
+.bg-type-8 {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+}
+
+.avatar-container {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.person-info h1 {
+    font-size: 2.5rem;
+    margin-bottom: 5px;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.person-info .title {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    opacity: 0.9;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.checkin-time {
+    font-size: 1.8rem;
+    margin-top: 15px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.venue-info {
+    margin-top: 15px;
+    font-size: 1.2rem;
+    opacity: 0.8;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.welcome-text {
+    margin-top: 30px;
+    font-size: 2rem;
+    font-weight: 500;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.welcome-text-en {
+    margin-top: 5px;
+    font-size: 1.5rem;
+    font-weight: 300;
+    opacity: 0.8;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+.content {
+    position: relative;
+    z-index: 2;
+    padding: 20px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.date-display {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Animation cho phần tử */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate {
+    opacity: 0;
+    animation: fadeInUp 1s ease-out forwards;
+}
+
+.animate.show {
+    opacity: 1;
+}
+
+.animate-delay-1 {
+    animation-delay: 0.3s;
+}
+
+.animate-delay-2 {
+    animation-delay: 0.6s;
+}
+
+.animate-delay-3 {
+    animation-delay: 0.9s;
+}
+
+/* Background nâng cao cho các loại sự kiện */
+.bg-type-1::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/patterns/pattern1.png');
+    background-size: cover;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.bg-type-2::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/patterns/pattern2.png');
+    background-size: cover;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.bg-type-3::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/patterns/pattern3.png');
+    background-size: cover;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+.bg-type-4::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/patterns/pattern4.png');
+    background-size: cover;
+    opacity: 0.1;
+    z-index: 0;
+}
+
+/* Hiệu ứng khi có người check-in mới */
+@keyframes newCheckin {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
+    50% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(255,255,255,0.7); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
+}
+
+.new-checkin {
+    animation: newCheckin 1.5s ease-in-out;
+}
+
+/* Logo HANET */
+.hanet-logo {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    max-width: 120px;
+    opacity: 0.7;
+    z-index: 3;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .avatar-container {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .person-info h1 {
+        font-size: 2rem;
+    }
+    
+    .person-info .title {
+        font-size: 1.2rem;
+    }
+    
+    .welcome-text {
+        font-size: 1.5rem;
+    }
+    
+    .welcome-text-en {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .avatar-container {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .person-info h1 {
+        font-size: 1.5rem;
+    }
+    
+    .person-info .title {
+        font-size: 1rem;
+    }
+    
+    .checkin-time {
+        font-size: 1.2rem;
+    }
+    
+    .welcome-text {
+        font-size: 1.2rem;
+    }
+    
+    .welcome-text-en {
+        font-size: 1rem;
+    }
+} 
