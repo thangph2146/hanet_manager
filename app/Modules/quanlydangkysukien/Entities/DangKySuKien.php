@@ -4,7 +4,7 @@ namespace App\Modules\dangkysukien\Entities;
 
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
-use App\Modules\sukien\Entities\SuKien;
+use App\Modules\quanlysukien\Entities\SuKien;
 
 class DangKySuKien extends BaseEntity
 {

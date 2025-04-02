@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\sukien\Models;
+namespace App\Modules\quanlysukien\Models;
 
 use App\Models\BaseModel;
-use App\Modules\sukien\Entities\SuKien;
-use App\Modules\sukien\Libraries\Pager;
+use App\Modules\quanlysukien\Entities\SuKien;
+use App\Modules\quanlysukien\Libraries\Pager;
 use CodeIgniter\I18n\Time;
 
 class SuKienModel extends BaseModel

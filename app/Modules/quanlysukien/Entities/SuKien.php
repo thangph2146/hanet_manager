@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\sukien\Entities;
+namespace App\Modules\quanlysukien\Entities;
 
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;

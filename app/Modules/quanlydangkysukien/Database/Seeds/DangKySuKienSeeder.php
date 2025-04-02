@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\dangkysukien\Database\Seeds;
+namespace App\Modules\quanlydangkysukien\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
 use CodeIgniter\I18n\Time;
@@ -252,4 +252,4 @@ class DangKySuKienSeeder extends Seeder
         ];
         return $lyDo[array_rand($lyDo)];
     }
-} 
+}

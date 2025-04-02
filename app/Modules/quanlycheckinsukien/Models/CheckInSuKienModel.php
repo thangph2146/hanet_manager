@@ -86,7 +86,7 @@ class CheckInSuKienModel extends BaseModel
             'table' => 'su_kien',
             'foreignKey' => 'su_kien_id',
             'localKey' => 'su_kien_id',
-            'entity' => 'App\Modules\sukien\Entities\SuKien',
+            'entity' => 'App\Modules\quanlysukien\Entities\SuKien',
             'useSoftDeletes' => true
         ],
         'dangkysukien' => [

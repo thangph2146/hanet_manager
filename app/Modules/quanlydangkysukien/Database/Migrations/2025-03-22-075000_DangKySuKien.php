@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\dangkysukien\Database\Migrations;
+namespace App\Modules\quanlydangkysukien\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
@@ -173,10 +173,6 @@ class DangKySuKien extends Migration
         // Thêm chỉ mục unique
         $this->forge->addUniqueKey(['su_kien_id', 'email'], 'idx_sukien_email');
         
-        // Thêm khóa ngoại
-        $this->forge->addForeignKey('su_kien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
-        $this->forge->addForeignKey('checkin_sukien_id', 'checkin_sukien', 'checkin_sukien_id', 'SET NULL', 'CASCADE');
-        $this->forge->addForeignKey('checkout_sukien_id', 'checkout_sukien', 'checkout_sukien_id', 'SET NULL', 'CASCADE');
         
         // Tạo bảng
         $this->forge->createTable('dangky_sukien', true, [
@@ -185,16 +181,49 @@ class DangKySuKien extends Migration
             'COLLATE' => 'utf8mb4_unicode_ci',
             'COMMENT' => 'Bảng lưu trữ thông tin đăng ký sự kiện'
         ]);
+        
+        // Add foreign keys conditionally after table creation
+        // Check if su_kien table exists
+        $tableExists = $this->db->tableExists('su_kien');
+        if ($tableExists) {
+            $this->db->query('ALTER TABLE `dangky_sukien` ADD CONSTRAINT `fk_dangky_sukien_su_kien` FOREIGN KEY (`su_kien_id`) REFERENCES `su_kien`(`su_kien_id`) ON DELETE CASCADE ON UPDATE CASCADE');
+        }
+        
+        // Check if checkin_sukien table exists
+        $tableExists = $this->db->tableExists('checkin_sukien');
+        if ($tableExists) {
+            $this->db->query('ALTER TABLE `dangky_sukien` ADD CONSTRAINT `fk_dangky_sukien_checkin` FOREIGN KEY (`checkin_sukien_id`) REFERENCES `checkin_sukien`(`checkin_sukien_id`) ON DELETE SET NULL ON UPDATE SET NULL');
+        }
+        
+        // Check if checkout_sukien table exists
+        $tableExists = $this->db->tableExists('checkout_sukien');
+        if ($tableExists) {
+            $this->db->query('ALTER TABLE `dangky_sukien` ADD CONSTRAINT `fk_dangky_sukien_checkout` FOREIGN KEY (`checkout_sukien_id`) REFERENCES `checkout_sukien`(`checkout_sukien_id`) ON DELETE SET NULL ON UPDATE SET NULL');
+        }
     }
 
     public function down()
     {
-        // Xóa khóa ngoại trước
-        $this->db->query('ALTER TABLE dangky_sukien DROP FOREIGN KEY dangky_sukien_su_kien_id_foreign');
-        $this->db->query('ALTER TABLE dangky_sukien DROP FOREIGN KEY dangky_sukien_checkin_sukien_id_foreign');
-        $this->db->query('ALTER TABLE dangky_sukien DROP FOREIGN KEY dangky_sukien_checkout_sukien_id_foreign');
+        // Drop foreign keys conditionally
+        try {
+            $this->db->query('ALTER TABLE `dangky_sukien` DROP FOREIGN KEY IF EXISTS `fk_dangky_sukien_su_kien`');
+        } catch (\Exception $e) {
+            // Ignore errors if constraint doesn't exist
+        }
+        
+        try {
+            $this->db->query('ALTER TABLE `dangky_sukien` DROP FOREIGN KEY IF EXISTS `fk_dangky_sukien_checkin`');
+        } catch (\Exception $e) {
+            // Ignore errors if constraint doesn't exist
+        }
+        
+        try {
+            $this->db->query('ALTER TABLE `dangky_sukien` DROP FOREIGN KEY IF EXISTS `fk_dangky_sukien_checkout`');
+        } catch (\Exception $e) {
+            // Ignore errors if constraint doesn't exist
+        }
         
         // Sau đó xóa bảng
         $this->forge->dropTable('dangky_sukien');
     }
-} 
+}
