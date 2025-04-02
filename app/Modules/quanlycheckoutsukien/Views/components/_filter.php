@@ -80,9 +80,9 @@ $suKienList = $suKienModel->findAll();
         </div>
         
         <div class="col-12 col-sm-6 col-md-2">
-            <select class="form-select" name="perPage" onchange="this.form.submit()">
+            <select class="form-select" name="perPage" id="perPage" onchange="this.form.submit()">
                 <?php foreach ($perPageOptions as $option) : ?>
-                    <option value="<?= $option ?>" <?= $perPage == $option ? 'selected' : '' ?>>
+                    <option value="<?= $option ?>" <?= (string)$perPage === (string)$option ? 'selected' : '' ?>>
                         <?= $option ?> mục
                     </option>
                 <?php endforeach ?>
@@ -111,6 +111,23 @@ $suKienList = $suKienModel->findAll();
         
     </form>
 </div> 
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý sự kiện thay đổi perPage
+    document.getElementById('perPage').addEventListener('change', function(e) {
+        e.preventDefault();
+        let form = this.closest('form');
+        // Reset về trang 1 khi thay đổi số lượng hiển thị
+        let pageInput = document.createElement('input');
+        pageInput.type = 'hidden';
+        pageInput.name = 'page';
+        pageInput.value = '1';
+        form.appendChild(pageInput);
+        form.submit();
+    });
+});
+</script>
 
 <?php if (!empty($keyword) || (isset($status) && $status !== '') || 
           (isset($su_kien_id) && $su_kien_id !== '') || 

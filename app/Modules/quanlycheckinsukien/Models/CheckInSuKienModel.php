@@ -187,14 +187,16 @@ class CheckInSuKienModel extends BaseModel
             $builder->where("{$this->table}.hinh_thuc_tham_gia", $criteria['hinh_thuc_tham_gia']);
         }
         
-        // Xử lý tìm kiếm theo khoảng thời gian
-        if (isset($criteria['start_date']) && isset($criteria['end_date'])) {
-            $builder->where("{$this->table}.thoi_gian_check_in >=", $criteria['start_date']);
-            $builder->where("{$this->table}.thoi_gian_check_in <=", $criteria['end_date']);
-        } elseif (isset($criteria['start_date'])) {
-            $builder->where("{$this->table}.thoi_gian_check_in >=", $criteria['start_date']);
-        } elseif (isset($criteria['end_date'])) {
-            $builder->where("{$this->table}.thoi_gian_check_in <=", $criteria['end_date']);
+         // Lọc theo thời gian check-out từ ngày
+         if (!empty($criteria['start_date'])) {
+            $tuNgay = $criteria['start_date'] . ' 00:00:00';
+            $builder->where($this->table . '.thoi_gian_check_in >=', $tuNgay);
+        }
+        
+        // Lọc theo thời gian check-out đến ngày
+        if (!empty($criteria['end_date'])) {
+            $denNgay = $criteria['end_date'] . ' 23:59:59';
+            $builder->where($this->table . '.thoi_gian_check_in <=', $denNgay);
         }
         
         // Xử lý tìm kiếm theo từ khóa

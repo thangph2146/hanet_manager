@@ -981,37 +981,58 @@ class CheckInSuKien extends BaseEntity
     /**
      * Lấy định dạng ngày tạo 
      *
-     * @param string $format Định dạng thời gian
-     * @return string|null
+     * @return string
      */
-    public function getCreatedAtFormatted(string $format = 'd/m/Y H:i:s'): ?string
+    public function getCreatedAtFormatted(): string
     {
         $time = $this->getCreatedAt();
-        return $time ? $time->format($format) : null;
+        return $time ? $time->format('d/m/Y H:i:s') : '';
     }
 
     /**
      * Lấy định dạng ngày cập nhật
      *
-     * @param string $format Định dạng thời gian
-     * @return string|null
+     * @return string
      */
-    public function getUpdatedAtFormatted(string $format = 'd/m/Y H:i:s'): ?string
+    public function getUpdatedAtFormatted(): string
     {
         $time = $this->getUpdatedAt();
-        return $time ? $time->format($format) : null;
+        return $time ? $time->format('d/m/Y H:i:s') : '';
+    }
+
+    /**
+     * Lấy định dạng ngày cập nhật với format tùy chọn
+     *
+     * @param string $format Định dạng thời gian
+     * @return string
+     */
+    public function getUpdatedAtFormattedCustom(string $format = 'd/m/Y H:i:s'): string
+    {
+        $time = $this->getUpdatedAt();
+        return $time ? $time->format($format) : '';
     }
 
     /**
      * Lấy định dạng ngày xóa
      *
-     * @param string $format Định dạng thời gian
-     * @return string|null
+     * @return string
      */
-    public function getDeletedAtFormatted(string $format = 'd/m/Y H:i:s'): ?string
+    public function getDeletedAtFormatted(): string
     {
         $time = $this->getDeletedAt();
-        return $time ? $time->format($format) : null;
+        return $time ? $time->format('d/m/Y H:i:s') : '';
+    }
+
+    /**
+     * Lấy định dạng ngày xóa với format tùy chọn
+     *
+     * @param string $format Định dạng thời gian
+     * @return string
+     */
+    public function getDeletedAtFormattedCustom(string $format = 'd/m/Y H:i:s'): string
+    {
+        $time = $this->getDeletedAt();
+        return $time ? $time->format($format) : '';
     }
 
     /**

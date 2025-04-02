@@ -58,116 +58,61 @@ class QuanLyCheckOutSuKien extends BaseController
         $this->initializeRelationTrait();
     }
     
-    /**
-     * Hiển thị danh sách check-out sự kiện với phân trang
+       /**
+     * Hiển thị danh sách check-in sự kiện với phân trang
      */
     public function index()
     {
         // Lấy các tham số từ URL
-        $params = [
-            'keyword' => $this->request->getGet('keyword'),
-            'status' => $this->request->getGet('status'),
-            'su_kien_id' => $this->request->getGet('su_kien_id'),
-            'checkout_type' => $this->request->getGet('checkout_type'),
-            'hinh_thuc_tham_gia' => $this->request->getGet('hinh_thuc_tham_gia'),
-            'face_verified' => $this->request->getGet('face_verified'),
-            'start_date' => $this->request->getGet('start_date'),
-            'end_date' => $this->request->getGet('end_date'),
-            'perPage' => (int)($this->request->getGet('perPage') ?? 10),
-            'page' => (int)($this->request->getGet('page') ?? 1),
-            'sort' => $this->request->getGet('sort') ?? 'thoi_gian_check_out',
-            'order' => $this->request->getGet('order') ?? 'DESC'
-        ];
-
-        // Đảm bảo page và perPage có giá trị hợp lệ
-        $params['perPage'] = in_array($params['perPage'], [10, 25, 50, 100]) ? $params['perPage'] : 10;
-        $params['page'] = max(1, $params['page']);
-
-        // Tính offset dựa trên page và perPage
-        $offset = ($params['page'] - 1) * $params['perPage'];
-
+        $params = $this->prepareSearchParams($this->request);
+        // Xử lý tham số tìm kiếm
+        $params = $this->processSearchParams($params);
+        
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
-        $this->model->setSurroundCount(2);
-
-        // Xây dựng tiêu chí tìm kiếm
-        $criteria = [];
-        if (!empty($params['keyword'])) {
-            $criteria['keyword'] = $params['keyword'];
+        $this->model->setSurroundCount(3);
+        
+        // Xây dựng tiêu chí và tùy chọn tìm kiếm
+        $criteria = $this->buildSearchCriteria($params);
+        $options = $this->buildSearchOptions($params);
+        
+        // Lấy dữ liệu check-in và thông tin phân trang
+        $pageData = $this->model->search($criteria, $options);
+        // Lấy tổng số kết quả
+        $pager = $this->model->getPager();
+        $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($criteria);
+        
+        // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
+        $pageCount = ceil($total / $params['perPage']);
+        if ($total > 0 && $params['page'] > $pageCount) {
+            // Tạo URL mới với trang cuối cùng
+            $redirectParams = $_GET;
+            $redirectParams['page'] = $pageCount;
+            $redirectUrl = site_url($this->module_name) . '?' . http_build_query($redirectParams);
+            
+            // Chuyển hướng đến trang cuối cùng
+            return redirect()->to($redirectUrl);
         }
-        if (isset($params['status']) && $params['status'] !== '') {
-            $criteria['status'] = (int)$params['status'];
+        
+        // Lấy pager từ model và thiết lập các tham số
+        $pager = $this->model->getPager();
+        if ($pager !== null) {
+            $pager->setPath($this->module_name);
+            $pager->setRouteUrl($this->module_name);
+            // Thêm tất cả các tham số cần giữ lại khi chuyển trang
+            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'checkin_type', 'hinh_thuc_tham_gia', 'start_date', 'end_date']);
+            
+            // Đảm bảo perPage và currentPage được thiết lập đúng
+            $pager->setPerPage($params['perPage']);
+            $pager->setCurrentPage($params['page']);
         }
-        if (!empty($params['su_kien_id'])) {
-            $criteria['su_kien_id'] = (int)$params['su_kien_id'];
-        }
-        if (!empty($params['checkout_type'])) {
-            $criteria['checkout_type'] = $params['checkout_type'];
-        }
-        if (!empty($params['hinh_thuc_tham_gia'])) {
-            $criteria['hinh_thuc_tham_gia'] = $params['hinh_thuc_tham_gia'];
-        }
-        if (isset($params['face_verified']) && $params['face_verified'] !== '') {
-            $criteria['face_verified'] = (bool)$params['face_verified'];
-        }
-        if (!empty($params['start_date'])) {
-            $criteria['start_date'] = $params['start_date'];
-        }
-        if (!empty($params['end_date'])) {
-            $criteria['end_date'] = $params['end_date'];
-        }
-
-        // Tùy chọn tìm kiếm
-        $options = [
-            'sort' => $params['sort'],
-            'order' => $params['order'],
-            'limit' => $params['perPage'],
-            'offset' => $offset
-        ];
-
-        // Lấy tổng số bản ghi trước khi phân trang
-        $total = $this->model->countSearchResults($criteria);
-
-        // Tính tổng số trang
-        $totalPages = ceil($total / $params['perPage']);
-
-        // Kiểm tra và điều chỉnh trang hiện tại nếu vượt quá tổng số trang
-        if ($params['page'] > $totalPages && $total > 0) {
-            return redirect()->to(site_url($this->module_name) . '?' . http_build_query(array_merge(
-                $params,
-                ['page' => $totalPages]
-            )));
-        }
-
-        // Lấy dữ liệu theo trang
-        $data = $this->model->search($criteria, $options);
-
-        // Khởi tạo đối tượng phân trang
-        $pager = service('pager');
-        $pager->setPath($this->module_name);
-        $pager->setSegment(2); // Segment chứa số trang trong URL
-        $pager->makeLinks($params['page'], $params['perPage'], $total, 'default_full', 0);
-
+        
         // Chuẩn bị dữ liệu cho view
-        $viewData = [
-            'module_name' => $this->module_name,
-            'title' => $this->title,
-            'title_home' => $this->title_home,
-            'processedData' => $this->processData($data),
-            'pager' => $pager,
-            'total' => $total,
-            'perPage' => $params['perPage'],
-            'page' => $params['page'],
-            'keyword' => $params['keyword'],
-            'status' => $params['status'],
-            'su_kien_id' => $params['su_kien_id'],
-            'checkout_type' => $params['checkout_type'],
-            'hinh_thuc_tham_gia' => $params['hinh_thuc_tham_gia'],
-            'face_verified' => $params['face_verified'],
-            'start_date' => $params['start_date'],
-            'end_date' => $params['end_date'],
-            'sort' => $params['sort'],
-            'order' => $params['order']
-        ];
+        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
+        // Thêm module_name và masterScript vào viewData để sử dụng trong view
+        $viewData['module_name'] = $this->module_name;
+        $viewData['masterScript'] = $this->masterScript;
+        $viewData['title_home'] = $this->title_home;
+        $viewData['title'] = $this->title;
 
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
@@ -735,11 +680,15 @@ class QuanLyCheckOutSuKien extends BaseController
      */
     protected function prepareSearchParams($request)
     {
+        // Xử lý perPage trước
+        $perPage = $request->getGet('perPage');
+        $perPage = !empty($perPage) ? (int)$perPage : 10;
+        
         return [
             'keyword' => $request->getGet('keyword') ?? '',
             'status' => $request->getGet('status') ?? '',
             'page' => (int)($request->getGet('page') ?? 1),
-            'perPage' => (int)($request->getGet('perPage') ?? 10),
+            'perPage' => $perPage,
             'sort' => $request->getGet('sort') ?? 'thoi_gian_check_out',
             'order' => $request->getGet('order') ?? 'DESC',
             'su_kien_id' => $request->getGet('su_kien_id') ?? '',
@@ -762,8 +711,11 @@ class QuanLyCheckOutSuKien extends BaseController
         
         // Đảm bảo perPage nằm trong danh sách cho phép
         $validPerPage = [10, 25, 50, 100];
+        $params['perPage'] = (int)$params['perPage'];
+        
+        // Nếu perPage không hợp lệ, sử dụng giá trị mặc định
         if (!in_array($params['perPage'], $validPerPage)) {
-            $params['perPage'] = $validPerPage[0];
+            $params['perPage'] = 10;
         }
         
         // Đảm bảo sort là một trường hợp lệ
@@ -840,9 +792,18 @@ class QuanLyCheckOutSuKien extends BaseController
      */
     protected function buildSearchOptions($params)
     {
+        // Đảm bảo các giá trị là số nguyên
+        $page = (int)($params['page'] ?? 1);
+        $perPage = (int)($params['perPage'] ?? 10);
+        
+        // Tính toán offset
+        $offset = ($page - 1) * $perPage;
+        
         return [
-            'page' => $params['page'] ?? 1,
-            'perPage' => $params['perPage'] ?? 10,
+            'page' => $page,
+            'perPage' => $perPage,
+            'offset' => $offset,
+            'limit' => $perPage,
             'sort' => $params['sort'] ?? 'thoi_gian_check_out',
             'order' => $params['order'] ?? 'DESC'
         ];
@@ -855,6 +816,9 @@ class QuanLyCheckOutSuKien extends BaseController
     {
         // Xử lý dữ liệu nếu cần
         $processedData = $this->processData($pageData);
+        
+        // Thêm các tùy chọn cho số bản ghi trên trang
+        $perPageOptions = [10, 25, 50, 100];
         
         return [
             'breadcrumb' => $this->breadcrumb->render(),
@@ -869,6 +833,7 @@ class QuanLyCheckOutSuKien extends BaseController
             'start_date' => $params['start_date'] ?? '',
             'end_date' => $params['end_date'] ?? '',
             'perPage' => $params['perPage'] ?? 10,
+            'perPageOptions' => $perPageOptions,
             'sort' => $params['sort'] ?? 'thoi_gian_check_out',
             'order' => $params['order'] ?? 'DESC',
             'page' => $params['page'] ?? 1,

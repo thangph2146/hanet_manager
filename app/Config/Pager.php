@@ -20,11 +20,11 @@ class Pager extends BaseConfig
      *
      * @var array<string, string>
      */
-    public $templates = [
+    public array $templates = [
         'default_full'   => 'CodeIgniter\Pager\Views\default_full',
         'default_simple' => 'CodeIgniter\Pager\Views\default_simple',
         'default_head'   => 'CodeIgniter\Pager\Views\default_head',
-        'camera_full'    => 'App\Views\pagers\camera_full',
+        'custom_template' => 'pager/custom_template',
     ];
 
     /**
@@ -63,10 +63,10 @@ class Pager extends BaseConfig
     
     /**
      * --------------------------------------------------------------------------
-     * Use Query Strings
+     * Use Query String
      * --------------------------------------------------------------------------
      *
-     * Whether to use HTTP query strings to pass the parameters instead of URI segments.
+     * If true, links will be generated using query strings instead of URI segments.
      *
      * @var bool
      */

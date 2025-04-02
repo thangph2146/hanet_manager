@@ -200,28 +200,33 @@ class CheckOutSuKienModel extends BaseModel
         }
         
         // Lọc theo sự kiện
-        if (isset($criteria['su_kien_id']) && $criteria['su_kien_id'] > 0) {
+        if (!empty($criteria['su_kien_id'])) {
             $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
         }
         
         // Lọc theo đăng ký sự kiện
-        if (isset($criteria['dangky_sukien_id']) && $criteria['dangky_sukien_id'] > 0) {
+        if (!empty($criteria['dangky_sukien_id'])) {
             $builder->where($this->table . '.dangky_sukien_id', $criteria['dangky_sukien_id']);
         }
         
         // Lọc theo check-in sự kiện
-        if (isset($criteria['checkin_sukien_id']) && $criteria['checkin_sukien_id'] > 0) {
+        if (!empty($criteria['checkin_sukien_id'])) {
             $builder->where($this->table . '.checkin_sukien_id', $criteria['checkin_sukien_id']);
         }
         
         // Lọc theo loại check-out
-        if (isset($criteria['checkout_type']) && !empty($criteria['checkout_type'])) {
+        if (!empty($criteria['checkout_type'])) {
             $builder->where($this->table . '.checkout_type', $criteria['checkout_type']);
         }
         
         // Lọc theo hình thức tham gia
-        if (isset($criteria['hinh_thuc_tham_gia']) && !empty($criteria['hinh_thuc_tham_gia'])) {
+        if (!empty($criteria['hinh_thuc_tham_gia'])) {
             $builder->where($this->table . '.hinh_thuc_tham_gia', $criteria['hinh_thuc_tham_gia']);
+        }
+        
+        // Lọc theo xác minh khuôn mặt
+        if (isset($criteria['face_verified'])) {
+            $builder->where($this->table . '.face_verified', $criteria['face_verified']);
         }
         
         // Lọc theo đánh giá
@@ -230,14 +235,14 @@ class CheckOutSuKienModel extends BaseModel
         }
         
         // Lọc theo thời gian check-out từ ngày
-        if (isset($criteria['tu_ngay']) && !empty($criteria['tu_ngay'])) {
-            $tuNgay = $criteria['tu_ngay'] . ' 00:00:00';
+        if (!empty($criteria['start_date'])) {
+            $tuNgay = $criteria['start_date'] . ' 00:00:00';
             $builder->where($this->table . '.thoi_gian_check_out >=', $tuNgay);
         }
         
         // Lọc theo thời gian check-out đến ngày
-        if (isset($criteria['den_ngay']) && !empty($criteria['den_ngay'])) {
-            $denNgay = $criteria['den_ngay'] . ' 23:59:59';
+        if (!empty($criteria['end_date'])) {
+            $denNgay = $criteria['end_date'] . ' 23:59:59';
             $builder->where($this->table . '.thoi_gian_check_out <=', $denNgay);
         }
         
@@ -260,20 +265,20 @@ class CheckOutSuKienModel extends BaseModel
         $order = $options['order'] ?? 'DESC';
         
         // Xử lý giới hạn và phân trang
-        $limit = $options['limit'] ?? 10;
-        $offset = $options['offset'] ?? 0;
+        $limit = isset($options['limit']) ? (int)$options['limit'] : 10;
+        $offset = isset($options['offset']) ? (int)$options['offset'] : 0;
+        
+        // Sắp xếp kết quả
+        // Kiểm tra trường sắp xếp tồn tại trong bảng
+        $validSortFields = ['thoi_gian_check_out', 'created_at', 'updated_at', 'deleted_at', 'su_kien_id', 'email', 'ho_ten', 'status'];
+        $sort = in_array($sort, $validSortFields) ? $sort : 'thoi_gian_check_out';
+        
+        $builder->orderBy($this->table . '.' . $sort, $order);
         
         // Thực hiện truy vấn với phân trang
         if ($limit > 0) {
             $builder->limit($limit, $offset);
         }
-        
-        // Sắp xếp kết quả
-        // Kiểm tra trường sắp xếp tồn tại trong bảng
-        $validSortFields = ['thoi_gian_check_out', 'created_at', 'updated_at', 'deleted_at', 'su_kien_id', 'email', 'ho_ten', 'status'];
-        $sort = in_array($sort, $validSortFields) ? $sort : 'deleted_at';
-        
-        $builder->orderBy($this->table . '.' . $sort, $order);
         
         // Thực hiện truy vấn
         $result = $builder->get()->getResult($this->returnType);

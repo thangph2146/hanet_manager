@@ -784,9 +784,18 @@ class QuanLyCheckInSuKien extends BaseController
      */
     protected function buildSearchOptions($params)
     {
+        // Đảm bảo các giá trị là số nguyên
+        $page = (int)($params['page'] ?? 1);
+        $perPage = (int)($params['perPage'] ?? 10);
+        
+        // Tính toán offset
+        $offset = ($page - 1) * $perPage;
+        
         return [
-            'page' => $params['page'] ?? 1,
-            'perPage' => $params['perPage'] ?? 10,
+            'page' => $page,
+            'perPage' => $perPage,
+            'offset' => $offset,
+            'limit' => $perPage,
             'sort' => $params['sort'] ?? 'thoi_gian_check_in',
             'order' => $params['order'] ?? 'DESC'
         ];
