@@ -13,6 +13,22 @@ use CodeIgniter\I18n\Time;
 
 trait ExportTrait
 {
+    protected $export_title = 'DANH SÁCH LOẠI SỰ KIỆN';
+    protected $search_field = 'ten_loai_su_kien';
+    protected $search_order = 'ASC';
+    protected $header_title = [
+        'STT' => 'A',
+        'ID' => 'B',
+        'Tên loại sự kiện' => 'C',
+        'Mã loại sự kiện' => 'D',
+        'Trạng thái' => 'E',
+        'Ngày tạo' => 'F',
+        'Ngày cập nhật' => 'G'
+    ];
+    protected $header_title_deleted = [
+        'Ngày xóa' => 'H'
+    ];
+
     /**
      * Chuẩn bị tùy chọn tìm kiếm cho export
      * 
@@ -157,88 +173,28 @@ trait ExportTrait
     protected function formatFilters(array $params): array
     {
         $filters = [];
-
-        // Thêm từ khóa tìm kiếm
+        
+        // Thêm bộ lọc từ khóa
         if (!empty($params['keyword'])) {
-            $filters['Từ khóa tìm kiếm'] = trim($params['keyword']);
+            $filters[] = ['Từ khóa tìm kiếm', $params['keyword']];
         }
-
-        // Thêm trạng thái
+        
+        // Thêm bộ lọc trạng thái
         if (isset($params['status']) && $params['status'] !== '') {
-            $statusLabels = [
-                0 => 'Vô hiệu',
-                1 => 'Hoạt động',
-                2 => 'Đang xử lý'
-            ];
-            $filters['Trạng thái'] = $statusLabels[$params['status']] ?? 'Không xác định';
-        }
-
-        // Thêm sự kiện
-        if (!empty($params['su_kien_id'])) {
-            $suKien = $this->suKienModel->find($params['su_kien_id']);
-            if ($suKien) {
-                $filters['Sự kiện'] = $suKien->getTenSuKien() ?? $suKien->ten_su_kien;
+            $statusText = '';
+            switch ((string)$params['status']) {
+                case '1':
+                    $statusText = 'Hoạt động';
+                    break;
+                case '0':
+                    $statusText = 'Không hoạt động';
+                    break;
+                default:
+                    $statusText = 'Tất cả';
             }
+            $filters[] = ['Trạng thái', $statusText];
         }
-
-        // Thêm loại check-out
-        if (!empty($params['checkout_type'])) {
-            $checkoutTypes = [
-                'manual' => 'Thủ công',
-                'face_id' => 'Nhận diện khuôn mặt',
-                'qr_code' => 'Mã QR',
-                'auto' => 'Tự động',
-                'online' => 'Trực tuyến'
-            ];
-            $filters['Loại check-out'] = $checkoutTypes[$params['checkout_type']] ?? $params['checkout_type'];
-        }
-
-        // Thêm hình thức tham gia
-        if (!empty($params['hinh_thuc_tham_gia'])) {
-            $hinhThucThamGia = [
-                'offline' => 'Trực tiếp',
-                'online' => 'Trực tuyến'
-            ];
-            $filters['Hình thức tham gia'] = $hinhThucThamGia[$params['hinh_thuc_tham_gia']] ?? $params['hinh_thuc_tham_gia'];
-        }
-
-        // Thêm trạng thái xác minh khuôn mặt
-        if (isset($params['face_verified']) && $params['face_verified'] !== '') {
-            $faceVerifiedLabels = [
-                0 => 'Chưa xác minh',
-                1 => 'Đã xác minh',
-                2 => 'Đang xử lý'
-            ];
-            $filters['Xác minh khuôn mặt'] = $faceVerifiedLabels[$params['face_verified']] ?? 'Không xác định';
-        }
-
-        // Thêm khoảng thời gian
-        if (!empty($params['start_date']) || !empty($params['end_date'])) {
-            $timeRange = '';
-            if (!empty($params['start_date'])) {
-                $timeRange .= 'Từ ' . date('d/m/Y', strtotime($params['start_date']));
-            }
-            if (!empty($params['end_date'])) {
-                $timeRange .= ($timeRange ? ' đến ' : 'Đến ') . date('d/m/Y', strtotime($params['end_date']));
-            }
-            $filters['Thời gian'] = $timeRange;
-        }
-
-        // Thêm sắp xếp
-        if (!empty($params['sort'])) {
-            $sortFields = [
-                'thoi_gian_check_out' => 'Thời gian check-out',
-                'ho_ten' => 'Họ tên',
-                'email' => 'Email',
-                'status' => 'Trạng thái',
-                'created_at' => 'Ngày tạo',
-                'updated_at' => 'Ngày cập nhật'
-            ];
-            $sortField = $sortFields[$params['sort']] ?? $params['sort'];
-            $sortOrder = !empty($params['order']) ? strtoupper($params['order']) : 'DESC';
-            $filters['Sắp xếp'] = $sortField . ' ' . ($sortOrder === 'DESC' ? 'giảm dần' : 'tăng dần');
-        }
-
+        
         return $filters;
     }
 
@@ -302,31 +258,11 @@ trait ExportTrait
      */
     protected function getExportHeaders(bool $includeDeleted = false): array
     {
-        $headers = [
-            'STT' => 'A',
-            'ID' => 'B',
-            'Họ tên' => 'C',
-            'Email' => 'D',
-            'Sự kiện' => 'E',
-            'Thời gian check-out' => 'F',
-            'Loại check-out' => 'G',
-            'Hình thức' => 'H',
-            'Trạng thái' => 'I',
-            'Xác minh KM' => 'J',
-            'Điểm số KM' => 'K',
-            'Thời gian tham dự' => 'L',
-            'Đánh giá' => 'M',
-            'Nội dung đánh giá' => 'N',
-            'Phản hồi' => 'O',
-            'Ngày tạo' => 'P',
-            'Ngày cập nhật' => 'Q'
-        ];
-
         if ($includeDeleted) {
-            $headers['Ngày xóa'] = 'R';
+            return array_merge($this->header_title, $this->header_title_deleted);
         }
-
-        return $headers;
+        
+        return $this->header_title;
     }
 
     /**

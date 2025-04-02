@@ -5,13 +5,12 @@
 			$masterScript = new $masterScriptClass($module_name);
 		?>
 		<?= $masterScript->pageCss('form') ?>
-		<?= $masterScript->pageSectionCss('form') ?>
 	<?= $this->endSection() ?>
 	<?= $this->section('title') ?>$title<?= $this->endSection() ?>
 
 	<?= $this->section('bread_cum_link') ?>
 	<?= view('components/_breakcrump', [	
-		'title' => $title,
+		'title' => $title_home,
 		'dashboard_url' => site_url($module_name),
 		'breadcrumbs' => [
 			['title' => $title_home, 'url' => site_url($module_name)],
@@ -22,33 +21,29 @@
 
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
-	<div class="card-body">
-		<?= form_open($action, ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
-			<?= view('App\Modules\\' . $module_name . '\Views\components\_form', [
-                'module_name' => $module_name,
-                'data' => $data ?? null,
-                'validation' => $validation ?? null
-            ]) ?>
-		<?= form_close() ?>
+	<div class="card-header py-3">
+		<div class="d-flex justify-content-between align-items-center">
+			<h6 class="mb-0 text-primary"><?= $title ?></h6>
+			<a href="<?= site_url($module_name) ?>" class="btn btn-secondary btn-sm">
+				<i class="bx bx-arrow-back"></i> Quay lại
+			</a>
+		</div>
+	</div>
+	<div class="card-body p-4">
+		<?= view('App\Modules\\' . $module_name . '\Views\components\_alerts') ?>
+		
+		<?= view('App\Modules\\' . $module_name . '\Views\components\_form', [
+			'module_name' => $module_name,
+			'validation' => $validation ?? null,
+			'entity' => $entity ?? null,
+			'errors' => $errors ?? []
+		]) ?>
 	</div>
 </div>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
 <?= $masterScript->pageJs('form') ?>
-<script>
-	document.addEventListener('DOMContentLoaded', function () {
-		const form = document.getElementById('form-<?= $module_name ?>');
-		
-		// Validate form khi submit
-		form.addEventListener('submit', function (event) {
-			if (!form.checkValidity()) {
-				event.preventDefault();
-				event.stopPropagation();
-			}
-			
-			form.classList.add('was-validated');
-		});
-	});
-</script>
+<?= $masterScript->pageSectionJs('form') ?>
+<?= $masterScript->pageFormJs() ?>
 <?= $this->endSection() ?> 
