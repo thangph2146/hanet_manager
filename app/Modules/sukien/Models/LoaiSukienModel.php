@@ -2,95 +2,59 @@
 
 namespace App\Modules\sukien\Models;
 
-use CodeIgniter\Model;
+use App\Modules\quanlyloaisukien\Models\LoaiSuKienModel as BaseModel;
 
-class LoaiSukienModel extends Model
+class LoaiSukienModel extends BaseModel
 {
-    protected $table            = 'loai_su_kien';
-    protected $primaryKey       = 'id';
-    protected $useAutoIncrement = true;
-    protected $returnType       = 'array';
-    protected $useSoftDeletes   = true;
-    protected $allowedFields    = ['loai_su_kien', 'slug', 'status', 'bin'];
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
     
-    // Dates
-    protected $useTimestamps = true;
-    protected $dateFormat    = 'datetime';
-    protected $createdField  = 'created_at';
-    protected $updatedField  = 'updated_at';
-    protected $deletedField  = 'deleted_at';
-
-    // Mock Data - Dữ liệu mẫu cho loại sự kiện
-    private $mockEventTypes = [
-        [
-            'id' => 1,
-            'loai_su_kien' => 'Hội thảo',
-            'slug' => 'hoi-thao',
-            'status' => 1,
-            'bin' => 0,
-            'created_at' => '2023-01-01 00:00:00',
-            'updated_at' => '2023-01-01 00:00:00',
-            'deleted_at' => null
-        ],
-        [
-            'id' => 2,
-            'loai_su_kien' => 'Nghề nghiệp',
-            'slug' => 'nghe-nghiep',
-            'status' => 1,
-            'bin' => 0,
-            'created_at' => '2023-01-01 00:00:00',
-            'updated_at' => '2023-01-01 00:00:00',
-            'deleted_at' => null
-        ],
-        [
-            'id' => 3,
-            'loai_su_kien' => 'Workshop',
-            'slug' => 'workshop',
-            'status' => 1,
-            'bin' => 0,
-            'created_at' => '2023-01-01 00:00:00',
-            'updated_at' => '2023-01-01 00:00:00',
-            'deleted_at' => null
-        ],
-        [
-            'id' => 4,
-            'loai_su_kien' => 'Hoạt động sinh viên',
-            'slug' => 'hoat-dong-sinh-vien',
-            'status' => 1,
-            'bin' => 0,
-            'created_at' => '2023-01-01 00:00:00',
-            'updated_at' => '2023-01-01 00:00:00',
-            'deleted_at' => null
-        ]
-    ];
-
     /**
      * Lấy tất cả loại sự kiện
      */
     public function getAllEventTypes()
     {
-        // Trong triển khai thực tế, bạn sẽ truy vấn từ cơ sở dữ liệu
-        // Ví dụ: return $this->where('status', 1)->findAll();
+        $loaiSukien = $this->where('status', 1)
+                          ->where('deleted_at IS NULL')
+                          ->findAll();
         
-        // Sử dụng mock data cho demo
-        return $this->mockEventTypes;
+        $result = [];
+        foreach ($loaiSukien as $loai) {
+            $result[] = [
+                'id' => $loai->loai_su_kien_id,
+                'loai_su_kien' => $loai->ten_loai_su_kien,
+                'status' => $loai->status,
+                'bin' => 0,
+                'slug' => strtolower(str_replace(' ', '-', $loai->ten_loai_su_kien))
+            ];
+        }
+        
+        return $result;
     }
-    
+
     /**
      * Lấy loại sự kiện theo ID
      */
     public function getEventTypeById($id)
     {
-        // Trong triển khai thực tế:
-        // return $this->find($id);
+        $loaiSukien = $this->find($id);
         
-        // Sử dụng mock data cho demo
-        foreach ($this->mockEventTypes as $type) {
-            if ($type['id'] == $id) {
-                return $type;
-            }
+        if (!$loaiSukien) {
+            return null;
         }
-        return null;
+        
+        return [
+            'id' => $loaiSukien->loai_su_kien_id,
+            'loai_su_kien' => $loaiSukien->ten_loai_su_kien,
+            'status' => $loaiSukien->status,
+            'bin' => 0,
+            'slug' => strtolower(str_replace(' ', '-', $loaiSukien->ten_loai_su_kien))
+        ];
     }
 
     /**
@@ -98,16 +62,22 @@ class LoaiSukienModel extends Model
      */
     public function getEventTypeBySlug($slug)
     {
-        // Trong triển khai thực tế:
-        // return $this->where('slug', $slug)->first();
+        $loaiSukien = $this->where('status', 1)
+                          ->where('deleted_at IS NULL')
+                          ->like('LOWER(ten_loai_su_kien)', str_replace('-', ' ', $slug), 'both')
+                          ->first();
         
-        // Sử dụng mock data cho demo
-        foreach ($this->mockEventTypes as $type) {
-            if ($type['slug'] == $slug) {
-                return $type;
-            }
+        if (!$loaiSukien) {
+            return null;
         }
-        return null;
+        
+        return [
+            'id' => $loaiSukien->loai_su_kien_id,
+            'loai_su_kien' => $loaiSukien->ten_loai_su_kien,
+            'status' => $loaiSukien->status,
+            'bin' => 0,
+            'slug' => strtolower(str_replace(' ', '-', $loaiSukien->ten_loai_su_kien))
+        ];
     }
 
     /**
@@ -119,15 +89,9 @@ class LoaiSukienModel extends Model
         $slug = $this->convertToSlug($name);
         
         // Kiểm tra xem slug đã tồn tại chưa
-        // Trong triển khai thực tế:
-        // $count = $this->where('slug', $slug)->countAllResults();
-        
-        $count = 0;
-        foreach ($this->mockEventTypes as $type) {
-            if ($type['slug'] == $slug) {
-                $count++;
-            }
-        }
+        $count = $this->where('deleted_at IS NULL')
+                     ->like('ten_loai_su_kien', $name, 'both')
+                     ->countAllResults();
         
         // Nếu slug đã tồn tại, thêm số vào cuối
         if ($count > 0) {

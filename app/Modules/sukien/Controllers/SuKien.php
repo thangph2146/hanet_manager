@@ -3,11 +3,12 @@
 namespace App\Modules\sukien\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\sukien\Models\SukienModel;
-use App\Modules\sukien\Models\LoaiSukienModel;
-use App\Modules\sukien\Models\DangKySukienModel;
-use App\Modules\sukien\Models\CheckinSukienModel;
-use App\Modules\sukien\Models\CheckoutSukienModel;
+use App\Modules\quanlysukien\Models\SuKienModel;
+use App\Modules\quanlyloaisukien\Models\LoaiSuKienModel;
+use App\Modules\quanlydangkysukien\Models\DangKySuKienModel;
+use App\Modules\quanlycheckinsukien\Models\CheckinSukienModel;
+use App\Modules\quanlycheckoutsukien\Models\CheckoutSukienModel;
+use App\Modules\diengia\Models\DienGiaModel;
 
 class Sukien extends BaseController
 {
@@ -16,14 +17,16 @@ class Sukien extends BaseController
     protected $dangKySukienModel;
     protected $checkinModel;
     protected $checkoutModel;
+    protected $dienGiaModel;
     
     public function __construct()
     {
-        $this->sukienModel = new SukienModel();
-        $this->loaiSukienModel = new LoaiSukienModel();
-        $this->dangKySukienModel = new DangKySukienModel();
+        $this->sukienModel = new SuKienModel();
+        $this->loaiSukienModel = new LoaiSuKienModel();
+        $this->dangKySukienModel = new DangKySuKienModel();
         $this->checkinModel = new CheckinSukienModel();
         $this->checkoutModel = new CheckoutSukienModel();
+        $this->dienGiaModel = new DienGiaModel();
     }
     
     public function index()
