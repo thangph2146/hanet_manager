@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\checkoutsukien\Database\Seeds;
+namespace App\Modules\quanlycheckoutsukien\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
 use CodeIgniter\I18n\Time;

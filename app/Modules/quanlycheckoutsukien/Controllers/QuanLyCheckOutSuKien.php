@@ -58,8 +58,8 @@ class QuanLyCheckOutSuKien extends BaseController
         $this->initializeRelationTrait();
     }
     
-       /**
-     * Hiển thị danh sách check-in sự kiện với phân trang
+    /**
+     * Hiển thị danh sách check-out sự kiện (chỉ lấy những bản ghi chưa bị xóa - deleted_at IS NULL) với phân trang
      */
     public function index()
     {
@@ -73,10 +73,29 @@ class QuanLyCheckOutSuKien extends BaseController
         
         // Xây dựng tiêu chí và tùy chọn tìm kiếm
         $criteria = $this->buildSearchCriteria($params);
+        // Đảm bảo không bao gồm deleted records
+        $criteria['deleted'] = false;
         $options = $this->buildSearchOptions($params);
         
-        // Lấy dữ liệu check-in và thông tin phân trang
+        // Ghi log các tiêu chí và tùy chọn tìm kiếm để debug
+        log_message('debug', '[QuanLyCheckOutSuKien::index] Search criteria: ' . json_encode($criteria));
+        log_message('debug', '[QuanLyCheckOutSuKien::index] Search options: ' . json_encode($options));
+        
+        // Lấy dữ liệu check-out và thông tin phân trang
         $pageData = $this->model->search($criteria, $options);
+        
+        // Kiểm tra xem có bản ghi nào có deleted_at không null
+        $invalidRecords = 0;
+        foreach ($pageData as $record) {
+            if ($record->deleted_at !== null) {
+                $invalidRecords++;
+                log_message('error', '[QuanLyCheckOutSuKien::index] Found deleted record in active results: ID=' . $record->checkout_sukien_id);
+            }
+        }
+        if ($invalidRecords > 0) {
+            log_message('error', '[QuanLyCheckOutSuKien::index] Warning: Found ' . $invalidRecords . ' deleted records in active results');
+        }
+        
         // Lấy tổng số kết quả
         $pager = $this->model->getPager();
         $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($criteria);
@@ -99,7 +118,7 @@ class QuanLyCheckOutSuKien extends BaseController
             $pager->setPath($this->module_name);
             $pager->setRouteUrl($this->module_name);
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'checkin_type', 'hinh_thuc_tham_gia', 'start_date', 'end_date']);
+            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'checkout_type', 'hinh_thuc_tham_gia', 'start_date', 'end_date']);
             
             // Đảm bảo perPage và currentPage được thiết lập đúng
             $pager->setPerPage($params['perPage']);

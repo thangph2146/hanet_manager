@@ -195,10 +195,10 @@ class CheckOutSuKienModel extends BaseModel
     }
     
     /**
-     * Tìm kiếm check-out sự kiện dựa vào các tiêu chí
-     *
-     * @param array $criteria Các tiêu chí tìm kiếm
-     * @param array $options Tùy chọn phân trang và sắp xếp
+     * Tìm kiếm dữ liệu trong danh sách check-out chưa bị xóa (deleted_at IS NULL)
+     * 
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @param array $options Tùy chọn tìm kiếm
      * @return array
      */
     public function search(array $criteria = [], array $options = [])
@@ -208,11 +208,24 @@ class CheckOutSuKienModel extends BaseModel
         $sort = $options['sort'] ?? $this->primaryKey;
         $order = $options['order'] ?? 'DESC';
         
-        $this->builder = $this->builder();
+        // Ghi log thông tin về criteria để debug
+        log_message('debug', '[search] Criteria: ' . json_encode($criteria));
+        log_message('debug', '[search] Options: ' . json_encode($options));
+        
+        // Khởi tạo builder trực tiếp từ database
+        $this->builder = $this->db->table($this->table);
         $this->builder->select($this->table . '.*, su_kien.ten_su_kien');
         $this->builder->join('su_kien', 'su_kien.su_kien_id = ' . $this->table . '.su_kien_id', 'left');
+        $this->builder->join('dangky_sukien', 'dangky_sukien.dangky_sukien_id = ' . $this->table . '.dangky_sukien_id', 'left');
+
+        // ĐẢM BẢO chỉ lấy các bản ghi chưa xóa
+        $this->builder->where($this->table . '.deleted_at IS NULL');
         
-        // Thêm điều kiện tìm kiếm
+        // Ghi log câu SQL
+        log_message('debug', '[search] SQL Query: ' . $this->db->getLastQuery());
+        
+        // Áp dụng các điều kiện tìm kiếm
+        $criteria['ignoreDeletedCheck'] = true; // Đánh dấu để không kiểm tra deleted_at trong applySearchCriteria
         $this->applySearchCriteria($this->builder, $criteria);
         
         // Sắp xếp
@@ -245,6 +258,9 @@ class CheckOutSuKienModel extends BaseModel
         // Thực hiện truy vấn
         $query = $this->builder->get();
         $result = $query->getResult($this->returnType);
+
+        // Kiểm tra và ghi log kết quả
+        log_message('debug', '[search] Found ' . count($result) . ' active records');
         
         return $result;
     }
@@ -490,7 +506,7 @@ class CheckOutSuKienModel extends BaseModel
     public function prepareValidationRules(string $scenario = 'insert', array $data = [])
     {
         // Khởi tạo đối tượng thực thể và lấy quy tắc xác thực
-        $entity = new \App\Modules\checkoutsukien\Entities\CheckOutSuKien();
+        $entity = new \App\Modules\quanlycheckoutsukien\Entities\CheckOutSuKien();
         $rules = $entity->getValidationRules();
         $messages = $entity->getValidationMessages();
         
@@ -999,4 +1015,4 @@ class CheckOutSuKienModel extends BaseModel
             return $dateTimeString;
         }
     }
-} 
+}

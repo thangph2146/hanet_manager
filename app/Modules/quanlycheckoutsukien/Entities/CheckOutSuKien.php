@@ -6,7 +6,7 @@ use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
 use App\Modules\sukien\Entities\SuKien;
 use App\Modules\dangkysukien\Entities\DangKySuKien;
-use App\Modules\checkinsukien\Entities\CheckInSuKien;
+use App\Modules\quanlycheckinsukien\Entities\CheckInSuKien;
 
 class CheckOutSuKien extends BaseEntity
 {
