@@ -1,8 +1,14 @@
 <?php
 /**
- * Master script file for ThamGiaSuKien module
+ * Master script file for BacHoc module
  * Contains common CSS and JS for all views
  */
+// Lấy biến module_name từ biến được truyền vào từ view
+$GLOBALS['module_name'] = 'quanlyloaisukien';
+if (isset($module_name_php)) {
+    $GLOBALS['module_name'] = $module_name_php;
+}
+
 // CSS section
 function page_css($type = 'all') {
     ob_start();
@@ -97,10 +103,6 @@ function page_css($type = 'all') {
         .pagination .page-item .page-link:focus {
             box-shadow: 0 0 0 0.15rem rgba(67, 94, 190, 0.25);
             z-index: 3;
-        }
-        
-        .pagination-container {
-            margin-bottom: 1rem;
         }
         
         /* Nút select số bản ghi */
@@ -404,6 +406,8 @@ function page_section_js($section, $module_name) {
 
 // Thêm hàm đồng bộ JavaScript cho bảng ThamGiaSuKien
 function page_table_js($module_name) {
+    // Lấy module_name từ biến JS hoặc mặc định là $module_name
+    $module_name = isset($GLOBALS['module_name']) ? $GLOBALS['module_name'] : (isset($module_name) ? $module_name : 'admin/bachoc');
     
     ob_start();
     ?>
@@ -484,32 +488,42 @@ function page_table_js($module_name) {
         $('.btn-restore').on('click', function() {
             const id = $(this).data('id');
             const name = $(this).data('name');
+            $('#restore-item-id').text(id);
             $('#restore-item-name').text(name);
             
             // Lấy đường dẫn tương đối (path + query string)
             const pathAndQuery = window.location.pathname + window.location.search;
             
-            // Tạo URL khôi phục với tham số truy vấn return_url
-            const restoreUrl = '<?= site_url($module_name . '/restore/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
-            $('#restore-form').attr('action', restoreUrl);
+            // Tạo URL khôi phục
+            const restoreUrl = '<?= site_url($module_name . '/restore/') ?>' + id;
             
+            // Cập nhật action của form và thêm input return_url
+            const $form = $('#restore-form');
+            $form.attr('action', restoreUrl);
+            
+            // Debug log
+            console.log('Restore URL:', restoreUrl);
+            console.log('Return URL:', pathAndQuery);
+            console.log('Item ID:', id);
+            console.log('Item name:', name);
+            
+            // Hiển thị modal
             $('#restoreModal').modal('show');
         });
         
         // Xử lý nút xóa vĩnh viễn
-        $('.btn-delete-permanent').on('click', function() {
+        $('.btn-permanent-delete').on('click', function() {
             const id = $(this).data('id');
             const name = $(this).data('name');
-            $('#delete-item-name').text(name);
             
             // Lấy đường dẫn tương đối (path + query string)
             const pathAndQuery = window.location.pathname + window.location.search;
             
             // Tạo URL xóa với tham số truy vấn return_url
             const deleteUrl = '<?= site_url($module_name . '/permanentDelete/') ?>' + id + '?return_url=' + encodeURIComponent(pathAndQuery);
-            $('#delete-form').attr('action', deleteUrl);
+            $('.force-delete-form').attr('action', deleteUrl);
             
-            $('#deleteModal').modal('show');
+            $('#forceDeleteModal').modal('show');
         });
         
         // Xử lý nút xóa nhiều
@@ -664,8 +678,7 @@ function page_table_js($module_name) {
             }
             
             // Hiển thị số lượng mục đã chọn trong modal
-            $('#restore-count').text(selectedCount);
-            // Hiển thị modal xác nhận khôi phục nhiều
+            $('#restore-multiple-count').html(`Bạn đã chọn <strong>${selectedCount}</strong> check-in sự kiện để khôi phục.`);
             $('#restoreMultipleModal').modal('show');
         });
         
@@ -675,40 +688,98 @@ function page_table_js($module_name) {
             const pathAndQuery = window.location.pathname + window.location.search;
             
             // Xóa các input cũ
-            $('#form-restore-multiple').empty();
+            const $form = $('#form-restore-multiple');
+            $form.empty();
             
             // Thêm CSRF token
             $('<input>').attr({
                 type: 'hidden',
                 name: '<?= csrf_token() ?>',
                 value: '<?= csrf_hash() ?>'
-            }).appendTo('#form-restore-multiple');
+            }).appendTo($form);
             
             // Thêm input return_url
             $('<input>').attr({
                 type: 'hidden',
                 name: 'return_url',
                 value: pathAndQuery
-            }).appendTo('#form-restore-multiple');
+            }).appendTo($form);
             
             // Thêm các ID đã chọn vào form
             $('.checkbox-item:checked').each(function() {
-                const input = $('<input>').attr({
+                $('<input>').attr({
                     type: 'hidden',
                     name: 'selected_ids[]',
                     value: $(this).val()
-                });
-                $('#form-restore-multiple').append(input);
+                }).appendTo($form);
             });
             
+            // Log dữ liệu form trước khi submit để debug
+            console.log('Form restore data:', $form.serialize());
+            
             // Submit form
-            $('#form-restore-multiple').submit();
+            $form.submit();
             
             // Đóng modal
             $('#restoreMultipleModal').modal('hide');
         });
         
-        // Xử lý nút xóa vĩnh viễn nhiều
+        // Xử lý chọn tất cả hoặc hủy chọn
+        $('#select-all').on('change', function() {
+            const isChecked = $(this).prop('checked');
+            $('.checkbox-item').prop('checked', isChecked);
+            updateMultipleButtonsState();
+        });
+        
+        // Cập nhật trạng thái nút xóa, khôi phục nhiều mục
+        function updateMultipleButtonsState() {
+            const selectedCount = $('.checkbox-item:checked').length;
+            if (selectedCount > 0) {
+                $('#delete-selected-multiple').prop('disabled', false);
+                $('#restore-selected').prop('disabled', false);
+                $('#delete-permanent-multiple').prop('disabled', false);
+                $('#status-selected-multiple').prop('disabled', false);
+                $('#status-selected').prop('disabled', false);
+            } else {
+                $('#delete-selected-multiple').prop('disabled', true);
+                $('#restore-selected').prop('disabled', true);
+                $('#delete-permanent-multiple').prop('disabled', true);
+                $('#status-selected-multiple').prop('disabled', true);
+                $('#status-selected').prop('disabled', true);
+            }
+        }
+        
+        // Cập nhật trạng thái nút khi chọn checkbox
+        $('.checkbox-item').on('change', function() {
+            updateMultipleButtonsState();
+            
+            // Kiểm tra tất cả checkbox đã được chọn chưa
+            const totalCheckboxes = $('.checkbox-item').length;
+            const checkedCheckboxes = $('.checkbox-item:checked').length;
+            
+            // Cập nhật trạng thái checkbox select-all
+            $('#select-all').prop('checked', totalCheckboxes === checkedCheckboxes);
+        });
+        
+        // Ban đầu cập nhật trạng thái nút
+        updateMultipleButtonsState();
+        
+        // Xử lý thay đổi số bản ghi mỗi trang
+        $('#perPageSelect').on('change', function() {
+            const selectedValue = $(this).val();
+            const currentUrl = new URL(window.location.href);
+            
+            // Cập nhật tham số perPage
+            currentUrl.searchParams.set('perPage', selectedValue);
+            
+            // Reset về trang 1
+            currentUrl.searchParams.set('page', 1);
+            
+            // Chuyển hướng đến URL mới
+            window.location.href = currentUrl.toString();
+        });
+
+        // Xử lý nút xóa vĩnh viễn nhiều mục
         $('#delete-permanent-multiple').on('click', function() {
             const selectedCount = $('.checkbox-item:checked').length;
             
@@ -722,153 +793,50 @@ function page_table_js($module_name) {
             }
             
             // Hiển thị số lượng mục đã chọn trong modal
-            $('#delete-count').text(selectedCount);
-            // Hiển thị modal xác nhận xóa vĩnh viễn nhiều
-            $('#deleteMultipleModal').modal('show');
+            $('#permanent-delete-multiple-count').html(`Bạn đã chọn <strong>${selectedCount}</strong> camera để xóa vĩnh viễn.`);
+            $('#permanentDeleteMultipleModal').modal('show');
         });
         
-        // Xử lý nút chọn tất cả checkbox
-        $('#select-all').on('change', function() {
-            $('.checkbox-item').prop('checked', $(this).prop('checked'));
-            updateActionButtons();
-        });
-        
-        // Cập nhật trạng thái nút thao tác khi checkbox thay đổi
-        $(document).on('change', '.checkbox-item', function() {
-            updateActionButtons();
+        // Xử lý xác nhận xóa vĩnh viễn nhiều mục
+        $('#confirm-permanent-delete-multiple').on('click', function() {
+            // Lấy đường dẫn hiện tại cho return_url
+            const pathAndQuery = window.location.pathname + window.location.search;
             
-            // Nếu bỏ chọn một item, bỏ chọn select-all
-            if (!$(this).prop('checked')) {
-                $('#select-all').prop('checked', false);
-            }
+            // Xóa các input cũ
+            $('#form-permanent-delete-multiple').empty();
             
-            // Nếu chọn tất cả items, chọn select-all
-            if ($('.checkbox-item:checked').length === $('.checkbox-item').length && $('.checkbox-item').length > 0) {
-                $('#select-all').prop('checked', true);
-            }
-        });
-        
-        // Hàm cập nhật trạng thái các nút thao tác
-        function updateActionButtons() {
-            const hasChecked = $('.checkbox-item:checked').length > 0;
-            // Kiểm tra xem đang ở trang chính hay trang thùng rác
-            if (isListDeletedPage) {
-                // Trang thùng rác
-                $('#restore-selected, #delete-permanent-multiple').prop('disabled', !hasChecked);
-            } else {
-                // Trang chính
-                $('#delete-selected-multiple, #status-selected-multiple, #status-selected').prop('disabled', !hasChecked);
-            }
-        }
-        
-        // Khởi tạo trạng thái nút khi trang load
-        updateActionButtons();
-        
-        // Xuất dữ liệu Excel
-        $('#export-excel').on('click', function(e) {
-            e.preventDefault();
+            // Thêm CSRF token
+            $('<input>').attr({
+                type: 'hidden',
+                name: '<?= csrf_token() ?>',
+                value: '<?= csrf_hash() ?>'
+            }).appendTo('#form-permanent-delete-multiple');
             
-            // Lấy URL hiện tại và các tham số query string
-            const currentUrl = new URL(window.location.href);
-            const queryParams = currentUrl.searchParams;
+            // Thêm input return_url
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'return_url',
+                value: pathAndQuery
+            }).appendTo('#form-permanent-delete-multiple');
             
-            // Xác định loại export dựa trên URL hiện tại
-            let exportUrl = '';
-            if (isListDeletedPage) {
-                exportUrl = '<?= site_url($module_name . "/exportDeletedExcel") ?>';
-            } else {
-                exportUrl = '<?= site_url($module_name . "/exportExcel") ?>';
-            }
-            
-            const params = [];
-            
-            // Thêm các tham số cần thiết
-            if (queryParams.has('keyword')) {
-                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
-            }
-            if (queryParams.has('status')) {
-                params.push('status=' + encodeURIComponent(queryParams.get('status')));
-            }
-            if (queryParams.has('phuong_thuc_diem_danh')) {
-                params.push('phuong_thuc_diem_danh=' + encodeURIComponent(queryParams.get('phuong_thuc_diem_danh')));
-            }
-            
-            // Thêm các tham số vào URL
-            if (params.length > 0) {
-                exportUrl += '?' + params.join('&');
-            }
-            
-            // Chuyển hướng đến URL xuất Excel
-            window.location.href = exportUrl;
-        });
-        
-        // Xuất PDF
-        $('#export-pdf').on('click', function(e) {
-            e.preventDefault();
-            
-            // Lấy URL hiện tại và các tham số query string
-            const currentUrl = new URL(window.location.href);
-            const queryParams = currentUrl.searchParams;
-            
-            // Xác định loại export dựa trên URL hiện tại
-            let exportUrl = '';
-            if (isListDeletedPage) {
-                exportUrl = '<?= site_url($module_name . "/exportDeletedPdf") ?>';
-            } else {
-                exportUrl = '<?= site_url($module_name . "/exportPdf") ?>';
-            }
-            
-            const params = [];
-            
-            // Thêm các tham số cần thiết
-            if (queryParams.has('keyword')) {
-                params.push('keyword=' + encodeURIComponent(queryParams.get('keyword')));
-            }
-            if (queryParams.has('status')) {
-                params.push('status=' + encodeURIComponent(queryParams.get('status')));
-            }
-            if (queryParams.has('phuong_thuc_diem_danh')) {
-                params.push('phuong_thuc_diem_danh=' + encodeURIComponent(queryParams.get('phuong_thuc_diem_danh')));
-            }
-            
-            // Thêm các tham số vào URL
-            if (params.length > 0) {
-                exportUrl += '?' + params.join('&');
-            }
-            
-            // Chuyển hướng đến URL xuất PDF
-            window.location.href = exportUrl;
-        });
-
-        // Xử lý khi thay đổi số lượng bản ghi trên mỗi trang
-        $('#perPageSelect').on('change', function() {
-            const perPage = $(this).val();
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            // Giữ lại tất cả các tham số cần thiết
-            const paramsToKeep = ['keyword', 'status', 'phuong_thuc_diem_danh'];
-            
-            // Tạo URL mới với tham số perPage và reset về trang 1
-            const newParams = new URLSearchParams();
-            newParams.set('perPage', perPage);
-            newParams.set('page', 1); // Reset về trang 1 khi thay đổi số bản ghi/trang
-            
-            // Giữ lại các tham số quan trọng
-            paramsToKeep.forEach(param => {
-                if (urlParams.has(param)) {
-                    // Đặc biệt xử lý status=0
-                    if (param === 'status' && urlParams.get(param) === '0') {
-                        newParams.set(param, '0');
-                    } 
-                    // Chỉ giữ lại tham số có giá trị
-                    else if (urlParams.get(param)) {
-                        newParams.set(param, urlParams.get(param));
-                    }
-                }
+            // Thêm các ID đã chọn vào form
+            $('.checkbox-item:checked').each(function() {
+                const input = $('<input>').attr({
+                    type: 'hidden',
+                    name: 'selected_ids[]',
+                    value: $(this).val()
+                });
+                $('#form-permanent-delete-multiple').append(input);
             });
             
-            // Chuyển hướng đến URL mới
-            window.location.href = window.location.pathname + '?' + newParams.toString();
+            // Log dữ liệu form trước khi submit để debug
+            console.log('Form permanent delete data before submit:', $('#form-permanent-delete-multiple').serialize());
+            
+            // Submit form
+            $('#form-permanent-delete-multiple').submit();
+            
+            // Đóng modal
+            $('#permanentDeleteMultipleModal').modal('hide');
         });
     });
     </script>

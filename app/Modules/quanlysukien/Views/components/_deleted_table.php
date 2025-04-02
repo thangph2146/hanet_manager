@@ -1,9 +1,9 @@
 <?php
 /**
- * Component hiển thị bảng dữ liệu sự kiện
+ * Component hiển thị bảng dữ liệu sự kiện đã xóa
  * 
  * Các biến cần truyền vào:
- * @var array $processedData Dữ liệu sự kiện
+ * @var array $processedData Dữ liệu sự kiện đã xóa
  * @var string $module_name Tên module
  */
 
@@ -23,12 +23,13 @@ $loaiSuKienList = $loaiSuKienModel->getForDropdown(false);
                         </div>
                     </th>
                     <th width="5%" class="align-middle">ID</th>
-                    <th width="20%" class="align-middle">Tên sự kiện</th>
-                    <th width="15%" class="align-middle">Thời gian</th>
-                    <th width="15%" class="align-middle">Địa điểm</th>
-                    <th width="15%" class="align-middle">Loại sự kiện</th>
+                    <th width="15%" class="align-middle">Tên sự kiện</th>
+                    <th width="10%" class="align-middle">Thời gian</th>
+                    <th width="10%" class="align-middle">Địa điểm</th>
+                    <th width="10%" class="align-middle">Loại sự kiện</th>
                     <th width="10%" class="text-center align-middle">Hình thức</th>
                     <th width="5%" class="text-center align-middle">Trạng thái</th>
+                    <th width="10%" class="text-center align-middle">Ngày xóa</th>
                     <th width="10%" class="text-center align-middle">Thao tác</th>
                 </tr>
             </thead>
@@ -69,20 +70,21 @@ $loaiSuKienList = $loaiSuKienModel->getForDropdown(false);
                                     <span class="badge bg-danger">Vô hiệu</span>
                                 <?php endif; ?>
                             </td>
+                            <td class="text-center">
+                                <?= $item->getDeletedAtFormatted() ?>
+                            </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                    <a href="<?= site_url($module_name . "/detail/{$item->su_kien_id}") ?>" 
-                                       class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
-                                        <i class="bx bx-info-circle text-white"></i>
-                                    </a>
-                                    <a href="<?= site_url($module_name . "/edit/{$item->su_kien_id}") ?>" 
-                                       class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Sửa">
-                                        <i class="bx bx-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm btn-delete" 
+                                    <button type="button" class="btn btn-success btn-sm btn-restore" 
                                             data-id="<?= $item->su_kien_id ?>" 
                                             data-name="<?= esc($item->ten_su_kien) ?>"
-                                            data-bs-toggle="tooltip" title="Xóa">
+                                            data-bs-toggle="tooltip" title="Khôi phục">
+                                        <i class="bx bx-revision"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm btn-permanent-delete" 
+                                            data-id="<?= $item->su_kien_id ?>" 
+                                            data-name="<?= esc($item->ten_su_kien) ?>"
+                                            data-bs-toggle="tooltip" title="Xóa vĩnh viễn">
                                         <i class="bx bx-trash"></i>
                                     </button>
                                 </div>
@@ -91,10 +93,10 @@ $loaiSuKienList = $loaiSuKienModel->getForDropdown(false);
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="9" class="text-center py-3">
+                        <td colspan="10" class="text-center py-3">
                             <div class="empty-state">
                                 <i class="bx bx-folder-open"></i>
-                                <p>Không có dữ liệu sự kiện</p>
+                                <p>Không có dữ liệu sự kiện đã xóa</p>
                             </div>
                         </td>
                     </tr>

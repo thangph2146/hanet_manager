@@ -541,7 +541,6 @@ class LoaiSuKienModel extends BaseModel
         }
         
         $builder->where('deleted_at IS NULL');
-        $builder->orderBy('thu_tu', 'ASC');
         $builder->orderBy('ten_loai_su_kien', 'ASC');
         
         $result = $builder->get()->getResult();

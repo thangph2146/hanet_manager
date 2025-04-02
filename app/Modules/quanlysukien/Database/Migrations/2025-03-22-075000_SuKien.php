@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\sukien\Database\Migrations;
+namespace App\Modules\quanlysukien\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 

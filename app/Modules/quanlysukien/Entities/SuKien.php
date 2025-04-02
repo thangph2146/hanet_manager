@@ -4,6 +4,9 @@ namespace App\Modules\quanlysukien\Entities;
 
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
+use App\Modules\quanlyloaisukien\Entities\LoaiSuKien;
+use App\Modules\dangkysukien\Entities\DangKySuKien;
+use App\Modules\checkinsukien\Entities\CheckInSuKien;
 
 class SuKien extends BaseEntity
 {
@@ -11,154 +14,108 @@ class SuKien extends BaseEntity
     protected $primaryKey = 'su_kien_id';
     
     protected $dates = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
         'thoi_gian_bat_dau',
         'thoi_gian_ket_thuc',
         'bat_dau_dang_ky',
         'ket_thuc_dang_ky',
         'han_huy_dang_ky',
         'gio_bat_dau',
-        'gio_ket_thuc',
-        'created_at',
-        'updated_at',
-        'deleted_at'
+        'gio_ket_thuc'
     ];
     
     protected $casts = [
         'su_kien_id' => 'int',
+        'ten_su_kien' => 'string',
+        'mo_ta' => 'string',
+        'mo_ta_su_kien' => 'string',
+        'chi_tiet_su_kien' => 'string',
+        'dia_diem' => 'string',
+        'dia_chi_cu_the' => 'string',
+        'toa_do_gps' => 'string',
         'loai_su_kien_id' => 'int',
-        'su_kien_poster' => 'json',
-        'status' => 'boolean',
+        'ma_qr_code' => 'string',
+        'status' => 'int',
         'tong_dang_ky' => 'int',
         'tong_check_in' => 'int',
         'tong_check_out' => 'int',
-        'cho_phep_check_in' => 'boolean',
-        'cho_phep_check_out' => 'boolean',
-        'yeu_cau_face_id' => 'boolean',
-        'cho_phep_checkin_thu_cong' => 'boolean',
+        'cho_phep_check_in' => 'bool',
+        'cho_phep_check_out' => 'bool',
+        'yeu_cau_face_id' => 'bool',
+        'cho_phep_checkin_thu_cong' => 'bool',
         'so_luong_tham_gia' => 'int',
         'so_luong_dien_gia' => 'int',
+        'gioi_han_loai_nguoi_dung' => 'string',
+        'tu_khoa_su_kien' => 'string',
+        'hashtag' => 'string',
+        'slug' => 'string',
         'so_luot_xem' => 'int',
-        'lich_trinh' => 'json',
+        'hinh_thuc' => 'string',
+        'link_online' => 'string',
+        'mat_khau_online' => 'string',
         'version' => 'int',
         'created_at' => 'timestamp',
         'updated_at' => 'timestamp',
         'deleted_at' => 'timestamp'
     ];
     
-    // Định nghĩa các ràng buộc unique
-    protected $uniqueKeys = [
-        'uk_sukien_slug' => ['slug']
+    protected $jsonFields = [
+        'su_kien_poster',
+        'lich_trinh'
     ];
     
-    // Các quy tắc xác thực
+    // Quy tắc xác thực cho SuKien
     protected $validationRules = [
         'ten_su_kien' => [
-            'rules' => 'required|max_length[255]',
+            'rules' => 'required|string|max_length[255]',
             'label' => 'Tên sự kiện'
         ],
         'thoi_gian_bat_dau' => [
-            'rules' => 'required|valid_date',
+            'rules' => 'required',
             'label' => 'Thời gian bắt đầu'
         ],
         'thoi_gian_ket_thuc' => [
-            'rules' => 'required|valid_date',
+            'rules' => 'required',
             'label' => 'Thời gian kết thúc'
         ],
         'loai_su_kien_id' => [
-            'rules' => 'required|integer|is_not_unique[loai_su_kien.loai_su_kien_id]',
+            'rules' => 'required|integer',
             'label' => 'Loại sự kiện'
         ],
-        'dia_diem' => [
-            'rules' => 'permit_empty|max_length[255]',
-            'label' => 'Địa điểm'
-        ],
-        'dia_chi_cu_the' => [
-            'rules' => 'permit_empty|max_length[255]',
-            'label' => 'Địa chỉ cụ thể'
-        ],
-        'toa_do_gps' => [
-            'rules' => 'permit_empty|max_length[100]',
-            'label' => 'Tọa độ GPS'
-        ],
-        'ma_qr_code' => [
-            'rules' => 'permit_empty|max_length[100]',
-            'label' => 'Mã QR code'
-        ],
         'status' => [
-            'rules' => 'permit_empty|in_list[0,1]',
+            'rules' => 'required|integer|in_list[0,1]',
             'label' => 'Trạng thái'
-        ],
-        'slug' => [
-            'rules' => 'permit_empty|alpha_dash|max_length[255]|is_unique[su_kien.slug,su_kien_id,{su_kien_id}]',
-            'label' => 'Slug'
-        ],
-        'hinh_thuc' => [
-            'rules' => 'permit_empty|in_list[offline,online,hybrid]',
-            'label' => 'Hình thức'
-        ],
-        'link_online' => [
-            'rules' => 'permit_empty|max_length[255]|valid_url_strict',
-            'label' => 'Link tham gia online'
-        ],
-        'mat_khau_online' => [
-            'rules' => 'permit_empty|max_length[100]',
-            'label' => 'Mật khẩu tham gia online'
         ]
     ];
     
     protected $validationMessages = [
         'ten_su_kien' => [
             'required' => '{field} là bắt buộc',
-            'max_length' => '{field} không được vượt quá 255 ký tự'
+            'string' => '{field} phải là chuỗi',
+            'max_length' => '{field} không được vượt quá {param} ký tự'
         ],
         'thoi_gian_bat_dau' => [
-            'required' => '{field} là bắt buộc',
-            'valid_date' => '{field} không hợp lệ'
+            'required' => '{field} là bắt buộc'
         ],
         'thoi_gian_ket_thuc' => [
-            'required' => '{field} là bắt buộc',
-            'valid_date' => '{field} không hợp lệ'
+            'required' => '{field} là bắt buộc'
         ],
         'loai_su_kien_id' => [
             'required' => '{field} là bắt buộc',
-            'integer' => '{field} phải là số nguyên',
-            'is_not_unique' => '{field} không tồn tại trong hệ thống'
-        ],
-        'dia_diem' => [
-            'max_length' => '{field} không được vượt quá 255 ký tự'
-        ],
-        'dia_chi_cu_the' => [
-            'max_length' => '{field} không được vượt quá 255 ký tự'
-        ],
-        'toa_do_gps' => [
-            'max_length' => '{field} không được vượt quá 100 ký tự'
-        ],
-        'ma_qr_code' => [
-            'max_length' => '{field} không được vượt quá 100 ký tự'
+            'integer' => '{field} phải là số nguyên'
         ],
         'status' => [
-            'in_list' => '{field} không hợp lệ'
-        ],
-        'slug' => [
-            'alpha_dash' => '{field} chỉ được chứa ký tự chữ cái, số, gạch ngang và gạch dưới',
-            'max_length' => '{field} không được vượt quá 255 ký tự',
-            'is_unique' => '{field} đã tồn tại'
-        ],
-        'hinh_thuc' => [
-            'in_list' => '{field} không hợp lệ'
-        ],
-        'link_online' => [
-            'max_length' => '{field} không được vượt quá 255 ký tự',
-            'valid_url_strict' => '{field} phải là URL hợp lệ'
-        ],
-        'mat_khau_online' => [
-            'max_length' => '{field} không được vượt quá 100 ký tự'
+            'required' => '{field} là bắt buộc',
+            'integer' => '{field} phải là số nguyên',
+            'in_list' => '{field} phải có giá trị hợp lệ'
         ]
     ];
-    
+
     /**
-     * Lấy ID sự kiện
-     * 
+     * Lấy ID
+     *
      * @return int
      */
     public function getId(): int
@@ -168,50 +125,35 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy tên sự kiện
-     * 
-     * @return string
+     *
+     * @return string|null
      */
-    public function getTenSuKien(): string
+    public function getTenSuKien(): ?string
     {
-        return $this->attributes['ten_su_kien'] ?? '';
+        return $this->attributes['ten_su_kien'] ?? null;
     }
-    
+
     /**
-     * Lấy giá trị poster sự kiện
-     * 
-     * @return array|object|string|null
+     * Lấy thông tin poster sự kiện
+     *
+     * @return array|null
      */
-    public function getSuKienPoster()
+    public function getSuKienPoster(): ?array
     {
-        $poster = $this->attributes['su_kien_poster'] ?? null;
-        
-        // Nếu là null hoặc chuỗi rỗng, trả về giá trị mặc định
-        if (empty($poster)) {
+        if (empty($this->attributes['su_kien_poster'])) {
             return null;
         }
         
-        // Nếu đã là mảng hoặc đối tượng, trả về luôn
-        if (is_array($poster) || is_object($poster)) {
-            return $poster;
+        if (is_string($this->attributes['su_kien_poster'])) {
+            return json_decode($this->attributes['su_kien_poster'], true);
         }
         
-        // Thử chuyển đổi từ JSON
-        if (is_string($poster)) {
-            $decoded = json_decode($poster);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                return $decoded;
-            }
-            
-            // Nếu không phải JSON, coi như đường dẫn file
-            return $poster;
-        }
-        
-        return $poster;
+        return $this->attributes['su_kien_poster'];
     }
     
     /**
      * Lấy mô tả ngắn
-     * 
+     *
      * @return string|null
      */
     public function getMoTa(): ?string
@@ -220,8 +162,8 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy mô tả chi tiết
-     * 
+     * Lấy mô tả sự kiện
+     *
      * @return string|null
      */
     public function getMoTaSuKien(): ?string
@@ -231,7 +173,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy chi tiết sự kiện
-     * 
+     *
      * @return string|null
      */
     public function getChiTietSuKien(): ?string
@@ -241,7 +183,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy thời gian bắt đầu
-     * 
+     *
      * @return Time|null
      */
     public function getThoiGianBatDau(): ?Time
@@ -257,7 +199,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy thời gian kết thúc
-     * 
+     *
      * @return Time|null
      */
     public function getThoiGianKetThuc(): ?Time
@@ -272,8 +214,8 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy địa điểm tổ chức sự kiện
-     * 
+     * Lấy địa điểm
+     *
      * @return string|null
      */
     public function getDiaDiem(): ?string
@@ -283,7 +225,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy địa chỉ cụ thể
-     * 
+     *
      * @return string|null
      */
     public function getDiaChiCuThe(): ?string
@@ -293,7 +235,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy tọa độ GPS
-     * 
+     *
      * @return string|null
      */
     public function getToaDoGPS(): ?string
@@ -302,8 +244,18 @@ class SuKien extends BaseEntity
     }
     
     /**
+     * Lấy mã sự kiện
+     *
+     * @return string|null
+     */
+    public function getMaSuKien(): ?string
+    {
+        return $this->attributes['ma_su_kien'] ?? null;
+    }
+    
+    /**
      * Lấy ID loại sự kiện
-     * 
+     *
      * @return int
      */
     public function getLoaiSuKienId(): int
@@ -313,7 +265,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy mã QR code
-     * 
+     *
      * @return string|null
      */
     public function getMaQRCode(): ?string
@@ -322,18 +274,18 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy trạng thái sự kiện
-     * 
-     * @return bool
+     * Lấy trạng thái
+     *
+     * @return int
      */
-    public function getStatus(): bool
+    public function getStatus(): int
     {
-        return (bool)($this->attributes['status'] ?? true);
+        return (int)($this->attributes['status'] ?? 0);
     }
     
     /**
-     * Lấy tổng số người đăng ký
-     * 
+     * Lấy tổng số đăng ký
+     *
      * @return int
      */
     public function getTongDangKy(): int
@@ -342,8 +294,8 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy tổng số người đã check-in
-     * 
+     * Lấy tổng số check-in
+     *
      * @return int
      */
     public function getTongCheckIn(): int
@@ -352,8 +304,8 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy tổng số người đã check-out
-     * 
+     * Lấy tổng số check-out
+     *
      * @return int
      */
     public function getTongCheckOut(): int
@@ -362,48 +314,48 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Kiểm tra cho phép check-in
-     * 
+     * Kiểm tra có cho phép check-in không
+     *
      * @return bool
      */
-    public function getChoPhepCheckIn(): bool
+    public function isAllowCheckIn(): bool
     {
-        return (bool)($this->attributes['cho_phep_check_in'] ?? true);
+        return (bool)($this->attributes['cho_phep_check_in'] ?? false);
     }
     
     /**
-     * Kiểm tra cho phép check-out
-     * 
+     * Kiểm tra có cho phép check-out không
+     *
      * @return bool
      */
-    public function getChoPhepCheckOut(): bool
+    public function isAllowCheckOut(): bool
     {
-        return (bool)($this->attributes['cho_phep_check_out'] ?? true);
+        return (bool)($this->attributes['cho_phep_check_out'] ?? false);
     }
     
     /**
-     * Kiểm tra yêu cầu xác thực khuôn mặt
-     * 
+     * Kiểm tra có yêu cầu face ID không
+     *
      * @return bool
      */
-    public function getYeuCauFaceId(): bool
+    public function isRequireFaceId(): bool
     {
         return (bool)($this->attributes['yeu_cau_face_id'] ?? false);
     }
     
     /**
-     * Kiểm tra cho phép check-in thủ công
-     * 
+     * Kiểm tra có cho phép check-in thủ công không
+     *
      * @return bool
      */
-    public function getChoPhepCheckinThuCong(): bool
+    public function isAllowManualCheckin(): bool
     {
-        return (bool)($this->attributes['cho_phep_checkin_thu_cong'] ?? true);
+        return (bool)($this->attributes['cho_phep_checkin_thu_cong'] ?? false);
     }
     
     /**
      * Lấy thời gian bắt đầu đăng ký
-     * 
+     *
      * @return Time|null
      */
     public function getBatDauDangKy(): ?Time
@@ -419,7 +371,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy thời gian kết thúc đăng ký
-     * 
+     *
      * @return Time|null
      */
     public function getKetThucDangKy(): ?Time
@@ -434,8 +386,8 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy hạn chót hủy đăng ký
-     * 
+     * Lấy hạn hủy đăng ký
+     *
      * @return Time|null
      */
     public function getHanHuyDangKy(): ?Time
@@ -450,40 +402,8 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy giờ bắt đầu
-     * 
-     * @return Time|null
-     */
-    public function getGioBatDau(): ?Time
-    {
-        if (empty($this->attributes['gio_bat_dau'])) {
-            return null;
-        }
-        
-        return $this->attributes['gio_bat_dau'] instanceof Time 
-            ? $this->attributes['gio_bat_dau'] 
-            : new Time($this->attributes['gio_bat_dau']);
-    }
-    
-    /**
-     * Lấy giờ kết thúc
-     * 
-     * @return Time|null
-     */
-    public function getGioKetThuc(): ?Time
-    {
-        if (empty($this->attributes['gio_ket_thuc'])) {
-            return null;
-        }
-        
-        return $this->attributes['gio_ket_thuc'] instanceof Time 
-            ? $this->attributes['gio_ket_thuc'] 
-            : new Time($this->attributes['gio_ket_thuc']);
-    }
-    
-    /**
      * Lấy số lượng tham gia
-     * 
+     *
      * @return int
      */
     public function getSoLuongThamGia(): int
@@ -493,7 +413,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy số lượng diễn giả
-     * 
+     *
      * @return int
      */
     public function getSoLuongDienGia(): int
@@ -503,7 +423,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy giới hạn loại người dùng
-     * 
+     *
      * @return string|null
      */
     public function getGioiHanLoaiNguoiDung(): ?string
@@ -513,7 +433,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy từ khóa sự kiện
-     * 
+     *
      * @return string|null
      */
     public function getTuKhoaSuKien(): ?string
@@ -523,7 +443,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy hashtag
-     * 
+     *
      * @return string|null
      */
     public function getHashtag(): ?string
@@ -533,7 +453,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy slug
-     * 
+     *
      * @return string|null
      */
     public function getSlug(): ?string
@@ -543,7 +463,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy số lượt xem
-     * 
+     *
      * @return int
      */
     public function getSoLuotXem(): int
@@ -552,69 +472,36 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy giá trị lịch trình
-     * 
+     * Lấy lịch trình
+     *
      * @return array|null
      */
-    public function getLichTrinh()
+    public function getLichTrinh(): ?array
     {
-        $lichTrinh = $this->attributes['lich_trinh'] ?? null;
-        
-        // Nếu là null hoặc chuỗi rỗng, trả về mảng rỗng
-        if (empty($lichTrinh)) {
-            return [];
+        if (empty($this->attributes['lich_trinh'])) {
+            return null;
         }
         
-        // Nếu đã là mảng, trả về luôn
-        if (is_array($lichTrinh)) {
-            return $lichTrinh;
+        if (is_string($this->attributes['lich_trinh'])) {
+            return json_decode($this->attributes['lich_trinh'], true);
         }
         
-        // Thử chuyển đổi từ JSON
-        if (is_string($lichTrinh)) {
-            $decoded = json_decode($lichTrinh, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                return $decoded;
-            }
-        }
-        
-        // Nếu không thể chuyển đổi, trả về mảng rỗng
-        return [];
+        return $this->attributes['lich_trinh'];
     }
     
     /**
      * Lấy hình thức sự kiện
-     * 
-     * @return string
+     *
+     * @return string|null
      */
-    public function getHinhThuc(): string
+    public function getHinhThuc(): ?string
     {
         return $this->attributes['hinh_thuc'] ?? 'offline';
     }
     
     /**
-     * Kiểm tra sự kiện có trực tuyến không
-     * 
-     * @return bool
-     */
-    public function isOnline(): bool
-    {
-        return in_array($this->getHinhThuc(), ['online', 'hybrid']);
-    }
-    
-    /**
-     * Kiểm tra sự kiện có trực tiếp không
-     * 
-     * @return bool
-     */
-    public function isOffline(): bool
-    {
-        return in_array($this->getHinhThuc(), ['offline', 'hybrid']);
-    }
-    
-    /**
      * Lấy link tham gia online
-     * 
+     *
      * @return string|null
      */
     public function getLinkOnline(): ?string
@@ -624,7 +511,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy mật khẩu tham gia online
-     * 
+     *
      * @return string|null
      */
     public function getMatKhauOnline(): ?string
@@ -633,18 +520,8 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy phiên bản
-     * 
-     * @return int
-     */
-    public function getVersion(): int
-    {
-        return (int)($this->attributes['version'] ?? 1);
-    }
-    
-    /**
      * Lấy ngày tạo
-     * 
+     *
      * @return Time|null
      */
     public function getCreatedAt(): ?Time
@@ -660,7 +537,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy ngày cập nhật
-     * 
+     *
      * @return Time|null
      */
     public function getUpdatedAt(): ?Time
@@ -676,7 +553,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy ngày xóa
-     * 
+     *
      * @return Time|null
      */
     public function getDeletedAt(): ?Time
@@ -691,8 +568,8 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Kiểm tra xem sự kiện đã bị xóa chưa
-     * 
+     * Kiểm tra xem bản ghi đã bị xóa chưa
+     *
      * @return bool
      */
     public function isDeleted(): bool
@@ -701,32 +578,99 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy định dạng thời gian bắt đầu
-     * 
-     * @param string $format Định dạng thời gian
-     * @return string|null
+     * Lấy trạng thái dưới dạng văn bản
+     *
+     * @return string
      */
-    public function getThoiGianBatDauFormatted(string $format = 'd/m/Y H:i'): ?string
+    public function getStatusText(): string
     {
-        $time = $this->getThoiGianBatDau();
-        return $time ? $time->format($format) : null;
+        return (int)($this->attributes['status'] ?? 0) === 1 ? 'Hoạt động' : 'Không hoạt động';
     }
     
     /**
-     * Lấy định dạng thời gian kết thúc
-     * 
-     * @param string $format Định dạng thời gian
-     * @return string|null
+     * Lấy HTML hiển thị trạng thái
+     *
+     * @return string
      */
-    public function getThoiGianKetThucFormatted(string $format = 'd/m/Y H:i'): ?string
+    public function getStatusHtml(): string
     {
-        $time = $this->getThoiGianKetThuc();
-        return $time ? $time->format($format) : null;
+        if ((int)($this->attributes['status'] ?? 0) === 1) {
+            return '<span class="badge badge-success">Hoạt động</span>';
+        }
+        return '<span class="badge badge-danger">Không hoạt động</span>';
+    }
+    
+    /**
+     * Lấy ngày tạo dưới dạng định dạng chuỗi
+     *
+     * @param string $format Định dạng ngày
+     * @return string
+     */
+    public function getCreatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    {
+        $createdAt = $this->getCreatedAt();
+        if (empty($createdAt)) {
+            return '';
+        }
+        
+        return $createdAt->format($format);
+    }
+    
+    /**
+     * Lấy ngày cập nhật dưới dạng định dạng chuỗi
+     *
+     * @param string $format Định dạng ngày
+     * @return string
+     */
+    public function getUpdatedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    {
+        $updatedAt = $this->getUpdatedAt();
+        if (empty($updatedAt)) {
+            return '';
+        }
+        
+        return $updatedAt->format($format);
+    }
+    
+    /**
+     * Lấy ngày xóa dưới dạng định dạng chuỗi
+     *
+     * @param string $format Định dạng ngày
+     * @return string
+     */
+    public function getDeletedAtFormatted(string $format = 'd/m/Y H:i:s'): string
+    {
+        $deletedAt = $this->getDeletedAt();
+        if (empty($deletedAt)) {
+            return '';
+        }
+        
+        return $deletedAt->format($format);
+    }
+    
+    /**
+     * Lấy tên trường chính
+     *
+     * @return string
+     */
+    public function getPrimaryKeyField(): string
+    {
+        return $this->primaryKey;
+    }
+    
+    /**
+     * Lấy tên bảng
+     *
+     * @return string
+     */
+    public function getTableName(): string
+    {
+        return $this->tableName;
     }
     
     /**
      * Lấy các quy tắc xác thực
-     * 
+     *
      * @return array
      */
     public function getValidationRules(): array
@@ -736,7 +680,7 @@ class SuKien extends BaseEntity
     
     /**
      * Lấy các thông báo xác thực
-     * 
+     *
      * @return array
      */
     public function getValidationMessages(): array
@@ -745,68 +689,122 @@ class SuKien extends BaseEntity
     }
     
     /**
-     * Lấy tên hiển thị của hình thức sự kiện
-     * 
+     * Lấy thông tin loại sự kiện
+     *
+     * @return LoaiSuKien|null
+     */
+    public function getLoaiSuKien(): ?LoaiSuKien
+    {
+        $loaiSuKienModel = model('App\Modules\quanlyloaisukien\Models\LoaiSuKienModel');
+        return $loaiSuKienModel->find($this->getLoaiSuKienId());
+    }
+    
+    /**
+     * Lấy thời gian bắt đầu dưới dạng định dạng chuỗi
+     *
+     * @param string $format Định dạng ngày
      * @return string
      */
-    public function getHinhThucText(): string
+    public function getThoiGianBatDauFormatted(string $format = 'd/m/Y H:i:s'): string
     {
-        $hinhThucMap = [
-            'offline' => 'Trực tiếp',
-            'online' => 'Trực tuyến',
-            'hybrid' => 'Kết hợp'
-        ];
+        $thoiGianBatDau = $this->getThoiGianBatDau();
+        if (empty($thoiGianBatDau)) {
+            return '';
+        }
         
-        return $hinhThucMap[$this->getHinhThuc()] ?? 'Trực tiếp';
+        return $thoiGianBatDau->format($format);
     }
     
     /**
-     * Lấy trạng thái hiển thị
-     * 
+     * Lấy thời gian kết thúc dưới dạng định dạng chuỗi
+     *
+     * @param string $format Định dạng ngày
      * @return string
      */
-    public function getStatusText(): string
+    public function getThoiGianKetThucFormatted(string $format = 'd/m/Y H:i:s'): string
     {
-        return $this->getStatus() ? 'Hoạt động' : 'Không hoạt động';
+        $thoiGianKetThuc = $this->getThoiGianKetThuc();
+        if (empty($thoiGianKetThuc)) {
+            return '';
+        }
+        
+        return $thoiGianKetThuc->format($format);
     }
+
+    /**
+     * Lấy URL chỉnh sửa
+     *
+     * @return string
+     */
+    public function getEditUrl(): string
+    {
+        return site_url('quanlysukien/edit/' . $this->getId());
+    }
+
+    /**
+     * Lấy URL xem chi tiết
+     *
+     * @return string
+     */
+    public function getDetailUrl(): string
+    {
+        return site_url('quanlysukien/view/' . $this->getId());
+    }
+
+    /**
+     * Lấy URL xóa
+     *
+     * @return string
+     */
+    public function getDeleteUrl(): string
+    {
+        return site_url('quanlysukien/delete/' . $this->getId());
+    }
+
+    /**
+     * Lấy URL khôi phục
+     *
+     * @return string
+     */
+    public function getRestoreUrl(): string
+    {
+        return site_url('quanlysukien/restore/' . $this->getId());
+    }
+
+    /**
+     * Lấy URL xóa vĩnh viễn
+     *
+     * @return string
+     */
+    public function getPermanentDeleteUrl(): string
+    {
+        return site_url('quanlysukien/permanentDelete/' . $this->getId());
+    }
+
+   
     
     /**
-     * Kiểm tra sự kiện có đang diễn ra
+     * Lấy tên loại sự kiện dựa trên ID loại sự kiện
      * 
-     * @return bool
+     * @return string|null
      */
-    public function isOngoing(): bool
+    public function getTenLoaiSuKien(): ?string
     {
-        $now = Time::now();
-        $start = $this->getThoiGianBatDau();
-        $end = $this->getThoiGianKetThuc();
+        if (empty($this->attributes['loai_su_kien_id'])) {
+            return null;
+        }
         
-        return $start && $end && $now->isAfter($start) && $now->isBefore($end);
-    }
-    
-    /**
-     * Kiểm tra sự kiện sắp diễn ra
-     * 
-     * @return bool
-     */
-    public function isUpcoming(): bool
-    {
-        $now = Time::now();
-        $start = $this->getThoiGianBatDau();
+        try {
+            $loaiSuKienModel = model('App\Modules\quanlyloaisukien\Models\LoaiSuKienModel');
+            $loaiSuKien = $loaiSuKienModel->find($this->attributes['loai_su_kien_id']);
+            
+            if ($loaiSuKien) {
+                return $loaiSuKien->getTenLoaiSuKien();
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi khi lấy tên loại sự kiện: ' . $e->getMessage());
+        }
         
-        return $start && $now->isBefore($start);
-    }
-    
-    /**
-     * Kiểm tra sự kiện đã kết thúc
-     * 
-     * @return bool
-     */
-    public function isEnded(): bool
-    {
-        $now = Time::now();
-        $end = $this->getThoiGianKetThuc();
-        
-        return $end && $now->isAfter($end);
+        return null;
     }
 } 
