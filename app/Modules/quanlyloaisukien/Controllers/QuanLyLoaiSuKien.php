@@ -311,7 +311,7 @@ class QuanLyLoaiSuKien extends BaseController
     public function detail($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID check-out sự kiện không hợp lệ', true);
+            $this->alert->set('danger', 'ID loại sự kiện không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -322,7 +322,7 @@ class QuanLyLoaiSuKien extends BaseController
         $data = $this->model->find($id);
         
         if (empty($data)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu check-out sự kiện', true);
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu loại sự kiện', true);
             return redirect()->to($this->moduleUrl);
         }
         
