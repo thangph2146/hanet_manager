@@ -23,6 +23,10 @@ class LoaiSuKien extends Migration
                 'constraint' => 20,
                 'null' => true
             ],
+            'mo_ta' => [
+                'type' => 'TEXT',
+                'null' => true
+            ],
             'status' => [
                 'type' => 'TINYINT',
                 'constraint' => 1,

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\quanlyloaisukien\Controllers;
+namespace App\Modules\quanlydangkysukien\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\quanlyloaisukien\Models\LoaiSuKienModel;
+use App\Modules\quanlydangkysukien\Models\DangKySuKienModel;
 use App\Libraries\Breadcrumb;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
@@ -20,7 +20,7 @@ use CodeIgniter\I18n\Time;
 use App\Modules\quanlyloaisukien\Traits\ExportTrait;
 use App\Modules\quanlyloaisukien\Traits\RelationTrait;
 
-class QuanLyLoaiSuKien extends BaseController
+class QuanLyDangKySuKien extends BaseController
 {
     use ResponseTrait;
     use ExportTrait;
@@ -32,8 +32,8 @@ class QuanLyLoaiSuKien extends BaseController
     protected $moduleUrl;
     protected $title;
     protected $title_home;
-    protected $module_name = 'quanlyloaisukien';
-    protected $controller_name = 'QuanLyLoaiSuKien';
+    protected $module_name = 'quanlydangkysukien';
+    protected $controller_name = 'QuanLyDangKySuKien';
     protected $masterScript;
     
     public function __construct()
@@ -42,14 +42,14 @@ class QuanLyLoaiSuKien extends BaseController
         $this->session = service('session');
 
         // Khởi tạo các thành phần cần thiết
-        $this->model = new LoaiSuKienModel();
+        $this->model = new DangKySuKienModel();
         $this->breadcrumb = new Breadcrumb();
         $this->alert = new Alert();
         
         // Thông tin module
         $this->moduleUrl = base_url($this->module_name);
-        $this->title = 'Loại sự kiện';
-        $this->title_home = 'Danh sách loại sự kiện';
+        $this->title = 'Đăng ký sự kiện';
+        $this->title_home = 'Danh sách đăng ký sự kiện';
         
         // Khởi tạo thư viện MasterScript với module_name
         $masterScriptClass = "\App\Modules\\" . $this->module_name . '\Libraries\MasterScript';

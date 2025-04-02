@@ -14,6 +14,7 @@ class LoaiSuKienSeeder extends Seeder
             [
                 'ten_loai_su_kien' => 'Hội thảo',
                 'ma_loai_su_kien' => 'HT',
+                'mo_ta' => 'Hội thảo',
                 'status' => 1,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
@@ -22,6 +23,7 @@ class LoaiSuKienSeeder extends Seeder
             [
                 'ten_loai_su_kien' => 'Hội nghị',
                 'ma_loai_su_kien' => 'HN',
+                'mo_ta' => 'Hội nghị',
                 'status' => 1,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
@@ -30,6 +32,7 @@ class LoaiSuKienSeeder extends Seeder
             [
                 'ten_loai_su_kien' => 'Workshop',
                 'ma_loai_su_kien' => 'WS',
+                'mo_ta' => 'Workshop',
                 'status' => 1,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
@@ -38,6 +41,7 @@ class LoaiSuKienSeeder extends Seeder
             [
                 'ten_loai_su_kien' => 'Seminar',
                 'ma_loai_su_kien' => 'SM',
+                'mo_ta' => 'Seminar',
                 'status' => 1,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),
@@ -46,6 +50,7 @@ class LoaiSuKienSeeder extends Seeder
             [
                 'ten_loai_su_kien' => 'Tọa đàm',
                 'ma_loai_su_kien' => 'TD',
+                'mo_ta' => 'Tọa đàm',
                 'status' => 1,
                 'created_at' => Time::now()->toDateTimeString(),
                 'updated_at' => Time::now()->toDateTimeString(),

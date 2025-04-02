@@ -23,6 +23,8 @@ class LoaiSuKien extends BaseEntity
         'loai_su_kien_id' => 'int',
         'ten_loai_su_kien' => 'string',
         'ma_loai_su_kien' => 'string',
+        'mo_ta' => 'string',
+        'thu_tu' => 'int',
         'status' => 'int',
         'created_at' => 'timestamp',
         'updated_at' => 'timestamp',
@@ -41,6 +43,14 @@ class LoaiSuKien extends BaseEntity
             'rules' => 'required|string|max_length[20]',
             'label' => 'Mã loại sự kiện'
         ],
+        'mo_ta' => [
+            'rules' => 'permit_empty|string',
+            'label' => 'Mô tả'
+        ],
+        'thu_tu' => [
+            'rules' => 'permit_empty|integer',
+            'label' => 'Thứ tự'
+        ],
         'status' => [
             'rules' => 'required|integer|in_list[0,1]',
             'label' => 'Trạng thái'
@@ -57,6 +67,12 @@ class LoaiSuKien extends BaseEntity
             'required' => '{field} là bắt buộc',
             'string' => '{field} phải là chuỗi',
             'max_length' => '{field} không được vượt quá {param} ký tự'
+        ],
+        'mo_ta' => [
+            'string' => '{field} phải là chuỗi'
+        ],
+        'thu_tu' => [
+            'integer' => '{field} phải là số nguyên'
         ],
         'status' => [
             'required' => '{field} là bắt buộc',
@@ -93,6 +109,26 @@ class LoaiSuKien extends BaseEntity
     public function getMaLoaiSuKien(): ?string
     {
         return $this->attributes['ma_loai_su_kien'] ?? null;
+    }
+    
+    /**
+     * Lấy mô tả loại sự kiện
+     *
+     * @return string|null
+     */
+    public function getMoTa(): ?string
+    {
+        return $this->attributes['mo_ta'] ?? null;
+    }
+
+    /**
+     * Lấy thứ tự hiển thị
+     *
+     * @return int
+     */
+    public function getThuTu(): int
+    {
+        return (int)($this->attributes['thu_tu'] ?? 0);
     }
     
     /**
@@ -272,5 +308,77 @@ class LoaiSuKien extends BaseEntity
     public function getValidationMessages(): array
     {
         return $this->validationMessages;
+    }
+
+    /**
+     * Lấy danh sách sự kiện thuộc loại này
+     *
+     * @return array
+     */
+    public function getSuKien(): array
+    {
+        $suKienModel = model('App\Modules\quanlysukien\Models\SuKienModel');
+        return $suKienModel->where('loai_su_kien_id', $this->getId())->findAll();
+    }
+
+    /**
+     * Đếm số lượng sự kiện thuộc loại này
+     *
+     * @return int
+     */
+    public function countSuKien(): int
+    {
+        $suKienModel = model('App\Modules\quanlysukien\Models\SuKienModel');
+        return $suKienModel->where('loai_su_kien_id', $this->getId())->countAllResults();
+    }
+
+    /**
+     * Lấy URL chỉnh sửa
+     *
+     * @return string
+     */
+    public function getEditUrl(): string
+    {
+        return site_url('quanlyloaisukien/edit/' . $this->getId());
+    }
+
+    /**
+     * Lấy URL xem chi tiết
+     *
+     * @return string
+     */
+    public function getDetailUrl(): string
+    {
+        return site_url('quanlyloaisukien/detail/' . $this->getId());
+    }
+
+    /**
+     * Lấy URL xóa
+     *
+     * @return string
+     */
+    public function getDeleteUrl(): string
+    {
+        return site_url('quanlyloaisukien/delete/' . $this->getId());
+    }
+
+    /**
+     * Lấy URL khôi phục
+     *
+     * @return string
+     */
+    public function getRestoreUrl(): string
+    {
+        return site_url('quanlyloaisukien/restore/' . $this->getId());
+    }
+
+    /**
+     * Lấy URL xóa vĩnh viễn
+     *
+     * @return string
+     */
+    public function getPermanentDeleteUrl(): string
+    {
+        return site_url('quanlyloaisukien/permanentDelete/' . $this->getId());
     }
 }

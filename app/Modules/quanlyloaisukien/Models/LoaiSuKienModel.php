@@ -25,6 +25,8 @@ class LoaiSuKienModel extends BaseModel
     protected $allowedFields = [
         'ten_loai_su_kien',
         'ma_loai_su_kien',
+        'mo_ta',
+        'thu_tu',
         'status',
         'created_at',
         'updated_at',
@@ -37,6 +39,7 @@ class LoaiSuKienModel extends BaseModel
     protected $searchableFields = [
         'ten_loai_su_kien',
         'ma_loai_su_kien',
+        'mo_ta',
         'status',
     ];
     
@@ -327,25 +330,7 @@ class LoaiSuKienModel extends BaseModel
     {
         return $this->pager;
     }
-    public function searchDeleted($keyword)
-    {
-        $builder = $this->builder();
-        $builder->select('*');
-        $builder->where('deleted_at IS NOT NULL');
 
-        // Ensure $keyword is a string and apply the LIKE condition
-        if (is_string($keyword) && !empty($keyword)) {
-            $builder->groupStart()
-                    ->like('ten_loai_su_kien', $keyword)
-                    ->orLike('ma_loai_su_kien', $keyword)
-                    ->groupEnd();
-        }
-
-        $builder->orderBy('ten_loai_su_kien', 'ASC');
-        $result = $builder->get()->getResult();
-        return $result;
-    }
-    
     /**
      * Lấy tất cả bản ghi đã xóa
      *
@@ -489,5 +474,133 @@ class LoaiSuKienModel extends BaseModel
         }
         
         return $randomString;
+    }
+
+    /**
+     * Tìm kiếm bản ghi đã xóa
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @param array $options Tùy chọn
+     * @return array
+     */
+    public function searchDeleted($criteria = [], $options = [])
+    {
+        $builder = $this->builder();
+        $builder->select('*');
+        
+        // Chỉ lấy bản ghi đã xóa
+        $builder->where('deleted_at IS NOT NULL');
+        
+        // Áp dụng điều kiện tìm kiếm
+        if (!empty($criteria['keyword'])) {
+            $builder->groupStart()
+                    ->like('ten_loai_su_kien', $criteria['keyword'])
+                    ->orLike('ma_loai_su_kien', $criteria['keyword'])
+                    ->orLike('mo_ta', $criteria['keyword'])
+                    ->groupEnd();
+        }
+        
+        if (isset($criteria['status']) && $criteria['status'] !== '') {
+            $builder->where('status', $criteria['status']);
+        }
+        
+        // Sắp xếp
+        $sort = $options['sort'] ?? 'ten_loai_su_kien';
+        $order = $options['order'] ?? 'ASC';
+        $builder->orderBy($sort, $order);
+        
+        // Phân trang
+        if (!empty($options['limit'])) {
+            $builder->limit($options['limit'], $options['offset'] ?? 0);
+        }
+        
+        return $builder->get()->getResult($this->returnType);
+    }
+
+    /**
+     * Cập nhật thứ tự hiển thị
+     *
+     * @param int $id ID bản ghi
+     * @param int $thuTu Thứ tự mới
+     * @return bool
+     */
+    public function updateThuTu($id, $thuTu)
+    {
+        return $this->update($id, ['thu_tu' => $thuTu]);
+    }
+
+    /**
+     * Lấy danh sách loại sự kiện cho dropdown
+     *
+     * @param bool $activeOnly Chỉ lấy loại sự kiện đang hoạt động
+     * @return array
+     */
+    public function getForDropdown($activeOnly = true)
+    {
+        $builder = $this->builder();
+        $builder->select('loai_su_kien_id, ten_loai_su_kien');
+        
+        if ($activeOnly) {
+            $builder->where('status', 1);
+        }
+        
+        $builder->where('deleted_at IS NULL');
+        $builder->orderBy('thu_tu', 'ASC');
+        $builder->orderBy('ten_loai_su_kien', 'ASC');
+        
+        $result = $builder->get()->getResult();
+        
+        $dropdown = [];
+        foreach ($result as $row) {
+            $dropdown[$row->loai_su_kien_id] = $row->ten_loai_su_kien;
+        }
+        
+        return $dropdown;
+    }
+
+    /**
+     * Kiểm tra xem mã loại sự kiện đã tồn tại chưa
+     *
+     * @param string $maLoaiSuKien Mã loại sự kiện
+     * @param int|null $excludeId ID loại sự kiện cần loại trừ
+     * @return bool
+     */
+    public function isMaLoaiSuKienExists($maLoaiSuKien, $excludeId = null)
+    {
+        $builder = $this->builder();
+        $builder->where('ma_loai_su_kien', $maLoaiSuKien);
+        
+        if ($excludeId) {
+            $builder->where($this->primaryKey . ' !=', $excludeId);
+        }
+        
+        return $builder->countAllResults() > 0;
+    }
+
+    /**
+     * Lấy headers cho xuất Excel
+     *
+     * @param bool $includeDeleted Có bao gồm cột ngày xóa không
+     * @return array
+     */
+    public function getExportHeaders($includeDeleted = false)
+    {
+        $headers = [
+            'STT' => 'A',
+            'ID' => 'B',
+            'Tên loại sự kiện' => 'C',
+            'Mã loại sự kiện' => 'D',
+            'Mô tả' => 'E',
+            'Thứ tự' => 'F',
+            'Trạng thái' => 'G',
+            'Ngày tạo' => 'H',
+            'Ngày cập nhật' => 'I'
+        ];
+
+        if ($includeDeleted) {
+            $headers['Ngày xóa'] = 'J';
+        }
+
+        return $headers;
     }
 }

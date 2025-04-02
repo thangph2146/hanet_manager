@@ -31,6 +31,11 @@ $masterScript = new $masterScriptClass($module_name);
             'module_name' => $module_name,
             'keyword' => $keyword ?? '',
             'status' => $status ?? '',
+            'su_kien_id' => $su_kien_id ?? '',
+            'checkin_type' => $checkin_type ?? '',
+            'hinh_thuc_tham_gia' => $hinh_thuc_tham_gia ?? '',
+            'start_date' => $start_date ?? '',
+            'end_date' => $end_date ?? '',
             'perPage' => $perPage
         ]) ?>
         

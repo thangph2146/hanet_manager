@@ -5,13 +5,13 @@ $masterScriptClass = "\App\Modules\\" . $module_name . '\Libraries\MasterScript'
 $masterScript = new $masterScriptClass($module_name);
 ?>
 <?= $masterScript->pageCss('table') ?>
-<?= $masterScript->pageSectionCss('modal') ?>
+<?= $masterScript->pageSectionCss('modal') ?>   
 <?= $this->endSection() ?>
 <?= $this->section('title') ?>$title<?= $this->endSection() ?>
 
 <?= $this->section('bread_cum_link') ?>
 <?= view('components/_breakcrump', [
-	'title' => $title_home,
+	'title' => $title, 
 	'dashboard_url' => site_url($module_name),
 	'breadcrumbs' => [
 		['title' => $title_home, 'url' => site_url($module_name)],
@@ -30,7 +30,13 @@ $masterScript = new $masterScriptClass($module_name);
         <?= view('App\Modules\\' . $module_name . '\Views\components\_deleted_filter', [
             'module_name' => $module_name,
             'keyword' => $keyword ?? '',
-            'perPage' => $perPage
+            'perPage' => $perPage,
+            'status' => $status ?? '',
+            'su_kien_id' => $su_kien_id ?? '',
+            'checkin_type' => $checkin_type ?? '',
+            'hinh_thuc_tham_gia' => $hinh_thuc_tham_gia ?? '',
+            'start_date' => $start_date ?? '',
+            'end_date' => $end_date ?? ''
         ]) ?>
         
         <?= view('App\Modules\\' . $module_name . '\Views\components\_alerts') ?>
@@ -56,6 +62,6 @@ $masterScript = new $masterScriptClass($module_name);
 
 <?= $this->section('script') ?>
 <?= $masterScript->pageJs('table') ?>
-<?= $masterScript->pageSectionJs('deleted') ?>
-<?= $masterScript->pageTableDeletedJs() ?>
+<?= $masterScript->pageSectionJs('table') ?>
+<?= $masterScript->pageTableJs() ?>
 <?= $this->endSection() ?> 

@@ -5,6 +5,7 @@ namespace App\Modules\quanlysukien\Controllers;
 use App\Controllers\BaseController;
 use App\Modules\quanlysukien\Models\SuKienModel;
 use App\Modules\quanlysukien\Models\LoaiSuKienModel;
+use App\Libraries\Breadcrumb;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -28,9 +29,11 @@ class QuanLySuKien extends BaseController
     
     protected $model;
     protected $loaiSuKienModel;
+    protected $breadcrumb;
     protected $alert;
     protected $moduleUrl;
-    protected $title = 'Sự kiện';
+    protected $title;
+    protected $title_home;
     protected $module_name = 'quanlysukien';
     protected $controller_name = 'QuanLySuKien';
     protected $primary_key = 'su_kien_id';
@@ -63,6 +66,7 @@ class QuanLySuKien extends BaseController
 
     protected $sukien;
     protected $validation;
+    protected $masterScript;
     
     /**
      * Constructor
@@ -74,10 +78,17 @@ class QuanLySuKien extends BaseController
         
         // Khởi tạo các thành phần cần thiết
         $this->model = new \App\Modules\quanlysukien\Models\SuKienModel();
+        $this->breadcrumb = new \App\Libraries\Breadcrumb();
         $this->alert = new \App\Libraries\Alert();
         
         // Thông tin module
         $this->moduleUrl = base_url($this->module_name);
+        $this->title = 'Sự kiện';
+        $this->title_home = 'Danh sách sự kiện';
+        
+        // Khởi tạo thư viện MasterScript với module_name
+        $masterScriptClass = "\App\Modules\\" . $this->module_name . '\Libraries\MasterScript';
+        $this->masterScript = new $masterScriptClass($this->module_name);
         
         // Khởi tạo các model quan hệ
         $this->initializeRelationTrait();

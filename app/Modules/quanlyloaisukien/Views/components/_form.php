@@ -1,20 +1,20 @@
 <?php
-// Khởi tạo các biến giá trị từ đối tượng entity nếu có
-if (isset($entity) && is_object($entity)) {
-    $loai_su_kien_id = $entity->getId() ?? '';
-    $ten_loai_su_kien = $entity->getTenLoaiSuKien() ?? '';
-    $ma_loai_su_kien = $entity->getMaLoaiSuKien() ?? '';
-    $status = $entity->getStatus() ?? 1;
+// Kiểm tra xem $data có phải là đối tượng hay không
+if (is_object($data)) {
+    $loai_su_kien_id = $data->getLoaiSuKienId() ?? '';
+    $ten_loai_su_kien = $data->getTenLoaiSuKien() ?? '';
+    $ma_loai_su_kien = $data->getMaLoaiSuKien() ?? '';
+    $mo_ta = $data->getMoTa() ?? '';
+    $thu_tu = $data->getThuTu() ?? 0;
+    $status = $data->getStatus() ?? 1;
 } else {
-    // Nếu không có đối tượng entity, thiết lập giá trị mặc định
     $loai_su_kien_id = '';
     $ten_loai_su_kien = '';
     $ma_loai_su_kien = '';
+    $mo_ta = '';
+    $thu_tu = 0;
     $status = 1;
 }
-
-// Xác định action form
-$action = site_url($module_name . ($loai_su_kien_id ? '/update/' . $loai_su_kien_id : '/create'));
 ?>
 
 <style>
@@ -63,65 +63,106 @@ $action = site_url($module_name . ($loai_su_kien_id ? '/update/' . $loai_su_kien
     transform: translateY(-1px);
 }
 
+.input-group .btn {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+}
+
+.face-verification-section {
+    transition: all 0.5s ease;
+}
+
 .form-switch .form-check-input {
     height: 1.5rem;
     width: 3rem !important;
     cursor: pointer;
 }
+
+.form-label i {
+    transition: all 0.3s ease;
+}
+
+.form-label:hover i {
+    transform: scale(1.2);
+}
 </style>
 
-<?= form_open($action, ['id' => 'form-loai-su-kien', 'class' => 'needs-validation', 'novalidate' => true]) ?>
 <div class="row">
-    <!-- Thông tin loại sự kiện -->
     <div class="col-12">
         <div class="card mb-4 shadow-sm form-card">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0 text-white">
-                    <i class="bx bx-info-circle me-2"></i> Thông tin loại sự kiện
+                    <i class="fas fa-info-circle me-2"></i> Thông tin loại sự kiện
                 </h5>
             </div>
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label for="ten_loai_su_kien" class="form-label fw-bold">
-                            <i class="bx bx-tag text-primary me-1"></i> Tên loại sự kiện <span class="text-danger">*</span>
+                            <i class="fas fa-tag text-primary me-1"></i> Tên loại sự kiện <span class="text-danger">*</span>
                         </label>
                         <input type="text" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('ten_loai_su_kien') ? 'is-invalid' : '' ?>" 
-                            id="ten_loai_su_kien" name="ten_loai_su_kien" value="<?= $ten_loai_su_kien ?>" 
-                            placeholder="Nhập tên loại sự kiện" required>
+                               id="ten_loai_su_kien" name="ten_loai_su_kien" 
+                               value="<?= $ten_loai_su_kien ?>" 
+                               placeholder="Nhập tên loại sự kiện" required>
                         <?php if (isset($validation) && $validation->hasError('ten_loai_su_kien')) : ?>
                             <div class="invalid-feedback">
                                 <?= $validation->getError('ten_loai_su_kien') ?>
                             </div>
-                        <?php else: ?>
-                            <div class="form-text">Nhập tên dễ hiểu cho loại sự kiện</div>
                         <?php endif ?>
                     </div>
 
                     <div class="col-md-6">
                         <label for="ma_loai_su_kien" class="form-label fw-bold">
-                            <i class="bx bx-code text-primary me-1"></i> Mã loại sự kiện <span class="text-danger">*</span>
+                            <i class="fas fa-code text-primary me-1"></i> Mã loại sự kiện <span class="text-danger">*</span>
                         </label>
                         <input type="text" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('ma_loai_su_kien') ? 'is-invalid' : '' ?>" 
-                            id="ma_loai_su_kien" name="ma_loai_su_kien" value="<?= $ma_loai_su_kien ?>" 
-                            placeholder="Nhập mã cho loại sự kiện" required>
+                               id="ma_loai_su_kien" name="ma_loai_su_kien" 
+                               value="<?= $ma_loai_su_kien ?>" 
+                               placeholder="Nhập mã loại sự kiện" required>
                         <?php if (isset($validation) && $validation->hasError('ma_loai_su_kien')) : ?>
                             <div class="invalid-feedback">
                                 <?= $validation->getError('ma_loai_su_kien') ?>
                             </div>
-                        <?php else: ?>
-                            <div class="form-text">Nhập mã duy nhất cho loại sự kiện (không dấu, không khoảng trắng)</div>
+                        <?php endif ?>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="mo_ta" class="form-label fw-bold">
+                            <i class="fas fa-align-left text-primary me-1"></i> Mô tả
+                        </label>
+                        <textarea class="form-control <?= isset($validation) && $validation->hasError('mo_ta') ? 'is-invalid' : '' ?>" 
+                                  id="mo_ta" name="mo_ta" rows="3" 
+                                  placeholder="Nhập mô tả loại sự kiện"><?= $mo_ta ?></textarea>
+                        <?php if (isset($validation) && $validation->hasError('mo_ta')) : ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('mo_ta') ?>
+                            </div>
+                        <?php endif ?>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="thu_tu" class="form-label fw-bold">
+                            <i class="fas fa-sort-numeric-down text-primary me-1"></i> Thứ tự
+                        </label>
+                        <input type="number" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('thu_tu') ? 'is-invalid' : '' ?>" 
+                               id="thu_tu" name="thu_tu" 
+                               value="<?= $thu_tu ?>" min="0">
+                        <?php if (isset($validation) && $validation->hasError('thu_tu')) : ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('thu_tu') ?>
+                            </div>
                         <?php endif ?>
                     </div>
 
                     <div class="col-md-6">
                         <label for="status" class="form-label fw-bold">
-                            <i class="bx bx-toggle-left text-primary me-1"></i> Trạng thái
+                            <i class="fas fa-toggle-on text-primary me-1"></i> Trạng thái <span class="text-danger">*</span>
                         </label>
                         <select class="form-select form-select-lg <?= isset($validation) && $validation->hasError('status') ? 'is-invalid' : '' ?>" 
-                            id="status" name="status">
+                                id="status" name="status" required>
                             <option value="1" <?= $status == 1 ? 'selected' : '' ?>>Hoạt động</option>
-                            <option value="0" <?= $status == 0 ? 'selected' : '' ?>>Không hoạt động</option>
+                            <option value="0" <?= $status == 0 ? 'selected' : '' ?>>Vô hiệu</option>
                         </select>
                         <?php if (isset($validation) && $validation->hasError('status')) : ?>
                             <div class="invalid-feedback">
@@ -133,49 +174,97 @@ $action = site_url($module_name . ($loai_su_kien_id ? '/update/' . $loai_su_kien
             </div>
         </div>
     </div>
-
-    <!-- Nút submit -->
-    <div class="col-12 mb-3">
-        <div class="d-flex justify-content-end gap-2">
-            <a href="<?= site_url($module_name) ?>" class="btn btn-secondary btn-lg">
-                <i class="bx bx-arrow-back me-1"></i> Hủy
-            </a>
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bx bx-save me-1"></i> Lưu loại sự kiện
-            </button>
-        </div>
-    </div>
 </div>
-<?= form_close() ?>
 
 <script>
-// Validate form khi submit
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('form-loai-su-kien');
-    form.addEventListener('submit', function(event) {
-        if (!form.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
+    // Generate random code for ma_xac_nhan
+    document.getElementById('generate-code').addEventListener('click', function() {
+        const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let result = '';
+        for (let i = 0; i < 8; i++) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
         }
-        form.classList.add('was-validated');
+        document.getElementById('ma_xac_nhan').value = result;
+        
+        // Hiệu ứng khi tạo mã
+        const input = document.getElementById('ma_xac_nhan');
+        input.classList.add('bg-light');
+        setTimeout(() => {
+            input.classList.remove('bg-light');
+        }, 300);
     });
 
-    // Tự động tạo mã loại sự kiện từ tên
-    const tenLoaiInput = document.getElementById('ten_loai_su_kien');
-    const maLoaiInput = document.getElementById('ma_loai_su_kien');
+    // Toggle face verification section based on checkin_type
+    document.getElementById('checkin_type').addEventListener('change', function() {
+        const faceSection = document.querySelector('.face-verification-section');
+        if (this.value === 'face_id') {
+            faceSection.style.display = 'block';
+            setTimeout(() => {
+                faceSection.style.opacity = 1;
+            }, 50);
+        } else {
+            faceSection.style.opacity = 0;
+            setTimeout(() => {
+                faceSection.style.display = 'none';
+            }, 300);
+        }
+    });
+
+    // Validate JSON
+    document.getElementById('validate-json').addEventListener('click', function() {
+        const jsonInput = document.getElementById('thong_tin_bo_sung').value.trim();
+        const jsonElement = document.getElementById('thong_tin_bo_sung');
+        
+        if (!jsonInput) {
+            alert('Vui lòng nhập dữ liệu JSON để kiểm tra');
+            return;
+        }
+
+        try {
+            const parsedJson = JSON.parse(jsonInput);
+            jsonElement.classList.add('is-valid');
+            jsonElement.classList.remove('is-invalid');
+            
+            // Tạo thông báo thành công
+            const successMsg = document.createElement('div');
+            successMsg.classList.add('alert', 'alert-success', 'mt-2', 'p-2');
+            successMsg.innerHTML = '<i class="fas fa-check-circle"></i> JSON hợp lệ!';
+            
+            // Thêm thông báo và xóa sau 3 giây
+            jsonElement.parentNode.appendChild(successMsg);
+            setTimeout(() => {
+                successMsg.remove();
+                jsonElement.classList.remove('is-valid');
+            }, 3000);
+        } catch (e) {
+            jsonElement.classList.add('is-invalid');
+            jsonElement.classList.remove('is-valid');
+            
+            // Tạo thông báo lỗi
+            const errorMsg = document.createElement('div');
+            errorMsg.classList.add('alert', 'alert-danger', 'mt-2', 'p-2');
+            errorMsg.innerHTML = '<i class="fas fa-exclamation-circle"></i> JSON không hợp lệ: ' + e.message;
+            
+            // Thêm thông báo và xóa sau 5 giây
+            jsonElement.parentNode.appendChild(errorMsg);
+            setTimeout(() => {
+                errorMsg.remove();
+                jsonElement.classList.remove('is-invalid');
+            }, 5000);
+        }
+    });
     
-    if (tenLoaiInput && maLoaiInput && maLoaiInput.value === '') {
-        tenLoaiInput.addEventListener('blur', function() {
-            if (maLoaiInput.value === '') {
-                let maLoai = tenLoaiInput.value
-                    .toLowerCase()
-                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Xóa dấu
-                    .replace(/[^a-z0-9]/g, '_') // Thay thế ký tự đặc biệt bằng gạch dưới
-                    .replace(/_{2,}/g, '_'); // Xóa nhiều gạch dưới liên tiếp
-                
-                maLoaiInput.value = maLoai;
-            }
+    // Thêm hiệu ứng cho form inputs
+    const inputs = document.querySelectorAll('.form-control, .form-select');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.closest('.col-md-6, .col-md-12').classList.add('animate__animated', 'animate__pulse');
         });
-    }
+        
+        input.addEventListener('blur', function() {
+            this.closest('.col-md-6, .col-md-12').classList.remove('animate__animated', 'animate__pulse');
+        });
+    });
 });
-</script>
+</script> 

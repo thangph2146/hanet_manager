@@ -90,37 +90,35 @@
                 <th>Sự kiện</th>
                 <th>Họ tên</th>
                 <th>Email</th>
-                <th>Thời gian check-out</th>
-                <th>Loại check-out</th>
+                <th>Thời gian check-in</th>
+                <th>Loại check-in</th>
                 <th>Hình thức</th>
                 <th>Trạng thái</th>
                 <th>Xác minh KM</th>
                 <th>Điểm số KM</th>
-                <th>Thời gian tham dự</th>
-                <th>Đánh giá</th>
                 <?php if (isset($deleted) && $deleted): ?>
                 <th>Ngày xóa</th>
                 <?php endif; ?>
+                <th>Ghi chú</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($data as $item): ?>
             <tr>
                 <td class="text-center"><?= $item->getId() ?></td>
-                <td><?php $suKien = $item->getSuKien(); echo $suKien ? esc($suKien->ten_su_kien) : ''; ?></td>
-                <td><?= esc($item->getHoTen()) ?></td>
-                <td><?= esc($item->getEmail()) ?></td>
-                <td class="text-center"><?= $item->getThoiGianCheckOutFormatted() ?></td>
-                <td><?= $item->getCheckoutTypeText() ?></td>
-                <td><?= $item->getHinhThucThamGiaText() ?></td>
-                <td><?= $item->getStatusText() ?></td>
+                <td><?= $item->getTenSuKien() ?></td>
+                <td><?= $item->getHoTen() ?></td>
+                <td><?= $item->getEmail() ?></td>
+                <td class="text-center"><?= $item->getThoiGianCheckInFormatted() ?></td>
+                <td><?= $item->getCheckinTypeLabel() ?></td>
+                <td><?= $item->getHinhThucThamGiaLabel() ?></td>
+                <td><?= $item->getStatusLabel() ?></td>
                 <td class="text-center"><?= $item->isFaceVerified() ? 'Đã xác minh' : 'Chưa xác minh' ?></td>
                 <td class="text-center"><?= $item->getFaceMatchScore() ? number_format($item->getFaceMatchScore() * 100, 2) . '%' : '' ?></td>
-                <td class="text-center"><?= $item->getAttendanceDurationFormatted() ?></td>
-                <td class="text-center"><?= $item->getDanhGiaStars() ?></td>
                 <?php if (isset($deleted) && $deleted): ?>
                 <td class="text-center"><?= $item->getDeletedAtFormatted() ?></td>
                 <?php endif; ?>
+                <td><?= $item->getGhiChu() ?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>

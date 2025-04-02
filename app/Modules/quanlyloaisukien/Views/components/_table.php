@@ -1,9 +1,9 @@
 <?php
 /**
- * Component hiển thị bảng dữ liệu loại sự kiện
+ * Component hiển thị bảng dữ liệu check-in sự kiện
  * 
  * Các biến cần truyền vào:
- * @var array $processedData Dữ liệu loại sự kiện
+ * @var array $processedData Dữ liệu check-in sự kiện
  * @var string $module_name Tên module
  */
 ?>
@@ -19,10 +19,12 @@
                         </div>
                     </th>
                     <th width="5%" class="align-middle">ID</th>
-                    <th width="25%" class="align-middle">Tên loại sự kiện</th>
+                    <th width="20%" class="align-middle">Tên loại sự kiện</th>
                     <th width="15%" class="align-middle">Mã loại sự kiện</th>
+                    <th width="25%" class="align-middle">Mô tả</th>
+                    <th width="10%" class="text-center align-middle">Thứ tự</th>
                     <th width="10%" class="text-center align-middle">Trạng thái</th>
-                    <th width="15%" class="text-center align-middle">Thao tác</th>
+                    <th width="10%" class="text-center align-middle">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,31 +34,31 @@
                             <td class="text-center">
                                 <div class="form-check">
                                     <input class="form-check-input checkbox-item cursor-pointer" 
-                                    type="checkbox" name="selected_ids[]" 
-                                    value="<?= $item->loai_su_kien_id ?>">
+                                           type="checkbox" name="selected_ids[]" 
+                                           value="<?= $item->loai_su_kien_id ?>">
                                 </div>
                             </td>
-                            <td><?= esc($item->loai_su_kien_id) ?></td>  
+                            <td><?= esc($item->loai_su_kien_id) ?></td>
                             <td><?= esc($item->ten_loai_su_kien) ?></td>
                             <td><?= esc($item->ma_loai_su_kien) ?></td>
+                            <td><?= esc($item->mo_ta) ?></td>
+                            <td class="text-center"><?= $item->thu_tu ?></td>
                             <td class="text-center">
-                                <?php if ($item->getStatus() == 1): ?>
+                                <?php if ($item->status == 1): ?>
                                     <span class="badge bg-success">Hoạt động</span>
                                 <?php else: ?>
-                                    <span class="badge bg-danger">Không hoạt động</span>
+                                    <span class="badge bg-danger">Vô hiệu</span>
                                 <?php endif; ?>
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                    <a href="<?= site_url($module_name . "/detail/{$item->loai_su_kien_id}") ?>" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
-                                        <i class="bx bx-info-circle text-white"></i>
-                                    </a>
-                                    <a href="<?= site_url($module_name . "/edit/{$item->loai_su_kien_id}") ?>" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Sửa">
+                                    <a href="<?= site_url($module_name . "/edit/{$item->loai_su_kien_id}") ?>" 
+                                       class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Sửa">
                                         <i class="bx bx-edit"></i>
                                     </a>
                                     <button type="button" class="btn btn-danger btn-sm btn-delete" 
                                             data-id="<?= $item->loai_su_kien_id ?>" 
-                                            data-name="ID: <?= esc($item->loai_su_kien_id) ?> - <?= esc($item->ten_loai_su_kien) ?>"
+                                            data-name="<?= esc($item->ten_loai_su_kien) ?>"
                                             data-bs-toggle="tooltip" title="Xóa">
                                         <i class="bx bx-trash"></i>
                                     </button>
@@ -66,7 +68,7 @@
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="6" class="text-center py-3">
+                        <td colspan="8" class="text-center py-3">
                             <div class="empty-state">
                                 <i class="bx bx-folder-open"></i>
                                 <p>Không có dữ liệu loại sự kiện</p>

@@ -4,9 +4,7 @@
  * Contains common CSS and JS for all views
  */
 // Lấy biến module_name từ biến được truyền vào từ view
-if (!isset($GLOBALS['module_name'])) {
-    $GLOBALS['module_name'] = 'quanlyloaisukien';
-}
+$GLOBALS['module_name'] = 'quanlycheckinsukien';
 if (isset($module_name_php)) {
     $GLOBALS['module_name'] = $module_name_php;
 }
