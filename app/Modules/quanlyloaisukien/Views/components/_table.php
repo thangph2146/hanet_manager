@@ -52,6 +52,10 @@
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1 action-btn-group">
+                                    <a href="<?= site_url($module_name . "/detail/{$item->loai_su_kien_id}") ?>" 
+                                       class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
+                                        <i class="bx bx-info-circle text-white"></i>
+                                    </a>
                                     <a href="<?= site_url($module_name . "/edit/{$item->loai_su_kien_id}") ?>" 
                                        class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Sửa">
                                         <i class="bx bx-edit"></i>

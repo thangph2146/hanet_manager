@@ -256,7 +256,7 @@ class CheckOutSuKienModel extends BaseModel
         }
         
         // Thực hiện truy vấn
-        $query = $this->builder->get();
+        $query = $this->builder->where($this->table . '.deleted_at IS NULL')->get();
         $result = $query->getResult($this->returnType);
 
         // Kiểm tra và ghi log kết quả

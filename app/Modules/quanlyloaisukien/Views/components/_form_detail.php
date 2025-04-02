@@ -1,12 +1,34 @@
 <?php
 /**
- * Component hiển thị chi tiết check-in sự kiện
+ * Component hiển thị chi tiết loại sự kiện
  * 
  * Các biến cần truyền vào:
- * @var object $data Dữ liệu check-in cần hiển thị
+ * @var object $data Dữ liệu loại sự kiện cần hiển thị
  * @var string $module_name Tên module
  */
+
+// Khởi tạo các biến từ dữ liệu đầu vào
+if (is_object($data)) {
+    $loai_su_kien_id = $data->getId() ?? '';
+    $ten_loai_su_kien = $data->getTenLoaiSuKien() ?? '';
+    $ma_loai_su_kien = $data->getMaLoaiSuKien() ?? '';
+    $mo_ta = $data->getMoTa() ?? '';
+    $thu_tu = $data->getThuTu() ?? 0;
+    $status = $data->getStatus() ?? 1;
+    $created_at = $data->getCreatedAtFormatted() ?? '';
+    $updated_at = $data->getUpdatedAtFormatted() ?? '';
+} else {
+    $loai_su_kien_id = '';
+    $ten_loai_su_kien = '';
+    $ma_loai_su_kien = '';
+    $mo_ta = '';
+    $thu_tu = 0;
+    $status = 1;
+    $created_at = '';
+    $updated_at = '';
+}
 ?>
+
 <style>
 .detail-card {
     transition: all 0.3s ease;
@@ -111,6 +133,22 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+.detail-item {
+    margin-bottom: 1rem;
+}
+
+.detail-item label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.detail-item span {
+    display: block;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+}
 </style>
 
 <div class="container-fluid px-0">
@@ -118,14 +156,14 @@
     <div class="card shadow-sm mb-4 detail-card" style="--animation-order: 1">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
             <h4 class="card-title mb-0 text-white">
-                <i class="bx bx-id-card me-2"></i> <?= $title ?? 'Chi tiết check-in sự kiện' ?>
+                <i class="fas fa-info-circle me-2"></i> Chi tiết loại sự kiện
             </h4>
             <div class="d-flex gap-2">
                 <a href="<?= base_url($module_name) ?>" class="btn btn-light btn-sm px-3 py-2 rounded-3 d-flex align-items-center">
-                    <i class="bx bx-arrow-back me-1"></i> Quay lại danh sách
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
                 </a>
-                <a href="<?= base_url($module_name . '/edit/' . $data->checkin_sukien_id) ?>" class="btn btn-light btn-sm px-3 py-2 rounded-3 d-flex align-items-center">
-                    <i class="bx bx-edit me-1"></i> Chỉnh sửa
+                <a href="<?= base_url($module_name . '/edit/' . $loai_su_kien_id) ?>" class="btn btn-light btn-sm px-3 py-2 rounded-3 d-flex align-items-center">
+                    <i class="fas fa-edit me-1"></i> Chỉnh sửa
                 </a>
             </div>
         </div>
@@ -136,328 +174,102 @@
         <div class="col-lg-6 mb-4">
             <div class="card shadow-sm h-100 detail-card info-section" style="--animation-order: 2">
                 <div class="card-header bg-info text-white py-3">
-                    <h5 class="mb-0 text-white d-flex align-items-center text-icon">
-                        <i class="bx bx-info-circle me-2"></i> Thông tin cơ bản
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-info-circle me-2"></i> Thông tin cơ bản
                     </h5>
                 </div>
                 <div class="card-body p-4">
                     <div class="d-flex flex-column">
                         <div class="mb-3 pb-3 border-bottom">
-                            <label class="text-muted mb-1 fw-medium">ID check-in</label>
+                            <label class="text-muted mb-1 fw-medium">ID loại sự kiện</label>
                             <div class="h5">
-                                <span class="badge bg-primary px-3 py-2">#<?= $data->checkin_sukien_id ?></span>
+                                <span class="badge bg-primary px-3 py-2">#<?= $loai_su_kien_id ?></span>
                             </div>
                         </div>
-                        
+
                         <div class="mb-3 pb-3 border-bottom">
-                            <label class="text-muted mb-1 fw-medium">Sự kiện</label>
+                            <label class="text-muted mb-1 fw-medium">Tên loại sự kiện</label>
                             <div class="h5 text-icon">
-                                <?php
-                                $suKien = $data->getSuKien();
-                                $tenSuKien = $suKien ? esc($suKien->ten_su_kien) : esc($data->ten_su_kien ?? '(Không xác định)');
-                                ?>
-                                <i class="bx bx-calendar me-2 text-primary"></i>
-                                <span class="fw-bold"><?= $tenSuKien ?></span>
+                                <i class="fas fa-tag me-2 text-primary"></i>
+                                <span class="fw-bold"><?= esc($ten_loai_su_kien) ?></span>
                             </div>
                         </div>
-                        
+
                         <div class="mb-3 pb-3 border-bottom">
-                            <label class="text-muted mb-1 fw-medium">Thời gian check-in</label>
+                            <label class="text-muted mb-1 fw-medium">Mã loại sự kiện</label>
                             <div class="h5 text-icon">
-                                <i class="bx bx-time me-2 text-success"></i>
-                                <span class="fw-bold"><?= $data->getThoiGianCheckInFormatted() ?></span>
+                                <i class="fas fa-code me-2 text-primary"></i>
+                                <span class="fw-bold"><?= esc($ma_loai_su_kien) ?></span>
                             </div>
                         </div>
-                        
+
                         <div class="mb-3 pb-3 border-bottom">
-                            <label class="text-muted mb-1 fw-medium">Trạng thái</label>
-                            <div>
-                                <?= $data->getStatusHtml() ?>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3 pb-3 border-bottom">
-                            <label class="text-muted mb-1 fw-medium">Mã xác nhận</label>
-                            <div class="h5">
-                                <?php if (!empty($data->ma_xac_nhan)): ?>
-                                <div class="d-flex align-items-center">
-                                    <code class="bg-light px-2 py-1 rounded fs-6 me-2"><?= esc($data->ma_xac_nhan) ?></code>
-                                    <button class="btn btn-sm btn-outline-primary copy-btn" data-clipboard-text="<?= esc($data->ma_xac_nhan) ?>">
-                                        <i class="bx bx-copy"></i>
-                                    </button>
-                                </div>
-                                <?php else: ?>
-                                <span class="text-muted"><i class="bx bx-minus"></i></span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="text-muted mb-1 fw-medium">Ngày tạo / cập nhật</label>
-                            <div class="d-flex flex-column">
-                                <div class="text-icon mb-1">
-                                    <i class="bx bx-plus-circle text-success me-1"></i> 
-                                    <small><?= $data->getCreatedAtFormatted() ?></small>
-                                </div>
-                                <div class="text-icon">
-                                    <i class="bx bx-edit text-warning me-1"></i> 
-                                    <small><?= $data->getUpdatedAtFormatted() ?></small>
-                                </div>
+                            <label class="text-muted mb-1 fw-medium">Thứ tự</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-sort-numeric-down me-2 text-primary"></i>
+                                <span class="fw-bold"><?= $thu_tu ?></span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Thông tin người tham gia -->
+
+        <!-- Thông tin bổ sung -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow-sm h-100 detail-card info-section" style="--animation-order: 3">
                 <div class="card-header bg-success text-white py-3">
-                    <h5 class="mb-0 text-white d-flex align-items-center text-icon">
-                        <i class="bx bx-user me-2"></i> Thông tin người tham gia
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-clipboard-list me-2"></i> Thông tin bổ sung
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <div class="text-center mb-4">
-                        <?php 
-                        $avatarUrl = $data->hasFaceImage() ? $data->getFaceImageUrl() : 'https://ui-avatars.com/api/?name=' . urlencode($data->ho_ten) . '&size=128&background=random';
-                        ?>
-                        <img src="<?= $avatarUrl ?>" alt="<?= esc($data->ho_ten) ?>" class="rounded-circle img-thumbnail profile-img" style="width: 100px; height: 100px">
-                    </div>
-                    
                     <div class="d-flex flex-column">
                         <div class="mb-3 pb-3 border-bottom">
-                            <label class="text-muted mb-1 fw-medium">Họ tên</label>
+                            <label class="text-muted mb-1 fw-medium">Trạng thái</label>
                             <div class="h5 text-icon">
-                                <i class="bx bx-user-pin text-primary me-2"></i>
-                                <span class="fw-bold"><?= esc($data->ho_ten) ?></span>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3 pb-3 border-bottom">
-                            <label class="text-muted mb-1 fw-medium">Email</label>
-                            <div class="h5 text-icon">
-                                <i class="bx bx-envelope text-primary me-2"></i>
-                                <a href="mailto:<?= esc($data->email) ?>" class="text-decoration-none"><?= esc($data->email) ?></a>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3 pb-3 border-bottom">
-                            <label class="text-muted mb-1 fw-medium">Phương thức check-in</label>
-                            <div class="d-flex align-items-center">
-                                <?= $data->getCheckinTypeHtml() ?>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3 pb-3 border-bottom">
-                            <label class="text-muted mb-1 fw-medium">Hình thức tham gia</label>
-                            <div>
-                                <?= $data->getHinhThucThamGiaHtml() ?>
-                            </div>
-                        </div>
-                        
-                        <?php if ($data->isFaceCheckIn()): ?>
-                        <div class="mb-3 pb-3 border-bottom">
-                            <label class="text-muted mb-1 fw-medium">Xác minh khuôn mặt</label>
-                            <div class="d-flex align-items-center">
-                                <?= $data->getFaceVerifiedHtml() ?>
-                                
-                                <?php if ($data->getFaceMatchScore() !== null): ?>
-                                <div class="ms-3 w-100">
-                                    <div class="progress rounded-pill" style="height: 12px;">
-                                        <div class="progress-bar bg-<?= $data->getFaceMatchScore() > 0.7 ? 'success' : ($data->getFaceMatchScore() > 0.5 ? 'warning' : 'danger') ?> rounded-pill" 
-                                            role="progressbar" 
-                                            style="width: 0%" 
-                                            aria-valuenow="<?= $data->getFaceMatchScore() * 100 ?>" 
-                                            aria-valuemin="0" 
-                                            aria-valuemax="100">
-                                        </div>
-                                    </div>
-                                    <small class="text-muted mt-1 d-block"><?= $data->getFaceMatchScorePercent() ?></small>
-                                </div>
+                                <i class="fas fa-toggle-on me-2 text-primary"></i>
+                                <?php if ($status == 1): ?>
+                                    <span class="badge bg-success">Hoạt động</span>
+                                <?php else: ?>
+                                    <span class="badge bg-danger">Vô hiệu</span>
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <?php endif; ?>
+
+                        <div class="mb-3 pb-3 border-bottom">
+                            <label class="text-muted mb-1 fw-medium">Ngày tạo</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-calendar-plus me-2 text-primary"></i>
+                                <span class="fw-bold"><?= $created_at ?></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="text-muted mb-1 fw-medium">Ngày cập nhật</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-calendar-check me-2 text-primary"></i>
+                                <span class="fw-bold"><?= $updated_at ?></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Thông tin bổ sung, ghi chú, nội dung khác -->
-        <div class="col-12 mb-4">
+
+        <!-- Mô tả -->
+        <div class="col-12">
             <div class="card shadow-sm detail-card info-section" style="--animation-order: 4">
                 <div class="card-header bg-secondary text-white py-3">
-                    <h5 class="mb-0 text-white d-flex align-items-center text-icon">
-                        <i class="bx bx-list-ul me-2"></i> Thông tin bổ sung
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-align-left me-2"></i> Mô tả
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <div class="row">
-                        <!-- Ghi chú -->
-                        <?php if (!empty($data->getGhiChu())): ?>
-                        <div class="col-md-6 mb-3">
-                            <div class="card border-0 shadow-sm rounded-3 h-100">
-                                <div class="card-header bg-light py-3 border-0">
-                                    <h6 class="mb-0 fw-bold d-flex align-items-center text-icon">
-                                        <i class="bx bx-note me-2 text-primary"></i> Ghi chú
-                                    </h6>
-                                </div>
-                                <div class="card-body p-4">
-                                    <p class="card-text"><?= nl2br(esc($data->getGhiChu())) ?></p>
-                                </div>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <!-- Thông tin bổ sung dạng JSON -->
-                        <?php 
-                        $formattedInfo = $data->getFormattedThongTinBoSung();
-                        if (!empty($formattedInfo)): 
-                        ?>
-                        <div class="col-md-6 mb-3">
-                            <div class="card border-0 shadow-sm rounded-3 h-100">
-                                <div class="card-header bg-light py-3 border-0">
-                                    <h6 class="mb-0 fw-bold d-flex align-items-center text-icon">
-                                        <i class="bx bx-tag-alt me-2 text-primary"></i> Thông tin thêm
-                                    </h6>
-                                </div>
-                                <div class="card-body p-4">
-                                    <ul class="list-group list-group-flush shadow-sm rounded-3">
-                                        <?php foreach ($formattedInfo as $label => $value): ?>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0 border-bottom px-3 py-2">
-                                            <span class="fw-medium text-muted"><?= esc($label) ?></span>
-                                            <span class="fw-bold"><?= esc($value) ?></span>
-                                        </li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <!-- Thông tin thiết bị -->
-                        <?php if (!empty($data->getDeviceInfo()) || !empty($data->getIpAddress()) || !empty($data->getLocationData())): ?>
-                        <div class="col-md-12 mb-3">
-                            <div class="card border-0 shadow-sm rounded-3">
-                                <div class="card-header bg-light py-3 border-0">
-                                    <h6 class="mb-0 fw-bold d-flex align-items-center text-icon">
-                                        <i class="bx bx-devices me-2 text-primary"></i> Thông tin thiết bị & Vị trí
-                                    </h6>
-                                </div>
-                                <div class="card-body p-4">
-                                    <div class="row">
-                                        <?php if (!empty($data->getDeviceInfo())): ?>
-                                        <div class="col-md-4 mb-3">
-                                            <div class="d-flex align-items-center text-icon mb-2">
-                                                <i class="bx bx-mobile-alt me-2 text-primary"></i>
-                                                <strong>Thiết bị</strong>
-                                            </div>
-                                            <p class="mt-2 px-3 py-2 bg-light rounded-3 shadow-sm"><?= esc($data->getFormattedDeviceInfo() ?: $data->getDeviceInfo()) ?></p>
-                                        </div>
-                                        <?php endif; ?>
-                                        
-                                        <?php if (!empty($data->getIpAddress())): ?>
-                                        <div class="col-md-4 mb-3">
-                                            <div class="d-flex align-items-center text-icon mb-2">
-                                                <i class="bx bx-network-chart me-2 text-primary"></i>
-                                                <strong>Địa chỉ IP</strong>
-                                            </div>
-                                            <p class="mt-2 px-3 py-2 bg-light rounded-3 shadow-sm">
-                                                <code class="fs-6"><?= esc($data->getIpAddress()) ?></code>
-                                            </p>
-                                        </div>
-                                        <?php endif; ?>
-                                        
-                                        <?php if (!empty($data->getLocationData())): ?>
-                                        <div class="col-md-4 mb-3">
-                                            <div class="d-flex align-items-center text-icon mb-2">
-                                                <i class="bx bx-map-pin me-2 text-primary"></i>
-                                                <strong>Vị trí</strong>
-                                            </div>
-                                            <p class="mt-2 px-3 py-2 bg-light rounded-3 shadow-sm"><?= esc($data->getLocationData()) ?></p>
-                                        </div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <?php endif; ?>
+                    <div class="h5">
+                        <?= empty($mo_ta) ? '<em class="text-muted">Không có mô tả</em>' : nl2br(esc($mo_ta)) ?>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Xem QR Code -->
-<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="qrCodeModalLabel"><i class="bx bx-qr me-2"></i> Mã QR Check-in</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center p-4">
-                <div id="qrcode-container" class="p-3 bg-light rounded-3 shadow-sm mb-3">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=CHECKIN:<?= $data->checkin_sukien_id ?>:<?= urlencode($data->ma_xac_nhan) ?>" class="img-fluid" alt="QR Code">
-                </div>
-                <div class="alert alert-info rounded-3">
-                    <p class="mb-0">Mã xác nhận: <strong><?= esc($data->ma_xac_nhan) ?></strong></p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary px-3 py-2 rounded-3" data-bs-dismiss="modal">
-                    <i class="bx bx-x me-1"></i> Đóng
-                </button>
-                <button type="button" class="btn btn-primary px-3 py-2 rounded-3" id="download-qr">
-                    <i class="bx bx-download me-1"></i> Tải xuống
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Xác nhận xóa -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteModalLabel"><i class="bx bx-error-circle me-2"></i> Xác nhận xóa</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="alert alert-warning rounded-3">
-                    <p class="mb-0"><i class="bx bx-error me-2"></i> Bạn có chắc chắn muốn xóa bản ghi check-in này không? Hành động này không thể hoàn tác.</p>
-                </div>
-                <div class="card border-0 shadow-sm rounded-3 mt-3">
-                    <div class="card-body p-4">
-                        <p class="mb-2 d-flex align-items-center">
-                            <i class="bx bx-id-card me-2 text-primary"></i>
-                            <strong class="me-2">ID:</strong> 
-                            <span class="badge bg-primary px-2 py-1">#<?= $data->checkin_sukien_id ?></span>
-                        </p>
-                        <p class="mb-2 d-flex align-items-center">
-                            <i class="bx bx-user me-2 text-primary"></i>
-                            <strong class="me-2">Người tham gia:</strong> 
-                            <span class="fw-medium"><?= esc($data->ho_ten) ?></span>
-                        </p>
-                        <p class="mb-0 d-flex align-items-center">
-                            <i class="bx bx-envelope me-2 text-primary"></i>
-                            <strong class="me-2">Email:</strong> 
-                            <span><?= esc($data->email) ?></span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary px-3 py-2 rounded-3" data-bs-dismiss="modal">
-                    <i class="bx bx-x me-1"></i> Hủy
-                </button>
-                <a href="<?= base_url($module_name . '/delete/' . $data->checkin_sukien_id) ?>" class="btn btn-danger px-3 py-2 rounded-3">
-                    <i class="bx bx-trash me-1"></i> Xác nhận xóa
-                </a>
             </div>
         </div>
     </div>
@@ -465,55 +277,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize clipboard for copy functionality
-    if (typeof ClipboardJS !== 'undefined') {
-        var clipboard = new ClipboardJS('.copy-btn');
-        clipboard.on('success', function(e) {
-            e.trigger.innerHTML = '<i class="bx bx-check"></i>';
-            e.trigger.classList.add('btn-success');
-            e.trigger.classList.remove('btn-outline-primary');
-            
-            setTimeout(function() {
-                e.trigger.innerHTML = '<i class="bx bx-copy"></i>';
-                e.trigger.classList.remove('btn-success');
-                e.trigger.classList.add('btn-outline-primary');
-            }, 2000);
-            e.clearSelection();
-        });
-    }
-    
-    // Download QR code functionality
-    document.getElementById('download-qr')?.addEventListener('click', function() {
-        const qrImg = document.querySelector('#qrcode-container img');
-        if (qrImg) {
-            const link = document.createElement('a');
-            link.href = qrImg.src;
-            link.download = 'qrcode-checkin-<?= $data->checkin_sukien_id ?>.png';
-            link.click();
-            
-            // Hiệu ứng khi tải xuống
-            this.innerHTML = '<i class="bx bx-check me-1"></i> Đã tải xuống';
-            setTimeout(() => {
-                this.innerHTML = '<i class="bx bx-download me-1"></i> Tải xuống';
-            }, 2000);
-        }
-    });
-    
     // Khởi tạo Animation cho các phần tử
     const infoSections = document.querySelectorAll('.info-section');
     infoSections.forEach(section => {
         setTimeout(() => {
             section.style.opacity = '1';
         }, 100);
-    });
-    
-    // Hiệu ứng cho progress bar
-    const progressBars = document.querySelectorAll('.progress-bar');
-    progressBars.forEach(bar => {
-        setTimeout(() => {
-            const width = bar.getAttribute('aria-valuenow') + '%';
-            bar.style.width = width;
-        }, 500);
     });
 });
 </script> 

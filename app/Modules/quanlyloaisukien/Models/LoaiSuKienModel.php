@@ -214,9 +214,8 @@ class LoaiSuKienModel extends BaseModel
         }
         
         // Thực hiện truy vấn
-        $query = $this->builder->get();
+        $query = $this->builder->where($this->table . '.deleted_at IS NULL')->get();
         $result = $query->getResult($this->returnType);
-        
         return $result;
     }
     
@@ -449,14 +448,52 @@ class LoaiSuKienModel extends BaseModel
     }
     
     /**
-     * Tìm kiếm bản ghi đã xóa với phân trang
+     * Tìm kiếm bản ghi đã xóa
      *
      * @param array $criteria Tiêu chí tìm kiếm
-     * @param array $options Tùy chọn phân trang và sắp xếp
+     * @param array $options Tùy chọn
      * @return array
      */
+    public function searchDeleted($criteria = [], $options = [])
+    {
+        $builder = $this->builder();
+        $builder->select('*');
+        
+        // Chỉ lấy bản ghi đã xóa
+        $builder->where($this->table . '.deleted_at IS NOT NULL');
+        
+        // Áp dụng điều kiện tìm kiếm
+        if (!empty($criteria['keyword'])) {
+            $builder->groupStart()
+                    ->like($this->table . '.ten_loai_su_kien', $criteria['keyword'])
+                    ->orLike($this->table . '.ma_loai_su_kien', $criteria['keyword'])
+                    ->orLike($this->table . '.mo_ta', $criteria['keyword'])
+                    ->groupEnd();
+        }
+        
+        if (isset($criteria['status']) && $criteria['status'] !== '') {
+            $builder->where($this->table . '.status', $criteria['status']);
+        }
+        
+        // Sắp xếp mặc định theo ngày xóa giảm dần
+        $sort = $options['sort'] ?? 'deleted_at';
+        $order = $options['order'] ?? 'DESC';
+        
+        // Đảm bảo thêm tên bảng vào trường sắp xếp
+        if (strpos($sort, '.') === false) {
+            $sort = $this->table . '.' . $sort;
+        }
+        
+        $builder->orderBy($sort, $order);
+        
+        // Phân trang
+        if (!empty($options['limit'])) {
+            $builder->limit($options['limit'], $options['offset'] ?? 0);
+        }
+        
+        return $builder->get()->getResult($this->returnType);
+    }
 
-    
     /**
      * Tạo mã xác nhận ngẫu nhiên
      *
@@ -474,47 +511,6 @@ class LoaiSuKienModel extends BaseModel
         }
         
         return $randomString;
-    }
-
-    /**
-     * Tìm kiếm bản ghi đã xóa
-     *
-     * @param array $criteria Tiêu chí tìm kiếm
-     * @param array $options Tùy chọn
-     * @return array
-     */
-    public function searchDeleted($criteria = [], $options = [])
-    {
-        $builder = $this->builder();
-        $builder->select('*');
-        
-        // Chỉ lấy bản ghi đã xóa
-        $builder->where('deleted_at IS NOT NULL');
-        
-        // Áp dụng điều kiện tìm kiếm
-        if (!empty($criteria['keyword'])) {
-            $builder->groupStart()
-                    ->like('ten_loai_su_kien', $criteria['keyword'])
-                    ->orLike('ma_loai_su_kien', $criteria['keyword'])
-                    ->orLike('mo_ta', $criteria['keyword'])
-                    ->groupEnd();
-        }
-        
-        if (isset($criteria['status']) && $criteria['status'] !== '') {
-            $builder->where('status', $criteria['status']);
-        }
-        
-        // Sắp xếp
-        $sort = $options['sort'] ?? 'ten_loai_su_kien';
-        $order = $options['order'] ?? 'ASC';
-        $builder->orderBy($sort, $order);
-        
-        // Phân trang
-        if (!empty($options['limit'])) {
-            $builder->limit($options['limit'], $options['offset'] ?? 0);
-        }
-        
-        return $builder->get()->getResult($this->returnType);
     }
 
     /**

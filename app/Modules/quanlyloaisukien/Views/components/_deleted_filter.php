@@ -3,8 +3,21 @@ $perPageOptions = [10, 25, 50, 100];
 $statusOptions = [
     '' => 'Tất cả trạng thái',
     '1' => 'Hoạt động',
-    '0' => 'Vô hiệu',
-    '2' => 'Đang xử lý'
+    '0' => 'Vô hiệu'
+];
+
+$sortOptions = [
+    'deleted_at' => 'Ngày xóa',
+    'ten_loai_su_kien' => 'Tên loại sự kiện',
+    'ma_loai_su_kien' => 'Mã loại sự kiện',
+    'thu_tu' => 'Thứ tự',
+    'created_at' => 'Ngày tạo',
+    'updated_at' => 'Ngày cập nhật'
+];
+
+$orderOptions = [
+    'DESC' => 'Giảm dần',
+    'ASC' => 'Tăng dần'
 ];
 
 $checkinTypeOptions = [
@@ -29,44 +42,15 @@ $suKienList = $suKienModel->findAll();
 
 <div class="card-header bg-white">
     <form action="<?= site_url($module_name . '/listdeleted') ?>" method="get" class="row g-3">
-        <div class="col-12 col-sm-6 col-md-3">
+        <div class="col-12 col-sm-6 col-md-4">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Tìm kiếm..." name="keyword" value="<?= $keyword ?? '' ?>">
+                <input type="text" class="form-control" 
+                       placeholder="Tìm kiếm theo tên, mã hoặc mô tả..." 
+                       name="keyword" value="<?= $keyword ?>">
                 <button class="btn btn-outline-secondary" type="submit">
                     <i class="bx bx-search"></i>
                 </button>
             </div>
-        </div>
-        
-        <div class="col-12 col-sm-6 col-md-3">
-            <select class="form-select" name="su_kien_id" onchange="this.form.submit()">
-                <option value="">Tất cả sự kiện</option>
-                <?php foreach ($suKienList as $suKien) : ?>
-                    <option value="<?= $suKien->su_kien_id ?>" <?= isset($su_kien_id) && $su_kien_id == $suKien->su_kien_id ? 'selected' : '' ?>>
-                        <?= esc($suKien->ten_su_kien) ?>
-                    </option>
-                <?php endforeach ?>
-            </select>
-        </div>
-        
-        <div class="col-12 col-sm-6 col-md-2">
-            <select class="form-select" name="checkin_type" onchange="this.form.submit()">
-                <?php foreach ($checkinTypeOptions as $value => $label) : ?>
-                    <option value="<?= $value ?>" <?= isset($checkin_type) && $checkin_type === $value ? 'selected' : '' ?>>
-                        <?= $label ?>
-                    </option>
-                <?php endforeach ?>
-            </select>
-        </div>
-        
-        <div class="col-12 col-sm-6 col-md-2">
-            <select class="form-select" name="hinh_thuc_tham_gia" onchange="this.form.submit()">
-                <?php foreach ($hinhThucThamGiaOptions as $value => $label) : ?>
-                    <option value="<?= $value ?>" <?= isset($hinh_thuc_tham_gia) && $hinh_thuc_tham_gia === $value ? 'selected' : '' ?>>
-                        <?= $label ?>
-                    </option>
-                <?php endforeach ?>
-            </select>
         </div>
         
         <div class="col-12 col-sm-6 col-md-2">
@@ -78,39 +62,42 @@ $suKienList = $suKienModel->findAll();
                 <?php endforeach ?>
             </select>
         </div>
+
+        <div class="col-12 col-sm-6 col-md-2">
+            <select class="form-select" name="sort" onchange="this.form.submit()">
+                <?php foreach ($sortOptions as $value => $label) : ?>
+                    <option value="<?= $value ?>" <?= isset($sort) && $sort === $value ? 'selected' : '' ?>>
+                        <?= $label ?>
+                    </option>
+                <?php endforeach ?>
+            </select>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-2">
+            <select class="form-select" name="order" onchange="this.form.submit()">
+                <?php foreach ($orderOptions as $value => $label) : ?>
+                    <option value="<?= $value ?>" <?= isset($order) && $order === $value ? 'selected' : '' ?>>
+                        <?= $label ?>
+                    </option>
+                <?php endforeach ?>
+            </select>
+        </div>
         
         <div class="col-12 col-sm-6 col-md-2">
             <select class="form-select" name="perPage" id="perPage" onchange="this.form.submit()">
                 <?php foreach ($perPageOptions as $option) : ?>
-                    <option value="<?= $option ?>" <?= (isset($perPage) && (string)$perPage === (string)$option) ? 'selected' : '' ?>>
+                    <option value="<?= $option ?>" <?= (string)$perPage === (string)$option ? 'selected' : '' ?>>
                         <?= $option ?> mục
                     </option>
                 <?php endforeach ?>
             </select>
         </div>
         
-        <!-- Lọc theo thời gian check-in -->
         <div class="col-12 col-sm-6 col-md-3">
-            <div class="input-group">
-                <span class="input-group-text">Từ</span>
-                <input type="datetime-local" class="form-control" name="start_date" value="<?= isset($start_date) ? (new DateTime($start_date))->format('Y-m-d\TH:i') : '' ?>">
-            </div>
+            <a href="<?= site_url($module_name . '/listdeleted')?>" class="btn btn-danger">Xóa lọc</a>
         </div>
-        
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="input-group">
-                <span class="input-group-text">Đến</span>
-                <input type="datetime-local" class="form-control" name="end_date" value="<?= isset($end_date) ? (new DateTime($end_date))->format('Y-m-d\TH:i') : '' ?>">
-                <button type="submit" class="btn btn-primary">Lọc</button>
-            </div>
-        </div>
-        
-        <div class="col-12 col-sm-6 col-md-3">
-            <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-danger">Xóa lọc</a>
-        </div>
-        
     </form>
-</div> 
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

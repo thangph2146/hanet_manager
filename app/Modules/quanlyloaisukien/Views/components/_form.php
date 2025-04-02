@@ -1,18 +1,16 @@
 <?php
 // Kiểm tra xem $data có phải là đối tượng hay không
 if (is_object($data)) {
-    $loai_su_kien_id = $data->getLoaiSuKienId() ?? '';
+    $loai_su_kien_id = $data->getId() ?? '';
     $ten_loai_su_kien = $data->getTenLoaiSuKien() ?? '';
     $ma_loai_su_kien = $data->getMaLoaiSuKien() ?? '';
     $mo_ta = $data->getMoTa() ?? '';
-    $thu_tu = $data->getThuTu() ?? 0;
     $status = $data->getStatus() ?? 1;
 } else {
     $loai_su_kien_id = '';
     $ten_loai_su_kien = '';
     $ma_loai_su_kien = '';
     $mo_ta = '';
-    $thu_tu = 0;
     $status = 1;
 }
 ?>
@@ -141,19 +139,6 @@ if (is_object($data)) {
                         <?php endif ?>
                     </div>
 
-                    <div class="col-md-6">
-                        <label for="thu_tu" class="form-label fw-bold">
-                            <i class="fas fa-sort-numeric-down text-primary me-1"></i> Thứ tự
-                        </label>
-                        <input type="number" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('thu_tu') ? 'is-invalid' : '' ?>" 
-                               id="thu_tu" name="thu_tu" 
-                               value="<?= $thu_tu ?>" min="0">
-                        <?php if (isset($validation) && $validation->hasError('thu_tu')) : ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('thu_tu') ?>
-                            </div>
-                        <?php endif ?>
-                    </div>
 
                     <div class="col-md-6">
                         <label for="status" class="form-label fw-bold">
@@ -171,6 +156,22 @@ if (is_object($data)) {
                         <?php endif ?>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+     <!-- Buttons -->
+     <div class="col-12 mt-3">
+        <div class="d-flex justify-content-between">
+            <a href="<?= site_url($module_name) ?>" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+            <div>
+                <button type="reset" class="btn btn-outline-warning me-2">
+                    <i class="fas fa-redo me-1"></i> Đặt lại
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Lưu thông tin
+                </button>
             </div>
         </div>
     </div>

@@ -5,11 +5,18 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <?= $this->include('App\Modules\\' . $module_name . '\Views\components\_form_detail') ?>
-        </div>
-    </div>
-</div>
+
+<!-- Breadcrumb -->
+<?= $breadcrumb ?>
+
+<!-- Alerts -->
+<?= view('App\Modules\\' . $module_name . '\Views\components\_alerts') ?>
+
+<!-- Form Detail Component -->
+<?= view('App\Modules\\' . $module_name . '\Views\components\_form_detail', [
+    'data' => $data,
+    'module_name' => $module_name,
+    'title' => $title
+]) ?>
+
 <?= $this->endSection() ?>

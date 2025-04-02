@@ -1,9 +1,9 @@
 <?php
 /**
- * Component hiển thị bảng dữ liệu check-in sự kiện đã xóa
+ * Component hiển thị bảng dữ liệu loại sự kiện đã xóa
  * 
  * Các biến cần truyền vào:
- * @var array $processedData Dữ liệu check-in sự kiện đã xóa
+ * @var array $processedData Dữ liệu loại sự kiện đã xóa
  * @var string $module_name Tên module
  */
 ?>
@@ -19,13 +19,13 @@
                         </div>
                     </th>
                     <th width="5%" class="align-middle">ID</th>
-                    <th width="15%" class="align-middle">Họ tên</th>
-                    <th width="15%" class="align-middle">Email</th>
-                    <th width="15%" class="align-middle">Sự kiện</th>
-                    <th width="10%" class="align-middle">Thời gian check-in</th>
-                    <th width="10%" class="text-center align-middle">Loại check-in</th>
+                    <th width="20%" class="align-middle">Tên loại sự kiện</th>
+                    <th width="15%" class="align-middle">Mã loại sự kiện</th>
+                    <th width="20%" class="align-middle">Mô tả</th>
+                    <th width="10%" class="text-center align-middle">Thứ tự</th>
+                    <th width="10%" class="text-center align-middle">Trạng thái</th>
                     <th width="10%" class="text-center align-middle">Ngày xóa</th>
-                    <th width="15%" class="text-center align-middle">Thao tác</th>
+                    <th width="10%" class="text-center align-middle">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,34 +35,36 @@
                             <td class="text-center">
                                 <div class="form-check">
                                     <input class="form-check-input checkbox-item cursor-pointer" 
-                                    type="checkbox" name="selected_ids[]" 
-                                    value="<?= $item->checkin_sukien_id ?>">
+                                           type="checkbox" name="selected_ids[]" 
+                                           value="<?= $item->loai_su_kien_id ?>">
                                 </div>
                             </td>
-                            <td><?= esc($item->checkin_sukien_id) ?></td>  
-                            <td><?= esc($item->ho_ten) ?></td>
-                            <td><?= esc($item->email) ?></td>
-                            <td><?= esc($item->ten_su_kien ?? '(Không xác định)') ?></td>
-                            <td>
-                                <?= $item->getThoiGianCheckInFormatted('d/m/Y H:i') ?>
-                            </td>
+                            <td><?= esc($item->loai_su_kien_id) ?></td>
+                            <td><?= esc($item->ten_loai_su_kien) ?></td>
+                            <td><?= esc($item->ma_loai_su_kien) ?></td>
+                            <td><?= esc($item->mo_ta) ?></td>
+                            <td class="text-center"><?= $item->thu_tu ?></td>
                             <td class="text-center">
-                                <?= $item->getCheckinTypeText() ?>
+                                <?php if ($item->status == 1): ?>
+                                    <span class="badge bg-success">Hoạt động</span>
+                                <?php else: ?>
+                                    <span class="badge bg-danger">Vô hiệu</span>
+                                <?php endif; ?>
                             </td>
                             <td class="text-center">
                                 <?= $item->getDeletedAtFormatted() ?>
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                    <button type="submit" class="btn btn-success btn-sm btn-restore w-100 h-100" 
-                                        data-id="<?= $item->checkin_sukien_id ?>" 
-                                        data-name="<?= esc($item->ho_ten) ?>"
-                                        data-bs-toggle="tooltip" title="Khôi phục">
-                                    <i class="bx bx-revision"></i>
+                                    <button type="button" class="btn btn-success btn-sm btn-restore" 
+                                            data-id="<?= $item->loai_su_kien_id ?>" 
+                                            data-name="<?= esc($item->ten_loai_su_kien) ?>"
+                                            data-bs-toggle="tooltip" title="Khôi phục">
+                                        <i class="bx bx-revision"></i>
                                     </button>
-                                    <button type="button" class="btn btn-danger btn-sm btn-permanent-delete w-100 h-100" 
-                                            data-id="<?= $item->checkin_sukien_id ?>" 
-                                            data-name="<?= esc($item->ho_ten) ?>"
+                                    <button type="button" class="btn btn-danger btn-sm btn-permanent-delete" 
+                                            data-id="<?= $item->loai_su_kien_id ?>" 
+                                            data-name="<?= esc($item->ten_loai_su_kien) ?>"
                                             data-bs-toggle="tooltip" title="Xóa vĩnh viễn">
                                         <i class="bx bx-trash"></i>
                                     </button>
@@ -75,7 +77,7 @@
                         <td colspan="9" class="text-center py-3">
                             <div class="empty-state">
                                 <i class="bx bx-folder-open"></i>
-                                <p>Không có dữ liệu check-in đã xóa</p>
+                                <p>Không có dữ liệu loại sự kiện đã xóa</p>
                             </div>
                         </td>
                     </tr>

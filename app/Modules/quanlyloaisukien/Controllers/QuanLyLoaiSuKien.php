@@ -311,50 +311,32 @@ class QuanLyLoaiSuKien extends BaseController
      */
     public function detail($id = null)
     {
-        if (empty($id)) {
+        if (!$id) {
             $this->alert->set('danger', 'ID loại sự kiện không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
-        
-        // Đảm bảo các model relationship được khởi tạo
-        $this->initializeRelationTrait();
-        
-        // Lấy thông tin dữ liệu cơ bản
+
+        // Lấy thông tin loại sự kiện
         $data = $this->model->find($id);
-        
-        if (empty($data)) {
+        if (!$data) {
             $this->alert->set('danger', 'Không tìm thấy dữ liệu loại sự kiện', true);
             return redirect()->to($this->moduleUrl);
         }
-        
-        // Lấy thông tin sự kiện
-        $suKien = $data->getSuKien();
-        // Lấy thông tin đăng ký sự kiện nếu có
-        $dangKySuKien = $data->getDangKySuKien();
-        
-        // Xử lý dữ liệu và nạp các quan hệ
+
+        // Xử lý dữ liệu
         $processedData = $this->processData([$data]);
         $data = $processedData[0] ?? $data;
-        
+
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Chi tiết', current_url());
-        
-        // Chuẩn bị dữ liệu cho view
-        $viewData = [
-            'breadcrumb' => $this->breadcrumb->render(),
-            'title' => 'Chi tiết ' . $this->title,
+
+        // Sửa đường dẫn view để phù hợp với cấu trúc module
+        return view('App\Modules\\' . $this->module_name . '\Views\detail', [
             'data' => $data,
-            'suKien' => $suKien,
-            'dangKySuKien' => $dangKySuKien,
-            'moduleUrl' => $this->moduleUrl,
             'module_name' => $this->module_name,
-            'masterScript' => $this->masterScript,
-            'pager' => null,
-            'perPage' => 1,
-            'total' => 1
-        ];
-        
-        return view('App\Modules\\' . $this->module_name . '\Views\detail', $viewData);
+            'title' => 'Chi tiết loại sự kiện',
+            'breadcrumb' => $this->breadcrumb->render()
+        ]);
     }
     
     
@@ -677,7 +659,7 @@ class QuanLyLoaiSuKien extends BaseController
             'status' => $request->getGet('status') ?? '',
             'page' => (int)($request->getGet('page') ?? 1),
             'perPage' => $perPage,
-            'sort' => $request->getGet('sort') ?? 'thoi_gian_check_out',
+            'sort' => $request->getGet('sort') ?? 'ten_loai_su_kien',
             'order' => $request->getGet('order') ?? 'DESC',
             'su_kien_id' => $request->getGet('su_kien_id') ?? '',
             'checkout_type' => $request->getGet('checkout_type') ?? '',
