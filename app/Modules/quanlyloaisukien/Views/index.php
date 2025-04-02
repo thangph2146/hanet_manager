@@ -30,13 +30,8 @@ $masterScript = new $masterScriptClass($module_name);
         <?= view('App\Modules\\' . $module_name . '\Views\components\_filter', [
             'module_name' => $module_name,
             'keyword' => $keyword ?? '',
-            'perPage' => $perPage,
             'status' => $status ?? '',
-            'su_kien_id' => $su_kien_id ?? '',
-            'checkout_type' => $checkout_type ?? '',
-            'hinh_thuc_tham_gia' => $hinh_thuc_tham_gia ?? '',
-            'start_date' => $start_date ?? '',
-            'end_date' => $end_date ?? '',
+            'perPage' => $perPage
         ]) ?>
         
         <?= view('App\Modules\\' . $module_name . '\Views\components\_alerts') ?>

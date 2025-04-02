@@ -5,7 +5,7 @@
  */
 // Lấy biến module_name từ biến được truyền vào từ view
 if (!isset($GLOBALS['module_name'])) {
-    $GLOBALS['module_name'] = 'quanlycheckoutsukien';
+    $GLOBALS['module_name'] = 'quanlyloaisukien';
 }
 if (isset($module_name_php)) {
     $GLOBALS['module_name'] = $module_name_php;

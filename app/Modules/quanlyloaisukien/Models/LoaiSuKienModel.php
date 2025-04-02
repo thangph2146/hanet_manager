@@ -9,8 +9,8 @@ use CodeIgniter\I18n\Time;
 
 class LoaiSuKienModel extends BaseModel
 {
-    protected $table = 'checkout_sukien';
-    protected $primaryKey = 'checkout_sukien_id';
+    protected $table = 'loai_su_kien';
+    protected $primaryKey = 'loai_su_kien_id';
     protected $useAutoIncrement = true;
     
     protected $useSoftDeletes = true;
@@ -23,97 +23,67 @@ class LoaiSuKienModel extends BaseModel
     protected $surroundCount = 2;
     
     protected $allowedFields = [
-        'su_kien_id',
-        'email',
-        'ho_ten',
-        'dangky_sukien_id',
-        'checkin_sukien_id',
-        'thoi_gian_check_out',
-        'checkout_type',
-        'face_image_path',
-        'face_match_score',
-        'face_verified',
-        'ma_xac_nhan',
+        'ten_loai_su_kien',
+        'ma_loai_su_kien',
         'status',
-        'location_data',
-        'device_info',
-        'attendance_duration_minutes',
-        'hinh_thuc_tham_gia',
-        'ip_address',
-        'thong_tin_bo_sung',
-        'ghi_chu',
-        'feedback',
-        'danh_gia',
-        'noi_dung_danh_gia',
         'created_at',
         'updated_at',
         'deleted_at'
     ];
     
-    protected $returnType = CheckOutSuKien::class;
+    protected $returnType = LoaiSuKien::class;
     
     // Trường có thể tìm kiếm
     protected $searchableFields = [
-        'email',
-        'ho_ten',
-        'thoi_gian_check_out',
-        'checkout_type',
-        'ma_xac_nhan',
-        'attendance_duration_minutes',
-        'hinh_thuc_tham_gia',
-        'ghi_chu',
-        'feedback',
-        'noi_dung_danh_gia'
+        'ten_loai_su_kien',
+        'ma_loai_su_kien',
+        'status',
     ];
     
     // Trường có thể lọc
     protected $filterableFields = [
-        'su_kien_id',
-        'dangky_sukien_id',
-        'checkin_sukien_id',
-        'checkout_type',
+        'ten_loai_su_kien',
+        'ma_loai_su_kien',
         'status',
-        'hinh_thuc_tham_gia',
-        'face_verified',
-        'danh_gia'
     ];
     
     // Các quy tắc xác thực
-    protected $validationRules = [];
-    protected $validationMessages = [];
-    protected $skipValidation = false;
+    protected $validationRules = [
+        'ten_loai_su_kien' => 'required|string|max_length[100]',
+        'ma_loai_su_kien' => 'required|string|max_length[20]',
+        'status' => 'required|integer|in_list[0,1]'
+    ];
     
-    // CheckOutSuKien pager
-    public $pager = null;
-    
-    // Định nghĩa mối quan hệ
-    protected $relations = [
-        'sukien' => [
-            'type' => '1-1',
-            'table' => 'su_kien',
-            'foreignKey' => 'su_kien_id',
-            'localKey' => 'su_kien_id',
-            'entity' => 'App\Modules\sukien\Entities\SuKien',
-            'useSoftDeletes' => true
+    protected $validationMessages = [
+        'ten_loai_su_kien' => [
+            'required' => 'Tên loại sự kiện là bắt buộc',
+            'string' => 'Tên loại sự kiện phải là chuỗi',
+            'max_length' => 'Tên loại sự kiện không được vượt quá {param} ký tự'
         ],
-        'dangkysukien' => [
-            'type' => '1-1',
-            'table' => 'dangky_sukien',
-            'foreignKey' => 'dangky_sukien_id',
-            'localKey' => 'dangky_sukien_id',
-            'entity' => 'App\Modules\dangkysukien\Entities\DangKySuKien',
-            'useSoftDeletes' => true
+        'ma_loai_su_kien' => [
+            'required' => 'Mã loại sự kiện là bắt buộc',
+            'string' => 'Mã loại sự kiện phải là chuỗi',
+            'max_length' => 'Mã loại sự kiện không được vượt quá {param} ký tự'
         ],
-        'checkinsukien' => [
-            'type' => '1-1',
-            'table' => 'checkin_sukien',
-            'foreignKey' => 'checkin_sukien_id',
-            'localKey' => 'checkin_sukien_id',
-            'entity' => 'App\Modules\checkinsukien\Entities\CheckInSuKien',
-            'useSoftDeletes' => true
+        'status' => [
+            'required' => 'Trạng thái là bắt buộc',
+            'integer' => 'Trạng thái phải là số nguyên',
+            'in_list' => 'Trạng thái phải có giá trị hợp lệ'
         ]
     ];
-
+    
+    protected $skipValidation = false;
+    
+    // Loại sự kiện pager
+    public $pager = null;
+    
+    /**
+     * Cập nhật dữ liệu loại sự kiện
+     *
+     * @param int $id ID loại sự kiện
+     * @param array $data Dữ liệu cần cập nhật
+     * @return bool
+     */
     public function updateData($id, $data)
     {
         $this->builder->where($this->primaryKey, $id);
@@ -122,7 +92,7 @@ class LoaiSuKienModel extends BaseModel
     }
     
     /**
-     * Lấy tất cả bản ghi check-out sự kiện
+     * Lấy tất cả bản ghi loại sự kiện
      *
      * @param int|array $limit Số lượng bản ghi trên mỗi trang hoặc mảng tùy chọn
      * @param int $offset Vị trí bắt đầu lấy dữ liệu
@@ -130,20 +100,19 @@ class LoaiSuKienModel extends BaseModel
      * @param string $order Thứ tự sắp xếp (ASC, DESC)
      * @return array
      */
-    public function getAll($limit = 10, $offset = 0, $sort = 'thoi_gian_check_out', $order = 'DESC')
+    public function getAll($limit = 10, $offset = 0, $sort = 'ten_loai_su_kien', $order = 'DESC')
     {
         // Xử lý trường hợp tham số đầu vào là một mảng tùy chọn
         if (is_array($limit)) {
             $options = $limit;
-            $sort = $options['sort'] ?? 'thoi_gian_check_out';
+            $sort = $options['sort'] ?? 'ten_loai_su_kien';
             $order = $options['order'] ?? 'DESC';
             $offset = $options['offset'] ?? 0;
             $limit = $options['limit'] ?? 10;
         }
 
         $this->builder = $this->db->table($this->table);
-        $this->builder->select($this->table . '.*, su_kien.ten_su_kien');
-        $this->builder->join('su_kien', 'su_kien.su_kien_id = ' . $this->table . '.su_kien_id', 'left');
+        $this->builder->select($this->table . '.*');
         
         // Chỉ lấy bản ghi chưa xóa và đang hoạt động
         $this->builder->where($this->table . '.deleted_at IS NULL');
@@ -174,7 +143,7 @@ class LoaiSuKienModel extends BaseModel
     }
     
     /**
-     * Đếm tổng số bản ghi check-out sự kiện
+     * Đếm tổng số bản ghi loại sự kiện
      *
      * @param array $conditions Điều kiện bổ sung
      * @return int
@@ -195,7 +164,7 @@ class LoaiSuKienModel extends BaseModel
     }
     
     /**
-     * Tìm kiếm check-out sự kiện dựa vào các tiêu chí
+     * Tìm kiếm loại sự kiện dựa vào các tiêu chí
      *
      * @param array $criteria Các tiêu chí tìm kiếm
      * @param array $options Tùy chọn phân trang và sắp xếp
@@ -209,8 +178,7 @@ class LoaiSuKienModel extends BaseModel
         $order = $options['order'] ?? 'DESC';
         
         $this->builder = $this->builder();
-        $this->builder->select($this->table . '.*, su_kien.ten_su_kien');
-        $this->builder->join('su_kien', 'su_kien.su_kien_id = ' . $this->table . '.su_kien_id', 'left');
+        $this->builder->select($this->table . '.*');
         
         // Thêm điều kiện tìm kiếm
         $this->applySearchCriteria($this->builder, $criteria);
@@ -284,719 +252,242 @@ class LoaiSuKienModel extends BaseModel
         $this->applySearchCriteria($builder, $criteria);
         
         $count = $builder->countAllResults();
-        log_message('debug', '[countDeletedSearchResults] SQL Query: ' . $this->db->getLastQuery());
-        log_message('debug', '[countDeletedSearchResults] Total count: ' . $count);
         
         return $count;
     }
     
     /**
-     * Lấy thông tin check-out theo sự kiện
+     * Áp dụng các điều kiện tìm kiếm vào truy vấn
      *
-     * @param int $suKienId ID sự kiện
-     * @param array $options Tùy chọn phân trang và sắp xếp
+     * @param object $builder Query builder
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @return void
+     */
+    protected function applySearchCriteria(&$builder, array $criteria)
+    {
+        // Kiểm tra xem có bỏ qua kiểm tra deleted_at không
+        $ignoreDeletedCheck = $criteria['ignoreDeletedCheck'] ?? false;
+        unset($criteria['ignoreDeletedCheck']);
+
+        // Nếu không bỏ qua kiểm tra deleted_at, thêm điều kiện lọc bản ghi chưa xóa
+        if (!$ignoreDeletedCheck) {
+            $builder->where($this->table . '.deleted_at IS NULL');
+        }
+
+        // Xử lý từng tiêu chí tìm kiếm
+        foreach ($criteria as $field => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            // Xử lý tìm kiếm theo trạng thái đặc biệt
+            if ($field === 'status' && $value !== '') {
+                $builder->where($this->table . '.' . $field, $value);
+                continue;
+            }
+
+            // Xử lý các trường còn lại với tìm kiếm tương đối
+            if (in_array($field, $this->searchableFields) && !empty($value)) {
+                $builder->like($this->table . '.' . $field, $value);
+            }
+        }
+    }
+
+    /**
+     * Lấy danh sách loại sự kiện dưới dạng mảng key-value cho dropdown
+     *
+     * @param bool $active Chỉ lấy loại sự kiện đang hoạt động
      * @return array
      */
-    public function getBySuKien(int $suKienId, array $options = [])
-    {
-        $criteria = [
-            'su_kien_id' => $suKienId
-        ];
-        
-        return $this->search($criteria, $options);
-    }
-    
-    /**
-     * Lấy thông tin check-out theo check-in
-     *
-     * @param int $checkInId ID check-in
-     * @return CheckOutSuKien|null
-     */
-    public function getByCheckIn(int $checkInId)
-    {
-        return $this->where('checkin_sukien_id', $checkInId)
-                     ->where('deleted_at IS NULL')
-                     ->first();
-    }
-    
-    /**
-     * Lấy thông tin check-out theo đăng ký
-     *
-     * @param int $dangKyId ID đăng ký
-     * @param int $suKienId ID sự kiện (tùy chọn)
-     * @return CheckOutSuKien|null
-     */
-    public function getByDangKy(int $dangKyId, ?int $suKienId = null)
-    {
-        $query = $this->where('dangky_sukien_id', $dangKyId)
-                      ->where('deleted_at IS NULL');
-        
-        if ($suKienId !== null) {
-            $query->where('su_kien_id', $suKienId);
-        }
-        
-        return $query->first();
-    }
-    
-    /**
-     * Lấy thông tin check-out theo email và sự kiện
-     *
-     * @param string $email Email
-     * @param int $suKienId ID sự kiện
-     * @return CheckOutSuKien|null
-     */
-    public function getByEmailAndSuKien(string $email, int $suKienId)
-    {
-        return $this->where('email', $email)
-                     ->where('su_kien_id', $suKienId)
-                     ->where('deleted_at IS NULL')
-                     ->first();
-    }
-    
-    /**
-     * Đếm số lượng check-out theo sự kiện
-     * 
-     * @param int $suKienId ID sự kiện
-     * @return int
-     */
-    public function countBySuKien(int $suKienId): int
-    {
-        return $this->where('su_kien_id', $suKienId)
-                    ->where('deleted_at IS NULL')
-                    ->countAllResults();
-    }
-    
-    /**
-     * Đếm số lượng đánh giá theo sự kiện và số sao
-     * 
-     * @param int $suKienId ID sự kiện
-     * @param int|null $danhGia Số sao đánh giá (1-5), null để đếm tất cả
-     * @return int
-     */
-    public function countDanhGiaBySuKien(int $suKienId, ?int $danhGia = null): int
-    {
-        $query = $this->where('su_kien_id', $suKienId)
-                      ->where('deleted_at IS NULL')
-                      ->where('danh_gia IS NOT NULL');
-        
-        if ($danhGia !== null) {
-            $query->where('danh_gia', $danhGia);
-        }
-        
-        return $query->countAllResults();
-    }
-    
-    /**
-     * Tính điểm đánh giá trung bình của sự kiện
-     * 
-     * @param int $suKienId ID sự kiện
-     * @return float|null Điểm trung bình hoặc null nếu không có đánh giá
-     */
-    public function getAverageDanhGiaBySuKien(int $suKienId): ?float
+    public function getListForDropdown($active = true)
     {
         $builder = $this->builder();
-        $builder->selectAvg('danh_gia', 'average_rating');
-        $builder->where('su_kien_id', $suKienId);
+        $builder->select('loai_su_kien_id, ten_loai_su_kien');
         $builder->where('deleted_at IS NULL');
-        $builder->where('danh_gia IS NOT NULL');
         
-        $result = $builder->get()->getRow();
-        
-        if (empty($result) || $result->average_rating === null) {
-            return null;
+        if ($active) {
+            $builder->where('status', 1);
         }
         
-        return round((float)$result->average_rating, 1);
-    }
-    
-    /**
-     * Lấy danh sách các phản hồi đánh giá đã gắn sao cho sự kiện
-     * 
-     * @param int $suKienId ID sự kiện
-     * @param int $limit Số lượng kết quả tối đa
-     * @param int $offset Vị trí bắt đầu
-     * @return array
-     */
-    public function getDanhGiaFeedbackBySuKien(int $suKienId, int $limit = 10, int $offset = 0): array
-    {
-        return $this->select('checkout_sukien_id, ho_ten, email, danh_gia, noi_dung_danh_gia, feedback, created_at')
-            ->where('su_kien_id', $suKienId)
-            ->where('deleted_at IS NULL')
-            ->where('danh_gia IS NOT NULL')
-            ->where('(noi_dung_danh_gia IS NOT NULL OR feedback IS NOT NULL)')
-            ->orderBy('created_at', 'DESC')
-            ->limit($limit, $offset)
-            ->find();
-    }
-    
-    /**
-     * Lấy thống kê số lượng người check-out theo loại
-     * 
-     * @param int $suKienId ID sự kiện
-     * @return array
-     */
-    public function getCheckoutTypeStatsBySuKien(int $suKienId): array
-    {
-        $builder = $this->builder();
-        $builder->select('checkout_type, COUNT(*) as count');
-        $builder->where('su_kien_id', $suKienId);
-        $builder->where('deleted_at IS NULL');
-        $builder->groupBy('checkout_type');
-        
+        $builder->orderBy('ten_loai_su_kien', 'ASC');
         $result = $builder->get()->getResult();
         
-        $stats = [];
-        foreach ($result as $row) {
-            $stats[$row->checkout_type] = (int)$row->count;
+        $dropdown = [];
+        foreach ($result as $item) {
+            $dropdown[$item->loai_su_kien_id] = $item->ten_loai_su_kien;
         }
         
-        return $stats;
+        return $dropdown;
     }
-    
-    /**
-     * Lấy thống kê số lượng người check-out theo hình thức tham gia
-     * 
-     * @param int $suKienId ID sự kiện
-     * @return array
-     */
-    public function getHinhThucThamGiaStatsBySuKien(int $suKienId): array
+    public function setSurroundCount($surroundCount)
     {
-        $builder = $this->builder();
-        $builder->select('hinh_thuc_tham_gia, COUNT(*) as count');
-        $builder->where('su_kien_id', $suKienId);
-        $builder->where('deleted_at IS NULL');
-        $builder->groupBy('hinh_thuc_tham_gia');
-        
-        $result = $builder->get()->getResult();
-        
-        $stats = [
-            'offline' => 0,
-            'online' => 0
-        ];
-        
-        foreach ($result as $row) {
-            $stats[$row->hinh_thuc_tham_gia] = (int)$row->count;
-        }
-        
-        return $stats;
+        $this->surroundCount = $surroundCount;
     }
-    
-    /**
-     * Chuẩn bị các quy tắc xác thực dựa trên kịch bản
-     * 
-     * @param string $scenario Kịch bản (insert hoặc update)
-     * @param array $data Dữ liệu cần xác thực
-     */
-    public function prepareValidationRules(string $scenario = 'insert', array $data = [])
-    {
-        // Khởi tạo đối tượng thực thể và lấy quy tắc xác thực
-        $entity = new \App\Modules\checkoutsukien\Entities\CheckOutSuKien();
-        $rules = $entity->getValidationRules();
-        $messages = $entity->getValidationMessages();
-        
-        // Các trường cần bỏ qua khi cập nhật
-        $skipFieldsOnUpdate = [
-            'created_at', 'updated_at', 'deleted_at'
-        ];
-        
-        // Các trường cho phép null
-        $nullableFields = [
-            'dangky_sukien_id', 'checkin_sukien_id', 'face_match_score', 
-            'ma_xac_nhan', 'danh_gia', 'ghi_chu', 'noi_dung_danh_gia',
-            'feedback', 'attendance_duration_minutes', 'face_image_path', 
-            'location_data', 'device_info', 'thong_tin_bo_sung'
-        ];
-        
-        // Trong trường hợp cập nhật, chỉ áp dụng quy tắc cho các trường có trong dữ liệu
-        if ($scenario === 'update') {
-            // Tạo bản sao của quy tắc ban đầu
-            $updatedRules = [];
-            
-            // Chỉ giữ lại các quy tắc cho những trường có trong dữ liệu và không nằm trong danh sách bỏ qua
-            foreach ($rules as $field => $rule) {
-                if (array_key_exists($field, $data) && !in_array($field, $skipFieldsOnUpdate)) {
-                    $updatedRules[$field] = $rule;
-                }
-            }
-            
-            // Đảm bảo trường ID và su_kien_id luôn được kiểm tra trong cập nhật
-            if (isset($data[$this->primaryKey])) {
-                $updatedRules[$this->primaryKey] = $rules[$this->primaryKey] ?? [
-                    'rules' => 'required|integer|is_not_unique[' . $this->table . '.' . $this->primaryKey . ']',
-                    'label' => 'ID'
-                ];
-            }
-            
-            if (isset($data['su_kien_id'])) {
-                // Đổi thành kiểm tra chỉ trường su_kien_id mà không quan tâm đến deleted_at
-                $updatedRules['su_kien_id'] = [
-                    'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id]',
-                    'label' => 'Sự kiện'
-                ];
-            }
-            
-            // Cập nhật lại rules
-            $rules = $updatedRules;
-        } else {
-            // Đối với insert, đảm bảo sự kiện tồn tại
-            $rules['su_kien_id'] = [
-                'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id]',
-                'label' => 'Sự kiện'
-            ];
-        }
-        
-        // Điều chỉnh quy tắc cho các trường có thể null
-        foreach ($nullableFields as $field) {
-            if (isset($rules[$field])) {
-                if (is_array($rules[$field]) && isset($rules[$field]['rules'])) {
-                    // Thêm permit_empty vào quy tắc
-                    if (strpos($rules[$field]['rules'], 'permit_empty') === false) {
-                        $rules[$field]['rules'] = 'permit_empty|' . preg_replace('/^required\|/', '', $rules[$field]['rules']);
-                    }
-                } else {
-                    // Thêm permit_empty vào quy tắc
-                    if (strpos($rules[$field], 'permit_empty') === false) {
-                        $rules[$field] = 'permit_empty|' . preg_replace('/^required\|/', '', $rules[$field]);
-                    }
-                }
-            }
-        }
-        
-        // Quy tắc đặc biệt cho face_match_score
-        if (isset($rules['face_match_score'])) {
-            if (is_array($rules['face_match_score']) && isset($rules['face_match_score']['rules'])) {
-                $rules['face_match_score']['rules'] = 'permit_empty|numeric|greater_than_equal_to[0]|less_than_equal_to[1]';
-            } else {
-                $rules['face_match_score'] = 'permit_empty|numeric|greater_than_equal_to[0]|less_than_equal_to[1]';
-            }
-        }
-        
-        // Quy tắc đặc biệt cho danh_gia
-        if (isset($rules['danh_gia'])) {
-            if (is_array($rules['danh_gia']) && isset($rules['danh_gia']['rules'])) {
-                $rules['danh_gia']['rules'] = 'permit_empty|integer|greater_than_equal_to[1]|less_than_equal_to[5]';
-            } else {
-                $rules['danh_gia'] = 'permit_empty|integer|greater_than_equal_to[1]|less_than_equal_to[5]';
-            }
-        }
-        
-        // Quy tắc đặc biệt cho đường dẫn ảnh
-        if (isset($rules['face_image_path'])) {
-            if (is_array($rules['face_image_path']) && isset($rules['face_image_path']['rules'])) {
-                $rules['face_image_path']['rules'] = 'permit_empty|string|max_length[255]';
-            } else {
-                $rules['face_image_path'] = 'permit_empty|string|max_length[255]';
-            }
-        }
-        
-        // Luôn đảm bảo email và ho_ten là bắt buộc
-        if (isset($rules['email'])) {
-            if (is_array($rules['email']) && isset($rules['email']['rules'])) {
-                if (strpos($rules['email']['rules'], 'required') === false) {
-                    $rules['email']['rules'] = 'required|' . $rules['email']['rules'];
-                }
-            } else if (strpos($rules['email'], 'required') === false) {
-                $rules['email'] = 'required|' . $rules['email'];
-            }
-        }
-        
-        if (isset($rules['ho_ten'])) {
-            if (is_array($rules['ho_ten']) && isset($rules['ho_ten']['rules'])) {
-                if (strpos($rules['ho_ten']['rules'], 'required') === false) {
-                    $rules['ho_ten']['rules'] = 'required|' . $rules['ho_ten']['rules'];
-                }
-            } else if (strpos($rules['ho_ten'], 'required') === false) {
-                $rules['ho_ten'] = 'required|' . $rules['ho_ten'];
-            }
-        }
-        
-        // Log các quy tắc cuối cùng để debug
-        log_message('debug', 'Validation rules for ' . $scenario . ': ' . json_encode($rules));
-        
-        // Thiết lập quy tắc xác thực và thông báo
-        $this->setValidationRules($rules);
-        $this->setValidationMessages($messages);
-    }
-    
-    /**
-     * Thiết lập số lượng liên kết trang hiển thị xung quanh trang hiện tại
-     *
-     * @param int $count Số lượng liên kết
-     * @return $this
-     */
-    public function setSurroundCount(int $count)
-    {
-        $this->surroundCount = $count;
-        
-        if ($this->pager !== null) {
-            $this->pager->setSurroundCount($count);
-        }
-        
-        return $this;
-    }
-    
-    /**
-     * Lấy đối tượng phân trang
-     *
-     * @return Pager|null
-     */
     public function getPager()
     {
         return $this->pager;
     }
-    
-    /**
-     * Cập nhật trạng thái tham gia
-     *
-     * @param int $id ID của bản ghi cần cập nhật
-     * @param int $status Trạng thái mới (0: Vô hiệu, 1: Hoạt động, 2: Đang xử lý)
-     * @return bool Kết quả cập nhật
-     */
-    public function updateTrangThaiThamGia(int $id, int $status): bool
+    public function searchDeleted($keyword)
     {
-        // Kiểm tra ID hợp lệ
-        if ($id <= 0) {
-            log_message('error', "updateTrangThaiThamGia: ID không hợp lệ: {$id}");
-            return false;
+        $builder = $this->builder();
+        $builder->select('*');
+        $builder->where('deleted_at IS NOT NULL');
+
+        // Ensure $keyword is a string and apply the LIKE condition
+        if (is_string($keyword) && !empty($keyword)) {
+            $builder->groupStart()
+                    ->like('ten_loai_su_kien', $keyword)
+                    ->orLike('ma_loai_su_kien', $keyword)
+                    ->groupEnd();
         }
-        
-        // Kiểm tra trạng thái hợp lệ
-        if (!in_array($status, [0, 1, 2])) {
-            log_message('error', "updateTrangThaiThamGia: Trạng thái không hợp lệ: {$status}");
-            return false;
-        }
-        
-        // Kiểm tra sự tồn tại của bản ghi
-        $existingRecord = $this->find($id);
-        if (!$existingRecord) {
-            log_message('error', "updateTrangThaiThamGia: Không tìm thấy bản ghi với ID: {$id}");
-            return false;
-        }
-        
-        // Chuẩn bị dữ liệu cập nhật
-        $data = [
-            'status' => $status,
-            'updated_at' => Time::now()->toDateTimeString()
-        ];
-        
-        try {
-            // Sử dụng builder để thực hiện cập nhật trực tiếp
-            $builder = $this->builder();
-            $result = $builder->where($this->primaryKey, $id)
-                             ->update($data);
-            
-            // Log thông tin kết quả cập nhật
-            if ($result) {
-                log_message('info', "updateTrangThaiThamGia: Cập nhật thành công ID: {$id}, status: {$status}");
-                return true;
-            } else {
-                log_message('error', "updateTrangThaiThamGia: Cập nhật không thành công ID: {$id}, status: {$status}");
-                return false;
-            }
-        } catch (\Exception $e) {
-            log_message('error', "updateTrangThaiThamGia: Lỗi khi cập nhật ID: {$id}, status: {$status}, lỗi: " . $e->getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * Tìm kiếm dữ liệu trong thùng rác
-     * 
-     * @param array $criteria Tiêu chí tìm kiếm
-     * @param array $options Tùy chọn tìm kiếm
-     * @return array
-     */
-    public function searchDeleted(array $criteria = [], array $options = [])
-    {
-        $limit = $options['limit'] ?? 10;
-        $offset = $options['offset'] ?? 0;
-        $sort = $options['sort'] ?? $this->primaryKey;
-        $order = $options['order'] ?? 'DESC';
-        
-        // Ghi log thông tin về criteria để debug
-        log_message('debug', '[searchDeleted] Criteria: ' . json_encode($criteria));
-        log_message('debug', '[searchDeleted] Options: ' . json_encode($options));
-        
-        // Khởi tạo builder trực tiếp từ database
-        $this->builder = $this->db->table($this->table);
-        $this->builder->select($this->table . '.*, su_kien.ten_su_kien');
-        $this->builder->join('su_kien', 'su_kien.su_kien_id = ' . $this->table . '.su_kien_id', 'left');
-        
-        // ĐẢM BẢO chỉ lấy các bản ghi đã bị xóa - sửa lỗi whereNotNull
-        $this->builder->where($this->table . '.deleted_at IS NOT NULL');
-        
-        // Ghi log câu SQL
-        log_message('debug', '[searchDeleted] SQL Query: ' . $this->db->getLastQuery());
-        
-        // Áp dụng các điều kiện tìm kiếm
-        $criteria['ignoreDeletedCheck'] = true; // Đánh dấu để không kiểm tra deleted_at trong applySearchCriteria
-        $this->applySearchCriteria($this->builder, $criteria);
-        
-        // Sắp xếp
-        if (strpos($sort, '.') === false) {
-            $sort = $this->table . '.' . $sort;
-        }
-        $this->builder->orderBy($sort, $order);
-        
-        // Thiết lập pager nếu có limit
-        if ($limit > 0) {
-            $totalRows = $this->countDeletedSearchResults($criteria);
-            $currentPage = floor($offset / $limit) + 1;
-            
-            if ($this->pager === null) {
-                $this->pager = new Pager($totalRows, $limit, $currentPage);
-                $this->pager->setSurroundCount($this->surroundCount ?? 2);
-            } else {
-                $this->pager->setTotal($totalRows)
-                            ->setPerPage($limit)
-                            ->setCurrentPage($currentPage)
-                            ->setSurroundCount($this->surroundCount ?? 2);
-            }
-        }
-        
-        // Phân trang
-        if ($limit > 0) {
-            $this->builder->limit($limit, $offset);
-        }
-        
-        // Thực hiện truy vấn
-        $query = $this->builder->get();
-        $result = $query->getResult($this->returnType);
-        
-        // Kiểm tra và ghi log kết quả
-        log_message('debug', '[searchDeleted] Found ' . count($result) . ' deleted records');
-        if (!empty($result)) {
-            // Kiểm tra xem có bản ghi nào có deleted_at là null
-            $invalidRecords = 0;
-            foreach ($result as $record) {
-                if ($record->deleted_at === null) {
-                    $invalidRecords++;
-                    log_message('error', '[searchDeleted] Found invalid record with null deleted_at: ID=' . $record->checkout_sukien_id);
-                }
-            }
-            if ($invalidRecords > 0) {
-                log_message('error', '[searchDeleted] Warning: Found ' . $invalidRecords . ' records with null deleted_at in deleted results');
-            }
-        }
-        
+
+        $builder->orderBy('ten_loai_su_kien', 'ASC');
+        $result = $builder->get()->getResult();
         return $result;
     }
     
     /**
-     * Ghi đè phương thức errors để thêm thông tin debug
+     * Lấy tất cả bản ghi đã xóa
      *
-     * @param bool $forceDB Buộc lấy lỗi từ database
+     * @param array $options Mảng tùy chọn
      * @return array
-     */
-    public function errors(bool $forceDB = false)
-    {
-        $errors = parent::errors($forceDB);
-        log_message('debug', 'Validation errors: ' . json_encode($errors));
-        return $errors;
-    }
-    
-    
-    /**
-     * Lấy toàn bộ dữ liệu đã xóa không phụ thuộc vào filter
-     * 
-     * @param array $options Tùy chọn tìm kiếm (sort, order, limit)
-     * @return array Dữ liệu đã xóa
      */
     public function getAllDeleted($options = [])
     {
-        // Thiết lập các tùy chọn tìm kiếm mặc định
-        $sort = $options['sort'] ?? 'thoi_gian_check_out';
-        $order = $options['order'] ?? 'DESC';
-        $limit = $options['limit'] ?? 0;
+        $sort = $options['sort'] ?? 'ten_loai_su_kien';
+        $order = $options['order'] ?? 'ASC';
+        $offset = $options['offset'] ?? 0;
+        $limit = $options['limit'] ?? 10;
+
+        $builder = $this->db->table($this->table);
+        $builder->select($this->table . '.*');
         
-        // Khởi tạo builder
-        $builder = $this->db->table($this->table)
-            ->select($this->table . ".*, su_kien.ten_su_kien")
-            ->join('su_kien', "su_kien.su_kien_id = " . $this->table . ".su_kien_id", 'left');
-        
-        // Chỉ lấy các bản ghi đã xóa - sửa lỗi whereNotNull
+        // Chỉ lấy bản ghi đã xóa
         $builder->where($this->table . '.deleted_at IS NOT NULL');
         
-        // Sắp xếp kết quả
-        $builder->orderBy($this->table . "." . $sort, $order);
-        
-        // Thêm giới hạn nếu cần
-        if ($limit > 0) {
-            $builder->limit($limit);
+        if ($sort && $order) {
+            $builder->orderBy($this->table . '.' . $sort, $order);
         }
         
-        // Ghi log câu SQL để debug
-        log_message('debug', '[getAllDeleted] SQL Query: ' . $this->db->getLastQuery());
+        // Nếu limit = 0, lấy tất cả dữ liệu không giới hạn (phục vụ xuất Excel/PDF)
+        if ($limit > 0) {
+            $builder->limit($limit, $offset);
+        }
         
-        // Thực hiện truy vấn
-        $query = $builder->get();
-        $results = $query->getResult($this->returnType);
-        
-        // Kiểm tra kết quả
-        log_message('debug', '[getAllDeleted] Found ' . count($results) . ' deleted records');
-        
-        // Tải các quan hệ
-        $this->loadRelations($results);
-        
-        return $results;
+        $result = $builder->get()->getResult($this->returnType);
+        return $result ?: [];
     }
-
+    
     /**
-     * Áp dụng các điều kiện tìm kiếm vào builder
+     * Chuẩn bị quy tắc xác thực dựa vào hành động
      *
-     * @param \CodeIgniter\Database\BaseBuilder $builder Builder cần áp dụng điều kiện
-     * @param array $criteria Tiêu chí tìm kiếm
+     * @param string $action Hành động (insert, update)
+     * @param array $data Dữ liệu đầu vào
+     * @param int|null $id ID bản ghi (chỉ dùng cho update)
      * @return void
      */
-    protected function applySearchCriteria($builder, array $criteria = [])
+    public function prepareValidationRules($action = 'insert', $data = [], $id = null)
     {
-        // Không áp dụng điều kiện deleted_at trong trường hợp đã sử dụng onlyDeleted() hoặc withDeleted()
-        if (!isset($criteria['ignoreDeletedCheck']) || !$criteria['ignoreDeletedCheck']) {
-            // Xử lý withDeleted nếu cần
-            if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
-                // Không thêm điều kiện vì đã được xử lý bởi onlyDeleted() hoặc withDeleted()
-            } else {
-                // Mặc định chỉ lấy dữ liệu chưa xóa nếu không sử dụng onlyDeleted() hoặc withDeleted()
-                $builder->where($this->table . '.deleted_at IS NULL');
-            }
-        }
+        $this->validationRules = [
+            'ten_loai_su_kien' => 'required|string|max_length[100]',
+            'ma_loai_su_kien' => 'required|string|max_length[20]',
+            'status' => 'required|integer|in_list[0,1]'
+        ];
         
-        // Xử lý lọc theo trạng thái
-        if (isset($criteria['status'])) {
-            $builder->where($this->table . '.status', $criteria['status']);
-        }
-        
-        // Lọc theo sự kiện
-        if (!empty($criteria['su_kien_id'])) {
-            $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
-        }
-        
-        // Lọc theo đăng ký sự kiện
-        if (!empty($criteria['dangky_sukien_id'])) {
-            $builder->where($this->table . '.dangky_sukien_id', $criteria['dangky_sukien_id']);
-        }
-        
-        // Lọc theo check-in sự kiện
-        if (!empty($criteria['checkin_sukien_id'])) {
-            $builder->where($this->table . '.checkin_sukien_id', $criteria['checkin_sukien_id']);
-        }
-        
-        // Lọc theo loại check-out
-        if (!empty($criteria['checkout_type'])) {
-            $builder->where($this->table . '.checkout_type', $criteria['checkout_type']);
-        }
-        
-        // Lọc theo hình thức tham gia
-        if (!empty($criteria['hinh_thuc_tham_gia'])) {
-            $builder->where($this->table . '.hinh_thuc_tham_gia', $criteria['hinh_thuc_tham_gia']);
-        }
-        
-        // Lọc theo xác minh khuôn mặt
-        if (isset($criteria['face_verified'])) {
-            $builder->where($this->table . '.face_verified', $criteria['face_verified']);
-        }
-        
-        // Lọc theo đánh giá
-        if (isset($criteria['danh_gia']) && $criteria['danh_gia'] > 0) {
-            $builder->where($this->table . '.danh_gia', $criteria['danh_gia']);
-        }
-        
-        // Lọc theo thời gian check-out từ ngày
-        if (!empty($criteria['start_date'])) {
-            $tuNgay = $criteria['start_date'];
-            $builder->where($this->table . '.thoi_gian_check_out >=', $tuNgay);
-            log_message('debug', '[CheckOutSuKienModel::applySearchCriteria] Lọc từ ngày: ' . $tuNgay);
-        }
-        
-        // Lọc theo thời gian check-out đến ngày
-        if (!empty($criteria['end_date'])) {
-            $denNgay = $criteria['end_date'];
-            $builder->where($this->table . '.thoi_gian_check_out <=', $denNgay);
-            log_message('debug', '[CheckOutSuKienModel::applySearchCriteria] Lọc đến ngày: ' . $denNgay);
-        }
-        
-        // Tìm kiếm theo từ khóa
-        if (!empty($criteria['keyword'])) {
-            $keyword = trim($criteria['keyword']);
+        // Nếu đây là cập nhật, kiểm tra xem mã loại sự kiện đã thay đổi chưa
+        if ($action === 'update' && $id) {
+            $currentRecord = $this->find($id);
             
-            $builder->groupStart();
-            foreach ($this->searchableFields as $index => $field) {
-                if ($index === 0) {
-                    $builder->like($this->table . '.' . $field, $keyword);
-                } else {
-                    $builder->orLike($this->table . '.' . $field, $keyword);
-                }
+            // Nếu mã không thay đổi, không cần kiểm tra tính duy nhất
+            if ($currentRecord && isset($data['ma_loai_su_kien']) && $currentRecord->getMaLoaiSuKien() === $data['ma_loai_su_kien']) {
+                $this->validationRules['ma_loai_su_kien'] = 'required|string|max_length[20]';
             }
-            // Thêm tìm kiếm trong tên sự kiện
-            $builder->orLike('su_kien.ten_su_kien', $keyword);
-            $builder->groupEnd();
         }
     }
-
+    
     /**
-     * Tải các mối quan hệ cho danh sách kết quả
+     * Lấy danh sách các trường có thể sắp xếp
      *
-     * @param array $results Danh sách kết quả cần tải mối quan hệ
-     * @return array Danh sách kết quả đã tải mối quan hệ
+     * @return array
      */
-    protected function loadRelations(array $results)
+    public function getValidSortFields()
     {
-        if (empty($results)) {
-            return $results;
-        }
-        
-        foreach ($results as $index => $item) {
-            // Tải quan hệ với sự kiện
-            if (isset($this->relations['sukien']) && !empty($item->su_kien_id)) {
-                $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
-                $suKien = $suKienModel->withDeleted()->find($item->su_kien_id);
-                if ($suKien) {
-                    $item->sukien = $suKien;
-                }
-            }
-            
-            // Tải quan hệ với đăng ký sự kiện
-            if (isset($this->relations['dangkysukien']) && !empty($item->dangky_sukien_id)) {
-                $dangKyModel = new \App\Modules\dangkysukien\Models\DangKySuKienModel();
-                $dangKy = $dangKyModel->withDeleted()->find($item->dangky_sukien_id);
-                if ($dangKy) {
-                    $item->dangkysukien = $dangKy;
-                }
-            }
-            
-            // Tải quan hệ với check-in sự kiện
-            if (isset($this->relations['checkinsukien']) && !empty($item->checkin_sukien_id)) {
-                $checkInModel = new \App\Modules\checkinsukien\Models\CheckInSuKienModel();
-                $checkIn = $checkInModel->withDeleted()->find($item->checkin_sukien_id);
-                if ($checkIn) {
-                    $item->checkinsukien = $checkIn;
-                }
-            }
-            
-            $results[$index] = $item;
-        }
-        
-        return $results;
+        return array_merge(
+            [$this->primaryKey],
+            $this->searchableFields,
+            ['created_at', 'updated_at']
+        );
     }
-
+    
     /**
-     * Định dạng datetime theo chuẩn d/m/Y H:i:s
+     * Chèn dữ liệu mới với kiểm tra xác thực
      *
-     * @param string|null $dateTimeString
-     * @return string|null
+     * @param array $data Dữ liệu cần chèn
+     * @return int|bool ID bản ghi mới hoặc false nếu thất bại
      */
-    public function formatDateTime($dateTimeString)
+    public function insertData($data)
     {
-        if (empty($dateTimeString)) {
-            return null;
+        // Thiết lập các giá trị mặc định nếu cần
+        $data['created_at'] = $data['created_at'] ?? Time::now()->toDateTimeString();
+        
+        // Thực hiện chèn dữ liệu
+        $result = $this->insert($data);
+        
+        return $result ? $this->getInsertID() : false;
+    }
+        
+    /**
+     * Lấy tất cả bản ghi cho phân trang
+     *
+     * @param int $perPage Số lượng bản ghi trên mỗi trang
+     * @param int $page Trang hiện tại
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
+     */
+    public function getAllPaginated($perPage = 10, $page = 1, $sort = 'ten_loai_su_kien', $order = 'ASC')
+    {
+        $offset = ($page - 1) * $perPage;
+        
+        return $this->getAll($perPage, $offset, $sort, $order);
+    }
+    
+    /**
+     * Khôi phục một bản ghi đã xóa mềm
+     *
+     * @param int $id ID bản ghi cần khôi phục
+     * @return bool
+     */
+    public function restore($id)
+    {
+        return $this->update($id, ['deleted_at' => null]);
+    }
+    
+    /**
+     * Tìm kiếm bản ghi đã xóa với phân trang
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @param array $options Tùy chọn phân trang và sắp xếp
+     * @return array
+     */
+
+    
+    /**
+     * Tạo mã xác nhận ngẫu nhiên
+     *
+     * @param int $length Độ dài mã xác nhận
+     * @return string
+     */
+    public function generateConfirmationCode(int $length = 8): string
+    {
+        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[random_int(0, $charactersLength - 1)];
         }
         
-        try {
-            $dateTime = new Time($dateTimeString);
-            return $dateTime->format('d/m/Y H:i:s');
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi định dạng ngày tháng: ' . $e->getMessage());
-            return $dateTimeString;
-        }
+        return $randomString;
     }
-} 
+}

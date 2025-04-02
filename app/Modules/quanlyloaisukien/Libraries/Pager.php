@@ -250,21 +250,21 @@ class Pager
             'active' => 1 === $this->currentPage,
         ];
         
-        // Xác định trang bắt đầu và kết thúc trong phạm vi xung quanh trang hiện tại
-        $startPage = max(2, $this->currentPage - $this->surroundCount);
-        $endPage = min($pageCount - 1, $this->currentPage + $this->surroundCount);
+        // Xác định trang bắt đầu và kết thúc hiển thị xung quanh trang hiện tại
+        $startPage = max($this->currentPage - $this->surroundCount, 2);
+        $endPage = min($this->currentPage + $this->surroundCount, $pageCount - 1);
         
-        // Thêm dấu chấm lửng nếu có khoảng cách giữa trang đầu tiên và trang bắt đầu
+        // Nếu startPage lớn hơn 2, hiển thị dấu ba chấm sau trang đầu tiên
         if ($startPage > 2) {
             $pages[] = [
                 'page' => null,
                 'label' => '...',
-                'url' => '',
+                'url' => null,
                 'active' => false,
             ];
         }
         
-        // Thêm các trang trong phạm vi
+        // Hiển thị các trang xung quanh trang hiện tại
         for ($i = $startPage; $i <= $endPage; $i++) {
             $pages[] = [
                 'page' => $i,
@@ -274,12 +274,12 @@ class Pager
             ];
         }
         
-        // Thêm dấu chấm lửng nếu có khoảng cách giữa trang kết thúc và trang cuối cùng
+        // Nếu endPage nhỏ hơn pageCount - 1, hiển thị dấu ba chấm trước trang cuối cùng
         if ($endPage < $pageCount - 1) {
             $pages[] = [
                 'page' => null,
                 'label' => '...',
-                'url' => '',
+                'url' => null,
                 'active' => false,
             ];
         }
@@ -296,38 +296,40 @@ class Pager
     }
     
     /**
-     * Tạo URL cho trang cụ thể
+     * Lấy URL cho một trang cụ thể
      * 
-     * @param int $page
+     * @param int $page Số trang
      * @return string
      */
     public function getUrl(int $page): string
     {
-        // Nếu routeUrl không được thiết lập, sử dụng path
-        $baseUrl = $this->routeUrl ?: $this->path;
-        $baseUrl = site_url($baseUrl);
-        
-        // Lấy các tham số hiện tại từ URL
-        $params = $_GET;
-        
-        // Nếu chỉ định mảng only, chỉ giữ lại các tham số được chỉ định
-        if (!empty($this->only)) {
-            $filteredParams = [];
-            foreach ($this->only as $key) {
-                if (isset($params[$key])) {
-                    $filteredParams[$key] = $params[$key];
-                }
-            }
-            $params = $filteredParams;
+        // Sử dụng route URL nếu có
+        if ($this->routeUrl) {
+            return str_replace('{page}', (string) $page, $this->routeUrl);
         }
         
-        // Cập nhật tham số page
-        $params['page'] = $page;
+        // Xây dựng URL từ path và query parameters
+        $path = $this->path ?: current_url();
+        $query = $_GET;
         
-        // Xây dựng URL với các tham số
-        $queryString = http_build_query($params);
+        // Chỉ giữ lại các tham số được chỉ định trong $only nếu được thiết lập
+        if (!empty($this->only)) {
+            $filtered = [];
+            foreach ($this->only as $key) {
+                if (isset($query[$key])) {
+                    $filtered[$key] = $query[$key];
+                }
+            }
+            $query = $filtered;
+        }
         
-        return $baseUrl . ($queryString ? '?' . $queryString : '');
+        // Thêm hoặc cập nhật tham số page
+        $query['page'] = $page;
+        
+        // Tạo query string
+        $queryString = http_build_query($query);
+        
+        return $path . '?' . $queryString;
     }
     
     /**
@@ -337,7 +339,11 @@ class Pager
      */
     public function getPreviousPageUrl(): ?string
     {
-        return $this->hasPreviousPage() ? $this->getUrl($this->currentPage - 1) : null;
+        if (!$this->hasPreviousPage()) {
+            return null;
+        }
+        
+        return $this->getUrl($this->currentPage - 1);
     }
     
     /**
@@ -347,52 +353,64 @@ class Pager
      */
     public function getNextPageUrl(): ?string
     {
-        return $this->hasNextPage() ? $this->getUrl($this->currentPage + 1) : null;
+        if (!$this->hasNextPage()) {
+            return null;
+        }
+        
+        return $this->getUrl($this->currentPage + 1);
     }
     
     /**
-     * Render phân trang với Bootstrap
+     * Tạo HTML cho phân trang
      * 
      * @return string
      */
     public function render(): string
     {
-        // Kiểm tra nếu không có trang nào
-        if ($this->getPageCount() <= 1) {
-            return '';
-        }
-        
-        $pages = $this->getPages();
-        $html = '<nav aria-label="Page navigation">';
-        $html .= '<ul class="pagination justify-content-center mb-0">';
+        $html = '<nav aria-label="Phân trang">';
+        $html .= '<ul class="pagination">';
         
         // Nút Previous
-        $prevUrl = $this->getPreviousPageUrl();
-        $html .= '<li class="page-item ' . ($prevUrl ? '' : 'disabled') . '">';
-        $html .= '<a class="page-link" href="' . ($prevUrl ?: '#') . '" ' . ($prevUrl ? '' : 'tabindex="-1" aria-disabled="true"') . '>';
-        $html .= '<i class="bx bx-chevron-left"></i> Trước';
-        $html .= '</a>';
-        $html .= '</li>';
+        if ($this->hasPreviousPage()) {
+            $html .= '<li class="page-item">';
+            $html .= '<a class="page-link" href="' . $this->getPreviousPageUrl() . '" aria-label="Trang trước">';
+            $html .= '<span aria-hidden="true">&laquo;</span>';
+            $html .= '</a>';
+            $html .= '</li>';
+        } else {
+            $html .= '<li class="page-item disabled">';
+            $html .= '<span class="page-link" aria-label="Trang trước">';
+            $html .= '<span aria-hidden="true">&laquo;</span>';
+            $html .= '</span>';
+            $html .= '</li>';
+        }
         
         // Các trang
-        foreach ($pages as $page) {
+        foreach ($this->getPages() as $page) {
             if ($page['page'] === null) {
-                // Dấu chấm lửng
                 $html .= '<li class="page-item disabled"><span class="page-link">' . $page['label'] . '</span></li>';
             } else {
-                $html .= '<li class="page-item ' . ($page['active'] ? 'active' : '') . '">';
+                $activeClass = $page['active'] ? ' active' : '';
+                $html .= '<li class="page-item' . $activeClass . '">';
                 $html .= '<a class="page-link" href="' . $page['url'] . '">' . $page['label'] . '</a>';
                 $html .= '</li>';
             }
         }
         
         // Nút Next
-        $nextUrl = $this->getNextPageUrl();
-        $html .= '<li class="page-item ' . ($nextUrl ? '' : 'disabled') . '">';
-        $html .= '<a class="page-link" href="' . ($nextUrl ?: '#') . '" ' . ($nextUrl ? '' : 'tabindex="-1" aria-disabled="true"') . '>';
-        $html .= 'Tiếp <i class="bx bx-chevron-right"></i>';
-        $html .= '</a>';
-        $html .= '</li>';
+        if ($this->hasNextPage()) {
+            $html .= '<li class="page-item">';
+            $html .= '<a class="page-link" href="' . $this->getNextPageUrl() . '" aria-label="Trang sau">';
+            $html .= '<span aria-hidden="true">&raquo;</span>';
+            $html .= '</a>';
+            $html .= '</li>';
+        } else {
+            $html .= '<li class="page-item disabled">';
+            $html .= '<span class="page-link" aria-label="Trang sau">';
+            $html .= '<span aria-hidden="true">&raquo;</span>';
+            $html .= '</span>';
+            $html .= '</li>';
+        }
         
         $html .= '</ul>';
         $html .= '</nav>';
@@ -401,9 +419,7 @@ class Pager
     }
     
     /**
-     * Hiển thị phân trang (alias của render())
-     * 
-     * @return string
+     * Trả về HTML của phân trang
      */
     public function links()
     {
