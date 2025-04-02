@@ -1,37 +1,31 @@
 <?php
+namespace Config;
+// Create a new instance of our RouteCollection class.
+$routes = Services::routes();
+$module_url = 'su-kien';
+$module_name = 'sukien';
+$controller_name = 'Sukien';
+$sitemap_controller_name = 'Sitemap';
 
-$routes->group('su-kien', ['namespace' => 'App\Modules\sukien\Controllers'], function ($routes) {
-    $routes->get('/', 'Sukien::index');
-    $routes->get('list', 'Sukien::list');
+$routes->group($module_url, ['namespace' => 'App\Modules\sukien\Controllers'], function ($routes) use ($controller_name, $sitemap_controller_name) {
+    $routes->get('/', $controller_name . '::index');
+    $routes->get('list', $controller_name . '::list');
     
     // Sử dụng slug thay vì ID cho trang chi tiết
-    $routes->get('detail/(:num)', 'Sukien::redirectToSlug/$1'); // Redirect từ ID sang slug
-    $routes->get('detail/(:segment)', 'Sukien::detail/$1'); // Sử dụng segment thay vì any để hỗ trợ slug
+    $routes->get('detail/(:num)', $controller_name . '::redirectToSlug/$1'); // Redirect từ ID sang slug
+    $routes->get('detail/(:segment)', $controller_name . '::detail/$1'); // Sử dụng segment thay vì any để hỗ trợ slug
     
     // Sử dụng slug cho danh mục
-    $routes->get('loai/(:segment)', 'Sukien::category/$1');
+    $routes->get('loai/(:segment)', $controller_name . '::category/$1');
     
     // Các route xử lý đăng ký và check-in/check-out
-    $routes->post('register', 'Sukien::register');
-    $routes->post('checkin', 'Sukien::checkin');
-    $routes->post('checkout', 'Sukien::checkout');
+    $routes->post('register', $controller_name . '::register');
+    $routes->post('checkin', $controller_name . '::checkin');
+    $routes->post('checkout', $controller_name . '::checkout');
     
-    // Các route cho admin (sẽ triển khai sau)
-    $routes->group('admin', function ($routes) {
-        $routes->get('events', 'Admin\Events::index');
-        $routes->get('events/new', 'Admin\Events::new');
-        $routes->post('events', 'Admin\Events::create');
-        $routes->get('events/edit/(:num)', 'Admin\Events::edit/$1');
-        $routes->post('events/update/(:num)', 'Admin\Events::update/$1');
-        $routes->get('events/delete/(:num)', 'Admin\Events::delete/$1');
-        
-        $routes->get('registrations', 'Admin\Registrations::index');
-        $routes->get('registrations/event/(:num)', 'Admin\Registrations::byEvent/$1');
-    });
-
     // Route cho AJAX lấy chế độ xem sự kiện
-    $routes->post('su-kien/get-events-view', 'SukienController::getEventsView');
+    $routes->post('su-kien/get-events-view', $controller_name . '::getEventsView');
     
     // Sitemap cho SEO
-    $routes->get('sitemap.xml', 'Sitemap::index');
+    $routes->get('sitemap.xml', $sitemap_controller_name . '::index');
 });
