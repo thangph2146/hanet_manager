@@ -7,8 +7,8 @@ $statusOptions = [
     '2' => 'Đang xử lý'
 ];
 
-$checkinTypeOptions = [
-    '' => 'Tất cả loại check-in',
+$checkoutTypeOptions = [
+    '' => 'Tất cả loại check-out',
     'manual' => 'Thủ công',
     'face_id' => 'Nhận diện khuôn mặt',
     'qr_code' => 'Mã QR',
@@ -28,10 +28,10 @@ $suKienList = $suKienModel->findAll();
 ?>
 
 <div class="card-header bg-white">
-    <form action="<?= site_url($module_name) ?>" method="get" class="row g-3">
+    <form action="<?= site_url($module_name . '/listdeleted') ?>" method="get" class="row g-3">
         <div class="col-12 col-sm-6 col-md-3">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Tìm kiếm..." name="keyword" value="<?= $keyword ?>">
+                <input type="text" class="form-control" placeholder="Tìm kiếm..." name="keyword" value="<?= $keyword ?? '' ?>">
                 <button class="btn btn-outline-secondary" type="submit">
                     <i class="bx bx-search"></i>
                 </button>
@@ -50,9 +50,9 @@ $suKienList = $suKienModel->findAll();
         </div>
         
         <div class="col-12 col-sm-6 col-md-2">
-            <select class="form-select" name="checkin_type" onchange="this.form.submit()">
-                <?php foreach ($checkinTypeOptions as $value => $label) : ?>
-                    <option value="<?= $value ?>" <?= isset($checkin_type) && $checkin_type === $value ? 'selected' : '' ?>>
+            <select class="form-select" name="checkout_type" onchange="this.form.submit()">
+                <?php foreach ($checkoutTypeOptions as $value => $label) : ?>
+                    <option value="<?= $value ?>" <?= isset($checkout_type) && $checkout_type === $value ? 'selected' : '' ?>>
                         <?= $label ?>
                     </option>
                 <?php endforeach ?>
@@ -82,14 +82,14 @@ $suKienList = $suKienModel->findAll();
         <div class="col-12 col-sm-6 col-md-2">
             <select class="form-select" name="perPage" id="perPage" onchange="this.form.submit()">
                 <?php foreach ($perPageOptions as $option) : ?>
-                    <option value="<?= $option ?>" <?= (string)$perPage === (string)$option ? 'selected' : '' ?>>
+                    <option value="<?= $option ?>" <?= (isset($perPage) && (string)$perPage === (string)$option) ? 'selected' : '' ?>>
                         <?= $option ?> mục
                     </option>
                 <?php endforeach ?>
             </select>
         </div>
         
-        <!-- Lọc theo thời gian check-in -->
+        <!-- Lọc theo thời gian check-out -->
         <div class="col-12 col-sm-6 col-md-3">
             <div class="input-group">
                 <span class="input-group-text">Từ</span>
@@ -106,8 +106,9 @@ $suKienList = $suKienModel->findAll();
         </div>
         
         <div class="col-12 col-sm-6 col-md-3">
-            <a href="<?= site_url($module_name)?>" class="btn btn-danger">Xóa lọc</a>
+            <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-danger">Xóa lọc</a>
         </div>
+        
     </form>
 </div> 
 
@@ -130,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php if (!empty($keyword) || (isset($status) && $status !== '') || 
           (isset($su_kien_id) && $su_kien_id !== '') || 
-          (isset($checkin_type) && $checkin_type !== '') || 
+          (isset($checkout_type) && $checkout_type !== '') || 
           (isset($hinh_thuc_tham_gia) && $hinh_thuc_tham_gia !== '') ||
           (isset($start_date) && $start_date !== '') ||
           (isset($end_date) && $end_date !== '')): ?>
@@ -153,8 +154,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="badge bg-secondary me-2">Sự kiện: <?= esc($tenSuKien) ?></span>
             <?php endif; ?>
             
-            <?php if (isset($checkin_type) && $checkin_type !== ''): ?>
-                <span class="badge bg-info me-2">Loại check-in: <?= $checkinTypeOptions[$checkin_type] ?></span>
+            <?php if (isset($checkout_type) && $checkout_type !== ''): ?>
+                <span class="badge bg-info me-2">Loại check-out: <?= $checkoutTypeOptions[$checkout_type] ?></span>
             <?php endif; ?>
             
             <?php if (isset($hinh_thuc_tham_gia) && $hinh_thuc_tham_gia !== ''): ?>
@@ -173,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="badge bg-dark me-2">Đến ngày: <?= date('d/m/Y H:i:s', strtotime($end_date)) ?></span>
             <?php endif; ?>
             
-            <a href="<?= site_url($module_name) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
+            <a href="<?= site_url($module_name . '/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
         </div>
     </div>
 <?php endif; ?> 

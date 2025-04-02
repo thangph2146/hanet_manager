@@ -7,8 +7,8 @@ $statusOptions = [
     '2' => 'Đang xử lý'
 ];
 
-$checkinTypeOptions = [
-    '' => 'Tất cả loại check-in',
+$checkoutTypeOptions = [
+    '' => 'Tất cả loại check-out',
     'manual' => 'Thủ công',
     'face_id' => 'Nhận diện khuôn mặt',
     'qr_code' => 'Mã QR',
@@ -50,9 +50,9 @@ $suKienList = $suKienModel->findAll();
         </div>
         
         <div class="col-12 col-sm-6 col-md-2">
-            <select class="form-select" name="checkin_type" onchange="this.form.submit()">
-                <?php foreach ($checkinTypeOptions as $value => $label) : ?>
-                    <option value="<?= $value ?>" <?= isset($checkin_type) && $checkin_type === $value ? 'selected' : '' ?>>
+            <select class="form-select" name="checkout_type" onchange="this.form.submit()">
+                <?php foreach ($checkoutTypeOptions as $value => $label) : ?>
+                    <option value="<?= $value ?>" <?= isset($checkout_type) && $checkout_type === $value ? 'selected' : '' ?>>
                         <?= $label ?>
                     </option>
                 <?php endforeach ?>
@@ -89,7 +89,7 @@ $suKienList = $suKienModel->findAll();
             </select>
         </div>
         
-        <!-- Lọc theo thời gian check-in -->
+        <!-- Lọc theo thời gian check-out -->
         <div class="col-12 col-sm-6 col-md-3">
             <div class="input-group">
                 <span class="input-group-text">Từ</span>
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php if (!empty($keyword) || (isset($status) && $status !== '') || 
           (isset($su_kien_id) && $su_kien_id !== '') || 
-          (isset($checkin_type) && $checkin_type !== '') || 
+          (isset($checkout_type) && $checkout_type !== '') || 
           (isset($hinh_thuc_tham_gia) && $hinh_thuc_tham_gia !== '') ||
           (isset($start_date) && $start_date !== '') ||
           (isset($end_date) && $end_date !== '')): ?>
@@ -153,8 +153,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="badge bg-secondary me-2">Sự kiện: <?= esc($tenSuKien) ?></span>
             <?php endif; ?>
             
-            <?php if (isset($checkin_type) && $checkin_type !== ''): ?>
-                <span class="badge bg-info me-2">Loại check-in: <?= $checkinTypeOptions[$checkin_type] ?></span>
+            <?php if (isset($checkout_type) && $checkout_type !== ''): ?>
+                <span class="badge bg-info me-2">Loại check-out: <?= $checkoutTypeOptions[$checkout_type] ?></span>
             <?php endif; ?>
             
             <?php if (isset($hinh_thuc_tham_gia) && $hinh_thuc_tham_gia !== ''): ?>

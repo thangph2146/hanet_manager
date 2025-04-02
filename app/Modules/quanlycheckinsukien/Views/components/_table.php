@@ -48,13 +48,13 @@
                                 <?= $item->getThoiGianCheckInFormatted('d/m/Y H:i') ?>
                             </td>
                             <td class="text-center">
-                                <?= $item->getCheckinTypeHtml() ?>
+                                <?= $item->getCheckinTypeText() ?>
                             </td>
                             <td class="text-center">
-                                <?= $item->getHinhThucThamGiaHtml() ?>
+                                <?= $item->getHinhThucThamGiaText() ?>
                             </td>
                             <td class="text-center">
-                                <?= $item->getStatusHtml() ?>
+                                <?= $item->getStatusText() ?>
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1 action-btn-group">

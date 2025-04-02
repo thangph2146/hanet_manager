@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\quanlycheckinsukien\Controllers;
+namespace App\Modules\quanlycheckoutsukien\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\quanlycheckinsukien\Models\CheckInSuKienModel;
+use App\Modules\quanlycheckoutsukien\Models\CheckOutSuKienModel;
 use App\Libraries\Breadcrumb;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
@@ -17,10 +17,10 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use CodeIgniter\I18n\Time;
-use App\Modules\quanlycheckinsukien\Traits\ExportTrait;
-use App\Modules\quanlycheckinsukien\Traits\RelationTrait;
+use App\Modules\quanlycheckoutsukien\Traits\ExportTrait;
+use App\Modules\quanlycheckoutsukien\Traits\RelationTrait;
 
-class QuanLyCheckInSuKien extends BaseController
+class QuanLyCheckOutSuKien extends BaseController
 {
     use ResponseTrait;
     use ExportTrait;
@@ -32,8 +32,8 @@ class QuanLyCheckInSuKien extends BaseController
     protected $moduleUrl;
     protected $title;
     protected $title_home;
-    protected $module_name = 'quanlycheckinsukien';
-    protected $controller_name = 'QuanLyCheckInSuKien';
+    protected $module_name = 'quanlycheckoutsukien';
+    protected $controller_name = 'QuanLyCheckOutSuKien';
     protected $masterScript;
     
     public function __construct()
@@ -42,14 +42,14 @@ class QuanLyCheckInSuKien extends BaseController
         $this->session = service('session');
 
         // Khởi tạo các thành phần cần thiết
-        $this->model = new CheckInSuKienModel();
+        $this->model = new CheckOutSuKienModel();
         $this->breadcrumb = new Breadcrumb();
         $this->alert = new Alert();
         
         // Thông tin module
         $this->moduleUrl = base_url($this->module_name);
-        $this->title = 'Check-in Sự kiện';
-        $this->title_home = 'Danh sách check-in sự kiện';
+        $this->title = 'Check-out Sự kiện';
+        $this->title_home = 'Danh sách check-out sự kiện';
         // Khởi tạo thư viện MasterScript với module_name
         $masterScriptClass = "\App\Modules\\" . $this->module_name . '\Libraries\MasterScript';
         $this->masterScript = new $masterScriptClass($this->module_name);
@@ -58,7 +58,7 @@ class QuanLyCheckInSuKien extends BaseController
         $this->initializeRelationTrait();
     }
     
-    /**
+       /**
      * Hiển thị danh sách check-in sự kiện với phân trang
      */
     public function index()
@@ -119,7 +119,7 @@ class QuanLyCheckInSuKien extends BaseController
     }
     
     /**
-     * Hiển thị form thêm mới check-in sự kiện
+     * Hiển thị form thêm mới check-out sự kiện
      */
     public function new()
     {
@@ -140,16 +140,16 @@ class QuanLyCheckInSuKien extends BaseController
     }
     
     /**
-     * Xử lý thêm mới check-in sự kiện
+     * Xử lý thêm mới check-out sự kiện
      */
     public function create()
     {
         // Lấy dữ liệu từ form
         $data = $this->request->getPost();
         
-        // Loại bỏ checkin_sukien_id khi thêm mới vì là trường auto_increment
-        if (isset($data['checkin_sukien_id'])) {
-            unset($data['checkin_sukien_id']);
+        // Loại bỏ checkout_sukien_id khi thêm mới vì là trường auto_increment
+        if (isset($data['checkout_sukien_id'])) {
+            unset($data['checkout_sukien_id']);
         }
         
         // Xử lý thông tin bổ sung nếu có
@@ -157,9 +157,9 @@ class QuanLyCheckInSuKien extends BaseController
             $data['thong_tin_bo_sung'] = json_encode($data['thong_tin_bo_sung']);
         }
         
-        // Cập nhật thời gian check-in nếu chưa có
-        if (empty($data['thoi_gian_check_in'])) {
-            $data['thoi_gian_check_in'] = Time::now()->toDateTimeString();
+        // Cập nhật thời gian check-out nếu chưa có
+        if (empty($data['thoi_gian_check_out'])) {
+            $data['thoi_gian_check_out'] = Time::now()->toDateTimeString();
         }
         
         // Chuẩn bị quy tắc validation cho thêm mới
@@ -228,7 +228,7 @@ class QuanLyCheckInSuKien extends BaseController
     }
     
     /**
-     * Hiển thị form chỉnh sửa check-in sự kiện
+     * Hiển thị form chỉnh sửa check-out sự kiện
      */
     public function edit($id = null)
     {
@@ -240,7 +240,7 @@ class QuanLyCheckInSuKien extends BaseController
         $data = $this->model->find($id);
         if (!$data) {
             return redirect()->to($this->moduleUrl)
-                ->with('error', 'Không tìm thấy thông tin check-in sự kiện');
+                ->with('error', 'Không tìm thấy thông tin check-out sự kiện');
         }
 
         return view('App\Modules\\' . $this->module_name . '\Views\edit', [
@@ -248,12 +248,15 @@ class QuanLyCheckInSuKien extends BaseController
             'title' => $this->title,
             'title_home' => $this->title_home,
             'action' => site_url($this->module_name . '/update/' . $id),
-            'data' => $data
+            'data' => $data,
+            'pager' => null,
+            'perPage' => 1,
+            'total' => 1
         ]);
     }
     
     /**
-     * Xử lý cập nhật check-in sự kiện
+     * Xử lý cập nhật check-out sự kiện
      */
     public function update($id = null)
     {
@@ -265,7 +268,7 @@ class QuanLyCheckInSuKien extends BaseController
         // Lấy dữ liệu đối tượng hiện tại
         $fillData = $this->model->find($id);
         if (!$fillData) {
-            $this->alert->set('danger', 'Không tìm thấy thông tin check-in sự kiện', true);
+            $this->alert->set('danger', 'Không tìm thấy thông tin check-out sự kiện', true);
             return redirect()->to($this->moduleUrl);
         }
 
@@ -333,7 +336,7 @@ class QuanLyCheckInSuKien extends BaseController
     }
     
     /**
-     * Xử lý xóa check-in sự kiện
+     * Xử lý xóa check-out sự kiện
      */
     public function delete($id = null)
     {
@@ -343,8 +346,8 @@ class QuanLyCheckInSuKien extends BaseController
         }
 
         if ($this->model->delete($id)) {
-            return redirect()->to($this->moduleUrl)
-                ->with('success', 'Xóa thông tin check-in sự kiện thành công');
+            return redirect()->to(site_url($this->module_name . '/listdeleted'))
+                ->with('success', 'Xóa thông tin check-out sự kiện thành công');
         }
 
         return redirect()->to($this->moduleUrl)
@@ -358,7 +361,7 @@ class QuanLyCheckInSuKien extends BaseController
     public function detail($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID check-in sự kiện không hợp lệ', true);
+            $this->alert->set('danger', 'ID check-out sự kiện không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -369,7 +372,7 @@ class QuanLyCheckInSuKien extends BaseController
         $data = $this->model->find($id);
         
         if (empty($data)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu check-in sự kiện', true);
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu check-out sự kiện', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -394,7 +397,10 @@ class QuanLyCheckInSuKien extends BaseController
             'dangKySuKien' => $dangKySuKien,
             'moduleUrl' => $this->moduleUrl,
             'module_name' => $this->module_name,
-            'masterScript' => $this->masterScript
+            'masterScript' => $this->masterScript,
+            'pager' => null,
+            'perPage' => 1,
+            'total' => 1
         ];
         
         return view('App\Modules\\' . $this->module_name . '\Views\detail', $viewData);
@@ -422,18 +428,44 @@ class QuanLyCheckInSuKien extends BaseController
         $options = $this->buildSearchOptions($params);
         
         // Log thông tin về criteria và options
-        log_message('debug', '[QuanLyCheckInSuKien::listdeleted] Search criteria: ' . json_encode($criteria));
-        log_message('debug', '[QuanLyCheckInSuKien::listdeleted] Search options: ' . json_encode($options));
+        log_message('debug', '[QuanLyCheckOutSuKien::listdeleted] Search criteria: ' . json_encode($criteria));
+        log_message('debug', '[QuanLyCheckOutSuKien::listdeleted] Search options: ' . json_encode($options));
+        
+        // Bật debug để hiển thị câu SQL
+        //$this->db->debug = true;
         
         // Lấy dữ liệu đã xóa và thông tin phân trang
         $pageData = $this->model->searchDeleted($criteria, $options);
         
-        // Log số lượng kết quả tìm được
-        log_message('debug', '[QuanLyCheckInSuKien::listdeleted] Found ' . count($pageData) . ' deleted records');
+        // Tắt debug
+        //$this->db->debug = false;
         
-        // In thông tin mẫu của bản ghi đầu tiên nếu có
+        // Kiểm tra và lọc dữ liệu để đảm bảo chỉ lấy bản ghi đã xóa
+        $filteredData = [];
+        foreach ($pageData as $item) {
+            if ($item->deleted_at !== null) {
+                $filteredData[] = $item;
+            } else {
+                log_message('warning', "[QuanLyCheckOutSuKien::listdeleted] Lọc bỏ bản ghi không hợp lệ (deleted_at = null): ID={$item->checkout_sukien_id}");
+            }
+        }
+        
+        // Nếu có sự khác biệt giữa dữ liệu gốc và sau khi lọc
+        if (count($pageData) !== count($filteredData)) {
+            log_message('warning', "[QuanLyCheckOutSuKien::listdeleted] Đã lọc bỏ " . (count($pageData) - count($filteredData)) . " bản ghi không hợp lệ");
+            // Gán lại dữ liệu đã lọc
+            $pageData = $filteredData;
+        }
+        
+        // Log số lượng kết quả tìm được
+        log_message('debug', '[QuanLyCheckOutSuKien::listdeleted] Found ' . count($pageData) . ' deleted records');
+        
+        // In thông tin của các bản ghi để debug
         if (!empty($pageData)) {
-            log_message('debug', '[QuanLyCheckInSuKien::listdeleted] Sample first record: ' . json_encode($pageData[0]));
+            foreach ($pageData as $index => $item) {
+                log_message('debug', "[QuanLyCheckOutSuKien::listdeleted] Record {$index}: ID={$item->checkout_sukien_id}, deleted_at=" . 
+                    ($item->deleted_at ? $item->getDeletedAtFormatted() : 'NULL'));
+            }
         }
         
         // Lấy tổng số kết quả
@@ -441,7 +473,7 @@ class QuanLyCheckInSuKien extends BaseController
         $total = $pager ? $pager->getTotal() : $this->model->countDeletedSearchResults($criteria);
         
         // Log tổng số kết quả
-        log_message('debug', '[QuanLyCheckInSuKien::listdeleted] Total deleted records: ' . $total);
+        log_message('debug', '[QuanLyCheckOutSuKien::listdeleted] Total deleted records: ' . $total);
         
         // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
         $pageCount = ceil($total / $params['perPage']);
@@ -461,7 +493,7 @@ class QuanLyCheckInSuKien extends BaseController
             $pager->setPath($this->module_name . '/listdeleted');
             $pager->setRouteUrl($this->module_name . '/listdeleted');
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'checkin_type', 'hinh_thuc_tham_gia']);
+            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'checkout_type', 'hinh_thuc_tham_gia', 'start_date', 'end_date']);
             
             // Đảm bảo perPage và currentPage được thiết lập đúng
             $pager->setPerPage($params['perPage']);
@@ -474,13 +506,18 @@ class QuanLyCheckInSuKien extends BaseController
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'title_home' => $this->title_home,
-            'title' => 'Check-in sự kiện đã xóa',
+            'title' => 'Check-out sự kiện đã xóa',
             'processedData' => $processedData,
             'pager' => $pager,
             'total' => $total,
             'perPage' => $params['perPage'],
             'keyword' => $params['keyword'] ?? '',
             'status' => $params['status'] ?? '',
+            'su_kien_id' => $params['su_kien_id'] ?? '',
+            'checkout_type' => $params['checkout_type'] ?? '',
+            'hinh_thuc_tham_gia' => $params['hinh_thuc_tham_gia'] ?? '',
+            'start_date' => $params['start_date'] ?? '',
+            'end_date' => $params['end_date'] ?? '',
             'module_name' => $this->module_name,
             'masterScript' => $this->masterScript
         ];
@@ -534,23 +571,23 @@ class QuanLyCheckInSuKien extends BaseController
             $this->alert->set('danger', 'ID không hợp lệ', true);
             return redirect()->back();
         }
-      
+        
         try {
             // Ghi log dữ liệu đầu vào
-            log_message('debug', '[' . $this->controller_name . '::restore] Attempting to restore check-in with ID: ' . $id);
+            log_message('debug', '[' . $this->controller_name . '::restore] Attempting to restore check-out with ID: ' . $id);
             
             // Kiểm tra xem bản ghi có tồn tại và bị xóa hay không
-            $checkin = $this->model->withDeleted()->find($id);
+            $checkout = $this->model->withDeleted()->find($id);
             
-            if (!$checkin || $checkin->deleted_at === null) {
-                log_message('error', '[' . $this->controller_name . '::restore] Check-in not found or not deleted: ' . $id);
-                $this->alert->set('danger', 'Không tìm thấy check-in đã xóa với ID: ' . $id, true);
+            if (!$checkout || $checkout->deleted_at === null) {
+                log_message('error', '[' . $this->controller_name . '::restore] Check-out not found or not deleted: ' . $id);
+                $this->alert->set('danger', 'Không tìm thấy check-out đã xóa với ID: ' . $id, true);
                 return redirect()->back();
             }
             
             // Sử dụng phương thức mới để khôi phục trực tiếp từ cơ sở dữ liệu
             $result = $this->model->restoreFromTrash($id);
-
+            
             log_message('debug', '[' . $this->controller_name . '::restore] Restore result: ' . ($result ? 'success' : 'failed'));
             
             if ($result) {
@@ -600,7 +637,7 @@ class QuanLyCheckInSuKien extends BaseController
             // Sử dụng phương thức mới để khôi phục trực tiếp nhiều bản ghi cùng lúc
             $successCount = $this->model->restoreMultipleFromTrash($idArray);
             
-            log_message('debug', '[' . $this->controller_name . '::restoreMultiple] Restored ' . $successCount . ' out of ' . count($idArray) . ' check-ins');
+            log_message('debug', '[' . $this->controller_name . '::restoreMultiple] Restored ' . $successCount . ' out of ' . count($idArray) . ' check-outs');
             
             if ($successCount > 0) {
                 $this->alert->set('success', 'Đã khôi phục ' . $successCount . ' ' . $this->title, true);
@@ -651,7 +688,7 @@ class QuanLyCheckInSuKien extends BaseController
     }
 
     /**
-     * Xác minh khuôn mặt cho check-in
+     * Xác minh khuôn mặt cho check-out
      */
     public function verifyFace($id = null, $verified = 1, $score = null)
     {
@@ -680,15 +717,19 @@ class QuanLyCheckInSuKien extends BaseController
      */
     protected function prepareSearchParams($request)
     {
+        // Xử lý perPage trước
+        $perPage = $request->getGet('perPage');
+        $perPage = !empty($perPage) ? (int)$perPage : 10;
+        
         return [
             'keyword' => $request->getGet('keyword') ?? '',
             'status' => $request->getGet('status') ?? '',
             'page' => (int)($request->getGet('page') ?? 1),
-            'perPage' => (int)($request->getGet('perPage') ?? 10),
-            'sort' => $request->getGet('sort') ?? 'thoi_gian_check_in',
+            'perPage' => $perPage,
+            'sort' => $request->getGet('sort') ?? 'thoi_gian_check_out',
             'order' => $request->getGet('order') ?? 'DESC',
             'su_kien_id' => $request->getGet('su_kien_id') ?? '',
-            'checkin_type' => $request->getGet('checkin_type') ?? '',
+            'checkout_type' => $request->getGet('checkout_type') ?? '',
             'hinh_thuc_tham_gia' => $request->getGet('hinh_thuc_tham_gia') ?? '',
             'face_verified' => $request->getGet('face_verified') ?? '',
             'start_date' => $request->getGet('start_date') ?? '',
@@ -698,33 +739,47 @@ class QuanLyCheckInSuKien extends BaseController
     }
     
     /**
-     * Xử lý tham số tìm kiếm
+     * Xử lý các tham số tìm kiếm
+     * 
+     * @param array $params Tham số tìm kiếm
+     * @return array Tham số đã xử lý
      */
     protected function processSearchParams($params)
     {
-        // Đảm bảo page >= 1
-        $params['page'] = max(1, $params['page']);
-        
-        // Đảm bảo perPage nằm trong danh sách cho phép
-        $validPerPage = [10, 25, 50, 100];
-        if (!in_array($params['perPage'], $validPerPage)) {
-            $params['perPage'] = $validPerPage[0];
+        // Sắp xếp
+        if (!isset($params['sort']) || empty($params['sort'])) {
+            $params['sort'] = 'thoi_gian_check_out';
         }
         
-        // Đảm bảo sort là một trường hợp lệ
-        $validSortFields = [
-            'checkin_sukien_id', 'su_kien_id', 'ho_ten', 'email', 'thoi_gian_check_in', 
-            'checkin_type', 'face_verified', 'status', 'hinh_thuc_tham_gia', 
-            'created_at', 'updated_at'
-        ];
-        if (!in_array($params['sort'], $validSortFields)) {
-            $params['sort'] = 'thoi_gian_check_in';
-        }
-        
-        // Đảm bảo order là ASC hoặc DESC
-        $params['order'] = strtoupper($params['order']);
-        if (!in_array($params['order'], ['ASC', 'DESC'])) {
+        // Thứ tự sắp xếp
+        if (!isset($params['order']) || empty($params['order'])) {
             $params['order'] = 'DESC';
+        }
+        
+        // Đảm bảo thứ tự sắp xếp hợp lệ
+        if (!in_array(strtoupper($params['order']), ['ASC', 'DESC'])) {
+            $params['order'] = 'DESC';
+        }
+        
+        // Phân trang
+        if (!isset($params['perPage']) || empty($params['perPage'])) {
+            $params['perPage'] = 10;
+        }
+        
+        // Đảm bảo perPage hợp lệ
+        $validPerPage = [10, 25, 50, 100];
+        if (!in_array((int)$params['perPage'], $validPerPage)) {
+            $params['perPage'] = 10;
+        }
+        
+        // Trang hiện tại
+        if (!isset($params['page']) || empty($params['page'])) {
+            $params['page'] = 1;
+        }
+        
+        // Đảm bảo page hợp lệ
+        if ((int)$params['page'] < 1) {
+            $params['page'] = 1;
         }
         
         return $params;
@@ -753,9 +808,9 @@ class QuanLyCheckInSuKien extends BaseController
             $criteria['su_kien_id'] = (int)$params['su_kien_id'];
         }
         
-        // Lọc theo loại check-in
-        if (!empty($params['checkin_type'])) {
-            $criteria['checkin_type'] = $params['checkin_type'];
+        // Lọc theo loại check-out
+        if (!empty($params['checkout_type'])) {
+            $criteria['checkout_type'] = $params['checkout_type'];
         }
         
         // Lọc theo hình thức tham gia
@@ -770,11 +825,17 @@ class QuanLyCheckInSuKien extends BaseController
         
         // Lọc theo khoảng thời gian
         if (!empty($params['start_date'])) {
-            $criteria['start_date'] = $params['start_date'];
+            // Chuyển đổi thời gian từ datetime-local sang định dạng d/m/Y H:i:s
+            $startDate = new Time($params['start_date']);
+            $criteria['start_date'] = $startDate->format('Y-m-d H:i:s');
+            log_message('debug', '[QuanLyCheckOutSuKien::buildSearchCriteria] Lọc từ ngày: ' . $startDate->format('d/m/Y H:i:s'));
         }
         
         if (!empty($params['end_date'])) {
-            $criteria['end_date'] = $params['end_date'];
+            // Chuyển đổi thời gian từ datetime-local sang định dạng d/m/Y H:i:s
+            $endDate = new Time($params['end_date']);
+            $criteria['end_date'] = $endDate->format('Y-m-d H:i:s');
+            log_message('debug', '[QuanLyCheckOutSuKien::buildSearchCriteria] Lọc đến ngày: ' . $endDate->format('d/m/Y H:i:s'));
         }
         
         return $criteria;
@@ -797,7 +858,7 @@ class QuanLyCheckInSuKien extends BaseController
             'perPage' => $perPage,
             'offset' => $offset,
             'limit' => $perPage,
-            'sort' => $params['sort'] ?? 'thoi_gian_check_in',
+            'sort' => $params['sort'] ?? 'thoi_gian_check_out',
             'order' => $params['order'] ?? 'DESC'
         ];
     }
@@ -810,6 +871,9 @@ class QuanLyCheckInSuKien extends BaseController
         // Xử lý dữ liệu nếu cần
         $processedData = $this->processData($pageData);
         
+        // Thêm các tùy chọn cho số bản ghi trên trang
+        $perPageOptions = [10, 25, 50, 100];
+        
         return [
             'breadcrumb' => $this->breadcrumb->render(),
             'processedData' => $processedData,
@@ -817,13 +881,14 @@ class QuanLyCheckInSuKien extends BaseController
             'keyword' => $params['keyword'] ?? '',
             'status' => $params['status'] ?? '',
             'su_kien_id' => $params['su_kien_id'] ?? '',
-            'checkin_type' => $params['checkin_type'] ?? '',
+            'checkout_type' => $params['checkout_type'] ?? '',
             'hinh_thuc_tham_gia' => $params['hinh_thuc_tham_gia'] ?? '',
             'face_verified' => $params['face_verified'] ?? '',
             'start_date' => $params['start_date'] ?? '',
             'end_date' => $params['end_date'] ?? '',
             'perPage' => $params['perPage'] ?? 10,
-            'sort' => $params['sort'] ?? 'thoi_gian_check_in',
+            'perPageOptions' => $perPageOptions,
+            'sort' => $params['sort'] ?? 'thoi_gian_check_out',
             'order' => $params['order'] ?? 'DESC',
             'page' => $params['page'] ?? 1,
             'module_name' => $module_name,
@@ -875,6 +940,83 @@ class QuanLyCheckInSuKien extends BaseController
     }
 
     /**
+     * Xóa vĩnh viễn một check-in sự kiện
+     */
+    public function permanentDelete($id = null)
+    {
+        if (empty($id)) {
+            $this->alert->set('danger', 'ID không hợp lệ', true);
+            return redirect()->to($this->moduleUrl . '/listdeleted');
+        }
+        
+        // Lấy URL trả về từ form hoặc từ HTTP_REFERER
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getVar('return_url') ?? $this->request->getServer('HTTP_REFERER');
+        
+        if ($this->model->delete($id, true)) { // true = xóa vĩnh viễn
+            $this->alert->set('success', 'Đã xóa vĩnh viễn check-in sự kiện', true);
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra khi xóa check-in sự kiện', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+    }
+
+    /**
+     * Xóa vĩnh viễn nhiều camera
+     */
+    public function permanentDeleteMultiple()
+    {
+        // Lấy các ID được chọn từ form và URL trả về
+        $selectedItems = $this->request->getPost('selected_ids');
+        $returnUrl = $this->request->getPost('return_url') ?? $this->request->getServer('HTTP_REFERER');
+        
+        if (empty($selectedItems)) {
+            $this->alert->set('warning', 'Chưa chọn camera nào để xóa vĩnh viễn', true);
+            
+            // Chuyển hướng đến URL đích đã xử lý
+            $redirectUrl = $this->processReturnUrl($returnUrl);
+            return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+        }
+        
+        $successCount = 0;
+        
+        // Đảm bảo $selectedItems là mảng
+        $idArray = is_array($selectedItems) ? $selectedItems : explode(',', $selectedItems);
+        
+       
+        foreach ($idArray as $id) {
+            log_message('debug', 'PermanentDeleteMultiple - Đang xóa vĩnh viễn ID: ' . $id);
+            
+            if ($this->model->delete($id, true)) { // true = xóa vĩnh viễn
+                $successCount++;
+                log_message('debug', 'PermanentDeleteMultiple - Xóa vĩnh viễn thành công ID: ' . $id);
+            } else {
+                log_message('error', 'PermanentDeleteMultiple - Lỗi xóa vĩnh viễn ID: ' . $id);
+            }
+        }
+        
+        if ($successCount > 0) {
+            $this->alert->set('success', "Đã xóa vĩnh viễn $successCount camera", true);
+        } else {
+            $this->alert->set('danger', 'Có lỗi xảy ra, không thể xóa camera', true);
+        }
+        
+        // Chuyển hướng đến URL đích đã xử lý
+        $redirectUrl = $this->processReturnUrl($returnUrl);
+        return redirect()->to($redirectUrl ?: $this->moduleUrl . '/listdeleted');
+    }
+
+    /**
+     * Alias cho permanentDeleteMultiple
+     */
+    public function deletePermanentMultiple()
+    {
+        return $this->permanentDeleteMultiple();
+    }
+
+    /**
      * Xử lý URL trả về, loại bỏ domain nếu cần
      * 
      * @param string|null $returnUrl URL trả về
@@ -914,663 +1056,358 @@ class QuanLyCheckInSuKien extends BaseController
     }
 
     /**
-     * Tạo file Excel với dữ liệu
+     * Tạo và xuất file Excel
      * 
-     * @param array $data Dữ liệu để xuất
-     * @param array $headers Headers cho Excel
-     * @param array $filters Bộ lọc đã áp dụng
+     * @param array $data Dữ liệu xuất
+     * @param array $headers Tiêu đề các cột
+     * @param array $filters Thông tin bộ lọc
      * @param string $filename Tên file
-     * @param bool $includeDeleted Có bao gồm các bản ghi đã xóa hay không
-     * @return void
+     * @param bool $includeDeleted Có bao gồm dữ liệu đã xóa
      */
     protected function createExcelFile($data, $headers, $filters, $filename, $includeDeleted = false)
     {
-        // Khởi tạo spreadsheet
-        $spreadsheet = new Spreadsheet();
+        // Tạo đối tượng Spreadsheet mới
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         
-        // Set thông tin file
-        $spreadsheet->getProperties()
-            ->setCreator('Hệ thống quản lý')
-            ->setLastModifiedBy('Hệ thống quản lý')
-            ->setTitle('Danh sách check-in sự kiện')
-            ->setSubject('Danh sách check-in sự kiện')
-            ->setDescription('Xuất dữ liệu check-in sự kiện')
-            ->setKeywords('check-in sự kiện')
-            ->setCategory('Báo cáo');
+        // Thiết lập các style
+        $titleStyle = [
+            'font' => ['bold' => true, 'size' => 16, 'color' => ['rgb' => '1A5FB4']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER, 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER],
+        ];
         
-        // Thiết lập tiêu đề
-        $sheet->setCellValue('A1', 'DANH SÁCH CHECK-IN SỰ KIỆN');
+        $subtitleStyle = [
+            'font' => ['italic' => true, 'size' => 11],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT],
+        ];
+        
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4472C4']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER, 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]]
+        ];
+        
+        $dataStyle = [
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+        ];
+        
+        // Tiêu đề chính
+        $title = 'DANH SÁCH CHECK-OUT SỰ KIỆN' . ($includeDeleted ? ' ĐÃ XÓA' : '');
+        $sheet->setCellValue('A1', $title);
         $sheet->mergeCells('A1:' . end($headers) . '1');
+        $sheet->getStyle('A1')->applyFromArray($titleStyle);
+        $sheet->getRowDimension(1)->setRowHeight(30);
         
-        // Style cho tiêu đề
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        
-        // Thêm thông tin thời gian xuất
-        $sheet->setCellValue('A2', 'Thời gian xuất: ' . Time::now()->format('d/m/Y H:i:s'));
+        // Ngày xuất
+        $sheet->setCellValue('A2', 'Ngày xuất: ' . date('d/m/Y H:i:s'));
         $sheet->mergeCells('A2:' . end($headers) . '2');
-        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2')->applyFromArray($subtitleStyle);
         
         // Thêm thông tin bộ lọc
-        $filterRow = 3;
+        $currentRow = 4;
         if (!empty($filters)) {
-            $sheet->setCellValue('A' . $filterRow, 'Bộ lọc:');
-            $sheet->mergeCells('A' . $filterRow . ':' . end($headers) . $filterRow);
-            $sheet->getStyle('A' . $filterRow)->getFont()->setBold(true);
+            $sheet->setCellValue('A3', 'THÔNG TIN BỘ LỌC:');
+            $sheet->mergeCells('A3:' . end($headers) . '3');
+            $sheet->getStyle('A3')->getFont()->setBold(true);
             
-            $filterRow++;
-            foreach ($filters as $key => $value) {
-                $sheet->setCellValue('A' . $filterRow, $key . ': ' . $value);
+            $filterRow = 4;
+            foreach ($filters as $label => $value) {
+                $sheet->setCellValue('A' . $filterRow, $label . ': ' . $value);
                 $sheet->mergeCells('A' . $filterRow . ':' . end($headers) . $filterRow);
                 $filterRow++;
             }
+            $currentRow = $filterRow + 1;
         }
         
-        // Header cho bảng dữ liệu
-        $headerRow = $filterRow + 1;
-        $colIndex = 0;
-        foreach ($headers as $headerText => $column) {
-            $sheet->setCellValue($column . $headerRow, $headerText);
-            $colIndex++;
+        // Thêm header cho bảng dữ liệu
+        $headerRow = $currentRow;
+        $col = 'A';
+        foreach (array_keys($headers) as $header) {
+            $sheet->setCellValue($col . $headerRow, $header);
+            $sheet->getStyle($col . $headerRow)->applyFromArray($headerStyle);
+            $col++;
         }
-        
-        // Thiết lập style cho header
-        $sheet->getStyle('A' . $headerRow . ':' . end($headers) . $headerRow)->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '4472C4'],
-            ],
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => Border::BORDER_THIN,
-                ],
-            ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
-        ]);
+        $sheet->getRowDimension($headerRow)->setRowHeight(25);
         
         // Thêm dữ liệu
-        $row = $headerRow + 1;
+        $dataStartRow = $headerRow + 1;
+        $row = $dataStartRow;
+        
         foreach ($data as $index => $item) {
+            $col = 'A';
+            
             // STT
-            $sheet->setCellValue('A' . $row, $index + 1);
+            $sheet->setCellValue($col++ . $row, $index + 1);
             
             // ID
-            $sheet->setCellValue('B' . $row, $item->checkin_sukien_id);
+            $sheet->setCellValue($col++ . $row, $item->checkout_sukien_id);
+            
+            // Họ tên
+            $sheet->setCellValue($col++ . $row, $item->ho_ten);
+            
+            // Email
+            $sheet->setCellValue($col++ . $row, $item->email);
             
             // Sự kiện
-            $suKienTen = '';
-            if (isset($item->su_kien_id) && $item->su_kien_id) {
-                $suKien = $this->suKienModel->find($item->su_kien_id);
-                if ($suKien) {
-                    $suKienTen = $suKien->getTenSuKien() ?? $suKien->ten_su_kien;
-                }
-            }
-            $sheet->setCellValue('C' . $row, $suKienTen);
+            $sheet->setCellValue($col++ . $row, $item->ten_su_kien ?? '');
             
-            // Thông tin người dùng
-            $sheet->setCellValue('D' . $row, $item->ho_ten);
-            $sheet->setCellValue('E' . $row, $item->email);
-            $sheet->setCellValue('F' . $row, $item->so_dien_thoai ?? '');
+            // Thời gian check-out
+            $sheet->setCellValue($col++ . $row, $item->getThoiGianCheckOutFormatted());
             
-            // Thời gian check-in
-            $thoiGianCheckIn = '';
-            if (!empty($item->thoi_gian_check_in)) {
-                $thoiGianCheckIn = $item->thoi_gian_check_in instanceof Time ? 
-                    $item->thoi_gian_check_in->format('d/m/Y H:i:s') : 
-                    Time::parse($item->thoi_gian_check_in)->format('d/m/Y H:i:s');
-            }
-            $sheet->setCellValue('G' . $row, $thoiGianCheckIn);
+            // Loại check-out
+            $sheet->setCellValue($col++ . $row, $item->getCheckoutTypeText());
             
-            // Loại check-in
-            $checkinTypes = [
-                'manual' => 'Thủ công',
-                'face_id' => 'Nhận diện khuôn mặt',
-                'qr_code' => 'Mã QR',
-                'auto' => 'Tự động',
-                'online' => 'Trực tuyến'
-            ];
-            $checkinType = $checkinTypes[$item->checkin_type] ?? $item->checkin_type;
-            $sheet->setCellValue('H' . $row, $checkinType);
-            
-            // Hình thức tham gia
-            $hinhThucThamGia = [
-                'offline' => 'Trực tiếp',
-                'online' => 'Trực tuyến'
-            ];
-            $hinhThuc = $hinhThucThamGia[$item->hinh_thuc_tham_gia] ?? $item->hinh_thuc_tham_gia;
-            $sheet->setCellValue('I' . $row, $hinhThuc);
-            
-            // Face verified
-            $faceVerified = 'Không';
-            if ($item->face_verified == 1) {
-                $faceVerified = 'Đã xác thực';
-            }
-            $sheet->setCellValue('J' . $row, $faceVerified);
+            // Hình thức
+            $sheet->setCellValue($col++ . $row, $item->getHinhThucThamGiaText());
             
             // Trạng thái
-            $statusLabels = [
-                0 => 'Vô hiệu',
-                1 => 'Hoạt động',
-                2 => 'Đang xử lý'
-            ];
-            $statusText = $statusLabels[$item->status] ?? 'Không xác định';
-            $sheet->setCellValue('K' . $row, $statusText);
+            $sheet->setCellValue($col++ . $row, $item->getStatusText());
+            
+            // Thông tin xác minh khuôn mặt
+            $sheet->setCellValue($col++ . $row, $item->isFaceVerified() ? 'Đã xác minh' : 'Chưa xác minh');
+            
+            // Điểm số khớp khuôn mặt
+            $sheet->setCellValue($col++ . $row, $item->getFaceMatchScore() ? 
+                number_format($item->getFaceMatchScore() * 100, 2) . '%' : '');
+            
+            // Thời gian tham dự
+            $sheet->setCellValue($col++ . $row, $item->getAttendanceDurationFormatted());
+            
+            // Đánh giá
+            $sheet->setCellValue($col++ . $row, $item->getDanhGia() ? $item->getDanhGia() . ' sao' : '');
+            
+            // Nội dung đánh giá
+            $sheet->setCellValue($col++ . $row, $item->getNoiDungDanhGia());
+            
+            // Phản hồi
+            $sheet->setCellValue($col++ . $row, $item->getFeedback());
             
             // Ngày tạo
-            $createdAt = '';
-            if (!empty($item->created_at)) {
-                $createdAt = $item->created_at instanceof Time ? 
-                    $item->created_at->format('d/m/Y H:i:s') : 
-                    Time::parse($item->created_at)->format('d/m/Y H:i:s');
-            }
-            $sheet->setCellValue('L' . $row, $createdAt);
+            $sheet->setCellValue($col++ . $row, $item->created_at ? date('d/m/Y H:i', strtotime($item->created_at)) : '');
             
             // Ngày cập nhật
-            $updatedAt = '';
-            if (!empty($item->updated_at)) {
-                $updatedAt = $item->updated_at instanceof Time ? 
-                    $item->updated_at->format('d/m/Y H:i:s') : 
-                    Time::parse($item->updated_at)->format('d/m/Y H:i:s');
-            }
-            $sheet->setCellValue('M' . $row, $updatedAt);
+            $sheet->setCellValue($col++ . $row, $item->updated_at ? date('d/m/Y H:i', strtotime($item->updated_at)) : '');
             
             // Ngày xóa (nếu có)
             if ($includeDeleted) {
-                $deletedAt = '';
-                if (!empty($item->deleted_at)) {
-                    $deletedAt = $item->deleted_at instanceof Time ? 
-                        $item->deleted_at->format('d/m/Y H:i:s') : 
-                        Time::parse($item->deleted_at)->format('d/m/Y H:i:s');
-                }
-                $sheet->setCellValue('N' . $row, $deletedAt);
+                $sheet->setCellValue($col++ . $row, $item->deleted_at ? date('d/m/Y H:i', strtotime($item->deleted_at)) : '');
             }
             
             $row++;
         }
         
-        // Auto-size các cột
-        foreach ($headers as $column) {
+        // Áp dụng style cho dữ liệu
+        if ($row > $dataStartRow) {
+            $lastCol = $includeDeleted ? 'R' : 'Q';
+            $sheet->getStyle('A' . $dataStartRow . ':' . $lastCol . ($row - 1))->applyFromArray($dataStyle);
+        }
+        
+        // Tự động điều chỉnh độ rộng cột
+        foreach (range('A', $lastCol ?? 'Q') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
         
-        // Style cho bảng dữ liệu
-        $sheet->getStyle('A' . ($headerRow + 1) . ':' . end($headers) . ($row - 1))->applyFromArray([
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => Border::BORDER_THIN,
-                ],
-            ],
-        ]);
+        // Thêm tổng số bản ghi
+        $totalRow = $row + 1;
+        $sheet->setCellValue('A' . $totalRow, 'Tổng số bản ghi: ' . count($data));
+        $sheet->mergeCells('A' . $totalRow . ':' . ($lastCol ?? 'Q') . $totalRow);
+        $sheet->getStyle('A' . $totalRow)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $totalRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
         
-        // Căn giữa một số cột
-        $centerCols = ['A', 'B', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
-        if ($includeDeleted) {
-            $centerCols[] = 'N';
+        // Xuất file
+        try {
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+            header('Cache-Control: max-age=0');
+            
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->save('php://output');
+            exit();
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi xuất Excel: ' . $e->getMessage());
+            throw $e;
         }
-        
-        foreach ($centerCols as $col) {
-            $sheet->getStyle($col . ($headerRow + 1) . ':' . $col . ($row - 1))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        }
-        
-        // Lưu file Excel
-        $writer = new Xlsx($spreadsheet);
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-        $writer->save('php://output');
-        exit;
     }
 
     /**
-     * Xuất danh sách check-in sự kiện ra file Excel
+     * Xuất dữ liệu ra file Excel
      */
     public function exportExcel()
     {
-        // Lấy các tham số tìm kiếm
-        $params = $this->prepareSearchParams($this->request);
-        
-        // Xử lý tham số tìm kiếm để phù hợp với xuất dữ liệu
-        $options = $this->prepareSearchOptions($params);
-        
-        // Chuẩn bị tiêu chí tìm kiếm
-        $criteria = $this->prepareExportCriteria($params);
-        
-        // Lấy dữ liệu 
-        $data = $this->getExportData($criteria, $options);
-        
-        // Lấy và định dạng bộ lọc
-        $filters = $this->formatFilters($params);
-        
-        // Lấy headers cho Excel
-        $headers = $this->getExportHeaders();
-        
-        // Tạo tên file với timestamp để tránh trùng lặp
-        $filename = 'danh_sach_check_in_su_kien_' . date('YmdHis') . '.xlsx';
-        
-        // Tạo và xuất file Excel
-        $this->createExcelFile($data, $headers, $filters, $filename);
+        try {
+            // Lấy dữ liệu trực tiếp từ model không phụ thuộc vào filter
+            $data = $this->model->getAll([
+                'sort' => 'thoi_gian_check_out',
+                'order' => 'DESC',
+                'limit' => 0 // Không giới hạn số bản ghi
+            ]);
+            
+            // Ghi log
+            log_message('info', 'Xuất Excel: ' . count($data) . ' bản ghi');
+            
+            // Tạo tên file
+            $filename = 'checkout_sukien_' . date('YmdHis');
+            
+            // Tạo và xuất file Excel, không cần xử lý filters
+            $this->createExcelFile($data, $this->getExportHeaders(), [], $filename);
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi xuất Excel: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất Excel: ' . $e->getMessage());
+        }
     }
-    
+
     /**
-     * Xuất danh sách check-in sự kiện đã xóa ra Excel
+     * Xuất dữ liệu đã xóa ra file Excel
      */
     public function exportDeletedExcel()
     {
-        // Lấy các tham số tìm kiếm
-        $params = $this->prepareSearchParams($this->request);
-        
-        // Xử lý tham số tìm kiếm đặc biệt cho các bản ghi đã xóa
-        $options = $this->prepareSearchOptions($params);
-        $options['includeDeleted'] = true;
-        
-        // Chuẩn bị tiêu chí tìm kiếm cho các bản ghi đã xóa
-        $criteria = $this->prepareExportCriteria($params);
-        $criteria['deleted'] = true;
-        
-        // Lấy dữ liệu đã xóa
-        $data = $this->getExportData($criteria, $options);
-        
-        // Lấy và định dạng bộ lọc
-        $filters = $this->formatFilters($params);
-        
-        // Lấy headers cho Excel với thông tin ngày xóa
-        $headers = $this->getExportHeaders(true);
-        
-        // Tạo tên file với timestamp để tránh trùng lặp
-        $filename = 'danh_sach_check_in_su_kien_da_xoa_' . date('YmdHis') . '.xlsx';
-        
-        // Tạo và xuất file Excel với tham số đã xóa
-        $this->createExcelFile($data, $headers, $filters, $filename, true);
+        try {
+            // Lấy dữ liệu đã xóa trực tiếp từ model không phụ thuộc vào filter
+            $data = $this->model->getAllDeleted([
+                'sort' => 'thoi_gian_check_out',
+                'order' => 'DESC',
+                'limit' => 0 // Không giới hạn số bản ghi
+            ]);
+            
+            // Ghi log
+            log_message('info', 'Xuất Excel đã xóa: ' . count($data) . ' bản ghi');
+            
+            // Tạo tên file
+            $filename = 'checkout_sukien_deleted_' . date('YmdHis');
+            
+            // Tạo và xuất file Excel, không cần xử lý filters
+            $this->createExcelFile($data, $this->getExportHeaders(true), [], $filename, true);
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi xuất Excel đã xóa: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất Excel đã xóa: ' . $e->getMessage());
+        }
     }
 
+    // /**
+    //  * Xuất dữ liệu ra file PDF
+    //  */
+    // public function exportPdf()
+    // {
+    //     try {
+    //         // Lấy dữ liệu trực tiếp từ model không phụ thuộc vào filter
+    //         $data = $this->model->getAll([
+    //             'sort' => 'thoi_gian_check_out',
+    //             'order' => 'DESC',
+    //             'limit' => 0 // Không giới hạn số bản ghi
+    //         ]);
+            
+    //         // Ghi log
+    //         log_message('info', 'Xuất PDF: ' . count($data) . ' bản ghi');
+            
+    //         // Tạo tên file
+    //         $filename = 'checkout_sukien_' . date('YmdHis');
+            
+    //         // Tạo và xuất file PDF, không cần xử lý filters
+    //         $this->createPdfFromTemplate($data, [], $filename, false);
+    //     } catch (\Exception $e) {
+    //         log_message('error', 'Lỗi xuất PDF: ' . $e->getMessage());
+    //         return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất PDF: ' . $e->getMessage());
+    //     }
+    // }
+
+    // /**
+    //  * Xuất dữ liệu đã xóa ra file PDF
+    //  */
+    // public function exportDeletedPdf()
+    // {
+    //     try {
+    //         // Lấy dữ liệu đã xóa trực tiếp từ model không phụ thuộc vào filter
+    //         $data = $this->model->getAllDeleted([
+    //             'sort' => 'thoi_gian_check_out',
+    //             'order' => 'DESC',
+    //             'limit' => 0 // Không giới hạn số bản ghi
+    //         ]);
+            
+    //         // Ghi log
+    //         log_message('info', 'Xuất PDF đã xóa: ' . count($data) . ' bản ghi');
+            
+    //         // Tạo tên file
+    //         $filename = 'checkout_sukien_deleted_' . date('YmdHis');
+            
+    //         // Tạo và xuất file PDF, không cần xử lý filters
+    //         $this->createPdfFromTemplate($data, [], $filename, true);
+    //     } catch (\Exception $e) {
+    //         log_message('error', 'Lỗi xuất PDF đã xóa: ' . $e->getMessage());
+    //         return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất PDF đã xóa: ' . $e->getMessage());
+    //     }
+    // }
+
     /**
-     * Xóa vĩnh viễn một bản ghi đã xóa mềm
+     * Tạo PDF từ template
      *
-     * @param int|null $id ID của bản ghi cần xóa vĩnh viễn
-     * @return \CodeIgniter\HTTP\RedirectResponse
+     * @param array $data Dữ liệu
+     * @param array $filters Bộ lọc
+     * @param string $filename Tên file
+     * @param bool $includeDeleted Có bao gồm dữ liệu đã xóa
      */
-    public function permanentDelete($id = null)
+    private function createPdfFromTemplate($data, $filters, $filename, $includeDeleted = false)
     {
-        $returnUrl = $this->request->getGet('return_url') ?: site_url($this->module_name . '/listdeleted');
-        $returnUrl = $this->processReturnUrl($returnUrl);
+        // Lấy đường dẫn template
+        $templatePath = 'App\Modules\quanlycheckoutsukien\Views\export\pdf_template';
         
-        if (!$id) {
-            $this->alert->set('error', 'ID không hợp lệ', true);
-            return redirect()->to($returnUrl);
-        }
-
-        try {
-            // Kiểm tra bản ghi có tồn tại và đã bị xóa mềm hay không
-            $data = $this->model->withDeleted()->find($id);
-            
-            if (!$data) {
-                throw new \RuntimeException('Không tìm thấy bản ghi có ID #' . $id);
-            }
-            
-            if ($data->deleted_at === null) {
-                throw new \RuntimeException('Bản ghi chưa bị xóa mềm, không thể xóa vĩnh viễn');
-            }
-            
-            // Thực hiện xóa vĩnh viễn
-            if ($this->model->permanentDelete($id)) {
-                $this->alert->set('success', 'Đã xóa vĩnh viễn bản ghi thành công', true);
-            } else {
-                throw new \RuntimeException('Không thể xóa vĩnh viễn bản ghi');
-            }
-            
-        } catch (\Exception $e) {
-            log_message('error', '[' . $this->controller_name . '::permanentDelete] ' . $e->getMessage());
-            $this->alert->set('error', 'Có lỗi xảy ra: ' . $e->getMessage(), true);
-        }
-        
-        return redirect()->to($returnUrl);
-    }
-
-    /**
-     * Xóa vĩnh viễn nhiều bản ghi đã xóa mềm
-     * 
-     * @return \CodeIgniter\HTTP\RedirectResponse
-     */
-    public function permanentDeleteMultiple()
-    {
-        $returnUrl = $this->request->getPost('return_url') ?: site_url($this->module_name . '/listdeleted');
-        $returnUrl = $this->processReturnUrl($returnUrl);
-        $selectedIds = $this->request->getPost('selected_ids');
-        
-        if (empty($selectedIds)) {
-            $this->alert->set('error', 'Vui lòng chọn ít nhất một bản ghi để xóa vĩnh viễn', true);
-            return redirect()->to($returnUrl);
-        }
-        
-        $ids = is_array($selectedIds) ? $selectedIds : explode(',', $selectedIds);
-        $ids = array_map('intval', $ids);
-        
-        try {
-            // Lấy danh sách các bản ghi đã chọn
-            $items = $this->model->withDeleted()->find($ids);
-            
-            if (empty($items)) {
-                throw new \RuntimeException('Không tìm thấy bản ghi cần xóa vĩnh viễn');
-            }
-            
-            // Đếm số bản ghi thành công
-            $successCount = 0;
-            
-            // Lưu lại lỗi nếu có
-            $errors = [];
-            
-            // Xử lý từng bản ghi
-            foreach ($items as $item) {
-                try {
-                    // Kiểm tra bản ghi đã bị xóa mềm chưa
-                    if ($item->deleted_at === null) {
-                        throw new \RuntimeException('Bản ghi ID #' . $item->checkin_sukien_id . ' chưa bị xóa mềm, không thể xóa vĩnh viễn.');
-                    }
-                    
-                    // Xóa vĩnh viễn bản ghi
-                    if ($this->model->permanentDelete($item->checkin_sukien_id)) {
-                        $successCount++;
-                    } else {
-                        throw new \RuntimeException('Không thể xóa vĩnh viễn bản ghi ID #' . $item->checkin_sukien_id);
-                    }
-                } catch (\Exception $e) {
-                    $errors[] = $e->getMessage();
-                    log_message('error', '[' . $this->controller_name . '::permanentDeleteMultiple] Lỗi xóa vĩnh viễn ID #' . 
-                        ($item->checkin_sukien_id ?? 'unknown') . ': ' . $e->getMessage());
-                }
-            }
-            
-            // Thông báo kết quả
-            if ($successCount > 0) {
-                $this->alert->set('success', 'Đã xóa vĩnh viễn ' . $successCount . ' bản ghi thành công.', true);
-            }
-            
-            if (!empty($errors)) {
-                // Nếu có lỗi, hiển thị thông báo lỗi
-                $this->alert->set('error', 'Có ' . count($errors) . ' lỗi xảy ra: ' . implode(', ', array_slice($errors, 0, 3)) . 
-                    (count($errors) > 3 ? '...' : ''), true);
-            }
-            
-        } catch (\Exception $e) {
-            log_message('error', '[' . $this->controller_name . '::permanentDeleteMultiple] ' . $e->getMessage());
-            $this->alert->set('error', 'Có lỗi xảy ra: ' . $e->getMessage(), true);
-        }
-        
-        return redirect()->to($returnUrl);
-    }
-
-    /**
-     * Alias cho permanentDeleteMultiple
-     */
-    public function deletePermanentMultiple()
-    {
-        return $this->permanentDeleteMultiple();
-    }
-
-    /**
-     * Chuẩn bị tùy chọn tìm kiếm cho export
-     * 
-     * @param array $params Tham số tìm kiếm từ request
-     * @return array
-     */
-    protected function prepareSearchOptions(array $params = []): array
-    {
-        // Xử lý các tham số tìm kiếm
-        $criteria = $this->prepareExportCriteria($params);
-        
-        // Xử lý sắp xếp
-        $sort = $params['sort'] ?? 'thoi_gian_check_in';
-        $order = strtoupper($params['order'] ?? 'DESC');
-
-        // Đảm bảo order là ASC hoặc DESC
-        if (!in_array($order, ['ASC', 'DESC'])) {
-            $order = 'DESC';
-        }
-
-        // Đảm bảo sort là một trường hợp lệ
-        $validSortFields = $this->getValidSortFields();
-        if (!in_array($sort, $validSortFields)) {
-            $sort = 'thoi_gian_check_in';
-        }
-
-        // Xử lý perPage và page
-        $perPage = isset($params['perPage']) ? (int)$params['perPage'] : 10;
-        $page = isset($params['page']) ? (int)$params['page'] : 1;
-
-        // Đảm bảo perPage nằm trong danh sách cho phép
-        $validPerPage = [10, 25, 50, 100];
-        if (!in_array($perPage, $validPerPage)) {
-            $perPage = 10;
-        }
-
-        // Tính offset
-        $offset = ($page - 1) * $perPage;
-
-        return array_merge($criteria, [
-            'sort' => $sort,
-            'order' => $order,
-            'perPage' => $perPage,
-            'page' => $page,
-            'offset' => $offset,
-            'limit' => 0 // Không giới hạn khi xuất
-        ]);
-    }
-
-    /**
-     * Chuẩn bị tiêu chí tìm kiếm cho export
-     * 
-     * @param array $params Tham số từ request
-     * @return array
-     */
-    protected function prepareExportCriteria(array $params): array
-    {
-        $criteria = [];
-
-        // Xử lý từ khóa tìm kiếm
-        if (isset($params['keyword']) && $params['keyword'] !== '') {
-            $criteria['keyword'] = trim($params['keyword']);
-        }
-
-        // Xử lý sự kiện
-        if (isset($params['su_kien_id']) && $params['su_kien_id'] !== '') {
-            $criteria['su_kien_id'] = (int)$params['su_kien_id'];
-        }
-
-        // Xử lý loại check-in
-        if (isset($params['checkin_type']) && $params['checkin_type'] !== '') {
-            $criteria['checkin_type'] = $params['checkin_type'];
-        }
-
-        // Xử lý hình thức tham gia
-        if (isset($params['hinh_thuc_tham_gia']) && $params['hinh_thuc_tham_gia'] !== '') {
-            $criteria['hinh_thuc_tham_gia'] = $params['hinh_thuc_tham_gia'];
-        }
-
-        // Xử lý trạng thái xác minh khuôn mặt
-        if (isset($params['face_verified']) && $params['face_verified'] !== '') {
-            $criteria['face_verified'] = (int)$params['face_verified'];
-        }
-
-        // Xử lý trạng thái
-        if (isset($params['status']) && $params['status'] !== '') {
-            $criteria['status'] = (int)$params['status'];
-        }
-
-        // Xử lý khoảng thời gian
-        if (isset($params['start_date']) && $params['start_date'] !== '') {
-            $criteria['start_date'] = date('Y-m-d 00:00:00', strtotime($params['start_date']));
-        }
-        if (isset($params['end_date']) && $params['end_date'] !== '') {
-            $criteria['end_date'] = date('Y-m-d 23:59:59', strtotime($params['end_date']));
-        }
-
-        return $criteria;
-    }
-
-    /**
-     * Lấy danh sách các trường sắp xếp hợp lệ
-     * 
-     * @return array
-     */
-    protected function getValidSortFields(): array
-    {
-        return [
-            'checkin_sukien_id', 
-            'su_kien_id', 
-            'ho_ten', 
-            'email', 
-            'thoi_gian_check_in',
-            'checkin_type', 
-            'face_verified', 
-            'status', 
-            'hinh_thuc_tham_gia',
-            'created_at', 
-            'updated_at', 
-            'deleted_at'
+        // Chuẩn bị dữ liệu để đưa vào template
+        $viewData = [
+            'data' => $data,
+            'filters' => $filters,
+            'deleted' => $includeDeleted,
+            'title' => 'DANH SÁCH CHECK-OUT SỰ KIỆN' . ($includeDeleted ? ' ĐÃ XÓA' : ''),
+            'export_date' => date('d/m/Y H:i:s')
         ];
+        
+        // Tạo HTML từ template
+        $html = view($templatePath, $viewData);
+        
+        // Tạo PDF sử dụng thư viện Dompdf
+        $options = new \Dompdf\Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+        
+        // Xuất file
+        $dompdf->stream($filename . '.pdf', ['Attachment' => true]);
+        exit();
     }
 
     /**
-     * Lấy dữ liệu để xuất
-     */
-    protected function getExportData($criteria, $options)
-    {
-        // Lấy dữ liệu từ model
-        $data = isset($criteria['deleted']) && $criteria['deleted'] 
-            ? $this->model->searchDeleted($criteria, $options)
-            : $this->model->search($criteria, $options);
-
-        return $data;
-    }
-    
-    /**
-     * Format bộ lọc để hiển thị trong file xuất
-     * 
-     * @param array $params Tham số tìm kiếm
-     * @return array Bộ lọc đã định dạng
-     */
-    protected function formatFilters(array $params): array
-    {
-        $filters = [];
-
-        // Thêm từ khóa tìm kiếm
-        if (!empty($params['keyword'])) {
-            $filters['Từ khóa tìm kiếm'] = trim($params['keyword']);
-        }
-
-        // Thêm trạng thái
-        if (isset($params['status']) && $params['status'] !== '') {
-            $statusLabels = [
-                0 => 'Vô hiệu',
-                1 => 'Hoạt động',
-                2 => 'Đang xử lý'
-            ];
-            $filters['Trạng thái'] = $statusLabels[$params['status']] ?? 'Không xác định';
-        }
-
-        // Thêm sự kiện
-        if (!empty($params['su_kien_id'])) {
-            $suKien = $this->suKienModel->find($params['su_kien_id']);
-            if ($suKien) {
-                $filters['Sự kiện'] = $suKien->getTenSuKien() ?? $suKien->ten_su_kien;
-            }
-        }
-
-        // Thêm loại check-in
-        if (!empty($params['checkin_type'])) {
-            $checkinTypes = [
-                'manual' => 'Thủ công',
-                'face_id' => 'Nhận diện khuôn mặt',
-                'qr_code' => 'Mã QR',
-                'auto' => 'Tự động',
-                'online' => 'Trực tuyến'
-            ];
-            $filters['Loại check-in'] = $checkinTypes[$params['checkin_type']] ?? $params['checkin_type'];
-        }
-
-        // Thêm hình thức tham gia
-        if (!empty($params['hinh_thuc_tham_gia'])) {
-            $hinhThucThamGia = [
-                'offline' => 'Trực tiếp',
-                'online' => 'Trực tuyến'
-            ];
-            $filters['Hình thức tham gia'] = $hinhThucThamGia[$params['hinh_thuc_tham_gia']] ?? $params['hinh_thuc_tham_gia'];
-        }
-
-        // Thêm trạng thái xác minh khuôn mặt
-        if (isset($params['face_verified']) && $params['face_verified'] !== '') {
-            $faceVerifiedLabels = [
-                0 => 'Chưa xác minh',
-                1 => 'Đã xác minh',
-                2 => 'Đang xử lý'
-            ];
-            $filters['Xác minh khuôn mặt'] = $faceVerifiedLabels[$params['face_verified']] ?? 'Không xác định';
-        }
-
-        // Thêm khoảng thời gian
-        if (!empty($params['start_date']) || !empty($params['end_date'])) {
-            $timeRange = '';
-            if (!empty($params['start_date'])) {
-                $timeRange .= 'Từ ' . date('d/m/Y', strtotime($params['start_date']));
-            }
-            if (!empty($params['end_date'])) {
-                $timeRange .= ($timeRange ? ' đến ' : 'Đến ') . date('d/m/Y', strtotime($params['end_date']));
-            }
-            $filters['Thời gian'] = $timeRange;
-        }
-
-        // Thêm sắp xếp
-        if (!empty($params['sort'])) {
-            $sortFields = [
-                'thoi_gian_check_in' => 'Thời gian check-in',
-                'ho_ten' => 'Họ tên',
-                'email' => 'Email',
-                'status' => 'Trạng thái',
-                'created_at' => 'Ngày tạo',
-                'updated_at' => 'Ngày cập nhật'
-            ];
-            $sortField = $sortFields[$params['sort']] ?? $params['sort'];
-            $sortOrder = !empty($params['order']) ? strtoupper($params['order']) : 'DESC';
-            $filters['Sắp xếp'] = $sortField . ' ' . ($sortOrder === 'DESC' ? 'giảm dần' : 'tăng dần');
-        }
-
-        return $filters;
-    }
-
-    /**
-     * Lấy headers cho tệp xuất
-     * 
-     * @param bool $includeDeleted Có bao gồm thông tin xóa hay không
-     * @return array Mảng headers
+     * Lấy headers cho file xuất
+     *
+     * @param bool $includeDeleted Có bao gồm cột ngày xóa không
+     * @return array
      */
     protected function getExportHeaders(bool $includeDeleted = false): array
     {
         $headers = [
             'STT' => 'A',
             'ID' => 'B',
-            'Sự kiện' => 'C',
-            'Họ tên' => 'D',
-            'Email' => 'E',
-            'Số điện thoại' => 'F',
-            'Thời gian check-in' => 'G',
-            'Loại check-in' => 'H',
-            'Hình thức tham gia' => 'I',
-            'Face verified' => 'J',
-            'Trạng thái' => 'K',
-            'Ngày tạo' => 'L',
-            'Ngày cập nhật' => 'M',
+            'Họ tên' => 'C',
+            'Email' => 'D',
+            'Sự kiện' => 'E',
+            'Thời gian check-out' => 'F',
+            'Loại check-out' => 'G',
+            'Hình thức' => 'H',
+            'Trạng thái' => 'I',
+            'Xác minh KM' => 'J',
+            'Điểm số KM' => 'K',
+            'Thời gian tham dự' => 'L',
+            'Đánh giá' => 'M',
+            'Nội dung đánh giá' => 'N',
+            'Phản hồi' => 'O',
+            'Ngày tạo' => 'P',
+            'Ngày cập nhật' => 'Q'
         ];
 
         if ($includeDeleted) {
-            $headers['Ngày xóa'] = 'N';
+            $headers['Ngày xóa'] = 'R';
         }
 
         return $headers;

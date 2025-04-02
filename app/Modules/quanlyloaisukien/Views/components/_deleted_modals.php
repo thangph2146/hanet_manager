@@ -7,7 +7,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn khôi phục check-in sự kiện ID: "<span id="restore-item-id" class="fw-bold"></span>" - "<span id="restore-item-name" class="fw-bold"></span>" không?
+                Bạn có chắc chắn muốn khôi phục <?= $title ?> ID: "<span id="restore-item-id" class="fw-bold"></span>" - "<span id="restore-item-name" class="fw-bold"></span>" không?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -30,7 +30,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn xóa vĩnh viễn check-in sự kiện ID: "<span id="delete-item-id" class="fw-bold"></span>" - "<span id="delete-item-name" class="fw-bold"></span>" không? Hành động này không thể hoàn tác!
+                Bạn có chắc chắn muốn xóa vĩnh viễn <?= $title ?> ID: "<span id="delete-item-id" class="fw-bold"></span>" - "<span id="delete-item-name" class="fw-bold"></span>" không? Hành động này không thể hoàn tác!
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -53,7 +53,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc chắn muốn khôi phục các check-in sự kiện đã chọn không?
+                Bạn có chắc chắn muốn khôi phục các <?= $title ?> đã chọn không?
                 <div id="restore-multiple-count" class="text-primary mt-2"></div>
                 <div id="restore-multiple-ids" class="text-muted small mt-1"></div>
             </div>
@@ -75,7 +75,7 @@
             </div>
             <div class="modal-body">
                 <div class="alert alert-danger">
-                    <i class="bx bx-error-circle me-1"></i> Cảnh báo: Hành động này sẽ xóa vĩnh viễn các check-in sự kiện đã chọn và không thể khôi phục!
+                    <i class="bx bx-error-circle me-1"></i> Cảnh báo: Hành động này sẽ xóa vĩnh viễn các <?= $title ?> đã chọn và không thể khôi phục!
                 </div>
                 <div id="permanent-delete-multiple-count" class="text-danger mt-2"></div>
                 <div id="permanent-delete-multiple-ids" class="text-muted small mt-1"></div>
