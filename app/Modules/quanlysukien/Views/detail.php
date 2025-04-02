@@ -4,10 +4,18 @@
 <?= $title ?>
 <?= $this->endSection() ?>
 
+<?= $this->section('bread_cum_link') ?>
+<?= view('components/_breakcrump', [
+	'title' => $title_home,
+	'dashboard_url' => site_url($module_name),
+	'breadcrumbs' => [
+		['title' => $title_home, 'url' => site_url($module_name)],
+		['title' => $title, 'active' => true]
+	],
+]) ?>
+<?= $this->endSection() ?>
 <?= $this->section('content') ?>
 
-<!-- Breadcrumb -->
-<?= $breadcrumb ?>
 
 <!-- Alerts -->
 <?= view('App\Modules\\' . $module_name . '\Views\components\_alerts') ?>

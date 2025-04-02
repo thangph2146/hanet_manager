@@ -19,6 +19,9 @@ use Dompdf\Options;
 use CodeIgniter\I18n\Time;
 use App\Modules\quanlysukien\Traits\ExportTrait;
 use App\Modules\quanlysukien\Traits\RelationTrait;
+use App\Modules\quanlyloaisukien\Models\LoaiSuKienModel;
+use App\Libraries\Pdf;
+use App\Libraries\ExcelExport;
 
 class QuanLySuKien extends BaseController
 {
@@ -35,6 +38,9 @@ class QuanLySuKien extends BaseController
     protected $module_name = 'quanlysukien';
     protected $controller_name = 'QuanLySuKien';
     protected $masterScript;
+    protected $loaiSuKienModel;
+    protected $perPage = 10;
+    protected $surroundCount = 2;
     
     public function __construct()
     {
@@ -45,6 +51,7 @@ class QuanLySuKien extends BaseController
         $this->model = new SuKienModel();
         $this->breadcrumb = new Breadcrumb();
         $this->alert = new Alert();
+        $this->loaiSuKienModel = new LoaiSuKienModel();
         
         // Thông tin module
         $this->moduleUrl = base_url($this->module_name);
@@ -57,6 +64,8 @@ class QuanLySuKien extends BaseController
         
         // Khởi tạo các model quan hệ
         $this->initializeRelationTrait();
+        
+        $this->model->setSurroundCount($this->surroundCount);
     }
     
     /**
@@ -67,14 +76,11 @@ class QuanLySuKien extends BaseController
         // Lấy các tham số từ URL
         $params = $this->prepareSearchParams($this->request);
         // Xử lý tham số tìm kiếm
-        $params = $this->processSearchParams($params);
-        
-        // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
-        $this->model->setSurroundCount(3);
+        $processedParams = $this->processSearchParams($params);
         
         // Xây dựng tiêu chí và tùy chọn tìm kiếm
-        $criteria = $this->buildSearchCriteria($params);
-        $options = $this->buildSearchOptions($params);
+        $criteria = $this->buildSearchCriteria($processedParams);
+        $options = $this->buildSearchOptions($processedParams);
         
         // Lấy dữ liệu sự kiện và thông tin phân trang
         $pageData = $this->model->search($criteria, $options);
@@ -212,7 +218,7 @@ class QuanLySuKien extends BaseController
 
         return view('App\Modules\\' . $this->module_name . '\Views\edit', [
             'module_name' => $this->module_name,
-            'title' => $this->title,
+            'title' => 'Chỉnh sửa ' . $this->title,
             'title_home' => $this->title_home,
             'action' => site_url($this->module_name . '/update/' . $id),
             'data' => $data,
@@ -335,6 +341,7 @@ class QuanLySuKien extends BaseController
             'data' => $data,
             'module_name' => $this->module_name,
             'title' => 'Chi tiết sự kiện',
+            'title_home' => $this->title_home,
             'breadcrumb' => $this->breadcrumb->render()
         ]);
     }
@@ -796,8 +803,7 @@ class QuanLySuKien extends BaseController
             // Thêm thông tin loại sự kiện nếu cần
             if (property_exists($item, 'loai_su_kien_id') && !empty($item->loai_su_kien_id)) {
                 try {
-                    $loaiSuKienModel = new \App\Modules\quanlyloaisukien\Models\LoaiSuKienModel();
-                    $loaiSuKien = $loaiSuKienModel->find($item->loai_su_kien_id);
+                    $loaiSuKien = $this->loaiSuKienModel->find($item->loai_su_kien_id);
                     if ($loaiSuKien) {
                         $data[$index]->ten_loai_su_kien = $loaiSuKien->getTenLoaiSuKien();
                     }
@@ -841,8 +847,7 @@ class QuanLySuKien extends BaseController
         $title = $options['title'] ?? 'Form';
         
         // Lấy danh sách loại sự kiện nếu cần
-        $loaiSuKienModel = new \App\Modules\quanlyloaisukien\Models\LoaiSuKienModel();
-        $danhSachLoaiSuKien = $loaiSuKienModel->findAll();
+        $danhSachLoaiSuKien = $this->loaiSuKienModel->findAll();
         
         return [
             'data' => $data,
