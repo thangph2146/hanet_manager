@@ -332,7 +332,7 @@ class QuanLyDangKySuKien extends BaseController
 
         if ($this->model->delete($id)) {
             return redirect()->to(site_url($this->module_name . '/listdeleted'))
-                ->with('success', 'Xóa thông tin check-out sự kiện thành công');
+                ->with('success', 'Xóa thông tin đăng ký sự kiện thành công');
         }
 
         return redirect()->to($this->moduleUrl)

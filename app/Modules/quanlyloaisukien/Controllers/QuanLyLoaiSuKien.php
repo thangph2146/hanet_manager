@@ -195,7 +195,7 @@ class QuanLyLoaiSuKien extends BaseController
     }
     
     /**
-     * Hiển thị form chỉnh sửa check-out sự kiện
+     * Hiển thị form chỉnh sửa loại sự kiện
      */
     public function edit($id = null)
     {
@@ -207,7 +207,7 @@ class QuanLyLoaiSuKien extends BaseController
         $data = $this->model->find($id);
         if (!$data) {
             return redirect()->to($this->moduleUrl)
-                ->with('error', 'Không tìm thấy thông tin check-out sự kiện');
+                ->with('error', 'Không tìm thấy thông tin loại sự kiện');
         }
 
         return view('App\Modules\\' . $this->module_name . '\Views\edit', [
@@ -287,7 +287,7 @@ class QuanLyLoaiSuKien extends BaseController
     }
     
     /**
-     * Xử lý xóa check-out sự kiện
+     * Xử lý xóa loại sự kiện
      */
     public function delete($id = null)
     {
@@ -298,7 +298,7 @@ class QuanLyLoaiSuKien extends BaseController
 
         if ($this->model->delete($id)) {
             return redirect()->to(site_url($this->module_name . '/listdeleted'))
-                ->with('success', 'Xóa thông tin check-out sự kiện thành công');
+                ->with('success', 'Xóa thông tin loại sự kiện thành công');
         }
 
         return redirect()->to($this->moduleUrl)
@@ -379,24 +379,24 @@ class QuanLyLoaiSuKien extends BaseController
             if ($item->deleted_at !== null) {
                 $filteredData[] = $item;
             } else {
-                log_message('warning', "[QuanLyCheckOutSuKien::listdeleted] Lọc bỏ bản ghi không hợp lệ (deleted_at = null): ID={$item->checkout_sukien_id}");
+                log_message('warning', "[QuanLyLoaiSuKien::listdeleted] Lọc bỏ bản ghi không hợp lệ (deleted_at = null): ID={$item->loai_sukien_id}");
             }
         }
         
         // Nếu có sự khác biệt giữa dữ liệu gốc và sau khi lọc
         if (count($pageData) !== count($filteredData)) {
-            log_message('warning', "[QuanLyCheckOutSuKien::listdeleted] Đã lọc bỏ " . (count($pageData) - count($filteredData)) . " bản ghi không hợp lệ");
+            log_message('warning', "[QuanLyLoaiSuKien::listdeleted] Đã lọc bỏ " . (count($pageData) - count($filteredData)) . " bản ghi không hợp lệ");
             // Gán lại dữ liệu đã lọc
             $pageData = $filteredData;
         }
         
         // Log số lượng kết quả tìm được
-        log_message('debug', '[QuanLyCheckOutSuKien::listdeleted] Found ' . count($pageData) . ' deleted records');
+        log_message('debug', '[QuanLyLoaiSuKien::listdeleted] Found ' . count($pageData) . ' deleted records');
         
         // In thông tin của các bản ghi để debug
         if (!empty($pageData)) {
             foreach ($pageData as $index => $item) {
-                log_message('debug', "[QuanLyCheckOutSuKien::listdeleted] Record {$index}: ID={$item->checkout_sukien_id}, deleted_at=" . 
+                log_message('debug', "[QuanLyLoaiSuKien::listdeleted] Record {$index}: ID={$item->loai_sukien_id}, deleted_at=" . 
                     ($item->deleted_at ? $item->getDeletedAtFormatted() : 'NULL'));
             }
         }
