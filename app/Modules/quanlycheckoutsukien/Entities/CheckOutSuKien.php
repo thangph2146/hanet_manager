@@ -615,6 +615,27 @@ class CheckOutSuKien extends BaseEntity
     }
     
     /**
+     * Lấy tên sự kiện trực tiếp
+     *
+     * @return string|null
+     */
+    public function getTenSuKien(): ?string
+    {
+        // Ưu tiên lấy từ thuộc tính ten_su_kien nếu có
+        if (isset($this->attributes['ten_su_kien']) && !empty($this->attributes['ten_su_kien'])) {
+            return $this->attributes['ten_su_kien'];
+        }
+        
+        // Nếu không có, lấy từ đối tượng SuKien nếu có
+        $suKien = $this->getSuKien();
+        if ($suKien && isset($suKien->ten_su_kien)) {
+            return $suKien->ten_su_kien;
+        }
+        
+        return null;
+    }
+    
+    /**
      * Lấy thông tin sự kiện
      *
      * @return SuKien|null
@@ -631,10 +652,24 @@ class CheckOutSuKien extends BaseEntity
             return $this->instance_suKien;
         }
         
+        // Kiểm tra trường hợp có thuộc tính ten_su_kien nhưng không có instance sự kiện
+        if (isset($this->attributes['ten_su_kien']) && !empty($this->attributes['ten_su_kien'])) {
+            // Nếu có ID sự kiện, tạo đối tượng SuKien tạm thời
+            if ($this->getSuKienId()) {
+                $suKien = new SuKien();
+                $suKien->su_kien_id = $this->getSuKienId();
+                $suKien->ten_su_kien = $this->attributes['ten_su_kien'];
+                $this->instance_suKien = $suKien;
+                return $this->instance_suKien;
+            }
+        }
+        
+        // Nếu không có ID sự kiện, trả về null
         if (!$this->getSuKienId()) {
             return null;
         }
         
+        // Lấy thông tin sự kiện từ cơ sở dữ liệu
         $suKienModel = model('App\Modules\sukien\Models\SuKienModel');
         $this->instance_suKien = $suKienModel->find($this->getSuKienId());
         
@@ -698,7 +733,13 @@ class CheckOutSuKien extends BaseEntity
     public function getThongTinBoSungJson(): ?array
     {
         $thongTinBoSung = $this->getThongTinBoSung();
-        return $thongTinBoSung ? json_decode($thongTinBoSung, true) : null;
+        // Nếu đã là array thì trả về trực tiếp, nếu là string thì decode, nếu không thì trả về null
+        if (is_array($thongTinBoSung)) {
+            return $thongTinBoSung;
+        } elseif (is_string($thongTinBoSung)) {
+            return json_decode($thongTinBoSung, true);
+        }
+        return null;
     }
 
     /**

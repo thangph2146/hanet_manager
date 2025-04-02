@@ -343,7 +343,7 @@ class QuanLyCheckOutSuKien extends BaseController
         }
 
         if ($this->model->delete($id)) {
-            return redirect()->to($this->moduleUrl)
+            return redirect()->to($site_url($this->module_name) . '/listdeleted')
                 ->with('success', 'Xóa thông tin check-out sự kiện thành công');
         }
 
@@ -702,36 +702,47 @@ class QuanLyCheckOutSuKien extends BaseController
     }
     
     /**
-     * Xử lý tham số tìm kiếm
+     * Xử lý các tham số tìm kiếm
+     * 
+     * @param array $params Tham số tìm kiếm
+     * @return array Tham số đã xử lý
      */
     protected function processSearchParams($params)
     {
-        // Đảm bảo page >= 1
-        $params['page'] = max(1, $params['page']);
-        
-        // Đảm bảo perPage nằm trong danh sách cho phép
-        $validPerPage = [10, 25, 50, 100];
-        $params['perPage'] = (int)$params['perPage'];
-        
-        // Nếu perPage không hợp lệ, sử dụng giá trị mặc định
-        if (!in_array($params['perPage'], $validPerPage)) {
-            $params['perPage'] = 10;
-        }
-        
-        // Đảm bảo sort là một trường hợp lệ
-        $validSortFields = [
-            'checkout_sukien_id', 'su_kien_id', 'ho_ten', 'email', 'thoi_gian_check_out', 
-            'checkout_type', 'face_verified', 'status', 'hinh_thuc_tham_gia', 
-            'created_at', 'updated_at'
-        ];
-        if (!in_array($params['sort'], $validSortFields)) {
+        // Sắp xếp
+        if (!isset($params['sort']) || empty($params['sort'])) {
             $params['sort'] = 'thoi_gian_check_out';
         }
         
-        // Đảm bảo order là ASC hoặc DESC
-        $params['order'] = strtoupper($params['order']);
-        if (!in_array($params['order'], ['ASC', 'DESC'])) {
+        // Thứ tự sắp xếp
+        if (!isset($params['order']) || empty($params['order'])) {
             $params['order'] = 'DESC';
+        }
+        
+        // Đảm bảo thứ tự sắp xếp hợp lệ
+        if (!in_array(strtoupper($params['order']), ['ASC', 'DESC'])) {
+            $params['order'] = 'DESC';
+        }
+        
+        // Phân trang
+        if (!isset($params['perPage']) || empty($params['perPage'])) {
+            $params['perPage'] = 10;
+        }
+        
+        // Đảm bảo perPage hợp lệ
+        $validPerPage = [10, 25, 50, 100];
+        if (!in_array((int)$params['perPage'], $validPerPage)) {
+            $params['perPage'] = 10;
+        }
+        
+        // Trang hiện tại
+        if (!isset($params['page']) || empty($params['page'])) {
+            $params['page'] = 1;
+        }
+        
+        // Đảm bảo page hợp lệ
+        if ((int)$params['page'] < 1) {
+            $params['page'] = 1;
         }
         
         return $params;
@@ -1002,183 +1013,361 @@ class QuanLyCheckOutSuKien extends BaseController
     }
 
     /**
-     * Xuất danh sách check-in ra Excel
+     * Tạo và xuất file Excel
+     * 
+     * @param array $data Dữ liệu xuất
+     * @param array $headers Tiêu đề các cột
+     * @param array $filters Thông tin bộ lọc
+     * @param string $filename Tên file
+     * @param bool $includeDeleted Có bao gồm dữ liệu đã xóa
+     */
+    protected function createExcelFile($data, $headers, $filters, $filename, $includeDeleted = false)
+    {
+        // Tạo đối tượng Spreadsheet mới
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // Thiết lập các style
+        $titleStyle = [
+            'font' => ['bold' => true, 'size' => 16, 'color' => ['rgb' => '1A5FB4']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER, 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER],
+        ];
+        
+        $subtitleStyle = [
+            'font' => ['italic' => true, 'size' => 11],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT],
+        ];
+        
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4472C4']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER, 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]]
+        ];
+        
+        $dataStyle = [
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+        ];
+        
+        // Tiêu đề chính
+        $title = 'DANH SÁCH CHECK-OUT SỰ KIỆN' . ($includeDeleted ? ' ĐÃ XÓA' : '');
+        $sheet->setCellValue('A1', $title);
+        $sheet->mergeCells('A1:' . end($headers) . '1');
+        $sheet->getStyle('A1')->applyFromArray($titleStyle);
+        $sheet->getRowDimension(1)->setRowHeight(30);
+        
+        // Ngày xuất
+        $sheet->setCellValue('A2', 'Ngày xuất: ' . date('d/m/Y H:i:s'));
+        $sheet->mergeCells('A2:' . end($headers) . '2');
+        $sheet->getStyle('A2')->applyFromArray($subtitleStyle);
+        
+        // Thêm thông tin bộ lọc
+        $currentRow = 4;
+        if (!empty($filters)) {
+            $sheet->setCellValue('A3', 'THÔNG TIN BỘ LỌC:');
+            $sheet->mergeCells('A3:' . end($headers) . '3');
+            $sheet->getStyle('A3')->getFont()->setBold(true);
+            
+            $filterRow = 4;
+            foreach ($filters as $label => $value) {
+                $sheet->setCellValue('A' . $filterRow, $label . ': ' . $value);
+                $sheet->mergeCells('A' . $filterRow . ':' . end($headers) . $filterRow);
+                $filterRow++;
+            }
+            $currentRow = $filterRow + 1;
+        }
+        
+        // Thêm header cho bảng dữ liệu
+        $headerRow = $currentRow;
+        $col = 'A';
+        foreach (array_keys($headers) as $header) {
+            $sheet->setCellValue($col . $headerRow, $header);
+            $sheet->getStyle($col . $headerRow)->applyFromArray($headerStyle);
+            $col++;
+        }
+        $sheet->getRowDimension($headerRow)->setRowHeight(25);
+        
+        // Thêm dữ liệu
+        $dataStartRow = $headerRow + 1;
+        $row = $dataStartRow;
+        
+        foreach ($data as $index => $item) {
+            $col = 'A';
+            
+            // STT
+            $sheet->setCellValue($col++ . $row, $index + 1);
+            
+            // ID
+            $sheet->setCellValue($col++ . $row, $item->checkout_sukien_id);
+            
+            // Họ tên
+            $sheet->setCellValue($col++ . $row, $item->ho_ten);
+            
+            // Email
+            $sheet->setCellValue($col++ . $row, $item->email);
+            
+            // Sự kiện
+            $sheet->setCellValue($col++ . $row, $item->ten_su_kien ?? '');
+            
+            // Thời gian check-out
+            $sheet->setCellValue($col++ . $row, $item->getThoiGianCheckOutFormatted());
+            
+            // Loại check-out
+            $sheet->setCellValue($col++ . $row, $item->getCheckoutTypeText());
+            
+            // Hình thức
+            $sheet->setCellValue($col++ . $row, $item->getHinhThucThamGiaText());
+            
+            // Trạng thái
+            $sheet->setCellValue($col++ . $row, $item->getStatusText());
+            
+            // Thông tin xác minh khuôn mặt
+            $sheet->setCellValue($col++ . $row, $item->isFaceVerified() ? 'Đã xác minh' : 'Chưa xác minh');
+            
+            // Điểm số khớp khuôn mặt
+            $sheet->setCellValue($col++ . $row, $item->getFaceMatchScore() ? 
+                number_format($item->getFaceMatchScore() * 100, 2) . '%' : '');
+            
+            // Thời gian tham dự
+            $sheet->setCellValue($col++ . $row, $item->getAttendanceDurationFormatted());
+            
+            // Đánh giá
+            $sheet->setCellValue($col++ . $row, $item->getDanhGia() ? $item->getDanhGia() . ' sao' : '');
+            
+            // Nội dung đánh giá
+            $sheet->setCellValue($col++ . $row, $item->getNoiDungDanhGia());
+            
+            // Phản hồi
+            $sheet->setCellValue($col++ . $row, $item->getFeedback());
+            
+            // Ngày tạo
+            $sheet->setCellValue($col++ . $row, $item->created_at ? date('d/m/Y H:i', strtotime($item->created_at)) : '');
+            
+            // Ngày cập nhật
+            $sheet->setCellValue($col++ . $row, $item->updated_at ? date('d/m/Y H:i', strtotime($item->updated_at)) : '');
+            
+            // Ngày xóa (nếu có)
+            if ($includeDeleted) {
+                $sheet->setCellValue($col++ . $row, $item->deleted_at ? date('d/m/Y H:i', strtotime($item->deleted_at)) : '');
+            }
+            
+            $row++;
+        }
+        
+        // Áp dụng style cho dữ liệu
+        if ($row > $dataStartRow) {
+            $lastCol = $includeDeleted ? 'R' : 'Q';
+            $sheet->getStyle('A' . $dataStartRow . ':' . $lastCol . ($row - 1))->applyFromArray($dataStyle);
+        }
+        
+        // Tự động điều chỉnh độ rộng cột
+        foreach (range('A', $lastCol ?? 'Q') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+        
+        // Thêm tổng số bản ghi
+        $totalRow = $row + 1;
+        $sheet->setCellValue('A' . $totalRow, 'Tổng số bản ghi: ' . count($data));
+        $sheet->mergeCells('A' . $totalRow . ':' . ($lastCol ?? 'Q') . $totalRow);
+        $sheet->getStyle('A' . $totalRow)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $totalRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+        
+        // Xuất file
+        try {
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '.xlsx"');
+            header('Cache-Control: max-age=0');
+            
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->save('php://output');
+            exit();
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi xuất Excel: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Xuất dữ liệu ra file Excel
      */
     public function exportExcel()
     {
-        // Lấy tất cả tham số từ URL
-        $params = [
-            'keyword' => $this->request->getGet('keyword'),
-            'status' => $this->request->getGet('status'),
-            'su_kien_id' => $this->request->getGet('su_kien_id'),
-            'checkin_type' => $this->request->getGet('checkin_type'),
-            'hinh_thuc_tham_gia' => $this->request->getGet('hinh_thuc_tham_gia'),
-            'face_verified' => $this->request->getGet('face_verified'),
-            'start_date' => $this->request->getGet('start_date'),
-            'end_date' => $this->request->getGet('end_date'),
-            'dangky_sukien_id' => $this->request->getGet('dangky_sukien_id'),
-            'sort' => $this->request->getGet('sort') ?? 'thoi_gian_check_in',
-            'order' => $this->request->getGet('order') ?? 'DESC'
-        ];
-        
-        // Xây dựng tiêu chí và tùy chọn tìm kiếm
-        $criteria = $this->prepareSearchCriteria($params);
-        $options = [
-            'sort' => $params['sort'],
-            'order' => $params['order'],
-            'limit' => 0 // Bỏ giới hạn để lấy tất cả dữ liệu
-        ];
-        
-        // Lấy dữ liệu
-        $data = $this->model->search($criteria, $options);
-        
-        // Format bộ lọc
-        $filters = $this->formatFilters($params);
-        
-        // Chuẩn bị headers
-        $headers = $this->prepareExcelHeaders();
-        
-        // Tạo và xuất file Excel
-        $this->createExcelFile(
-            $data,
-            $headers,
-            $filters,
-            'danh_sach_check_out_su_kien'
-        );
+        try {
+            // Lấy dữ liệu trực tiếp từ model không phụ thuộc vào filter
+            $data = $this->model->getAll([
+                'sort' => 'thoi_gian_check_out',
+                'order' => 'DESC',
+                'limit' => 0 // Không giới hạn số bản ghi
+            ]);
+            
+            // Ghi log
+            log_message('info', 'Xuất Excel: ' . count($data) . ' bản ghi');
+            
+            // Tạo tên file
+            $filename = 'checkout_sukien_' . date('YmdHis');
+            
+            // Tạo và xuất file Excel, không cần xử lý filters
+            $this->createExcelFile($data, $this->getExportHeaders(), [], $filename);
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi xuất Excel: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất Excel: ' . $e->getMessage());
+        }
     }
-    
+
     /**
-     * Xuất danh sách check-out đã xóa ra Excel
+     * Xuất dữ liệu đã xóa ra file Excel
      */
     public function exportDeletedExcel()
     {
-        // Lấy tất cả tham số từ URL
-        $params = [
-            'keyword' => $this->request->getGet('keyword'),
-            'status' => $this->request->getGet('status'),
-            'su_kien_id' => $this->request->getGet('su_kien_id'),
-            'checkin_type' => $this->request->getGet('checkin_type'),
-            'hinh_thuc_tham_gia' => $this->request->getGet('hinh_thuc_tham_gia'),
-            'face_verified' => $this->request->getGet('face_verified'),
-            'start_date' => $this->request->getGet('start_date'),
-            'end_date' => $this->request->getGet('end_date'),
-            'dangky_sukien_id' => $this->request->getGet('dangky_sukien_id'),
-            'sort' => $this->request->getGet('sort') ?? 'deleted_at',
-            'order' => $this->request->getGet('order') ?? 'DESC'
-        ];
-        
-        // Xây dựng tiêu chí và tùy chọn tìm kiếm
-        $criteria = $this->prepareSearchCriteria($params, true);
-        $options = [
-            'sort' => $params['sort'],
-            'order' => $params['order'],
-            'limit' => 0 // Bỏ giới hạn để lấy tất cả dữ liệu
-        ];
-        
-        // Lấy dữ liệu đã xóa
-        $data = $this->model->searchDeleted($criteria, $options);
-        
-        // Format bộ lọc
-        $filters = $this->formatFilters($params);
-        
-        // Chuẩn bị headers
-        $headers = $this->prepareExcelHeaders(true);
-        
-        // Tạo và xuất file Excel
-        $this->createExcelFile(
-            $data,
-            $headers,
-            $filters,
-            'danh_sach_check_out_su_kien_da_xoa',
-            true
-        );
+        try {
+            // Lấy dữ liệu đã xóa trực tiếp từ model không phụ thuộc vào filter
+            $data = $this->model->getAllDeleted([
+                'sort' => 'thoi_gian_check_out',
+                'order' => 'DESC',
+                'limit' => 0 // Không giới hạn số bản ghi
+            ]);
+            
+            // Ghi log
+            log_message('info', 'Xuất Excel đã xóa: ' . count($data) . ' bản ghi');
+            
+            // Tạo tên file
+            $filename = 'checkout_sukien_deleted_' . date('YmdHis');
+            
+            // Tạo và xuất file Excel, không cần xử lý filters
+            $this->createExcelFile($data, $this->getExportHeaders(true), [], $filename, true);
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi xuất Excel đã xóa: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất Excel đã xóa: ' . $e->getMessage());
+        }
     }
-    
+
     /**
-     * Xuất danh sách check-out ra PDF
+     * Xuất dữ liệu ra file PDF
      */
     public function exportPdf()
     {
-        // Lấy tất cả tham số từ URL
-        $params = [
-            'keyword' => $this->request->getGet('keyword'),
-            'status' => $this->request->getGet('status'),
-            'su_kien_id' => $this->request->getGet('su_kien_id'),
-            'checkin_type' => $this->request->getGet('checkin_type'),
-            'hinh_thuc_tham_gia' => $this->request->getGet('hinh_thuc_tham_gia'),
-            'face_verified' => $this->request->getGet('face_verified'),
-            'start_date' => $this->request->getGet('start_date'),
-            'end_date' => $this->request->getGet('end_date'),
-            'dangky_sukien_id' => $this->request->getGet('dangky_sukien_id'),
-            'sort' => $this->request->getGet('sort') ?? 'thoi_gian_check_in',
-            'order' => $this->request->getGet('order') ?? 'DESC'
-        ];
-        
-        // Xây dựng tiêu chí và tùy chọn tìm kiếm
-        $criteria = $this->prepareSearchCriteria($params);
-        $options = [
-            'sort' => $params['sort'],
-            'order' => $params['order'],
-            'limit' => 0 // Bỏ giới hạn để lấy tất cả dữ liệu
-        ];
-        
-        // Lấy dữ liệu
-        $data = $this->model->search($criteria, $options);
-        
-        // Format bộ lọc
-        $filters = $this->formatFilters($params);
-        
-        // Tạo và xuất file PDF
-        $this->createPdfFile(
-            $data,
-            $filters,
-            'DANH SÁCH CHECK-OUT SỰ KIỆN',
-            'danh_sach_check_out_su_kien'
-        );
+        try {
+            // Lấy dữ liệu trực tiếp từ model không phụ thuộc vào filter
+            $data = $this->model->getAll([
+                'sort' => 'thoi_gian_check_out',
+                'order' => 'DESC',
+                'limit' => 0 // Không giới hạn số bản ghi
+            ]);
+            
+            // Ghi log
+            log_message('info', 'Xuất PDF: ' . count($data) . ' bản ghi');
+            
+            // Tạo tên file
+            $filename = 'checkout_sukien_' . date('YmdHis');
+            
+            // Tạo và xuất file PDF, không cần xử lý filters
+            $this->createPdfFromTemplate($data, [], $filename, false);
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi xuất PDF: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất PDF: ' . $e->getMessage());
+        }
     }
-    
+
     /**
-     * Xuất danh sách check-out đã xóa ra PDF
+     * Xuất dữ liệu đã xóa ra file PDF
      */
     public function exportDeletedPdf()
     {
-        // Lấy tất cả tham số từ URL
-        $params = [
-            'keyword' => $this->request->getGet('keyword'),
-            'status' => $this->request->getGet('status'),
-            'su_kien_id' => $this->request->getGet('su_kien_id'),
-            'checkin_type' => $this->request->getGet('checkin_type'),
-            'hinh_thuc_tham_gia' => $this->request->getGet('hinh_thuc_tham_gia'),
-            'face_verified' => $this->request->getGet('face_verified'),
-            'start_date' => $this->request->getGet('start_date'),
-            'end_date' => $this->request->getGet('end_date'),
-            'dangky_sukien_id' => $this->request->getGet('dangky_sukien_id'),
-            'sort' => $this->request->getGet('sort') ?? 'deleted_at',
-            'order' => $this->request->getGet('order') ?? 'DESC'
+        try {
+            // Lấy dữ liệu đã xóa trực tiếp từ model không phụ thuộc vào filter
+            $data = $this->model->getAllDeleted([
+                'sort' => 'thoi_gian_check_out',
+                'order' => 'DESC',
+                'limit' => 0 // Không giới hạn số bản ghi
+            ]);
+            
+            // Ghi log
+            log_message('info', 'Xuất PDF đã xóa: ' . count($data) . ' bản ghi');
+            
+            // Tạo tên file
+            $filename = 'checkout_sukien_deleted_' . date('YmdHis');
+            
+            // Tạo và xuất file PDF, không cần xử lý filters
+            $this->createPdfFromTemplate($data, [], $filename, true);
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi xuất PDF đã xóa: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất PDF đã xóa: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Tạo PDF từ template
+     *
+     * @param array $data Dữ liệu
+     * @param array $filters Bộ lọc
+     * @param string $filename Tên file
+     * @param bool $includeDeleted Có bao gồm dữ liệu đã xóa
+     */
+    private function createPdfFromTemplate($data, $filters, $filename, $includeDeleted = false)
+    {
+        // Lấy đường dẫn template
+        $templatePath = 'App\Modules\quanlycheckoutsukien\Views\export\pdf_template';
+        
+        // Chuẩn bị dữ liệu để đưa vào template
+        $viewData = [
+            'data' => $data,
+            'filters' => $filters,
+            'deleted' => $includeDeleted,
+            'title' => 'DANH SÁCH CHECK-OUT SỰ KIỆN' . ($includeDeleted ? ' ĐÃ XÓA' : ''),
+            'export_date' => date('d/m/Y H:i:s')
         ];
         
-        // Xây dựng tiêu chí và tùy chọn tìm kiếm
-        $criteria = $this->prepareCheckOutSearchCriteria($params, true);
-        $options = [
-            'sort' => $params['sort'],
-            'order' => $params['order'],
-            'limit' => 0 // Bỏ giới hạn để lấy tất cả dữ liệu
+        // Tạo HTML từ template
+        $html = view($templatePath, $viewData);
+        
+        // Tạo PDF sử dụng thư viện Dompdf
+        $options = new \Dompdf\Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+        
+        // Xuất file
+        $dompdf->stream($filename . '.pdf', ['Attachment' => true]);
+        exit();
+    }
+
+    /**
+     * Lấy headers cho file xuất
+     *
+     * @param bool $includeDeleted Có bao gồm cột ngày xóa không
+     * @return array
+     */
+    protected function getExportHeaders(bool $includeDeleted = false): array
+    {
+        $headers = [
+            'STT' => 'A',
+            'ID' => 'B',
+            'Họ tên' => 'C',
+            'Email' => 'D',
+            'Sự kiện' => 'E',
+            'Thời gian check-out' => 'F',
+            'Loại check-out' => 'G',
+            'Hình thức' => 'H',
+            'Trạng thái' => 'I',
+            'Xác minh KM' => 'J',
+            'Điểm số KM' => 'K',
+            'Thời gian tham dự' => 'L',
+            'Đánh giá' => 'M',
+            'Nội dung đánh giá' => 'N',
+            'Phản hồi' => 'O',
+            'Ngày tạo' => 'P',
+            'Ngày cập nhật' => 'Q'
         ];
-        
-        // Lấy dữ liệu đã xóa
-        $data = $this->model->searchDeleted($criteria, $options);
-        
-        // Format bộ lọc
-        $filters = $this->formatFilters($params);
-        
-        // Tạo và xuất file PDF
-        $this->createPdfFile(
-            $data,
-            $filters,
-            'DANH SÁCH CHECK-OUT SỰ KIỆN ĐÃ XÓA',
-            'danh_sach_check_out_su_kien_da_xoa',
-            true
-        );
+
+        if ($includeDeleted) {
+            $headers['Ngày xóa'] = 'R';
+        }
+
+        return $headers;
     }
 
 }
