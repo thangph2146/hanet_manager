@@ -481,6 +481,11 @@ class QuanLyCheckInSuKien extends BaseController
             'perPage' => $params['perPage'],
             'keyword' => $params['keyword'] ?? '',
             'status' => $params['status'] ?? '',
+            'su_kien_id' => $params['su_kien_id'] ?? '',
+            'checkin_type' => $params['checkin_type'] ?? '',
+            'hinh_thuc_tham_gia' => $params['hinh_thuc_tham_gia'] ?? '',
+            'start_date' => $params['start_date'] ?? '',
+            'end_date' => $params['end_date'] ?? '',
             'module_name' => $this->module_name,
             'masterScript' => $this->masterScript
         ];
