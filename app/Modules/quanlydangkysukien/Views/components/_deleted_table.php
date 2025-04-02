@@ -1,9 +1,9 @@
 <?php
 /**
- * Component hiển thị bảng dữ liệu đăng ký sự kiện
+ * Component hiển thị bảng dữ liệu đăng ký sự kiện đã xóa
  * 
  * Các biến cần truyền vào:
- * @var array $processedData Dữ liệu đăng ký sự kiện
+ * @var array $processedData Dữ liệu đăng ký sự kiện đã xóa
  * @var string $module_name Tên module
  */
 ?>
@@ -22,10 +22,9 @@
                     <th width="15%" class="align-middle">Họ tên</th>
                     <th width="15%" class="align-middle">Email</th>
                     <th width="15%" class="align-middle">Sự kiện</th>
-                    <th width="8%" class="text-center align-middle">Loại</th>
-                    <th width="8%" class="text-center align-middle">Trạng thái</th>
-                    <th width="8%" class="text-center align-middle">Hình thức</th>
-                    <th width="8%" class="text-center align-middle">Tham dự</th>
+                    <th width="10%" class="text-center align-middle">Loại</th>
+                    <th width="10%" class="text-center align-middle">Trạng thái</th>
+                    <th width="10%" class="text-center align-middle">Ngày xóa</th>
                     <th width="15%" class="text-center align-middle">Thao tác</th>
                 </tr>
             </thead>
@@ -96,50 +95,22 @@
                                 <span class="badge <?= $statusClass ?>"><?= $item->getStatusText() ?></span>
                             </td>
                             <td class="text-center">
-                                <?php
-                                $hinhThucClass = '';
-                                switch ($item->getHinhThucThamGia()) {
-                                    case 'offline':
-                                        $hinhThucClass = 'bg-primary';
-                                        break;
-                                    case 'online':
-                                        $hinhThucClass = 'bg-info';
-                                        break;
-                                    case 'hybrid':
-                                        $hinhThucClass = 'bg-warning';
-                                        break;
-                                }
-                                ?>
-                                <span class="badge <?= $hinhThucClass ?>"><?= $item->getHinhThucThamGiaText() ?></span>
-                            </td>
-                            <td class="text-center">
-                                <?php
-                                $attendanceClass = '';
-                                switch ($item->getAttendanceStatus()) {
-                                    case 'full':
-                                        $attendanceClass = 'bg-success';
-                                        break;
-                                    case 'partial':
-                                        $attendanceClass = 'bg-warning';
-                                        break;
-                                    default:
-                                        $attendanceClass = 'bg-secondary';
-                                }
-                                ?>
-                                <span class="badge <?= $attendanceClass ?>"><?= $item->getAttendanceStatusText() ?></span>
+                                <?php if ($deletedAt = $item->getDeletedAt()): ?>
+                                    <?= $deletedAt->format('d/m/Y H:i:s') ?>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                    <a href="<?= site_url($module_name . "/detail/{$item->getId()}") ?>" class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Xem chi tiết">
-                                        <i class="bx bx-info-circle text-white"></i>
-                                    </a>
-                                    <a href="<?= site_url($module_name . "/edit/{$item->getId()}") ?>" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="Sửa">
-                                        <i class="bx bx-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm btn-delete" 
+                                    <button type="submit" class="btn btn-success btn-sm btn-restore w-100 h-100" 
+                                        data-id="<?= $item->getId() ?>" 
+                                        data-name="<?= esc($item->getHoTen()) ?>"
+                                        data-bs-toggle="tooltip" title="Khôi phục">
+                                    <i class="bx bx-revision"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm btn-permanent-delete w-100 h-100" 
                                             data-id="<?= $item->getId() ?>" 
                                             data-name="<?= esc($item->getHoTen()) ?>"
-                                            data-bs-toggle="tooltip" title="Xóa">
+                                            data-bs-toggle="tooltip" title="Xóa vĩnh viễn">
                                         <i class="bx bx-trash"></i>
                                     </button>
                                 </div>
@@ -148,10 +119,10 @@
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="10" class="text-center py-3">
+                        <td colspan="9" class="text-center py-3">
                             <div class="empty-state">
                                 <i class="bx bx-folder-open"></i>
-                                <p>Không có dữ liệu đăng ký</p>
+                                <p>Không có dữ liệu đăng ký đã xóa</p>
                             </div>
                         </td>
                     </tr>

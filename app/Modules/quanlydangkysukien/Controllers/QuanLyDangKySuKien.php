@@ -17,8 +17,8 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use CodeIgniter\I18n\Time;
-use App\Modules\quanlyloaisukien\Traits\ExportTrait;
-use App\Modules\quanlyloaisukien\Traits\RelationTrait;
+use App\Modules\quanlydangkysukien\Traits\ExportTrait;
+use App\Modules\quanlydangkysukien\Traits\RelationTrait;
 
 class QuanLyDangKySuKien extends BaseController
 {
@@ -100,32 +100,58 @@ class QuanLyDangKySuKien extends BaseController
             $pager->setPath($this->module_name);
             $pager->setRouteUrl($this->module_name);
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'checkin_type', 'hinh_thuc_tham_gia', 'start_date', 'end_date']);
+            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'loai_nguoi_dang_ky', 'hinh_thuc_tham_gia', 'start_date', 'end_date']);
             
             // Đảm bảo perPage và currentPage được thiết lập đúng
             $pager->setPerPage($params['perPage']);
             $pager->setCurrentPage($params['page']);
         }
         
+        // Lấy danh sách sự kiện cho filter và hiển thị
+        $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
+        $suKiens = $suKienModel->where('deleted_at', null)
+                              ->orderBy('created_at', 'DESC')
+                              ->findAll();
+        
+        // Lấy danh sách loại người dùng cho filter
+        $loaiNguoiDungOptions = $this->model->getLoaiNguoiDungOptions();
+        
         // Chuẩn bị dữ liệu cho view
-        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
-        // Thêm module_name và masterScript vào viewData để sử dụng trong view
-        $viewData['module_name'] = $this->module_name;
-        $viewData['masterScript'] = $this->masterScript;
-        $viewData['title_home'] = $this->title_home;
-        $viewData['title'] = $this->title;
+        $viewData = [
+            'module_name' => $this->module_name,
+            'title' => $this->title,
+            'title_home' => $this->title_home,
+            'masterScript' => $this->masterScript,
+            'processedData' => $pageData,
+            'pager' => $pager,
+            'perPage' => $params['perPage'],
+            'total' => $total,
+            'keyword' => $params['keyword'] ?? '',
+            'status' => $params['status'] ?? '',
+            'su_kien_id' => $params['su_kien_id'] ?? '',
+            'loai_nguoi_dang_ky' => $params['loai_nguoi_dang_ky'] ?? '',
+            'hinh_thuc_tham_gia' => $params['hinh_thuc_tham_gia'] ?? '',
+            'suKiens' => $suKiens,
+            'loaiNguoiDungOptions' => $loaiNguoiDungOptions
+        ];
 
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
     }
     
     /**
-     * Hiển thị form thêm mới loại sự kiện
+     * Hiển thị form thêm mới đăng ký sự kiện
      */
     public function new()
     {
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Thêm mới', current_url());
+        
+        // Lấy danh sách sự kiện cho dropdown
+        $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
+        $suKiens = $suKienModel->where('deleted_at', null)
+                              ->orderBy('created_at', 'DESC')
+                              ->findAll();
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
@@ -133,7 +159,8 @@ class QuanLyDangKySuKien extends BaseController
             'title' => 'Thêm mới ' . $this->title,  
             'module_name' => $this->module_name,
             'title_home' => $this->title_home,
-            'action' => site_url($this->module_name . '/create')
+            'action' => site_url($this->module_name . '/create'),
+            'suKiens' => $suKiens
         ];
         
         // Hiển thị view
@@ -195,7 +222,7 @@ class QuanLyDangKySuKien extends BaseController
     }
     
     /**
-     * Hiển thị form chỉnh sửa check-out sự kiện
+     * Hiển thị form chỉnh sửa đăng ký sự kiện
      */
     public function edit($id = null)
     {
@@ -207,8 +234,14 @@ class QuanLyDangKySuKien extends BaseController
         $data = $this->model->find($id);
         if (!$data) {
             return redirect()->to($this->moduleUrl)
-                ->with('error', 'Không tìm thấy thông tin check-out sự kiện');
+                ->with('error', 'Không tìm thấy thông tin đăng ký sự kiện');
         }
+
+        // Lấy danh sách sự kiện cho dropdown
+        $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
+        $suKiens = $suKienModel->where('deleted_at', null)
+                              ->orderBy('created_at', 'DESC')
+                              ->findAll();
 
         return view('App\Modules\\' . $this->module_name . '\Views\edit', [
             'module_name' => $this->module_name,
@@ -216,6 +249,7 @@ class QuanLyDangKySuKien extends BaseController
             'title_home' => $this->title_home,
             'action' => site_url($this->module_name . '/update/' . $id),
             'data' => $data,
+            'suKiens' => $suKiens,
             'pager' => null,
             'perPage' => 1,
             'total' => 1
@@ -312,7 +346,7 @@ class QuanLyDangKySuKien extends BaseController
     public function detail($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID loại sự kiện không hợp lệ', true);
+            $this->alert->set('danger', 'ID không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
@@ -323,14 +357,12 @@ class QuanLyDangKySuKien extends BaseController
         $data = $this->model->find($id);
         
         if (empty($data)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu loại sự kiện', true);
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu đăng ký sự kiện', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Lấy thông tin sự kiện
         $suKien = $data->getSuKien();
-        // Lấy thông tin đăng ký sự kiện nếu có
-        $dangKySuKien = $data->getDangKySuKien();
         
         // Xử lý dữ liệu và nạp các quan hệ
         $processedData = $this->processData([$data]);
@@ -345,7 +377,6 @@ class QuanLyDangKySuKien extends BaseController
             'title' => 'Chi tiết ' . $this->title,
             'data' => $data,
             'suKien' => $suKien,
-            'dangKySuKien' => $dangKySuKien,
             'moduleUrl' => $this->moduleUrl,
             'module_name' => $this->module_name,
             'masterScript' => $this->masterScript,
@@ -454,6 +485,9 @@ class QuanLyDangKySuKien extends BaseController
         // Xử lý dữ liệu nếu cần
         $processedData = $this->processData($pageData);
         
+        // Lấy danh sách loại người dùng cho filter
+        $loaiNguoiDungOptions = $this->model->getLoaiNguoiDungOptions();
+        
         // Chuẩn bị dữ liệu cho view
         $viewData = [
             'title_home' => $this->title_home,
@@ -470,7 +504,8 @@ class QuanLyDangKySuKien extends BaseController
             'start_date' => $params['start_date'] ?? '',
             'end_date' => $params['end_date'] ?? '',
             'module_name' => $this->module_name,
-            'masterScript' => $this->masterScript
+            'masterScript' => $this->masterScript,
+            'loaiNguoiDungOptions' => $loaiNguoiDungOptions
         ];
         
         // Hiển thị view
@@ -677,10 +712,10 @@ class QuanLyDangKySuKien extends BaseController
             'status' => $request->getGet('status') ?? '',
             'page' => (int)($request->getGet('page') ?? 1),
             'perPage' => $perPage,
-            'sort' => $request->getGet('sort') ?? 'thoi_gian_check_out',
+            'sort' => $request->getGet('sort') ?? 'created_at',
             'order' => $request->getGet('order') ?? 'DESC',
             'su_kien_id' => $request->getGet('su_kien_id') ?? '',
-            'checkout_type' => $request->getGet('checkout_type') ?? '',
+            'loai_nguoi_dang_ky' => $request->getGet('loai_nguoi_dang_ky') ?? '',
             'hinh_thuc_tham_gia' => $request->getGet('hinh_thuc_tham_gia') ?? '',
             'face_verified' => $request->getGet('face_verified') ?? '',
             'start_date' => $request->getGet('start_date') ?? '',
@@ -818,7 +853,8 @@ class QuanLyDangKySuKien extends BaseController
             'page' => $params['page'] ?? 1,
             'module_name' => $module_name,
             'title' => $this->title,
-            'total' => $params['total'] ?? count($processedData)
+            'total' => $params['total'] ?? count($processedData),
+            'suKiens' => $params['suKiens'] ?? []
         ];
     }
     

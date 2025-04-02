@@ -65,6 +65,7 @@ class Autoload extends AutoloadConfig
         'App\Modules\dangkysukien' => APPPATH . 'Modules/dangkysukien',
         'App\Modules\quanlybachoc' => APPPATH . 'Modules/quanlybachoc',
         'App\Modules\quanlycamera' => APPPATH . 'Modules/quanlycamera',
+        'App\Modules\quanlydangkysukien' => APPPATH . 'Modules/quanlydangkysukien',
     ];
 
 

@@ -1,36 +1,54 @@
 <?= $this->extend('layouts/default') ?>
-<?= $this->section('linkHref') ?>
-<?php include __DIR__ . '/master_scripts.php'; ?>
-<?= page_css('form') ?>
-<?= $this->endSection() ?>
-<?= $this->section('title') ?>THÊM MỚI ĐĂNG KÝ SỰ KIỆN<?= $this->endSection() ?>
+	<?= $this->section('linkHref') ?>
+		<?php 
+			$masterScriptClass = "\App\Modules\\" . $module_name . '\Libraries\MasterScript';
+			$masterScript = new $masterScriptClass($module_name);
+		?>
+		<?= $masterScript->pageCss('form') ?>
+		<?= $masterScript->pageSectionCss('form') ?>
+	<?= $this->endSection() ?>
+	<?= $this->section('title') ?>$title<?= $this->endSection() ?>
 
-<?= $this->section('bread_cum_link') ?>
-<?= view('components/_breakcrump', [
-	'title' => 'Thêm mới đăng ký sự kiện',
-	'dashboard_url' => site_url($module_name),
-	'breadcrumbs' => [
-		['title' => 'Quản lý đăng ký sự kiện', 'url' => site_url($module_name)],
-		['title' => 'Thêm mới', 'active' => true]
-	]
-]) ?>
+	<?= $this->section('bread_cum_link') ?>
+	<?= view('components/_breakcrump', [	
+		'title' => $title,
+		'dashboard_url' => site_url($module_name),
+		'breadcrumbs' => [
+			['title' => $title_home, 'url' => site_url($module_name)],
+			['title' => $title, 'active' => true]
+		],
+	]) ?>	
 <?= $this->endSection() ?>
 
 <?= $this->section("content") ?>
 <div class="card shadow-sm">
 	<div class="card-body">
-		<?= form_open(site_url($module_name . '/create'), ['class' => 'needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
-			<?php
-			// Include form fields
-			$action = site_url($module_name . '/create');
-			$method = 'POST';
-			include __DIR__ . '/form.php';
-			?>
+		<?= form_open($action, ['class' => 'row g-3 needs-validation', 'novalidate' => true, 'id' => 'form-' . $module_name]) ?>
+			<?= view('App\Modules\\' . $module_name . '\Views\components\_form', [
+                'module_name' => $module_name,
+                'data' => $data ?? null,
+                'validation' => $validation ?? null
+            ]) ?>
 		<?= form_close() ?>
 	</div>
 </div>
 <?= $this->endSection() ?>
 
 <?= $this->section('script') ?>
-<?= page_js('form', $module_name) ?>
+<?= $masterScript->pageJs('form') ?>
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
+		const form = document.getElementById('form-<?= $module_name ?>');
+		
+		// Validate form khi submit
+		form.addEventListener('submit', function (event) {
+			if (!form.checkValidity()) {
+				event.preventDefault();
+				event.stopPropagation();
+			}
+			
+			form.classList.add('was-validated');
+		});
+	});
+</script>
 <?= $this->endSection() ?> 

@@ -1,33 +1,29 @@
 <?php
 
-namespace App\Modules\dangkysukien\Traits;
+namespace App\Modules\quanlydangkysukien\Traits;
 
 use CodeIgniter\I18n\Time;
 
 trait RelationTrait
 {
-    protected $fields = [
-        'ten_form' => 'getTenForm',
-        'mo_ta' => 'getMoTa',
-        'ten_su_kien' => 'getTenSuKien',
-        'count_fields' => 'countFields',
-        'count_required_fields' => 'countRequiredFields',
-        'bat_buoc_dien' => 'getBatBuocDien',
-        'hien_thi_cong_khai' => 'getHienThiCongKhai',
-        'so_lan_su_dung' => 'getSoLanSuDung',
-        'status' => 'getStatus',
-        'status_text' => 'getStatusText',
-        'created_at_formatted' => 'getCreatedAt',
-        'updated_at_formatted' => 'getUpdatedAt',
-        'deleted_at_formatted' => 'getDeletedAt',
-        'is_deleted' => 'isDeleted',
-    ];
+    protected $relationModels = [];
 
     /**
-     * Khởi tạo các model cần thiết
+     * Khởi tạo các model quan hệ
      */
     protected function initializeRelationTrait()
     {
+        // Khởi tạo các model quan hệ ở đây nếu cần
+        // Ví dụ:
+        // $this->relationModels['user'] = new \App\Models\UserModel();
+    }
+
+    /**
+     * Lấy model quan hệ theo tên
+     */
+    protected function getRelationModel($name)
+    {
+        return $this->relationModels[$name] ?? null;
     }
 
     /**
@@ -41,7 +37,6 @@ trait RelationTrait
         // Xử lý dữ liệu và thêm relation
         $processedData = $this->processData($data);
         
-        
         return [
             'processedData' => $processedData,
             'pager' => $pager,
@@ -51,10 +46,11 @@ trait RelationTrait
             'sort' => $params['sort'],
             'order' => $params['order'],
             'keyword' => $params['keyword'],
+            'status' => $params['status'],
             'title' => 'Danh sách ' . $this->title,
             'moduleUrl' => $this->moduleUrl,
             'title' => $this->title,
-            'module_name' => $module_name
+            'module_name' => $module_name,
         ];
     }
 
@@ -68,7 +64,6 @@ trait RelationTrait
         }
 
         foreach ($data as &$item) {
-          
             // Xử lý thời gian tạo
             if (!empty($item->created_at)) {
                 try {
@@ -104,16 +99,10 @@ trait RelationTrait
                     $item->deleted_at = null;
                 }
             }
-
-            // Thêm các thuộc tính đã định dạng vào các thuộc tính mới
-            foreach ($this->fields as $key => $value) {
-                // Kiểm tra phương thức tồn tại trước khi gọi
-                if (method_exists($item, $value)) {
-                    // Thêm trực tiếp như một thuộc tính của đối tượng
-                    // thay vì cố gắng sửa đổi mảng attributes được bảo vệ
-                    $item->$key = $item->$value();
-                }
-            }
+            
+            // Xử lý trạng thái
+            $item->status_text = $item->status == 1 ? 'Hoạt động' : 'Không hoạt động';
+            $item->status_class = $item->status == 1 ? 'status-active' : 'status-inactive';
         }
 
         return $data;
@@ -130,14 +119,7 @@ trait RelationTrait
             'sort' => $request->getGet('sort') ?? 'created_at',
             'order' => $request->getGet('order') ?? 'DESC',
             'keyword' => $request->getGet('keyword') ?? '',
-            'su_kien_id' => $request->getGet('su_kien_id'),
-            'loai_nguoi_dang_ky' => $request->getGet('loai_nguoi_dang_ky'),
             'status' => $request->getGet('status'),
-            'hinh_thuc_tham_gia' => $request->getGet('hinh_thuc_tham_gia'),
-            'attendance_status' => $request->getGet('attendance_status'),
-            'diem_danh_bang' => $request->getGet('diem_danh_bang'),
-            'da_check_in' => $request->getGet('da_check_in'),
-            'da_check_out' => $request->getGet('da_check_out')
         ];
     }
 
@@ -149,6 +131,11 @@ trait RelationTrait
         // Kiểm tra và điều chỉnh các tham số không hợp lệ
         if ($params['page'] < 1) $params['page'] = 1;
         if ($params['perPage'] < 1) $params['perPage'] = 10;
+
+        // Xử lý status
+        if ($params['status'] !== null && $params['status'] !== '') {
+            $params['status'] = (int)$params['status'];
+        }
 
         return $params;
     }
@@ -163,39 +150,11 @@ trait RelationTrait
         if (!empty($params['keyword'])) {
             $criteria['keyword'] = $params['keyword'];
         }
-
-        if (!empty($params['su_kien_id'])) {
-            $criteria['su_kien_id'] = (int)$params['su_kien_id'];
-        }
-
-        if (!empty($params['loai_nguoi_dang_ky'])) {
-            $criteria['loai_nguoi_dang_ky'] = $params['loai_nguoi_dang_ky'];
-        }
-
+        
         if (isset($params['status']) && $params['status'] !== '') {
-            $criteria['status'] = (int)$params['status'];
+            $criteria['status'] = $params['status'];
         }
-
-        if (!empty($params['hinh_thuc_tham_gia'])) {
-            $criteria['hinh_thuc_tham_gia'] = $params['hinh_thuc_tham_gia'];
-        }
-
-        if (!empty($params['attendance_status'])) {
-            $criteria['attendance_status'] = $params['attendance_status'];
-        }
-
-        if (!empty($params['diem_danh_bang'])) {
-            $criteria['diem_danh_bang'] = $params['diem_danh_bang'];
-        }
-
-        if (isset($params['da_check_in']) && $params['da_check_in'] !== '') {
-            $criteria['da_check_in'] = (bool)$params['da_check_in'];
-        }
-
-        if (isset($params['da_check_out']) && $params['da_check_out'] !== '') {
-            $criteria['da_check_out'] = (bool)$params['da_check_out'];
-        }
-
+        
         return $criteria;
     }
 
@@ -211,12 +170,12 @@ trait RelationTrait
             'order' => $params['order']
         ];
     }
-    
+
     /**
      * Chuẩn bị dữ liệu cho form
      * 
      * @param string $module_name Tên module
-     * @param object $data Dữ liệu diễn giả (nếu là cập nhật)
+     * @param object $data Dữ liệu camera (nếu là cập nhật)
      * @return array Dữ liệu để truyền vào view
      */
     public function prepareFormData($module_name, $data = null)
@@ -230,5 +189,132 @@ trait RelationTrait
             'title' => $this->title,
             'moduleUrl' => $this->moduleUrl,
         ];
+    }
+
+    /**
+     * Lấy danh sách camera có phân trang
+     */
+    public function getPaginatedData($page = 1, $perPage = 10, $keyword = '', $status = '')
+    {
+        $offset = ($page - 1) * $perPage;
+        
+        $builder = $this->db->table($this->table);
+        
+        // Chỉ lấy các bản ghi chưa xóa
+        $builder->where('deleted_at IS NULL');
+        
+        // Thêm điều kiện tìm kiếm nếu có
+        if (!empty($keyword)) {
+            $builder->groupStart()
+                ->like('ten_camera', $keyword)
+                ->orLike('ma_camera', $keyword)
+                ->groupEnd();
+        }
+        
+        // Lọc theo trạng thái nếu có
+        if ($status !== '') {
+            $builder->where('status', $status);
+        }
+        
+        // Đếm tổng số bản ghi
+        $total = $builder->countAllResults(false);
+        
+        // Lấy dữ liệu có phân trang
+        $data = $builder->orderBy('created_at', 'DESC')
+            ->limit($perPage, $offset)
+            ->get()
+            ->getResultArray();
+            
+        // Thêm số thứ tự
+        foreach ($data as &$item) {
+            $item['stt'] = $offset + 1;
+            $offset++;
+        }
+        
+        return [
+            'data' => $data,
+            'total' => $total
+        ];
+    }
+    
+    /**
+     * Lấy danh sách camera đã xóa có phân trang
+     */
+    public function getDeletedPaginatedData($page = 1, $perPage = 10, $keyword = '')
+    {
+        $offset = ($page - 1) * $perPage;
+        
+        $builder = $this->db->table($this->table);
+        
+        // Chỉ lấy các bản ghi đã xóa
+        $builder->where('deleted_at IS NOT NULL');
+        
+        // Thêm điều kiện tìm kiếm nếu có
+        if (!empty($keyword)) {
+            $builder->groupStart()
+                ->like('ten_camera', $keyword)
+                ->orLike('ma_camera', $keyword)
+                ->groupEnd();
+        }
+        
+        // Đếm tổng số bản ghi
+        $total = $builder->countAllResults(false);
+        
+        // Lấy dữ liệu có phân trang
+        $data = $builder->orderBy('deleted_at', 'DESC')
+            ->limit($perPage, $offset)
+            ->get()
+            ->getResultArray();
+            
+        // Thêm số thứ tự
+        foreach ($data as &$item) {
+            $item['stt'] = $offset + 1;
+            $offset++;
+        }
+        
+        return [
+            'data' => $data,
+            'total' => $total
+        ];
+    }
+    
+    /**
+     * Cập nhật trạng thái camera
+     */
+    public function updateStatus($id, $status)
+    {
+        return $this->update($id, ['status' => $status]);
+    }
+    
+    /**
+     * Cập nhật trạng thái nhiều camera
+     */
+    public function updateMultipleStatus($ids, $status)
+    {
+        return $this->whereIn('camera_id', $ids)->set(['status' => $status])->update();
+    }
+    
+    /**
+     * Xóa nhiều camera
+     */
+    public function deleteMultiple($ids)
+    {
+        return $this->whereIn('camera_id', $ids)->delete();
+    }
+    
+    /**
+     * Khôi phục nhiều camera
+     */
+    public function restoreMultiple($ids)
+    {
+        return $this->whereIn('camera_id', $ids)->set(['deleted_at' => null])->update();
+    }
+    
+    /**
+     * Xóa vĩnh viễn nhiều camera
+     */
+    public function permanentDeleteMultiple($ids)
+    {
+        return $this->whereIn('camera_id', $ids)->purge();
     }
 } 

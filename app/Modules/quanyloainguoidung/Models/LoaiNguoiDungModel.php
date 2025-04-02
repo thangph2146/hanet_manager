@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\loainguoidung\Models;
+namespace App\Modules\quanlyloainguoidung\Models;
 
 use App\Models\BaseModel;
-use App\Modules\loainguoidung\Entities\LoaiNguoiDung;
-use App\Modules\loainguoidung\Libraries\Pager;
+use App\Modules\quanlyloainguoidung\Entities\LoaiNguoiDung;
+use App\Modules\quanlyloainguoidung\Libraries\Pager;
 use CodeIgniter\I18n\Time;
 
 class LoaiNguoiDungModel extends BaseModel

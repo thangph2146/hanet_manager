@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\dangkysukien\Entities;
+namespace App\Modules\quanlydangkysukien\Entities;
 
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
@@ -27,29 +27,29 @@ class DangKySuKien extends BaseEntity
         'face_verified' => 'boolean',
         'da_check_in' => 'boolean',
         'da_check_out' => 'boolean',
-        'checkin_sukien_id' => 'int',
-        'checkout_sukien_id' => 'int',
+        'checkin_sukien_id' => '?int',
+        'checkout_sukien_id' => '?int',
         'attendance_minutes' => 'int',
-        'thong_tin_dang_ky' => 'json',
-        'created_at' => 'timestamp',
-        'updated_at' => 'timestamp',
-        'deleted_at' => 'timestamp'
+        'thong_tin_dang_ky' => 'json-array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => '?datetime'
     ];
     
     protected $jsonFields = ['thong_tin_dang_ky'];
     
     // Các quy tắc xác thực cho DangKySuKien
     protected $validationRules = [
-        'sukien_id' => [
+        'su_kien_id' => [
             'rules' => 'required|integer|is_not_unique[su_kien.su_kien_id]',
             'label' => 'ID sự kiện'
         ],
         'email' => [
-            'rules' => 'required|valid_email',
+            'rules' => 'required|valid_email|max_length[100]',
             'label' => 'Email'
         ],
         'ho_ten' => [
-            'rules' => 'required|min_length[3]|max_length[255]',
+            'rules' => 'required|min_length[2]|max_length[255]',
             'label' => 'Họ tên'
         ],
         'dien_thoai' => [
@@ -61,7 +61,7 @@ class DangKySuKien extends BaseEntity
             'label' => 'Loại người đăng ký'
         ],
         'status' => [
-            'rules' => 'permit_empty|in_list[-1,0,1]',
+            'rules' => 'required|in_list[-1,0,1]',
             'label' => 'Trạng thái'
         ],
         'hinh_thuc_tham_gia' => [
@@ -79,6 +79,22 @@ class DangKySuKien extends BaseEntity
         'diem_danh_bang' => [
             'rules' => 'permit_empty|in_list[qr_code,face_id,manual,none]',
             'label' => 'Phương thức điểm danh'
+        ],
+        'don_vi_to_chuc' => [
+            'rules' => 'permit_empty|max_length[255]',
+            'label' => 'Đơn vị tổ chức'
+        ],
+        'nguon_gioi_thieu' => [
+            'rules' => 'permit_empty|max_length[255]',
+            'label' => 'Nguồn giới thiệu'
+        ],
+        'ly_do_tham_du' => [
+            'rules' => 'permit_empty|max_length[500]',
+            'label' => 'Lý do tham dự'
+        ],
+        'noi_dung_gop_y' => [
+            'rules' => 'permit_empty|max_length[1000]',
+            'label' => 'Nội dung góp ý'
         ]
     ];
     
@@ -90,7 +106,8 @@ class DangKySuKien extends BaseEntity
         ],
         'email' => [
             'required' => '{field} là bắt buộc',
-            'valid_email' => '{field} không hợp lệ'
+            'valid_email' => '{field} không hợp lệ',
+            'max_length' => '{field} không được vượt quá {param} ký tự'
         ],
         'ho_ten' => [
             'required' => '{field} là bắt buộc',
@@ -106,6 +123,7 @@ class DangKySuKien extends BaseEntity
             'in_list' => '{field} không hợp lệ'
         ],
         'status' => [
+            'required' => '{field} là bắt buộc',
             'in_list' => '{field} không hợp lệ'
         ],
         'hinh_thuc_tham_gia' => [
@@ -121,6 +139,18 @@ class DangKySuKien extends BaseEntity
         ],
         'diem_danh_bang' => [
             'in_list' => '{field} không hợp lệ'
+        ],
+        'don_vi_to_chuc' => [
+            'max_length' => '{field} không được vượt quá {param} ký tự'
+        ],
+        'nguon_gioi_thieu' => [
+            'max_length' => '{field} không được vượt quá {param} ký tự'
+        ],
+        'ly_do_tham_du' => [
+            'max_length' => '{field} không được vượt quá {param} ký tự'
+        ],
+        'noi_dung_gop_y' => [
+            'max_length' => '{field} không được vượt quá {param} ký tự'
         ]
     ];
 

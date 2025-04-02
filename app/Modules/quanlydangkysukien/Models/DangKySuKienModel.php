@@ -2,9 +2,11 @@
 
 namespace App\Modules\dangkysukien\Models;
 
+namespace App\Modules\quanlydangkysukien\Models;
+
 use App\Models\BaseModel;
-use App\Modules\dangkysukien\Entities\DangKySuKien;
-use App\Modules\dangkysukien\Libraries\Pager;
+use App\Modules\quanlydangkysukien\Entities\DangKySuKien;
+use App\Modules\quanlydangkysukien\Libraries\Pager;
 use CodeIgniter\I18n\Time;
 
 class DangKySuKienModel extends BaseModel
@@ -63,7 +65,9 @@ class DangKySuKienModel extends BaseModel
         'dien_thoai',
         'don_vi_to_chuc',
         'noi_dung_gop_y',
-        'ly_do_tham_du'
+        'ly_do_tham_du',
+        'nguon_gioi_thieu',
+        'ma_xac_nhan'
     ];
     
     // Trường có thể lọc
@@ -71,11 +75,12 @@ class DangKySuKienModel extends BaseModel
         'su_kien_id',
         'loai_nguoi_dang_ky',
         'status',
-        'da_check_in',
-        'da_check_out',
         'hinh_thuc_tham_gia',
         'attendance_status',
-        'diem_danh_bang'
+        'diem_danh_bang',
+        'face_verified',
+        'da_check_in',
+        'da_check_out'
     ];
     
     // Các quy tắc xác thực
@@ -161,42 +166,32 @@ class DangKySuKienModel extends BaseModel
         }
         
         // Xử lý lọc theo sự kiện
-        if (isset($criteria['su_kien_id'])) {
+        if (isset($criteria['su_kien_id']) && $criteria['su_kien_id'] !== '') {
             $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
         }
         
         // Xử lý lọc theo loại người đăng ký
-        if (isset($criteria['loai_nguoi_dang_ky'])) {
+        if (isset($criteria['loai_nguoi_dang_ky']) && $criteria['loai_nguoi_dang_ky'] !== '') {
             $builder->where($this->table . '.loai_nguoi_dang_ky', $criteria['loai_nguoi_dang_ky']);
         }
         
         // Xử lý lọc theo trạng thái
-        if (isset($criteria['status'])) {
+        if (isset($criteria['status']) && $criteria['status'] !== '') {
             $builder->where($this->table . '.status', $criteria['status']);
         }
         
-        // Xử lý lọc theo trạng thái check-in
-        if (isset($criteria['da_check_in'])) {
-            $builder->where($this->table . '.da_check_in', $criteria['da_check_in']);
-        }
-        
-        // Xử lý lọc theo trạng thái check-out
-        if (isset($criteria['da_check_out'])) {
-            $builder->where($this->table . '.da_check_out', $criteria['da_check_out']);
-        }
-        
         // Xử lý lọc theo hình thức tham gia
-        if (isset($criteria['hinh_thuc_tham_gia'])) {
+        if (isset($criteria['hinh_thuc_tham_gia']) && $criteria['hinh_thuc_tham_gia'] !== '') {
             $builder->where($this->table . '.hinh_thuc_tham_gia', $criteria['hinh_thuc_tham_gia']);
         }
         
-        // Xử lý lọc theo trạng thái tham dự
-        if (isset($criteria['attendance_status'])) {
+        // Xử lý lọc theo trạng thái điểm danh
+        if (isset($criteria['attendance_status']) && $criteria['attendance_status'] !== '') {
             $builder->where($this->table . '.attendance_status', $criteria['attendance_status']);
         }
         
         // Xử lý lọc theo phương thức điểm danh
-        if (isset($criteria['diem_danh_bang'])) {
+        if (isset($criteria['diem_danh_bang']) && $criteria['diem_danh_bang'] !== '') {
             $builder->where($this->table . '.diem_danh_bang', $criteria['diem_danh_bang']);
         }
         
@@ -213,6 +208,15 @@ class DangKySuKienModel extends BaseModel
                 }
             }
             $builder->groupEnd();
+        }
+
+        // Xử lý lọc theo thời gian
+        if (!empty($criteria['start_date'])) {
+            $builder->where($this->table . '.created_at >=', $criteria['start_date']);
+        }
+        
+        if (!empty($criteria['end_date'])) {
+            $builder->where($this->table . '.created_at <=', $criteria['end_date']);
         }
         
         // Xác định trường sắp xếp và thứ tự sắp xếp
@@ -267,42 +271,32 @@ class DangKySuKienModel extends BaseModel
         }
         
         // Xử lý lọc theo sự kiện
-        if (isset($criteria['su_kien_id'])) {
+        if (isset($criteria['su_kien_id']) && $criteria['su_kien_id'] !== '') {
             $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
         }
         
         // Xử lý lọc theo loại người đăng ký
-        if (isset($criteria['loai_nguoi_dang_ky'])) {
+        if (isset($criteria['loai_nguoi_dang_ky']) && $criteria['loai_nguoi_dang_ky'] !== '') {
             $builder->where($this->table . '.loai_nguoi_dang_ky', $criteria['loai_nguoi_dang_ky']);
         }
         
         // Xử lý lọc theo trạng thái
-        if (isset($criteria['status'])) {
+        if (isset($criteria['status']) && $criteria['status'] !== '') {
             $builder->where($this->table . '.status', $criteria['status']);
         }
         
-        // Xử lý lọc theo trạng thái check-in
-        if (isset($criteria['da_check_in'])) {
-            $builder->where($this->table . '.da_check_in', $criteria['da_check_in']);
-        }
-        
-        // Xử lý lọc theo trạng thái check-out
-        if (isset($criteria['da_check_out'])) {
-            $builder->where($this->table . '.da_check_out', $criteria['da_check_out']);
-        }
-        
         // Xử lý lọc theo hình thức tham gia
-        if (isset($criteria['hinh_thuc_tham_gia'])) {
+        if (isset($criteria['hinh_thuc_tham_gia']) && $criteria['hinh_thuc_tham_gia'] !== '') {
             $builder->where($this->table . '.hinh_thuc_tham_gia', $criteria['hinh_thuc_tham_gia']);
         }
         
-        // Xử lý lọc theo trạng thái tham dự
-        if (isset($criteria['attendance_status'])) {
+        // Xử lý lọc theo trạng thái điểm danh
+        if (isset($criteria['attendance_status']) && $criteria['attendance_status'] !== '') {
             $builder->where($this->table . '.attendance_status', $criteria['attendance_status']);
         }
         
         // Xử lý lọc theo phương thức điểm danh
-        if (isset($criteria['diem_danh_bang'])) {
+        if (isset($criteria['diem_danh_bang']) && $criteria['diem_danh_bang'] !== '') {
             $builder->where($this->table . '.diem_danh_bang', $criteria['diem_danh_bang']);
         }
         
@@ -319,6 +313,15 @@ class DangKySuKienModel extends BaseModel
                 }
             }
             $builder->groupEnd();
+        }
+        
+        // Xử lý lọc theo thời gian
+        if (!empty($criteria['start_date'])) {
+            $builder->where($this->table . '.created_at >=', $criteria['start_date']);
+        }
+        
+        if (!empty($criteria['end_date'])) {
+            $builder->where($this->table . '.created_at <=', $criteria['end_date']);
         }
         
         return $builder->countAllResults();
@@ -1088,15 +1091,14 @@ class DangKySuKienModel extends BaseModel
         if (isset($params['diem_danh_bang']) && $params['diem_danh_bang'] !== '') {
             $criteria['diem_danh_bang'] = $params['diem_danh_bang'];
         }
-        
-        // Xử lý lọc theo trạng thái check-in
-        if (isset($params['da_check_in']) && $params['da_check_in'] !== '') {
-            $criteria['da_check_in'] = $params['da_check_in'];
+
+        // Xử lý lọc theo thời gian
+        if (!empty($params['start_date'])) {
+            $criteria['start_date'] = $params['start_date'];
         }
         
-        // Xử lý lọc theo trạng thái check-out
-        if (isset($params['da_check_out']) && $params['da_check_out'] !== '') {
-            $criteria['da_check_out'] = $params['da_check_out'];
+        if (!empty($params['end_date'])) {
+            $criteria['end_date'] = $params['end_date'];
         }
         
         return $criteria;
@@ -1165,4 +1167,108 @@ class DangKySuKienModel extends BaseModel
         return $this->update($id, $data);
     }
     
+    /**
+     * Lấy danh sách loại người dùng cho filter
+     *
+     * @return array
+     */
+    public function getLoaiNguoiDungOptions(): array
+    {
+        return [
+            '' => 'Tất cả loại người dùng',
+            'khach' => 'Khách mời',
+            'sinh_vien' => 'Sinh viên', 
+            'giang_vien' => 'Giảng viên'
+        ];
+    }
+    
+    /**
+     * Xử lý upload ảnh khuôn mặt
+     *
+     * @param array $file File upload từ form
+     * @return string|null Đường dẫn ảnh nếu upload thành công, null nếu thất bại
+     */
+    public function uploadFaceImage($file)
+    {
+        if (empty($file) || !isset($file['tmp_name']) || empty($file['tmp_name'])) {
+            return null;
+        }
+
+        // Thư mục lưu ảnh
+        $uploadPath = WRITEPATH . 'uploads/faces';
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0777, true);
+        }
+
+        // Tạo tên file ngẫu nhiên
+        $newName = uniqid('face_') . '_' . time() . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
+        
+        // Di chuyển file upload
+        if (move_uploaded_file($file['tmp_name'], $uploadPath . '/' . $newName)) {
+            return 'uploads/faces/' . $newName;
+        }
+
+        return null;
+    }
+
+    /**
+     * Xóa ảnh khuôn mặt cũ
+     *
+     * @param string $path Đường dẫn ảnh cần xóa
+     * @return bool
+     */
+    public function deleteFaceImage($path)
+    {
+        if (empty($path)) {
+            return false;
+        }
+
+        $fullPath = WRITEPATH . $path;
+        if (file_exists($fullPath)) {
+            return unlink($fullPath);
+        }
+
+        return false;
+    }
+
+    /**
+     * Override phương thức insert để xử lý upload ảnh
+     */
+    public function insert($data = null, bool $returnID = true)
+    {
+        // Xử lý upload ảnh nếu có
+        if (isset($_FILES['face_image'])) {
+            $imagePath = $this->uploadFaceImage($_FILES['face_image']);
+            if ($imagePath) {
+                $data['face_image_path'] = $imagePath;
+            }
+        }
+
+        return parent::insert($data, $returnID);
+    }
+
+    /**
+     * Override phương thức update để xử lý upload ảnh
+     */
+    public function update($id = null, $data = null): bool
+    {
+        // Xử lý upload ảnh nếu có
+        if (isset($_FILES['face_image']) && !empty($_FILES['face_image']['tmp_name'])) {
+            // Lấy thông tin bản ghi cũ
+            $oldData = $this->find($id);
+            
+            // Upload ảnh mới
+            $imagePath = $this->uploadFaceImage($_FILES['face_image']);
+            if ($imagePath) {
+                // Xóa ảnh cũ nếu có
+                if ($oldData && !empty($oldData->getFaceImagePath())) {
+                    $this->deleteFaceImage($oldData->getFaceImagePath());
+                }
+                
+                $data['face_image_path'] = $imagePath;
+            }
+        }
+
+        return parent::update($id, $data);
+    }
 } 

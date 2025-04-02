@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\loainguoidung\Controllers;
+namespace App\Modules\quanlyloainguoidung\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\loainguoidung\Models\LoaiNguoiDungModel;
+use App\Modules\quanlyloainguoidung\Models\LoaiNguoiDungModel;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -16,10 +16,10 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use CodeIgniter\I18n\Time;
-use App\Modules\loainguoidung\Traits\ExportTrait;
-use App\Modules\loainguoidung\Traits\RelationTrait;
+use App\Modules\quanlyloainguoidung\Traits\ExportTrait;
+use App\Modules\quanlyloainguoidung\Traits\RelationTrait;
 
-class LoaiNguoiDung extends BaseController
+class QuanLyLoaiNguoiDung extends BaseController
 {
     use ResponseTrait;
     use ExportTrait;
@@ -29,8 +29,8 @@ class LoaiNguoiDung extends BaseController
     protected $alert;
     protected $moduleUrl;
     protected $title;
-    protected $module_name = 'loainguoidung';
-    protected $controller_name = 'LoaiNguoiDung';
+    protected $module_name = 'quanlyloainguoidung';
+    protected $controller_name = 'QuanLyLoaiNguoiDung';
     
     public function __construct()
     {

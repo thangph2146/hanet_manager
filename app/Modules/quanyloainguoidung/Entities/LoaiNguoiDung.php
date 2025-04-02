@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\loainguoidung\Entities;
+namespace App\Modules\quanlyloainguoidung\Entities;
 
 use App\Entities\BaseEntity;
 use CodeIgniter\I18n\Time;
