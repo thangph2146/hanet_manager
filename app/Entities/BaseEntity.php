@@ -431,14 +431,14 @@ abstract class BaseEntity extends Entity
     }
     public function getCreatedAtFormatted(): string
     {
-        return $this->created_at->format('d/m/Y H:i:s');
+        return $this->created_at === null ? '---' : $this->created_at->format('d/m/Y H:i:s');
     }
     public function getUpdatedAtFormatted(): string
     {
-        return $this->updated_at->format('d/m/Y H:i:s');
+        return $this->updated_at === null ? '---' : $this->updated_at->format('d/m/Y H:i:s');
     }
     public function getDeletedAtFormatted(): string
     {   
-        return $this->deleted_at->format('d/m/Y H:i:s');    
+        return $this->deleted_at === null ? '---' : $this->deleted_at->format('d/m/Y H:i:s');    
     }
 }

@@ -346,7 +346,7 @@ class QuanLyCheckOutSuKien extends BaseController
         }
 
         if ($this->model->delete($id)) {
-            return redirect()->to($site_url($this->module_name) . '/listdeleted')
+            return redirect()->to(site_url($this->module_name . '/listdeleted'))
                 ->with('success', 'Xóa thông tin check-out sự kiện thành công');
         }
 
@@ -431,15 +431,41 @@ class QuanLyCheckOutSuKien extends BaseController
         log_message('debug', '[QuanLyCheckOutSuKien::listdeleted] Search criteria: ' . json_encode($criteria));
         log_message('debug', '[QuanLyCheckOutSuKien::listdeleted] Search options: ' . json_encode($options));
         
+        // Bật debug để hiển thị câu SQL
+        //$this->db->debug = true;
+        
         // Lấy dữ liệu đã xóa và thông tin phân trang
         $pageData = $this->model->searchDeleted($criteria, $options);
+        
+        // Tắt debug
+        //$this->db->debug = false;
+        
+        // Kiểm tra và lọc dữ liệu để đảm bảo chỉ lấy bản ghi đã xóa
+        $filteredData = [];
+        foreach ($pageData as $item) {
+            if ($item->deleted_at !== null) {
+                $filteredData[] = $item;
+            } else {
+                log_message('warning', "[QuanLyCheckOutSuKien::listdeleted] Lọc bỏ bản ghi không hợp lệ (deleted_at = null): ID={$item->checkout_sukien_id}");
+            }
+        }
+        
+        // Nếu có sự khác biệt giữa dữ liệu gốc và sau khi lọc
+        if (count($pageData) !== count($filteredData)) {
+            log_message('warning', "[QuanLyCheckOutSuKien::listdeleted] Đã lọc bỏ " . (count($pageData) - count($filteredData)) . " bản ghi không hợp lệ");
+            // Gán lại dữ liệu đã lọc
+            $pageData = $filteredData;
+        }
         
         // Log số lượng kết quả tìm được
         log_message('debug', '[QuanLyCheckOutSuKien::listdeleted] Found ' . count($pageData) . ' deleted records');
         
-        // In thông tin mẫu của bản ghi đầu tiên nếu có
+        // In thông tin của các bản ghi để debug
         if (!empty($pageData)) {
-            log_message('debug', '[QuanLyCheckOutSuKien::listdeleted] Sample first record: ' . json_encode($pageData[0]));
+            foreach ($pageData as $index => $item) {
+                log_message('debug', "[QuanLyCheckOutSuKien::listdeleted] Record {$index}: ID={$item->checkout_sukien_id}, deleted_at=" . 
+                    ($item->deleted_at ? $item->deleted_at->toDateTimeString() : 'NULL'));
+            }
         }
         
         // Lấy tổng số kết quả
@@ -467,7 +493,7 @@ class QuanLyCheckOutSuKien extends BaseController
             $pager->setPath($this->module_name . '/listdeleted');
             $pager->setRouteUrl($this->module_name . '/listdeleted');
             // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'checkout_type', 'hinh_thuc_tham_gia']);
+            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'checkin_type', 'hinh_thuc_tham_gia']);
             
             // Đảm bảo perPage và currentPage được thiết lập đúng
             $pager->setPerPage($params['perPage']);
@@ -1247,59 +1273,59 @@ class QuanLyCheckOutSuKien extends BaseController
         }
     }
 
-    /**
-     * Xuất dữ liệu ra file PDF
-     */
-    public function exportPdf()
-    {
-        try {
-            // Lấy dữ liệu trực tiếp từ model không phụ thuộc vào filter
-            $data = $this->model->getAll([
-                'sort' => 'thoi_gian_check_out',
-                'order' => 'DESC',
-                'limit' => 0 // Không giới hạn số bản ghi
-            ]);
+    // /**
+    //  * Xuất dữ liệu ra file PDF
+    //  */
+    // public function exportPdf()
+    // {
+    //     try {
+    //         // Lấy dữ liệu trực tiếp từ model không phụ thuộc vào filter
+    //         $data = $this->model->getAll([
+    //             'sort' => 'thoi_gian_check_out',
+    //             'order' => 'DESC',
+    //             'limit' => 0 // Không giới hạn số bản ghi
+    //         ]);
             
-            // Ghi log
-            log_message('info', 'Xuất PDF: ' . count($data) . ' bản ghi');
+    //         // Ghi log
+    //         log_message('info', 'Xuất PDF: ' . count($data) . ' bản ghi');
             
-            // Tạo tên file
-            $filename = 'checkout_sukien_' . date('YmdHis');
+    //         // Tạo tên file
+    //         $filename = 'checkout_sukien_' . date('YmdHis');
             
-            // Tạo và xuất file PDF, không cần xử lý filters
-            $this->createPdfFromTemplate($data, [], $filename, false);
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi xuất PDF: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất PDF: ' . $e->getMessage());
-        }
-    }
+    //         // Tạo và xuất file PDF, không cần xử lý filters
+    //         $this->createPdfFromTemplate($data, [], $filename, false);
+    //     } catch (\Exception $e) {
+    //         log_message('error', 'Lỗi xuất PDF: ' . $e->getMessage());
+    //         return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất PDF: ' . $e->getMessage());
+    //     }
+    // }
 
-    /**
-     * Xuất dữ liệu đã xóa ra file PDF
-     */
-    public function exportDeletedPdf()
-    {
-        try {
-            // Lấy dữ liệu đã xóa trực tiếp từ model không phụ thuộc vào filter
-            $data = $this->model->getAllDeleted([
-                'sort' => 'thoi_gian_check_out',
-                'order' => 'DESC',
-                'limit' => 0 // Không giới hạn số bản ghi
-            ]);
+    // /**
+    //  * Xuất dữ liệu đã xóa ra file PDF
+    //  */
+    // public function exportDeletedPdf()
+    // {
+    //     try {
+    //         // Lấy dữ liệu đã xóa trực tiếp từ model không phụ thuộc vào filter
+    //         $data = $this->model->getAllDeleted([
+    //             'sort' => 'thoi_gian_check_out',
+    //             'order' => 'DESC',
+    //             'limit' => 0 // Không giới hạn số bản ghi
+    //         ]);
             
-            // Ghi log
-            log_message('info', 'Xuất PDF đã xóa: ' . count($data) . ' bản ghi');
+    //         // Ghi log
+    //         log_message('info', 'Xuất PDF đã xóa: ' . count($data) . ' bản ghi');
             
-            // Tạo tên file
-            $filename = 'checkout_sukien_deleted_' . date('YmdHis');
+    //         // Tạo tên file
+    //         $filename = 'checkout_sukien_deleted_' . date('YmdHis');
             
-            // Tạo và xuất file PDF, không cần xử lý filters
-            $this->createPdfFromTemplate($data, [], $filename, true);
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi xuất PDF đã xóa: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất PDF đã xóa: ' . $e->getMessage());
-        }
-    }
+    //         // Tạo và xuất file PDF, không cần xử lý filters
+    //         $this->createPdfFromTemplate($data, [], $filename, true);
+    //     } catch (\Exception $e) {
+    //         log_message('error', 'Lỗi xuất PDF đã xóa: ' . $e->getMessage());
+    //         return redirect()->back()->with('error', 'Đã xảy ra lỗi khi xuất PDF đã xóa: ' . $e->getMessage());
+    //     }
+    // }
 
     /**
      * Tạo PDF từ template

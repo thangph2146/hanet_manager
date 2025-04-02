@@ -27,7 +27,7 @@ $masterScript = new $masterScriptClass($module_name);
     ]) ?>
     
     <div class="card-body p-0">
-        <?= view('App\Modules\\' . $module_name . '\Views\components\_filter', [
+        <?= view('App\Modules\\' . $module_name . '\Views\components\_deleted_filter', [
             'module_name' => $module_name,
             'keyword' => $keyword ?? '',
             'perPage' => $perPage

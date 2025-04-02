@@ -57,8 +57,6 @@ function ($routes) use ($controller_name) {
     $routes->get('detail/(:num)', $controller_name . '::detail/$1');
     
     // Route xuất dữ liệu
-    $routes->get('exportPdf', $controller_name . '::exportPdf');                    // Xuất danh sách check-out sự kiện ra PDF
     $routes->get('exportExcel', $controller_name . '::exportExcel');                // Xuất danh sách check-out sự kiện ra Excel
-    $routes->get('exportDeletedPdf', $controller_name . '::exportDeletedPdf');      // Xuất danh sách check-out sự kiện đã xóa ra PDF
     $routes->get('exportDeletedExcel', $controller_name . '::exportDeletedExcel');  // Xuất danh sách check-out sự kiện đã xóa ra Excel
 }); 

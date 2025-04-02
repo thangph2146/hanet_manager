@@ -11,9 +11,6 @@
             <a href="<?= site_url($module_name . '/exportDeletedExcel') ?>" class="btn btn-outline-secondary">
                 Xuất excel
             </a>
-            <a href="<?= site_url($module_name . '/exportDeletedPdf') ?>" class="btn btn-outline-secondary">
-                Xuất pdf
-            </a>
         </div>
     </div>
 </div> 

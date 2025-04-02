@@ -54,16 +54,12 @@
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1 action-btn-group">
-                                    <form action="<?= site_url($module_name . '/restore/' . $item->checkout_sukien_id) ?>" method="post" class="d-inline w-100 h-100">
-                                        <?= csrf_field() ?>
-                                        <input type="hidden" name="return_url" value="<?= current_url() . '?' . $_SERVER['QUERY_STRING'] ?>">
                                         <button type="submit" class="btn btn-success btn-sm btn-restore w-100 h-100" 
                                             data-id="<?= $item->checkout_sukien_id ?>" 
                                             data-name="<?= esc($item->ho_ten) ?>"
                                             data-bs-toggle="tooltip" title="Khôi phục">
                                         <i class="bx bx-revision"></i>
                                         </button>
-                                    </form>
                                     <button type="button" class="btn btn-danger btn-sm btn-permanent-delete w-100 h-100" 
                                             data-id="<?= $item->checkout_sukien_id ?>" 
                                             data-name="<?= esc($item->ho_ten) ?>"

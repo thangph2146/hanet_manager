@@ -12,9 +12,6 @@
                 <a href="<?= site_url($module_name . '/exportExcel') ?>" class="btn btn-outline-secondary">
                     Xuất excel
                 </a>
-                <a href="<?= site_url($module_name . '/exportPdf') ?>" class="btn btn-outline-secondary">
-                    Xuất pdf
-                </a>
                 <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-outline-secondary">
                     <i class="bx bx-trash"></i> Thùng rác
                 </a>

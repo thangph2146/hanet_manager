@@ -28,10 +28,10 @@ $suKienList = $suKienModel->findAll();
 ?>
 
 <div class="card-header bg-white">
-    <form action="<?= site_url($module_name) ?>" method="get" class="row g-3">
+    <form action="<?= site_url($module_name . '/listdeleted') ?>" method="get" class="row g-3">
         <div class="col-12 col-sm-6 col-md-3">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Tìm kiếm..." name="keyword" value="<?= $keyword ?>">
+                <input type="text" class="form-control" placeholder="Tìm kiếm..." name="keyword" value="<?= $keyword ?? '' ?>">
                 <button class="btn btn-outline-secondary" type="submit">
                     <i class="bx bx-search"></i>
                 </button>
@@ -82,7 +82,7 @@ $suKienList = $suKienModel->findAll();
         <div class="col-12 col-sm-6 col-md-2">
             <select class="form-select" name="perPage" id="perPage" onchange="this.form.submit()">
                 <?php foreach ($perPageOptions as $option) : ?>
-                    <option value="<?= $option ?>" <?= (string)$perPage === (string)$option ? 'selected' : '' ?>>
+                    <option value="<?= $option ?>" <?= (isset($perPage) && (string)$perPage === (string)$option) ? 'selected' : '' ?>>
                         <?= $option ?> mục
                     </option>
                 <?php endforeach ?>
@@ -106,7 +106,13 @@ $suKienList = $suKienModel->findAll();
         </div>
         
         <div class="col-12 col-sm-6 col-md-3">
-            <a href="<?= site_url($module_name)?>" class="btn btn-danger">Xóa lọc</a>
+            <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-danger">Xóa lọc</a>
+            <a href="<?= site_url($module_name . '/exportDeletedExcel?' . http_build_query($_GET)) ?>" class="btn btn-success">
+                <i class="bx bx-export"></i> Xuất Excel
+            </a>
+            <a href="<?= site_url($module_name . '/exportDeletedPdf?' . http_build_query($_GET)) ?>" class="btn btn-danger">
+                <i class="bx bxs-file-pdf"></i> Xuất PDF
+            </a>
         </div>
         
     </form>
@@ -174,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="badge bg-dark me-2">Đến ngày: <?= date('d/m/Y', strtotime($end_date)) ?></span>
             <?php endif; ?>
             
-            <a href="<?= site_url($module_name) ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
+            <a href="<?= site_url($module_name . '/listdeleted') ?>" class="text-decoration-none"><i class="bx bx-x"></i> Xóa bộ lọc</a>
         </div>
     </div>
 <?php endif; ?> 

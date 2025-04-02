@@ -273,16 +273,21 @@ class CheckOutSuKienModel extends BaseModel
      */
     public function countDeletedSearchResults(array $criteria = [])
     {
-        $builder = $this->builder();
+        // Khởi tạo builder trực tiếp từ database
+        $builder = $this->db->table($this->table);
         
-        // Đảm bảo chỉ đếm bản ghi đã xóa
+        // ĐẢM BẢO chỉ đếm các bản ghi đã bị xóa - sửa lỗi whereNotNull
         $builder->where($this->table . '.deleted_at IS NOT NULL');
         
-        // Thêm các điều kiện tìm kiếm khác
-        $criteria['deleted'] = true;
+        // Áp dụng các điều kiện tìm kiếm
+        $criteria['ignoreDeletedCheck'] = true; // Đánh dấu để không kiểm tra deleted_at trong applySearchCriteria
         $this->applySearchCriteria($builder, $criteria);
         
-        return $builder->countAllResults();
+        $count = $builder->countAllResults();
+        log_message('debug', '[countDeletedSearchResults] SQL Query: ' . $this->db->getLastQuery());
+        log_message('debug', '[countDeletedSearchResults] Total count: ' . $count);
+        
+        return $count;
     }
     
     /**
@@ -708,15 +713,19 @@ class CheckOutSuKienModel extends BaseModel
         $sort = $options['sort'] ?? $this->primaryKey;
         $order = $options['order'] ?? 'DESC';
         
-        $this->builder = $this->builder();
+        // Khởi tạo builder trực tiếp từ database
+        $this->builder = $this->db->table($this->table);
         $this->builder->select($this->table . '.*, su_kien.ten_su_kien');
         $this->builder->join('su_kien', 'su_kien.su_kien_id = ' . $this->table . '.su_kien_id', 'left');
         
-        // Đảm bảo chỉ lấy dữ liệu đã xóa
+        // ĐẢM BẢO chỉ lấy các bản ghi đã bị xóa - sửa lỗi whereNotNull
         $this->builder->where($this->table . '.deleted_at IS NOT NULL');
         
-        // Thêm các điều kiện tìm kiếm khác
-        $criteria['deleted'] = true;
+        // Ghi log câu SQL
+        log_message('debug', '[searchDeleted] SQL Query: ' . $this->db->getLastQuery());
+        
+        // Áp dụng các điều kiện tìm kiếm
+        $criteria['ignoreDeletedCheck'] = true; // Đánh dấu để không kiểm tra deleted_at trong applySearchCriteria
         $this->applySearchCriteria($this->builder, $criteria);
         
         // Sắp xếp
@@ -750,6 +759,22 @@ class CheckOutSuKienModel extends BaseModel
         $query = $this->builder->get();
         $result = $query->getResult($this->returnType);
         
+        // Kiểm tra và ghi log kết quả
+        log_message('debug', '[searchDeleted] Found ' . count($result) . ' deleted records');
+        if (!empty($result)) {
+            // Kiểm tra xem có bản ghi nào có deleted_at là null
+            $invalidRecords = 0;
+            foreach ($result as $record) {
+                if ($record->deleted_at === null) {
+                    $invalidRecords++;
+                    log_message('error', '[searchDeleted] Found invalid record with null deleted_at: ID=' . $record->checkout_sukien_id);
+                }
+            }
+            if ($invalidRecords > 0) {
+                log_message('error', '[searchDeleted] Warning: Found ' . $invalidRecords . ' records with null deleted_at in deleted results');
+            }
+        }
+        
         return $result;
     }
     
@@ -781,21 +806,30 @@ class CheckOutSuKienModel extends BaseModel
         $limit = $options['limit'] ?? 0;
         
         // Khởi tạo builder
-        $builder = $this->db->table($this->tableDeleted)
-            ->select("{$this->tableDeleted}.*, su_kien.ten_su_kien")
-            ->join('su_kien', "su_kien.su_kien_id = {$this->tableDeleted}.su_kien_id", 'left');
+        $builder = $this->db->table($this->table)
+            ->select($this->table . ".*, su_kien.ten_su_kien")
+            ->join('su_kien', "su_kien.su_kien_id = " . $this->table . ".su_kien_id", 'left');
+        
+        // Chỉ lấy các bản ghi đã xóa - sửa lỗi whereNotNull
+        $builder->where($this->table . '.deleted_at IS NOT NULL');
         
         // Sắp xếp kết quả
-        $builder->orderBy("{$this->tableDeleted}.{$sort}", $order);
+        $builder->orderBy($this->table . "." . $sort, $order);
         
         // Thêm giới hạn nếu cần
         if ($limit > 0) {
             $builder->limit($limit);
         }
         
+        // Ghi log câu SQL để debug
+        log_message('debug', '[getAllDeleted] SQL Query: ' . $this->db->getLastQuery());
+        
         // Thực hiện truy vấn
         $query = $builder->get();
-        $results = $query->getResult('App\Modules\quanlycheckoutsukien\Entities\CheckOutSuKien');
+        $results = $query->getResult($this->returnType);
+        
+        // Kiểm tra kết quả
+        log_message('debug', '[getAllDeleted] Found ' . count($results) . ' deleted records');
         
         // Tải các quan hệ
         $this->loadRelations($results);
@@ -812,12 +846,15 @@ class CheckOutSuKienModel extends BaseModel
      */
     protected function applySearchCriteria($builder, array $criteria = [])
     {
-        // Xử lý withDeleted nếu cần
-        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
-            $builder->where($this->table . '.deleted_at IS NOT NULL');
-        } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa
-            $builder->where($this->table . '.deleted_at IS NULL');
+        // Không áp dụng điều kiện deleted_at trong trường hợp đã sử dụng onlyDeleted() hoặc withDeleted()
+        if (!isset($criteria['ignoreDeletedCheck']) || !$criteria['ignoreDeletedCheck']) {
+            // Xử lý withDeleted nếu cần
+            if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
+                // Không thêm điều kiện vì đã được xử lý bởi onlyDeleted() hoặc withDeleted()
+            } else {
+                // Mặc định chỉ lấy dữ liệu chưa xóa nếu không sử dụng onlyDeleted() hoặc withDeleted()
+                $builder->where($this->table . '.deleted_at IS NULL');
+            }
         }
         
         // Xử lý lọc theo trạng thái
@@ -888,5 +925,51 @@ class CheckOutSuKienModel extends BaseModel
             $builder->orLike('su_kien.ten_su_kien', $keyword);
             $builder->groupEnd();
         }
+    }
+
+    /**
+     * Tải các mối quan hệ cho danh sách kết quả
+     *
+     * @param array $results Danh sách kết quả cần tải mối quan hệ
+     * @return array Danh sách kết quả đã tải mối quan hệ
+     */
+    protected function loadRelations(array $results)
+    {
+        if (empty($results)) {
+            return $results;
+        }
+        
+        foreach ($results as $index => $item) {
+            // Tải quan hệ với sự kiện
+            if (isset($this->relations['sukien']) && !empty($item->su_kien_id)) {
+                $suKienModel = new \App\Modules\sukien\Models\SuKienModel();
+                $suKien = $suKienModel->withDeleted()->find($item->su_kien_id);
+                if ($suKien) {
+                    $item->sukien = $suKien;
+                }
+            }
+            
+            // Tải quan hệ với đăng ký sự kiện
+            if (isset($this->relations['dangkysukien']) && !empty($item->dangky_sukien_id)) {
+                $dangKyModel = new \App\Modules\dangkysukien\Models\DangKySuKienModel();
+                $dangKy = $dangKyModel->withDeleted()->find($item->dangky_sukien_id);
+                if ($dangKy) {
+                    $item->dangkysukien = $dangKy;
+                }
+            }
+            
+            // Tải quan hệ với check-in sự kiện
+            if (isset($this->relations['checkinsukien']) && !empty($item->checkin_sukien_id)) {
+                $checkInModel = new \App\Modules\checkinsukien\Models\CheckInSuKienModel();
+                $checkIn = $checkInModel->withDeleted()->find($item->checkin_sukien_id);
+                if ($checkIn) {
+                    $item->checkinsukien = $checkIn;
+                }
+            }
+            
+            $results[$index] = $item;
+        }
+        
+        return $results;
     }
 } 
