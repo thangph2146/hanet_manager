@@ -50,8 +50,8 @@ class Home extends BaseController
             }
             
             // Thêm thông tin đăng ký cho sự kiện nổi bật
-            if ($job_fair_event && isset($job_fair_event['id_su_kien'])) {
-                $registrations = $sukienModel->getRegistrations($job_fair_event['id_su_kien']);
+            if ($job_fair_event && isset($job_fair_event['su_kien_id'])) {
+                $registrations = $sukienModel->getRegistrations($job_fair_event['su_kien_id']);
                 $job_fair_event['registration_count'] = count($registrations);
             }
         }

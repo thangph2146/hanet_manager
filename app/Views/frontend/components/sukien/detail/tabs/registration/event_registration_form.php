@@ -7,7 +7,7 @@ $formElements = [
     [
         'type' => 'hidden',
         'name' => 'sukien_id',
-        'value' => $event['id_su_kien'] ?? ''
+        'value' => $event['su_kien_id'] ?? ''
     ],
     [
         'type' => 'hidden',

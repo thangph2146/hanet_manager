@@ -8,7 +8,7 @@ use App\Modules\quanlyloaisukien\Models\LoaiSuKienModel;
 use App\Modules\quanlydangkysukien\Models\DangKySuKienModel;
 use App\Modules\quanlycheckinsukien\Models\CheckinSukienModel;
 use App\Modules\quanlycheckoutsukien\Models\CheckoutSukienModel;
-use App\Modules\diengia\Models\DienGiaModel;
+use App\Modules\quanlydiengia\Models\DienGiaModel;
 
 class Sukien extends BaseController
 {
@@ -39,8 +39,30 @@ class Sukien extends BaseController
         
         // Thêm số lượng đăng ký và số lượt xem cho các sự kiện
         foreach ($featured_events as &$event) {
-            if (isset($event['id_su_kien'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+            if (is_object($event)) {
+                $su_kien_id = $event->su_kien_id ?? null;
+                if ($su_kien_id) {
+                    $registrations = $this->sukienModel->getRegistrations($su_kien_id);
+                    // Chuyển đổi đối tượng sang định dạng mảng cho view
+                    $event = [
+                        'su_kien_id' => $su_kien_id,
+                        'ten_su_kien' => $event->ten_su_kien ?? '',
+                        'mo_ta_su_kien' => $event->mo_ta ?? '',
+                        'chi_tiet_su_kien' => $event->chi_tiet_su_kien ?? '',
+                        'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau ?? 'now')),
+                        'dia_diem' => $event->dia_diem ?? '',
+                        'hinh_anh' => $event->su_kien_poster ?? '',
+                        'gio_bat_dau' => $event->gio_bat_dau ?? '',
+                        'gio_ket_thuc' => $event->gio_ket_thuc ?? '',
+                        'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc ?? 'now')),
+                        'loai_su_kien' => $event->ten_loai_su_kien ?? '',
+                        'slug' => $event->slug ?? '',
+                        'so_luot_xem' => $event->so_luot_xem ?? 0,
+                        'registration_count' => count($registrations)
+                    ];
+                }
+            } else if (isset($event['su_kien_id'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['su_kien_id']);
                 $event['registration_count'] = count($registrations);
             } else {
                 $event['registration_count'] = 0;
@@ -48,8 +70,30 @@ class Sukien extends BaseController
         }
         
         foreach ($upcoming_events as &$event) {
-            if (isset($event['id_su_kien'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+            if (is_object($event)) {
+                $su_kien_id = $event->su_kien_id ?? null;
+                if ($su_kien_id) {
+                    $registrations = $this->sukienModel->getRegistrations($su_kien_id);
+                    // Chuyển đổi đối tượng sang định dạng mảng cho view
+                    $event = [
+                        'su_kien_id' => $su_kien_id,
+                        'ten_su_kien' => $event->ten_su_kien ?? '',
+                        'mo_ta_su_kien' => $event->mo_ta ?? '',
+                        'chi_tiet_su_kien' => $event->chi_tiet_su_kien ?? '',
+                        'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau ?? 'now')),
+                        'dia_diem' => $event->dia_diem ?? '',
+                        'hinh_anh' => $event->su_kien_poster ?? '',
+                        'gio_bat_dau' => $event->gio_bat_dau ?? '',
+                        'gio_ket_thuc' => $event->gio_ket_thuc ?? '',
+                        'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc ?? 'now')),
+                        'loai_su_kien' => $event->ten_loai_su_kien ?? '',
+                        'slug' => $event->slug ?? '',
+                        'so_luot_xem' => $event->so_luot_xem ?? 0,
+                        'registration_count' => count($registrations)
+                    ];
+                }
+            } else if (isset($event['su_kien_id'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['su_kien_id']);
                 $event['registration_count'] = count($registrations);
             } else {
                 $event['registration_count'] = 0;
@@ -62,16 +106,38 @@ class Sukien extends BaseController
         
         // Lọc các sự kiện chưa kết thúc và sắp xếp theo thời gian bắt đầu
         $valid_events = array_filter($upcoming_events, function($event) use ($current_time) {
-            $event_start_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_bat_dau']);
-            $event_end_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_ket_thuc']);
-            return $event_end_time > $current_time;
+            if (is_object($event)) {
+                $event_start_time = strtotime($event->thoi_gian_bat_dau);
+                $event_end_time = strtotime($event->thoi_gian_ket_thuc);
+                return $event_end_time > $current_time;
+            } else if (is_array($event)) {
+                $event_start_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_bat_dau']);
+                $event_end_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_ket_thuc']);
+                return $event_end_time > $current_time;
+            }
+            return false;
         });
         
         // Sắp xếp theo thời gian bắt đầu
         usort($valid_events, function($a, $b) {
-            $time_a = strtotime($a['ngay_to_chuc'] . ' ' . $a['gio_bat_dau']);
-            $time_b = strtotime($b['ngay_to_chuc'] . ' ' . $b['gio_bat_dau']);
-            return $time_a - $time_b;
+            if (is_object($a) && is_object($b)) {
+                $time_a = strtotime($a->thoi_gian_bat_dau);
+                $time_b = strtotime($b->thoi_gian_bat_dau);
+                return $time_a - $time_b;
+            } else if (is_array($a) && is_array($b)) {
+                $time_a = strtotime($a['ngay_to_chuc'] . ' ' . $a['gio_bat_dau']);
+                $time_b = strtotime($b['ngay_to_chuc'] . ' ' . $b['gio_bat_dau']);
+                return $time_a - $time_b;
+            } else if (is_object($a) && is_array($b)) {
+                $time_a = strtotime($a->thoi_gian_bat_dau);
+                $time_b = strtotime($b['ngay_to_chuc'] . ' ' . $b['gio_bat_dau']);
+                return $time_a - $time_b;
+            } else if (is_array($a) && is_object($b)) {
+                $time_a = strtotime($a['ngay_to_chuc'] . ' ' . $a['gio_bat_dau']);
+                $time_b = strtotime($b->thoi_gian_bat_dau);
+                return $time_a - $time_b;
+            }
+            return 0;
         });
         
         // Lấy sự kiện gần nhất
@@ -79,7 +145,11 @@ class Sukien extends BaseController
             $job_fair_event = reset($valid_events);
             
             // Kiểm tra xem sự kiện đã bắt đầu chưa
-            $event_start_time = strtotime($job_fair_event['ngay_to_chuc'] . ' ' . $job_fair_event['gio_bat_dau']);
+            if (is_object($job_fair_event)) {
+                $event_start_time = strtotime($job_fair_event->thoi_gian_bat_dau);
+            } else {
+                $event_start_time = strtotime($job_fair_event['ngay_to_chuc'] . ' ' . $job_fair_event['gio_bat_dau']);
+            }
             
             // Nếu sự kiện đã bắt đầu, tìm sự kiện tiếp theo
             if ($current_time > $event_start_time) {
@@ -92,9 +162,33 @@ class Sukien extends BaseController
             }
             
             // Thêm thông tin đăng ký cho sự kiện nổi bật
-            if ($job_fair_event && isset($job_fair_event['id_su_kien'])) {
-                $registrations = $this->sukienModel->getRegistrations($job_fair_event['id_su_kien']);
-                $job_fair_event['registration_count'] = count($registrations);
+            if ($job_fair_event) {
+                if (is_object($job_fair_event)) {
+                    $su_kien_id = $job_fair_event->su_kien_id ?? null;
+                    if ($su_kien_id) {
+                        $registrations = $this->sukienModel->getRegistrations($su_kien_id);
+                        // Chuyển đổi đối tượng sang mảng
+                        $job_fair_event = [
+                            'su_kien_id' => $su_kien_id,
+                            'ten_su_kien' => $job_fair_event->ten_su_kien ?? '',
+                            'mo_ta_su_kien' => $job_fair_event->mo_ta ?? '',
+                            'chi_tiet_su_kien' => $job_fair_event->chi_tiet_su_kien ?? '',
+                            'ngay_to_chuc' => date('Y-m-d', strtotime($job_fair_event->thoi_gian_bat_dau ?? 'now')),
+                            'dia_diem' => $job_fair_event->dia_diem ?? '',
+                            'hinh_anh' => $job_fair_event->su_kien_poster ?? '',
+                            'gio_bat_dau' => $job_fair_event->gio_bat_dau ?? '',
+                            'gio_ket_thuc' => $job_fair_event->gio_ket_thuc ?? '',
+                            'thoi_gian' => date('H:i', strtotime($job_fair_event->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($job_fair_event->gio_ket_thuc ?? 'now')),
+                            'loai_su_kien' => $job_fair_event->ten_loai_su_kien ?? '',
+                            'slug' => $job_fair_event->slug ?? '',
+                            'so_luot_xem' => $job_fair_event->so_luot_xem ?? 0,
+                            'registration_count' => count($registrations)
+                        ];
+                    }
+                } else if (isset($job_fair_event['su_kien_id'])) {
+                    $registrations = $this->sukienModel->getRegistrations($job_fair_event['su_kien_id']);
+                    $job_fair_event['registration_count'] = count($registrations);
+                }
             }
         }
         
@@ -158,8 +252,8 @@ class Sukien extends BaseController
         
         // Thêm số lượng đăng ký cho mỗi sự kiện
         foreach ($events as &$event) {
-            if (isset($event['id_su_kien'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+            if (isset($event['su_kien_id'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['su_kien_id']);
                 $event['registration_count'] = count($registrations);
             } else {
                 $event['registration_count'] = 0;
@@ -233,17 +327,49 @@ class Sukien extends BaseController
             return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
         }
         
+        // Kiểm tra và chuyển đổi từ đối tượng sang mảng nếu cần
+        if (is_object($event)) {
+            $event = [
+                'su_kien_id' => $event->su_kien_id ?? null,
+                'ten_su_kien' => $event->ten_su_kien ?? '',
+                'mo_ta_su_kien' => $event->mo_ta ?? '',
+                'chi_tiet_su_kien' => $event->chi_tiet_su_kien ?? '',
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau ?? 'now')),
+                'dia_diem' => $event->dia_diem ?? '',
+                'hinh_anh' => $event->su_kien_poster ?? '',
+                'gio_bat_dau' => $event->gio_bat_dau ?? '',
+                'gio_ket_thuc' => $event->gio_ket_thuc ?? '',
+                'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc ?? 'now')),
+                'loai_su_kien_id' => $event->loai_su_kien_id ?? null,
+                'loai_su_kien' => $event->ten_loai_su_kien ?? '',
+                'slug' => $event->slug ?? '',
+                'so_luot_xem' => $event->so_luot_xem ?? 0,
+                'lich_trinh' => $event->lich_trinh ? json_decode($event->lich_trinh, true) : null,
+                'so_luong_tham_gia' => $event->so_luong_tham_gia ?? 0
+            ];
+        } else {
+            // Đảm bảo trường so_luong_tham_gia luôn tồn tại trong mảng
+            if (!isset($event['so_luong_tham_gia'])) {
+                $event['so_luong_tham_gia'] = 0;
+            }
+        }
+        
+        // Đảm bảo su_kien_id có giá trị
+        if (empty($event['su_kien_id']) && !empty($event['su_kien_id'])) {
+            $event['su_kien_id'] = $event['su_kien_id'];
+        }
+        
+        // Tăng số lượt xem
+        $this->sukienModel->updateViewCount($event['su_kien_id']);
+        
         // Kiểm tra xem URL hiện tại có khớp với slug không, nếu không thì redirect
         $current_slug = $this->request->getUri()->getSegment(3);
         if ($current_slug !== $slug) {
             return redirect()->to('/su-kien/detail/' . $slug, 301);
         }
         
-        // Tăng số lượt xem cho sự kiện
-        $this->sukienModel->incrementViews($event['id_su_kien']);
-        
         // Lấy danh sách người đăng ký sự kiện
-        $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+        $registrations = $this->sukienModel->getRegistrations($event['su_kien_id']);
         
         // Lấy số lượng người đăng ký   
         $registrationCount = count($registrations);
@@ -251,18 +377,39 @@ class Sukien extends BaseController
         // Lấy số lượng người đã tham gia
         $attendedCount = 0;
         foreach ($registrations as $reg) {
-            if ($reg['da_tham_gia'] == 1) {
+            if (isset($reg['da_tham_gia']) && $reg['da_tham_gia'] == 1) {
                 $attendedCount++;
             }
         }
         
         // Lấy các sự kiện liên quan (cùng loại)
-        $related_events = $this->sukienModel->getRelatedEvents($event['id_su_kien'], $event['loai_su_kien'], 3);
+        $related_events = $this->sukienModel->getRelatedEvents($event['su_kien_id'], $event['loai_su_kien'], 3);
         
         // Thêm số lượng đăng ký cho sự kiện liên quan
         foreach ($related_events as &$related) {
-            if (isset($related['id_su_kien'])) {
-                $relatedRegistrations = $this->sukienModel->getRegistrations($related['id_su_kien']);
+            if (is_object($related)) {
+                $su_kien_id = $related->su_kien_id ?? null;
+                if ($su_kien_id) {
+                    $relatedRegistrations = $this->sukienModel->getRegistrations($su_kien_id);
+                    $related = [
+                        'su_kien_id' => $su_kien_id,
+                        'ten_su_kien' => $related->ten_su_kien ?? '',
+                        'mo_ta_su_kien' => $related->mo_ta ?? '',
+                        'chi_tiet_su_kien' => $related->chi_tiet_su_kien ?? '',
+                        'ngay_to_chuc' => date('Y-m-d', strtotime($related->thoi_gian_bat_dau ?? 'now')),
+                        'dia_diem' => $related->dia_diem ?? '',
+                        'hinh_anh' => $related->su_kien_poster ?? '',
+                        'gio_bat_dau' => $related->gio_bat_dau ?? '',
+                        'gio_ket_thuc' => $related->gio_ket_thuc ?? '',
+                        'thoi_gian' => date('H:i', strtotime($related->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($related->gio_ket_thuc ?? 'now')),
+                        'loai_su_kien' => $related->ten_loai_su_kien ?? '',
+                        'slug' => $related->slug ?? '',
+                        'so_luot_xem' => $related->so_luot_xem ?? 0,
+                        'registration_count' => count($relatedRegistrations)
+                    ];
+                }
+            } else if (isset($related['su_kien_id'])) {
+                $relatedRegistrations = $this->sukienModel->getRegistrations($related['su_kien_id']);
                 $related['registration_count'] = count($relatedRegistrations);
             } else {
                 $related['registration_count'] = 0;
@@ -270,7 +417,7 @@ class Sukien extends BaseController
         }
         
         // Lấy lịch trình sự kiện
-        $event_schedule = $this->sukienModel->getEventSchedule($event['id_su_kien']);
+        $event_schedule = $this->sukienModel->getEventSchedule($event['su_kien_id']);
         
         // Chuẩn bị dữ liệu có cấu trúc cho SEO
         $structured_data = $this->generateEventStructuredData($event);
@@ -315,8 +462,8 @@ class Sukien extends BaseController
         
         // Thêm số lượng đăng ký cho mỗi sự kiện
         foreach ($events as &$event) {
-            if (isset($event['id_su_kien'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['id_su_kien']);
+            if (isset($event['su_kien_id'])) {
+                $registrations = $this->sukienModel->getRegistrations($event['su_kien_id']);
                 $event['registration_count'] = count($registrations);
             } else {
                 $event['registration_count'] = 0;
@@ -346,7 +493,7 @@ class Sukien extends BaseController
         if ($this->request->getMethod() === 'post') {
             // Quy tắc validation
             $rules = [
-                'id_su_kien' => 'required|numeric',
+                'su_kien_id' => 'required|numeric',
                 'ho_ten' => 'required|min_length[3]|max_length[255]',
                 'email' => 'required|valid_email',
                 'so_dien_thoai' => 'required|numeric|min_length[10]|max_length[15]',
@@ -355,7 +502,7 @@ class Sukien extends BaseController
             
             // Thông báo lỗi tùy chỉnh
             $messages = [
-                'id_su_kien' => [
+                'su_kien_id' => [
                     'required' => 'Không tìm thấy thông tin sự kiện',
                     'numeric' => 'Thông tin sự kiện không hợp lệ'
                 ],
@@ -384,7 +531,7 @@ class Sukien extends BaseController
             if ($this->validate($rules, $messages)) {
                 // Dữ liệu hợp lệ, xử lý đăng ký
                 $data = [
-                    'id_su_kien' => $this->request->getPost('id_su_kien'),
+                    'su_kien_id' => $this->request->getPost('su_kien_id'),
                     'ho_ten' => $this->request->getPost('ho_ten'),
                     'email' => $this->request->getPost('email'),
                     'so_dien_thoai' => $this->request->getPost('so_dien_thoai'),
@@ -394,14 +541,14 @@ class Sukien extends BaseController
                 
                 // Mô phỏng đăng ký thành công
                 // Trong thực tế sẽ lưu vào database
-                $event = $this->sukienModel->getEvent($data['id_su_kien']);
+                $event = $this->sukienModel->getEvent($data['su_kien_id']);
                 
                 // Chuyển hướng với thông báo thành công
                 $success_message = 'Bạn đã đăng ký thành công sự kiện: ' . $event['ten_su_kien'];
                 return redirect()->to('/su-kien/detail/' . $event['slug'])->with('success', $success_message);
             } else {
                 // Dữ liệu không hợp lệ, quay lại với thông báo lỗi
-                $event_id = $this->request->getPost('id_su_kien');
+                $event_id = $this->request->getPost('su_kien_id');
                 $event = $this->sukienModel->getEvent($event_id);
                 
                 if (!$event) {

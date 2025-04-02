@@ -598,4 +598,55 @@ class LoaiSuKienModel extends BaseModel
 
         return $headers;
     }
+
+    /**
+     * Lấy tất cả loại sự kiện cho frontend
+     *
+     * @return array Mảng chứa thông tin loại sự kiện
+     */
+    public function getAllEventTypes()
+    {
+        $loaiSukien = $this->where('status', 1)
+                          ->where('deleted_at IS NULL')
+                          ->findAll();
+        
+        $result = [];
+        foreach ($loaiSukien as $loai) {
+            $result[] = [
+                'id' => $loai->loai_su_kien_id,
+                'loai_su_kien' => $loai->ten_loai_su_kien,
+                'status' => $loai->status,
+                'bin' => 0,
+                'slug' => strtolower(str_replace(' ', '-', $loai->ten_loai_su_kien))
+            ];
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Lấy loại sự kiện theo slug
+     *
+     * @param string $slug Slug của loại sự kiện
+     * @return array|null Thông tin loại sự kiện hoặc null nếu không tìm thấy
+     */
+    public function getEventTypeBySlug($slug)
+    {
+        $loaiSukien = $this->where('status', 1)
+                          ->where('deleted_at IS NULL')
+                          ->like('LOWER(ten_loai_su_kien)', str_replace('-', ' ', $slug), 'both')
+                          ->first();
+        
+        if (!$loaiSukien) {
+            return null;
+        }
+        
+        return [
+            'id' => $loaiSukien->loai_su_kien_id,
+            'loai_su_kien' => $loaiSukien->ten_loai_su_kien,
+            'status' => $loaiSukien->status,
+            'bin' => 0,
+            'slug' => strtolower(str_replace(' ', '-', $loaiSukien->ten_loai_su_kien))
+        ];
+    }
 }

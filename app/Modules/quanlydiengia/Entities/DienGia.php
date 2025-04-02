@@ -326,34 +326,34 @@ class DienGia extends BaseEntity
     /**
      * Lấy ngày tạo đã định dạng
      *
-     * @return string|null
+     * @return string
      */
-    public function getCreatedAtFormatted(): ?string
+    public function getCreatedAtFormatted(): string
     {
         $createdAt = $this->getCreatedAt();
-        return $createdAt ? $createdAt->format('d/m/Y H:i:s') : null;
+        return $createdAt ? $createdAt->format('d/m/Y H:i:s') : '---';
     }
     
     /**
      * Lấy ngày cập nhật đã định dạng
      *
-     * @return string|null
+     * @return string
      */
-    public function getUpdatedAtFormatted(): ?string
+    public function getUpdatedAtFormatted(): string
     {
         $updatedAt = $this->getUpdatedAt();
-        return $updatedAt ? $updatedAt->format('d/m/Y H:i:s') : null;
+        return $updatedAt ? $updatedAt->format('d/m/Y H:i:s') : '---';
     }
     
     /**
      * Lấy ngày xóa đã định dạng
      *
-     * @return string|null
+     * @return string
      */
-    public function getDeletedAtFormatted(): ?string
+    public function getDeletedAtFormatted(): string
     {
         $deletedAt = $this->getDeletedAt();
-        return $deletedAt ? $deletedAt->format('d/m/Y H:i:s') : null;
+        return $deletedAt ? $deletedAt->format('d/m/Y H:i:s') : '---';
     }
     
     /**

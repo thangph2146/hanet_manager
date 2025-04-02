@@ -41,7 +41,7 @@ class SukienModel extends BaseModel
         $result = [];
         foreach ($events as $event) {
             $result[] = [
-                'id_su_kien' => $event->su_kien_id,
+                'su_kien_id' => $event->su_kien_id,
                 'ten_su_kien' => $event->ten_su_kien,
                 'mo_ta_su_kien' => $event->mo_ta,
                 'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
@@ -85,7 +85,7 @@ class SukienModel extends BaseModel
         $result = [];
         foreach ($events as $event) {
             $result[] = [
-                'id_su_kien' => $event->su_kien_id,
+                'su_kien_id' => $event->su_kien_id,
                 'ten_su_kien' => $event->ten_su_kien,
                 'mo_ta_su_kien' => $event->mo_ta,
                 'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
@@ -122,7 +122,7 @@ class SukienModel extends BaseModel
         $result = [];
         foreach ($events as $event) {
             $result[] = [
-                'id_su_kien' => $event->su_kien_id,
+                'su_kien_id' => $event->su_kien_id,
                 'ten_su_kien' => $event->ten_su_kien,
                 'mo_ta_su_kien' => $event->mo_ta,
                 'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
@@ -154,7 +154,7 @@ class SukienModel extends BaseModel
         
         // Chuyển đổi sang định dạng tương thích với view
         return [
-            'id_su_kien' => $event->su_kien_id,
+            'su_kien_id' => $event->su_kien_id,
             'ten_su_kien' => $event->ten_su_kien,
             'mo_ta_su_kien' => $event->mo_ta,
             'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
@@ -189,7 +189,7 @@ class SukienModel extends BaseModel
         
         // Chuyển đổi sang định dạng tương thích với view
         return [
-            'id_su_kien' => $event->su_kien_id,
+            'su_kien_id' => $event->su_kien_id,
             'ten_su_kien' => $event->ten_su_kien,
             'mo_ta_su_kien' => $event->mo_ta,
             'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
@@ -229,7 +229,7 @@ class SukienModel extends BaseModel
         $result = [];
         foreach ($events as $event) {
             $result[] = [
-                'id_su_kien' => $event->su_kien_id,
+                'su_kien_id' => $event->su_kien_id,
                 'ten_su_kien' => $event->ten_su_kien,
                 'mo_ta_su_kien' => $event->mo_ta,
                 'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
@@ -254,7 +254,7 @@ class SukienModel extends BaseModel
     public function getSpeakers($limit = 4)
     {
         // Kết nối với model diengia từ module diengia
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         
         $speakers = $dienGiaModel->findAll($limit);
         
@@ -319,7 +319,7 @@ class SukienModel extends BaseModel
      */
     public function getTotalSpeakers()
     {
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         return $dienGiaModel->where('deleted_at IS NULL')
                            ->countAllResults();
     }
@@ -401,7 +401,7 @@ class SukienModel extends BaseModel
         foreach ($events as $relatedEvent) {
             if ($relatedEvent->su_kien_id != $eventId && $count < $limit) {
                 $result[] = [
-                    'id_su_kien' => $relatedEvent->su_kien_id,
+                    'su_kien_id' => $relatedEvent->su_kien_id,
                     'ten_su_kien' => $relatedEvent->ten_su_kien,
                     'mo_ta_su_kien' => $relatedEvent->mo_ta,
                     'chi_tiet_su_kien' => $relatedEvent->chi_tiet_su_kien,
@@ -429,7 +429,7 @@ class SukienModel extends BaseModel
             if (!empty($result)) {
                 $additionalCriteria['not_in_ids'] = array_merge(
                     $additionalCriteria['not_in_ids'],
-                    array_column($result, 'id_su_kien')
+                    array_column($result, 'su_kien_id')
                 );
             }
             
@@ -444,7 +444,7 @@ class SukienModel extends BaseModel
             
             foreach ($additionalEvents as $additionalEvent) {
                 $result[] = [
-                    'id_su_kien' => $additionalEvent->su_kien_id,
+                    'su_kien_id' => $additionalEvent->su_kien_id,
                     'ten_su_kien' => $additionalEvent->ten_su_kien,
                     'mo_ta_su_kien' => $additionalEvent->mo_ta,
                     'chi_tiet_su_kien' => $additionalEvent->chi_tiet_su_kien,
@@ -503,7 +503,7 @@ class SukienModel extends BaseModel
         $result = [];
         foreach ($events as $event) {
             $result[] = [
-                'id_su_kien' => $event->su_kien_id,
+                'su_kien_id' => $event->su_kien_id,
                 'ten_su_kien' => $event->ten_su_kien,
                 'mo_ta_su_kien' => $event->mo_ta,
                 'chi_tiet_su_kien' => $event->chi_tiet_su_kien,

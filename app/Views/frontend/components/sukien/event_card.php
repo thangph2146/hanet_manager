@@ -33,10 +33,10 @@ $sukienModel = new \App\Modules\sukien\Models\SukienModel();
 $registrationCount = isset($event['registration_count']) ? $event['registration_count'] : 0;
 
 // Nếu không có sẵn thông tin registration_count, có thể lấy từ model
-if ($registrationCount === 0 && isset($event['id_su_kien'])) {
+if ($registrationCount === 0 && isset($event['su_kien_id'])) {
     // Thông thường bạn sẽ lấy từ controller và truyền vào view
     // Nhưng ở đây chúng ta gọi trực tiếp từ model
-    $registrations = $sukienModel->getRegistrations($event['id_su_kien']);
+    $registrations = $sukienModel->getRegistrations($event['su_kien_id']);
     $registrationCount = count($registrations);
 }
 ?>
@@ -82,7 +82,7 @@ if ($registrationCount === 0 && isset($event['id_su_kien'])) {
         <a href="<?= site_url('su-kien/detail/' . $event['slug']) ?>" class="btn-link">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
         
         <?php if (strtotime($event['ngay_to_chuc']) > time()): ?>
-        <a href="<?= site_url('su-kien/register?event=' . $event['id_su_kien']) ?>" class="btn btn-sm btn-outline-primary">Đăng ký</a>
+        <a href="<?= site_url('su-kien/register?event=' . $event['su_kien_id']) ?>" class="btn btn-sm btn-outline-primary">Đăng ký</a>
         <?php endif; ?>
     </div>
 </div> 

@@ -48,7 +48,7 @@ $featured = isset($featured) ? $featured : false;
                     <a href="<?= site_url('su-kien/detail/' . $event['slug']) ?>" class="btn-link">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
                     
                     <?php if (strtotime($event['ngay_to_chuc']) > time()): ?>
-                    <a href="<?= site_url('su-kien/register?event=' . $event['id_su_kien']) ?>" class="btn btn-sm btn-outline-primary">Đăng ký</a>
+                    <a href="<?= site_url('su-kien/register?event=' . $event['su_kien_id']) ?>" class="btn btn-sm btn-outline-primary">Đăng ký</a>
                     <?php endif; ?>
                 </div>
             </div>

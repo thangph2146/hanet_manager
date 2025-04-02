@@ -631,15 +631,22 @@ class SuKienModel extends BaseModel
     /**
      * Cập nhật số lượt xem
      *
-     * @param int $id ID bản ghi
-     * @return bool
+     * @param int $eventId ID của sự kiện
+     * @return bool Kết quả cập nhật
      */
-    public function updateViewCount($id)
+    public function updateViewCount($eventId)
     {
-        $this->builder()->set('so_luot_xem', 'so_luot_xem + 1', false)
-                        ->where($this->primaryKey, $id)
-                        ->update();
-        return $this->db->affectedRows() > 0;
+        try {
+            $builder = $this->builder();
+            $builder->set('so_luot_xem', 'so_luot_xem + 1', false);
+            $builder->where('su_kien_id', $eventId);
+            $builder->update();
+            
+            return true;
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi khi cập nhật số lượt xem: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -707,5 +714,555 @@ class SuKienModel extends BaseModel
         }
 
         return $headers;
+    }
+
+    /**
+     * Lấy sự kiện theo slug
+     *
+     * @param string $slug Slug của sự kiện
+     * @return object|null Đối tượng sự kiện hoặc null nếu không tìm thấy
+     */
+    public function getEventBySlug($slug)
+    {
+        $builder = $this->builder();
+        $builder->where('slug', $slug);
+        $builder->where('deleted_at IS NULL');
+        $builder->where('status', 1);
+        
+        $event = $builder->get()->getRow();
+        
+        return $event;
+    }
+
+    /**
+     * Lấy tất cả sự kiện cho trang danh sách
+     *
+     * @return array Mảng chứa thông tin sự kiện
+     */
+    public function getAllEvents()
+    {
+        $options = [
+            'limit' => 0, // Lấy tất cả
+            'sort' => 'thoi_gian_bat_dau',
+            'order' => 'ASC',
+            'join_loai_su_kien' => true
+        ];
+        
+        $events = $this->search([], $options);
+        
+        // Chuyển đổi kết quả sang định dạng mảng tương thích với view hiện tại
+        $result = [];
+        foreach ($events as $event) {
+            $result[] = [
+                'su_kien_id' => $event->su_kien_id,
+                'ten_su_kien' => $event->ten_su_kien,
+                'mo_ta_su_kien' => $event->mo_ta,
+                'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+                'dia_diem' => $event->dia_diem,
+                'hinh_anh' => $event->su_kien_poster,
+                'gio_bat_dau' => $event->gio_bat_dau,
+                'gio_ket_thuc' => $event->gio_ket_thuc,
+                'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
+                'loai_su_kien' => $event->ten_loai_su_kien ?? '',
+                'slug' => $event->slug,
+                'so_luot_xem' => $event->so_luot_xem
+            ];
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Tìm kiếm sự kiện bằng từ khóa
+     *
+     * @param string $keyword Từ khóa tìm kiếm
+     * @return array Mảng chứa kết quả tìm kiếm
+     */
+    public function searchEvents($keyword)
+    {
+        $criteria = [
+            'keyword' => $keyword,
+            'status' => 1
+        ];
+        
+        $options = [
+            'limit' => 0,
+            'sort' => 'thoi_gian_bat_dau',
+            'order' => 'DESC',
+            'join_loai_su_kien' => true
+        ];
+        
+        $events = $this->search($criteria, $options);
+        
+        // Chuyển đổi kết quả sang định dạng mảng tương thích với view hiện tại
+        $result = [];
+        foreach ($events as $event) {
+            $result[] = [
+                'su_kien_id' => $event->su_kien_id,
+                'ten_su_kien' => $event->ten_su_kien,
+                'mo_ta_su_kien' => $event->mo_ta,
+                'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+                'dia_diem' => $event->dia_diem,
+                'hinh_anh' => $event->su_kien_poster,
+                'gio_bat_dau' => $event->gio_bat_dau,
+                'gio_ket_thuc' => $event->gio_ket_thuc,
+                'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
+                'loai_su_kien' => $event->ten_loai_su_kien ?? '',
+                'slug' => $event->slug,
+                'so_luot_xem' => $event->so_luot_xem
+            ];
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Lấy đăng ký sự kiện
+     *
+     * @param int $eventId ID của sự kiện
+     * @return array Danh sách đăng ký cho sự kiện
+     */
+    public function getRegistrations($eventId)
+    {
+        // Kết nối với model đăng ký sự kiện từ module quanlydangkysukien
+        $dangKySukienModel = new \App\Modules\quanlydangkysukien\Models\DangKySuKienModel();
+        
+        // Lấy danh sách đăng ký cho sự kiện
+        $registrations = $dangKySukienModel->where('su_kien_id', $eventId)
+                                         ->where('deleted_at IS NULL')
+                                         ->findAll();
+        
+        // Chuẩn hóa kết quả để đảm bảo luôn trả về mảng với cấu trúc nhất quán
+        $result = [];
+        foreach ($registrations as $reg) {
+            if (is_object($reg)) {
+                $result[] = [
+                    'dangky_sukien_id' => $reg->dangky_sukien_id ?? null,
+                    'ho_ten' => $reg->ho_ten ?? '',
+                    'email' => $reg->email ?? '',
+                    'dien_thoai' => $reg->dien_thoai ?? '',
+                    'ngay_dang_ky' => $reg->ngay_dang_ky ?? ($reg->created_at ?? ''),
+                    'da_tham_gia' => $reg->da_check_in ?? 0,
+                    'attendance_status' => $reg->attendance_status ?? '',
+                    'ma_xac_nhan' => $reg->ma_xac_nhan ?? '',
+                    'status' => $reg->status ?? 0,
+                    'noi_dung_gop_y' => $reg->noi_dung_gop_y ?? '',
+                    'nguon_gioi_thieu' => $reg->nguon_gioi_thieu ?? '',
+                    'hinh_thuc_tham_gia' => $reg->hinh_thuc_tham_gia ?? '',
+                    'ly_do_tham_du' => $reg->ly_do_tham_du ?? ''
+                ];
+            } else if (is_array($reg)) {
+                // Đảm bảo tất cả các khóa cần thiết đều tồn tại
+                $formattedReg = $reg;
+                $keysToCheck = [
+                    'dangky_sukien_id', 'ho_ten', 'email', 'dien_thoai', 'ngay_dang_ky',
+                    'da_tham_gia', 'attendance_status', 'ma_xac_nhan', 'status',
+                    'noi_dung_gop_y', 'nguon_gioi_thieu', 'hinh_thuc_tham_gia', 'ly_do_tham_du'
+                ];
+                
+                foreach ($keysToCheck as $key) {
+                    if (!isset($formattedReg[$key])) {
+                        $formattedReg[$key] = '';
+                    }
+                }
+                
+                $result[] = $formattedReg;
+            }
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Lấy sự kiện theo loại
+     *
+     * @param string $category Tên hoặc slug của loại sự kiện
+     * @return array Danh sách sự kiện thuộc loại
+     */
+    public function getEventsByCategory($category)
+    {
+        // Tìm ID loại sự kiện từ tên
+        $loaiSukienModel = new \App\Modules\quanlyloaisukien\Models\LoaiSuKienModel();
+        $loaiSukien = $loaiSukienModel->where('ten_loai_su_kien', $category)
+                                     ->where('deleted_at IS NULL')
+                                     ->first();
+        
+        $loaiSuKienId = $loaiSukien ? $loaiSukien->loai_su_kien_id : 0;
+        
+        $criteria = [
+            'status' => 1,
+            'loai_su_kien_id' => $loaiSuKienId
+        ];
+        
+        $options = [
+            'limit' => 0, // Lấy tất cả
+            'sort' => 'thoi_gian_bat_dau',
+            'order' => 'DESC',
+            'join_loai_su_kien' => true
+        ];
+        
+        $events = $this->search($criteria, $options);
+        
+        // Chuyển đổi kết quả sang định dạng mảng tương thích với view hiện tại
+        $result = [];
+        foreach ($events as $event) {
+            $result[] = [
+                'su_kien_id' => $event->su_kien_id,
+                'ten_su_kien' => $event->ten_su_kien,
+                'mo_ta_su_kien' => $event->mo_ta,
+                'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+                'dia_diem' => $event->dia_diem,
+                'hinh_anh' => $event->su_kien_poster,
+                'gio_bat_dau' => $event->gio_bat_dau,
+                'gio_ket_thuc' => $event->gio_ket_thuc,
+                'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
+                'loai_su_kien' => $event->ten_loai_su_kien ?? '',
+                'slug' => $event->slug,
+                'so_luot_xem' => $event->so_luot_xem
+            ];
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Lấy các sự kiện nổi bật để hiển thị trên trang chủ
+     *
+     * @return array Mảng chứa thông tin sự kiện nổi bật
+     */
+    public function getFeaturedEvents()
+    {
+        // Sự kiện nổi bật có thể là sự kiện có thời gian gần nhất hoặc được đánh dấu đặc biệt
+        $criteria = [
+            'status' => 1
+        ];
+        
+        $options = [
+            'limit' => 3,
+            'sort' => 'thoi_gian_bat_dau',
+            'order' => 'ASC',
+            'join_loai_su_kien' => true
+        ];
+        
+        $events = $this->search($criteria, $options);
+        
+        // Chuyển đổi kết quả sang định dạng mảng tương thích với view hiện tại
+        $result = [];
+        foreach ($events as $event) {
+            $result[] = [
+                'su_kien_id' => $event->su_kien_id,
+                'ten_su_kien' => $event->ten_su_kien,
+                'mo_ta_su_kien' => $event->mo_ta,
+                'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+                'dia_diem' => $event->dia_diem,
+                'hinh_anh' => $event->su_kien_poster,
+                'gio_bat_dau' => $event->gio_bat_dau,
+                'gio_ket_thuc' => $event->gio_ket_thuc,
+                'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
+                'loai_su_kien' => $event->ten_loai_su_kien ?? '',
+                'slug' => $event->slug,
+                'so_luot_xem' => $event->so_luot_xem
+            ];
+        }
+        
+        return $result;
+    }
+
+    /**
+     * Phương thức lấy tổng số sự kiện
+     * 
+     * @return int
+     */
+    public function getTotalEvents()
+    {
+        return $this->where('status', 1)->where('deleted_at IS NULL')->countAllResults();
+    }
+
+    /**
+     * Phương thức lấy tổng số người tham gia
+     * 
+     * @return int
+     */
+    public function getTotalParticipants()
+    {
+        $builder = $this->builder();
+        $builder->select('SUM(tong_dang_ky) as total');
+        $builder->where('status', 1);
+        $builder->where('deleted_at IS NULL');
+        $result = $builder->get()->getRow();
+        
+        return (int)($result->total ?? 0);
+    }
+
+    /**
+     * Phương thức lấy tổng số diễn giả
+     * 
+     * @return int
+     */
+    public function getTotalSpeakers()
+    {
+        $builder = $this->builder();
+        $builder->select('SUM(so_luong_dien_gia) as total');
+        $builder->where('status', 1);
+        $builder->where('deleted_at IS NULL');
+        $result = $builder->get()->getRow();
+        
+        return (int)($result->total ?? 0);
+    }
+
+    /**
+     * Phương thức lấy danh sách diễn giả
+     * 
+     * @param int $limit Giới hạn số lượng
+     * @return array
+     */
+    public function getSpeakers($limit = 4)
+    {
+        // Kết nối với model diễn giả từ module quanlydiengia
+        try {
+            $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
+            
+            // Lấy danh sách diễn giả hàng đầu
+            $speakers = $dienGiaModel->where('deleted_at IS NULL')
+                                    ->where('status', 1)
+                                    ->orderBy('created_at', 'DESC')
+                                    ->limit($limit)
+                                    ->findAll();
+            
+            // Định dạng kết quả
+            $result = [];
+            foreach ($speakers as $speaker) {
+                $result[] = [
+                    'id' => $speaker->dien_gia_id,
+                    'name' => $speaker->ho_ten,
+                    'position' => $speaker->chuc_vu,
+                    'organization' => $speaker->don_vi,
+                    'image' => $speaker->avatar,
+                    'bio' => $speaker->tieu_su
+                ];
+            }
+            
+            return $result;
+        } catch (\Exception $e) {
+            log_message('error', 'Không thể kết nối với module quanlydiengia: ' . $e->getMessage());
+            
+            // Trả về dữ liệu mẫu
+            return [
+                [
+                    'id' => 1,
+                    'name' => 'PGS.TS Nguyễn Đức Trung',
+                    'position' => 'Hiệu Trưởng',
+                    'organization' => 'Trường Đại học Ngân hàng TP.HCM',
+                    'image' => 'assets/img/speakers/speaker-1.jpg',
+                    'bio' => 'Chuyên gia trong lĩnh vực quản trị và tài chính ngân hàng.'
+                ],
+                [
+                    'id' => 2,
+                    'name' => 'TS. Lê Thị Vân',
+                    'position' => 'Trưởng Khoa CNTT',
+                    'organization' => 'Trường Đại học Ngân hàng TP.HCM',
+                    'image' => 'assets/img/speakers/speaker-2.jpg',
+                    'bio' => 'Chuyên gia về công nghệ thông tin và trí tuệ nhân tạo trong lĩnh vực tài chính.'
+                ],
+                [
+                    'id' => 3,
+                    'name' => 'TS. Trần Minh Tuấn',
+                    'position' => 'Giám đốc',
+                    'organization' => 'Viện Nghiên cứu Kinh tế',
+                    'image' => 'assets/img/speakers/speaker-3.jpg',
+                    'bio' => 'Nhà nghiên cứu kinh tế với nhiều công trình nghiên cứu xuất sắc.'
+                ],
+                [
+                    'id' => 4,
+                    'name' => 'ThS. Phạm Thanh Hà',
+                    'position' => 'Chuyên gia Marketing',
+                    'organization' => 'Công ty ABC',
+                    'image' => 'assets/img/speakers/speaker-4.jpg',
+                    'bio' => 'Chuyên gia marketing với hơn 10 năm kinh nghiệm trong ngành.'
+                ]
+            ];
+        }
+    }
+
+    /**
+     * Lấy các sự kiện liên quan (cùng loại)
+     *
+     * @param int $eventId ID của sự kiện hiện tại
+     * @param string $category Loại sự kiện
+     * @param int $limit Số lượng sự kiện liên quan
+     * @return array Danh sách sự kiện liên quan
+     */
+    public function getRelatedEvents($eventId, $category, $limit = 3)
+    {
+        // Tìm ID loại sự kiện từ tên
+        $loaiSukienModel = new \App\Modules\quanlyloaisukien\Models\LoaiSuKienModel();
+        $loaiSukien = $loaiSukienModel->where('ten_loai_su_kien', $category)
+                                     ->where('deleted_at IS NULL')
+                                     ->first();
+        
+        $loaiSuKienId = $loaiSukien ? $loaiSukien->loai_su_kien_id : 0;
+        
+        $criteria = [
+            'status' => 1,
+            'loai_su_kien_id' => $loaiSuKienId
+        ];
+        
+        $options = [
+            'limit' => $limit + 1, // Lấy thêm 1 để loại trừ sự kiện hiện tại
+            'sort' => 'thoi_gian_bat_dau',
+            'order' => 'DESC',
+            'join_loai_su_kien' => true
+        ];
+        
+        $events = $this->search($criteria, $options);
+        
+        // Loại bỏ sự kiện hiện tại và giới hạn kết quả
+        $result = [];
+        $count = 0;
+        foreach ($events as $event) {
+            if ($event->su_kien_id != $eventId && $count < $limit) {
+                $result[] = $event;
+                $count++;
+            }
+        }
+        
+        return $result;
+    }
+
+    /**
+     * Lấy lịch trình của sự kiện
+     *
+     * @param int $eventId ID của sự kiện
+     * @return array Lịch trình sự kiện
+     */
+    public function getEventSchedule($eventId)
+    {
+        $event = $this->find($eventId);
+        
+        if (!$event || empty($event->lich_trinh)) {
+            return [];
+        }
+        
+        // Kiểm tra xem $event->lich_trinh đã là mảng chưa
+        if (is_array($event->lich_trinh)) {
+            $schedule = $event->lich_trinh;
+        }
+        // Nếu là chuỗi thì giải mã JSON
+        elseif (is_string($event->lich_trinh)) {
+            $schedule = json_decode($event->lich_trinh, true);
+            
+            // Nếu không phải mảng hoặc rỗng, trả về mảng trống
+            if (!is_array($schedule) || empty($schedule)) {
+                return [];
+            }
+        }
+        // Trường hợp khác, trả về mảng trống
+        else {
+            return [];
+        }
+        
+        // Kiểm tra và chuẩn hóa dữ liệu cho mỗi mục lịch trình
+        foreach ($schedule as $key => $item) {
+            // Đảm bảo có trường thoi_gian, nếu không có thì tạo từ gio_bat_dau hoặc thoi_diem nếu có
+            if (!isset($item['thoi_gian'])) {
+                if (isset($item['gio_bat_dau'])) {
+                    $schedule[$key]['thoi_gian'] = $item['gio_bat_dau'];
+                } elseif (isset($item['thoi_diem'])) {
+                    $schedule[$key]['thoi_gian'] = $item['thoi_diem'];
+                } elseif (isset($item['time'])) {
+                    $schedule[$key]['thoi_gian'] = $item['time'];
+                } else {
+                    $schedule[$key]['thoi_gian'] = '--:--';
+                }
+            }
+            
+            // Đảm bảo có trường tieu_de
+            if (!isset($item['tieu_de'])) {
+                if (isset($item['title'])) {
+                    $schedule[$key]['tieu_de'] = $item['title'];
+                } elseif (isset($item['ten'])) {
+                    $schedule[$key]['tieu_de'] = $item['ten'];
+                } else {
+                    $schedule[$key]['tieu_de'] = 'Chưa có tiêu đề';
+                }
+            }
+            
+            // Đảm bảo có trường mo_ta
+            if (!isset($item['mo_ta'])) {
+                if (isset($item['description'])) {
+                    $schedule[$key]['mo_ta'] = $item['description'];
+                } elseif (isset($item['noi_dung'])) {
+                    $schedule[$key]['mo_ta'] = $item['noi_dung'];
+                } else {
+                    $schedule[$key]['mo_ta'] = '';
+                }
+            }
+            
+            // Đảm bảo có trường dien_gia
+            if (!isset($item['dien_gia'])) {
+                if (isset($item['speaker'])) {
+                    $schedule[$key]['dien_gia'] = $item['speaker'];
+                } elseif (isset($item['nguoi_trinh_bay'])) {
+                    $schedule[$key]['dien_gia'] = $item['nguoi_trinh_bay'];
+                } else {
+                    $schedule[$key]['dien_gia'] = '';
+                }
+            }
+        }
+        
+        return $schedule;
+    }
+
+    /**
+     * Lấy thông tin sự kiện theo ID
+     *
+     * @param int $eventId ID của sự kiện
+     * @return array|null Thông tin sự kiện hoặc null nếu không tìm thấy
+     */
+    public function getEvent($eventId)
+    {
+        $event = $this->find($eventId);
+        
+        if (!$event) {
+            return null;
+        }
+        
+        // Lấy thông tin loại sự kiện
+        $loaiSukienModel = new \App\Modules\quanlyloaisukien\Models\LoaiSuKienModel();
+        $loaiSukien = $loaiSukienModel->find($event->loai_su_kien_id);
+        
+        // Xử lý lịch trình
+        $lich_trinh = null;
+        if (!empty($event->lich_trinh)) {
+            if (is_array($event->lich_trinh)) {
+                $lich_trinh = $event->lich_trinh;
+            } elseif (is_string($event->lich_trinh)) {
+                $lich_trinh = json_decode($event->lich_trinh, true);
+            }
+        }
+        
+        // Chuyển đổi sang định dạng mảng cho view
+        return [
+            'su_kien_id' => $event->su_kien_id,
+            'ten_su_kien' => $event->ten_su_kien,
+            'mo_ta_su_kien' => $event->mo_ta,
+            'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
+            'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+            'dia_diem' => $event->dia_diem,
+            'hinh_anh' => $event->su_kien_poster,
+            'gio_bat_dau' => $event->gio_bat_dau,
+            'gio_ket_thuc' => $event->gio_ket_thuc,
+            'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
+            'loai_su_kien_id' => $event->loai_su_kien_id,
+            'loai_su_kien' => $loaiSukien ? $loaiSukien->ten_loai_su_kien : '',
+            'slug' => $event->slug,
+            'so_luot_xem' => $event->so_luot_xem,
+            'lich_trinh' => $lich_trinh,
+            'so_luong_tham_gia' => $event->so_luong_tham_gia ?? 0
+        ];
     }
 } 

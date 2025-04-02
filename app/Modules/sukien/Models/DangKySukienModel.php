@@ -24,7 +24,7 @@ class DangKySukienModel extends BaseModel
     {
         // Xử lý dữ liệu đầu vào
         $insertData = [
-            'su_kien_id' => $data['id_su_kien'],
+            'su_kien_id' => $data['su_kien_id'],
             'ho_ten' => $data['ho_ten'],
             'email' => $data['email'],
             'dien_thoai' => $data['so_dien_thoai'],
@@ -41,8 +41,8 @@ class DangKySukienModel extends BaseModel
         $result = $this->insert($insertData);
         
         // Cập nhật số lượng đăng ký trong bảng su_kien nếu cần
-        if ($result && !empty($data['id_su_kien'])) {
-            $this->updateEventRegistrationCount($data['id_su_kien']);
+        if ($result && !empty($data['su_kien_id'])) {
+            $this->updateEventRegistrationCount($data['su_kien_id']);
         }
         
         return $result;

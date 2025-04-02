@@ -322,11 +322,11 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label for="id_su_kien" class="form-label">Sự kiện tham gia</label>
-                                <select class="form-select" id="id_su_kien" name="id_su_kien" required>
+                                <label for="su_kien_id" class="form-label">Sự kiện tham gia</label>
+                                <select class="form-select" id="su_kien_id" name="su_kien_id" required>
                                     <option value="" selected disabled>Chọn sự kiện</option>
                                     <?php foreach ($upcoming_events as $event): ?>
-                                    <option value="<?= $event['id_su_kien'] ?>"><?= $event['ten_su_kien'] ?> (<?= date('d/m/Y', strtotime($event['ngay_to_chuc'])) ?>)</option>
+                                    <option value="<?= $event['su_kien_id'] ?>"><?= $event['ten_su_kien'] ?> (<?= date('d/m/Y', strtotime($event['ngay_to_chuc'])) ?>)</option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>

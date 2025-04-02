@@ -7,11 +7,6 @@
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="event-participants-tab" data-bs-toggle="tab" data-bs-target="#event-participants" type="button" role="tab" aria-controls="event-participants" aria-selected="false">
-                <i class="lni lni-users"></i> Người tham gia
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
             <button class="nav-link" id="event-registration-tab" data-bs-toggle="tab" data-bs-target="#event-registration" type="button" role="tab" aria-controls="event-registration" aria-selected="false">
                 <i class="lni lni-pencil-alt"></i> Đăng ký tham gia
             </button>
@@ -22,9 +17,6 @@
     <div class="tab-content" id="eventTabsContent">
         <!-- Tab Chi tiết sự kiện -->
         <?= $this->include('frontend\components\sukien\detail\tabs\detail\event_detail_tab') ?>
-                    
-        <!-- Tab Danh sách người tham gia -->
-        <?= $this->include('frontend\components\sukien\detail\tabs\participants\event_participants_tab') ?>
                     
         <!-- Tab Form đăng ký -->
         <?= $this->include('frontend\components\sukien\detail\tabs\registration\event_registration_tab') ?>

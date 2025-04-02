@@ -28,7 +28,7 @@ class SukienModel extends Model
     // Mock Data - Dữ liệu mẫu cho sự kiện
     private $mockEvents = [
         [
-            'id_su_kien' => 1,
+            'su_kien_id' => 1,
             'ten_su_kien' => 'Hội thảo khoa học "Tài chính và Ngân hàng trong kỷ nguyên số"',
             'loai_su_kien_id' => 1, // Hội thảo
             'chi_tiet_su_kien' => '<p>Hội thảo khoa học "Tài chính và Ngân hàng trong kỷ nguyên số" là sự kiện thường niên của Trường Đại học Ngân hàng TP.HCM, nhằm tạo diễn đàn trao đổi học thuật và chia sẻ kinh nghiệm giữa các chuyên gia, nhà nghiên cứu và sinh viên trong lĩnh vực tài chính - ngân hàng.</p>',
@@ -114,7 +114,7 @@ class SukienModel extends Model
             ]
         ],
         [
-            'id_su_kien' => 2,
+            'su_kien_id' => 2,
             'ten_su_kien' => 'Ngày hội việc làm HUB lần thứ 13 - Năm 2023',
             'loai_su_kien_id' => 2, // Nghề nghiệp
             'chi_tiet_su_kien' => '<p>Ngày hội việc làm HUB là cầu nối quan trọng giữa sinh viên và doanh nghiệp, tạo cơ hội để sinh viên tiếp cận với các nhà tuyển dụng hàng đầu trong lĩnh vực tài chính, ngân hàng và công nghệ.</p>',
@@ -176,7 +176,7 @@ class SukienModel extends Model
             ]
         ],
         [
-            'id_su_kien' => 3,
+            'su_kien_id' => 3,
             'ten_su_kien' => 'Workshop "Kỹ năng phân tích dữ liệu trong lĩnh vực tài chính"',
             'loai_su_kien_id' => 3, // Workshop
             'chi_tiet_su_kien' => '<p>Workshop "Kỹ năng phân tích dữ liệu trong lĩnh vực tài chính" được tổ chức nhằm giúp sinh viên và những người làm việc trong ngành tài chính nắm bắt được các kỹ năng phân tích dữ liệu cơ bản và nâng cao, từ đó có thể áp dụng vào công việc thực tế.</p>',
@@ -206,7 +206,7 @@ class SukienModel extends Model
             'so_luot_xem' => 845
         ],
         [
-            'id_su_kien' => 4,
+            'su_kien_id' => 4,
             'ten_su_kien' => 'Cuộc thi "Sinh viên với ý tưởng khởi nghiệp" 2023',
             'loai_su_kien_id' => 4, // Hoạt động sinh viên
             'chi_tiet_su_kien' => '<p>Cuộc thi "Sinh viên với ý tưởng khởi nghiệp" là sân chơi bổ ích dành cho sinh viên có đam mê khởi nghiệp, mong muốn thử sức với những ý tưởng kinh doanh sáng tạo và khả thi.</p>',
@@ -236,7 +236,7 @@ class SukienModel extends Model
             'so_luot_xem' => 720
         ],
         [
-            'id_su_kien' => 5,
+            'su_kien_id' => 5,
             'ten_su_kien' => 'Hội thảo "Xu hướng công nghệ tài chính 2023"',
             'loai_su_kien_id' => 1, // Hội thảo
             'chi_tiet_su_kien' => '<p>Hội thảo "Xu hướng công nghệ tài chính 2023" giúp người tham dự cập nhật những xu hướng mới nhất trong lĩnh vực công nghệ tài chính và blockchain, từ đó có cái nhìn tổng quan về sự phát triển của ngành trong thời gian tới.</p>',
@@ -266,7 +266,7 @@ class SukienModel extends Model
             'so_luot_xem' => 635
         ],
         [
-            'id_su_kien' => 6,
+            'su_kien_id' => 6,
             'ten_su_kien' => 'Workshop "Kỹ năng thuyết trình chuyên nghiệp"',
             'loai_su_kien_id' => 3, // Workshop
             'chi_tiet_su_kien' => '<p>Workshop "Kỹ năng thuyết trình chuyên nghiệp" trang bị cho người tham dự những kỹ năng cần thiết để thuyết trình hiệu quả và tự tin trước đám đông, một kỹ năng quan trọng trong môi trường làm việc hiện đại.</p>',
@@ -404,7 +404,7 @@ class SukienModel extends Model
         
         // Sử dụng mock data cho demo
         foreach ($this->mockEvents as $event) {
-            if ($event['id_su_kien'] == $id) {
+            if ($event['su_kien_id'] == $id) {
                 return $event;
             }
         }
@@ -562,7 +562,7 @@ class SukienModel extends Model
         
         // Tìm sự kiện cùng loại
         foreach ($this->mockEvents as $event) {
-            if ($event['id_su_kien'] != $eventId && $event['loai_su_kien'] == $eventType && $count < $limit) {
+            if ($event['su_kien_id'] != $eventId && $event['loai_su_kien'] == $eventType && $count < $limit) {
                 $relatedEvents[] = $event;
                 $count++;
             }
@@ -571,7 +571,7 @@ class SukienModel extends Model
         // Nếu không đủ sự kiện cùng loại, lấy thêm các sự kiện khác
         if ($count < $limit) {
             foreach ($this->mockEvents as $event) {
-                if ($event['id_su_kien'] != $eventId && !in_array($event, $relatedEvents) && $count < $limit) {
+                if ($event['su_kien_id'] != $eventId && !in_array($event, $relatedEvents) && $count < $limit) {
                     $relatedEvents[] = $event;
                     $count++;
                 }
@@ -612,7 +612,7 @@ class SukienModel extends Model
         
         // Sử dụng mock data cho demo
         foreach ($this->mockEvents as &$event) {
-            $event['slug'] = $this->createSlug($event['ten_su_kien'], $event['id_su_kien']);
+            $event['slug'] = $this->createSlug($event['ten_su_kien'], $event['su_kien_id']);
         }
         
         return true;
@@ -918,7 +918,7 @@ class SukienModel extends Model
         
         // Sử dụng mock data cho demo
         foreach ($this->mockEvents as &$event) {
-            if ($event['id_su_kien'] == $eventId) {
+            if ($event['su_kien_id'] == $eventId) {
                 $event['so_luot_xem'] = isset($event['so_luot_xem']) ? $event['so_luot_xem'] + 1 : 1;
                 return true;
             }
@@ -941,7 +941,7 @@ class SukienModel extends Model
         
         // Sử dụng mock data cho demo
         foreach ($this->mockEvents as $event) {
-            if ($event['id_su_kien'] == $eventId) {
+            if ($event['su_kien_id'] == $eventId) {
                 return $event['so_luot_xem'] ?? 0;
             }
         }
@@ -1142,7 +1142,7 @@ class SukienModel extends Model
         
         // Sử dụng mock data cho demo
         foreach ($this->mockEvents as $event) {
-            if ($event['id_su_kien'] == $eventId) {
+            if ($event['su_kien_id'] == $eventId) {
                 return isset($event['lich_trinh']) ? $event['lich_trinh'] : [];
             }
         }
