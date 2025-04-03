@@ -16,6 +16,7 @@ class NguoiDung extends BaseController
     
     public function __construct()
     {
+        helper(['form', 'url', 'auth', 'text']);
         // Khởi tạo model
         $this->dangkysukienModel = new DangKySuKienModel();
         $this->sukienModel = new SuKienModel();

@@ -28,6 +28,7 @@
     <div class="row mb-4">
         <div class="col-md-4 mb-3 mb-md-0">
             <div class="stat-card bg-primary text-white">
+                <div class="stat-card-overlay"></div>
                 <div class="stat-icon">
                     <i class="fas fa-calendar-check"></i>
                 </div>
@@ -39,6 +40,7 @@
         </div>
         <div class="col-md-4 mb-3 mb-md-0">
             <div class="stat-card bg-success text-white">
+                <div class="stat-card-overlay"></div>
                 <div class="stat-icon">
                     <i class="fas fa-user-check"></i>
                 </div>
@@ -50,6 +52,7 @@
         </div>
         <div class="col-md-4">
             <div class="stat-card bg-info text-white">
+                <div class="stat-card-overlay"></div>
                 <div class="stat-icon">
                     <i class="fas fa-chart-line"></i>
                 </div>
@@ -64,141 +67,217 @@
     <div class="row mb-4">
         <!-- Sự kiện đã đăng ký gần đây -->
         <div class="col-md-6 mb-4 mb-md-0">
-            <div class="card dashboard-card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h5 class="section-title">
                         <i class="fas fa-clipboard-list me-2"></i>Sự kiện đã đăng ký gần đây
                     </h5>
                     <a href="<?= base_url('nguoi-dung/profile') ?>" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
                 </div>
-                <div class="card-body p-0">
-                    <div class="event-list">
-                        <?php if(!empty($registeredEvents)): ?>
-                            <?php foreach($registeredEvents as $event): ?>
-                                <div class="event-item">
-                                    <div class="event-date">
+                <div class="events-grid">
+                    <?php if(!empty($registeredEvents)): ?>
+                        <?php foreach($registeredEvents as $event): ?>
+                            <div class="event-card">
+                                <div class="event-image">
+                                    <?php 
+                                        $eventDate = new DateTime($event->thoi_gian_bat_dau); 
+                                        $now = new DateTime();
+                                        $isUpcoming = $eventDate > $now;
+                                    ?>
+                                    <img src="<?= !empty($event->hinh_anh) ? base_url('uploads/events/' . $event->hinh_anh) : base_url('assets/images/events/default.jpg') ?>" alt="<?= $event->ten_su_kien ?>">
+                                    
+                                    <?php if($isUpcoming): ?>
                                         <?php 
-                                            $eventDate = new DateTime($event->thoi_gian_bat_dau); 
-                                            $day = $eventDate->format('d');
-                                            $month = $eventDate->format('m');
+                                            $interval = $now->diff($eventDate);
+                                            $remaining = '';
+                                            if($interval->days > 0) {
+                                                $remaining = $interval->format('%a ngày %h giờ');
+                                            } else if($interval->h > 0) {
+                                                $remaining = $interval->format('%h giờ %i phút');
+                                            } else {
+                                                $remaining = $interval->format('%i phút');
+                                            }
                                         ?>
-                                        <span class="event-day"><?= $day ?></span>
-                                        <span class="event-month">Th<?= $month ?></span>
-                                    </div>
-                                    <div class="event-info">
-                                        <div class="event-title"><?= $event->ten_su_kien ?></div>
-                                        <div class="event-meta">
-                                            <span class="event-time">
-                                                <i class="far fa-clock"></i> 
-                                                <?= substr($event->gio_bat_dau, 0, 5) ?> - <?= substr($event->gio_ket_thuc, 0, 5) ?>
-                                            </span>
-                                            <span class="event-location">
-                                                <i class="fas fa-map-marker-alt"></i> 
-                                                <?= $event->dia_diem ?>
-                                            </span>
+                                        <div class="event-countdown">
+                                            <i class="far fa-clock"></i> <?= $remaining ?>
                                         </div>
-                                        <div class="event-status">
-                                            <?php if($event->trang_thai == 1): ?>
-                                                <span class="badge bg-success" data-bs-toggle="tooltip" title="Đăng ký của bạn đã được xác nhận">
-                                                    <i class="fas fa-check-circle me-1"></i> Đã xác nhận
-                                                </span>
-                                            <?php elseif($event->trang_thai == 0): ?>
-                                                <span class="badge bg-warning" data-bs-toggle="tooltip" title="Đăng ký của bạn đang chờ xác nhận">
-                                                    <i class="fas fa-clock me-1"></i> Chờ xác nhận
-                                                </span>
-                                            <?php elseif($event->trang_thai == 2): ?>
-                                                <span class="badge bg-danger" data-bs-toggle="tooltip" title="Đăng ký của bạn đã bị hủy">
-                                                    <i class="fas fa-times-circle me-1"></i> Đã hủy
-                                                </span>
-                                            <?php endif; ?>
-                                            
-                                            <?php if($event->da_check_in == 1): ?>
-                                                <span class="badge bg-primary" data-bs-toggle="tooltip" title="Bạn đã tham gia sự kiện này">
-                                                    <i class="fas fa-user-check me-1"></i> Đã tham gia
-                                                </span>
-                                            <?php endif; ?>
-                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <div class="event-date-badge">
+                                        <div class="event-day"><?= $eventDate->format('d') ?></div>
+                                        <div class="event-month">Th<?= $eventDate->format('m') ?></div>
+                                        <div class="event-year"><?= $eventDate->format('Y') ?></div>
                                     </div>
-                                    <a href="<?= base_url('su-kien/detail/'.$event->slug) ?>" class="event-link" data-bs-toggle="tooltip" title="Xem chi tiết">
-                                        <i class="fas fa-angle-right"></i>
-                                    </a>
+                                    
+                                    <?php if($event->trang_thai == 1): ?>
+                                        <div class="event-registered-badge">
+                                            <i class="fas fa-check-circle"></i> Đã xác nhận
+                                        </div>
+                                    <?php elseif($event->trang_thai == 0): ?>
+                                        <div class="event-registered-badge pending">
+                                            <i class="fas fa-clock"></i> Chờ xác nhận
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <?php if($event->da_check_in == 1): ?>
+                                        <div class="event-registered-badge attended">
+                                            <i class="fas fa-user-check"></i> Đã tham gia
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="empty-state p-4 text-center">
-                                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-                                <p>Bạn chưa đăng ký sự kiện nào.</p>
-                                <a href="<?= base_url('nguoi-dung/events/list') ?>" class="btn btn-primary btn-sm">
-                                    Khám phá sự kiện ngay
-                                </a>
+                                
+                                <div class="event-content">
+                                    <div class="event-meta">
+                                        <span class="event-category"><?= $event->phan_loai ?? 'Chưa phân loại' ?></span>
+                                        <span class="event-views"><i class="far fa-eye"></i> <?= $event->luot_xem ?? 0 ?></span>
+                                    </div>
+                                    
+                                    <h3 class="event-title"><?= $event->ten_su_kien ?></h3>
+                                    
+                                    <div class="event-details">
+                                        <div class="event-time">
+                                            <i class="far fa-clock"></i>
+                                            <?= isset($event->gio_bat_dau) ? date('H:i', strtotime($event->gio_bat_dau)) : '--:--' ?> - <?= isset($event->gio_ket_thuc) ? date('H:i', strtotime($event->gio_ket_thuc)) : '--:--' ?>
+                                        </div>
+                                        
+                                        <div class="event-location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <?= $event->dia_diem ?>
+                                        </div>
+                                        
+                                        <?php if(!empty($event->don_vi_to_chuc)): ?>
+                                        <div class="event-organizer">
+                                            <i class="fas fa-users"></i>
+                                            <?= $event->don_vi_to_chuc ?>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <?php if(!empty($event->mo_ta)): ?>
+                                    <div class="event-description">
+                                        <?= character_limiter(strip_tags($event->mo_ta), 100) ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    
+                                    <div class="event-actions">
+                                        <a href="<?= base_url('su-kien/detail/'.$event->slug) ?>" class="btn btn-details">
+                                            <i class="fas fa-info-circle"></i> Chi tiết
+                                        </a>
+                                        
+                                        <?php if(!empty($event->chung_chi)): ?>
+                                        <a href="<?= base_url('nguoi-dung/certificate/download/'.$event->dangky_id) ?>" class="btn btn-certificate">
+                                            <i class="fas fa-certificate"></i> Chứng chỉ
+                                        </a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
-                        <?php endif; ?>
-                    </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <h5 class="empty-state-title">Bạn chưa đăng ký sự kiện nào</h5>
+                            <p class="empty-state-description">Khám phá và đăng ký các sự kiện để bắt đầu</p>
+                            <a href="<?= base_url('nguoi-dung/events/list') ?>" class="btn btn-primary" style="display: flex; justify-content: center; align-items: center;">
+                                <i class="fas fa-calendar-plus me-1" style="margin-bottom: 0rem;"></i> Khám phá sự kiện
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
 
         <!-- Sự kiện đã tham gia gần đây -->
         <div class="col-md-6">
-            <div class="card dashboard-card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h5 class="section-title">
                         <i class="fas fa-check-circle me-2"></i>Sự kiện đã tham gia
                     </h5>
                     <a href="<?= base_url('nguoi-dung/events-checkin') ?>" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
                 </div>
-                <div class="card-body p-0">
-                    <div class="event-list">
-                        <?php if(!empty($attendedEvents)): ?>
-                            <?php foreach($attendedEvents as $event): ?>
-                                <div class="event-item">
-                                    <div class="event-date">
-                                        <?php 
-                                            $eventDate = new DateTime($event->thoi_gian_bat_dau); 
-                                            $day = $eventDate->format('d');
-                                            $month = $eventDate->format('m');
-                                        ?>
-                                        <span class="event-day"><?= $day ?></span>
-                                        <span class="event-month">Th<?= $month ?></span>
+                <div class="events-grid">
+                    <?php if(!empty($attendedEvents)): ?>
+                        <?php foreach($attendedEvents as $event): ?>
+                            <div class="event-card">
+                                <div class="event-image">
+                                    <?php 
+                                        $eventDate = new DateTime($event->thoi_gian_bat_dau); 
+                                    ?>
+                                    <img src="<?= !empty($event->hinh_anh) ? base_url('uploads/events/' . $event->hinh_anh) : base_url('assets/images/events/default.jpg') ?>" alt="<?= $event->ten_su_kien ?>">
+                                    
+                                    <div class="event-date-badge">
+                                        <div class="event-day"><?= $eventDate->format('d') ?></div>
+                                        <div class="event-month">Th<?= $eventDate->format('m') ?></div>
+                                        <div class="event-year"><?= $eventDate->format('Y') ?></div>
                                     </div>
-                                    <div class="event-info">
-                                        <div class="event-title"><?= $event->ten_su_kien ?></div>
-                                        <div class="event-meta">
-                                            <span class="event-time">
-                                                <i class="far fa-clock"></i> 
-                                                <?= substr($event->gio_bat_dau, 0, 5) ?> - <?= substr($event->gio_ket_thuc, 0, 5) ?>
-                                            </span>
-                                            <span class="event-location">
-                                                <i class="fas fa-map-marker-alt"></i> 
-                                                <?= $event->dia_diem ?>
-                                            </span>
-                                        </div>
-                                        <div class="event-attendance">
-                                            <span class="badge bg-success" data-bs-toggle="tooltip" title="Bạn đã tham gia sự kiện này">
-                                                <i class="fas fa-check me-1"></i> Đã tham gia
-                                            </span>
-                                            <?php if(!empty($event->chung_chi)): ?>
-                                                <a href="<?= base_url('nguoi-dung/certificate/download/'.$event->dangky_id) ?>" class="badge bg-info text-white text-decoration-none" data-bs-toggle="tooltip" title="Tải chứng chỉ tham gia">
-                                                    <i class="fas fa-certificate me-1"></i> Chứng chỉ
-                                                </a>
-                                            <?php endif; ?>
-                                        </div>
+                                    
+                                    <div class="event-registered-badge attended">
+                                        <i class="fas fa-user-check"></i> Đã tham gia
                                     </div>
-                                    <a href="<?= base_url('su-kien/detail/'.$event->slug) ?>" class="event-link" data-bs-toggle="tooltip" title="Xem chi tiết">
-                                        <i class="fas fa-angle-right"></i>
-                                    </a>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="empty-state p-4 text-center text-white">
-                                <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
-                                <p>Bạn chưa tham gia sự kiện nào.</p>
-                                <a href="<?= base_url('nguoi-dung/profile') ?>" class="btn btn-primary btn-sm text-white">
-                                    Xem sự kiện đã đăng ký
-                                </a>
+                                
+                                <div class="event-content">
+                                    <div class="event-meta">
+                                        <span class="event-category"><?= $event->phan_loai ?? 'Chưa phân loại' ?></span>
+                                        <span class="event-views"><i class="far fa-eye"></i> <?= $event->luot_xem ?? 0 ?></span>
+                                    </div>
+                                    
+                                    <h3 class="event-title"><?= $event->ten_su_kien ?></h3>
+                                    
+                                    <div class="event-details">
+                                        <div class="event-time">
+                                            <i class="far fa-clock"></i>
+                                            <?= isset($event->gio_bat_dau) ? date('H:i', strtotime($event->gio_bat_dau)) : '--:--' ?> - <?= isset($event->gio_ket_thuc) ? date('H:i', strtotime($event->gio_ket_thuc)) : '--:--' ?>
+                                        </div>
+                                        
+                                        <div class="event-location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <?= $event->dia_diem ?>
+                                        </div>
+                                        
+                                        <?php if(!empty($event->don_vi_to_chuc)): ?>
+                                        <div class="event-organizer">
+                                            <i class="fas fa-users"></i>
+                                            <?= $event->don_vi_to_chuc ?>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <?php if(!empty($event->mo_ta)): ?>
+                                    <div class="event-description">
+                                        <?= character_limiter(strip_tags($event->mo_ta), 100) ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    
+                                    <div class="event-actions">
+                                        <a href="<?= base_url('su-kien/detail/'.$event->slug) ?>" class="btn btn-details">
+                                            <i class="fas fa-info-circle"></i> Chi tiết
+                                        </a>
+                                        
+                                        <?php if(!empty($event->chung_chi)): ?>
+                                            <a href="<?= base_url('nguoi-dung/certificate/download/'.$event->dangky_id) ?>" class="btn btn-certificate">
+                                                <i class="fas fa-certificate"></i> Chứng chỉ
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
-                        <?php endif; ?>
-                    </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h5 class="empty-state-title">Bạn chưa tham gia sự kiện nào</h5>
+                            <p class="empty-state-description">Tham gia sự kiện để nhận các chứng chỉ và lợi ích khác</p>
+                            <a href="<?= base_url('nguoi-dung/events-checkin') ?>" class="btn btn-primary" style="display: flex; justify-content: center; align-items: center;">
+                                <i class="fas fa-clipboard-list me-1" style="margin-bottom: 0rem;"></i> Xem sự kiện đã đăng ký
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -207,62 +286,98 @@
     <!-- Sự kiện sắp diễn ra -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card dashboard-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h5 class="section-title">
                         <i class="fas fa-calendar-alt me-2"></i>Sự kiện sắp diễn ra
                     </h5>
                     <a href="<?= base_url('nguoi-dung/events/list') ?>" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
                 </div>
-                <div class="card-body">
-                    <div class="row upcoming-events">
-                        <?php if(!empty($upcomingEvents)): ?>
-                            <?php foreach($upcomingEvents as $event): ?>
-                                <div class="col-md-6 col-lg-4 mb-4">
-                                    <div class="upcoming-event-card">
-                                        <div class="event-image">
-                                            <img src="<?= !empty($event->hinh_anh) ? base_url('uploads/events/'.$event->hinh_anh) : base_url('assets/images/events/default.jpg') ?>" 
-                                                alt="<?= $event->ten_su_kien ?>">
-                                            <div class="event-date-badge">
-                                                <?php 
-                                                    $eventDate = new DateTime($event->thoi_gian_bat_dau); 
-                                                    $day = $eventDate->format('d');
-                                                    $month = $eventDate->format('m');
-                                                ?>
-                                                <span class="event-day"><?= $day ?></span>
-                                                <span class="event-month">Th<?= $month ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="event-content">
-                                            <h6 class="event-title"><?= $event->ten_su_kien ?></h6>
-                                            <div class="event-details">
-                                                <div class="event-timing">
-                                                    <i class="far fa-clock"></i> 
-                                                    <?= substr($event->gio_bat_dau, 0, 5) ?> - <?= substr($event->gio_ket_thuc, 0, 5) ?>
-                                                </div>
-                                                <div class="event-venue">
-                                                    <i class="fas fa-map-marker-alt"></i> 
-                                                    <?= $event->dia_diem ?>
-                                                </div>
-                                            </div>
-                                            <div class="event-actions">
-                                                <a href="<?= base_url('su-kien/detail/'.$event->slug) ?>" class="btn btn-primary btn-sm w-100">
-                                                    <i class="fas fa-info-circle me-1"></i> Chi tiết
-                                                </a>
-                                            </div>
-                                        </div>
+                <div class="upcoming-events-grid">
+                    <?php if(!empty($upcomingEvents)): ?>
+                        <?php foreach($upcomingEvents as $event): ?>
+                            <div class="event-card">
+                                <div class="event-image">
+                                    <?php 
+                                        $eventDate = new DateTime($event->thoi_gian_bat_dau); 
+                                        $now = new DateTime();
+                                        $interval = $now->diff($eventDate);
+                                        $remaining = '';
+                                        if($interval->days > 0) {
+                                            $remaining = $interval->format('%a ngày %h giờ');
+                                        } else if($interval->h > 0) {
+                                            $remaining = $interval->format('%h giờ %i phút');
+                                        } else {
+                                            $remaining = $interval->format('%i phút');
+                                        }
+                                    ?>
+                                    <img src="<?= !empty($event->hinh_anh) ? base_url('uploads/events/'.$event->hinh_anh) : base_url('assets/images/events/default.jpg') ?>" 
+                                        alt="<?= $event->ten_su_kien ?>">
+                                    
+                                    <div class="event-countdown">
+                                        <i class="far fa-clock"></i> <?= $remaining ?>
+                                    </div>
+                                    
+                                    <div class="event-date-badge">
+                                        <div class="event-day"><?= $eventDate->format('d') ?></div>
+                                        <div class="event-month">Th<?= $eventDate->format('m') ?></div>
+                                        <div class="event-year"><?= $eventDate->format('Y') ?></div>
                                     </div>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="col-12">
-                                <div class="empty-state p-4 text-center">
-                                    <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
-                                    <p>Không có sự kiện nào sắp diễn ra.</p>
+                                
+                                <div class="event-content">
+                                    <div class="event-meta">
+                                        <span class="event-category"><?= $event->phan_loai ?? 'Chưa phân loại' ?></span>
+                                        <span class="event-views"><i class="far fa-eye"></i> <?= $event->luot_xem ?? 0 ?></span>
+                                    </div>
+                                    
+                                    <h3 class="event-title"><?= $event->ten_su_kien ?></h3>
+                                    
+                                    <div class="event-details">
+                                        <div class="event-time">
+                                            <i class="far fa-clock"></i>
+                                            <?= isset($event->gio_bat_dau) ? date('H:i', strtotime($event->gio_bat_dau)) : '--:--' ?> - <?= isset($event->gio_ket_thuc) ? date('H:i', strtotime($event->gio_ket_thuc)) : '--:--' ?>
+                                        </div>
+                                        
+                                        <div class="event-location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <?= $event->dia_diem ?>
+                                        </div>
+                                        
+                                        <?php if(!empty($event->don_vi_to_chuc)): ?>
+                                        <div class="event-organizer">
+                                            <i class="fas fa-users"></i>
+                                            <?= $event->don_vi_to_chuc ?>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <?php if(!empty($event->mo_ta)): ?>
+                                    <div class="event-description">
+                                        <?= character_limiter(strip_tags($event->mo_ta), 100) ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    
+                                    <div class="event-actions">
+                                        <a href="<?= base_url('su-kien/detail/'.$event->slug) ?>" class="btn btn-details">
+                                            <i class="fas fa-info-circle"></i> Chi tiết
+                                        </a>
+                                        <a href="<?= base_url('nguoi-dung/sukien/dang-ky/' . $event->slug) ?>" class="btn btn-register">
+                                            <i class="fas fa-calendar-plus"></i> Đăng ký
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
-                        <?php endif; ?>
-                    </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <h5 class="empty-state-title">Không có sự kiện nào sắp diễn ra</h5>
+                            <p class="empty-state-description">Vui lòng quay lại sau để cập nhật các sự kiện mới</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
