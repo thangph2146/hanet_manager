@@ -29,6 +29,14 @@ if ( ! function_exists('current_student')) {
 
 if ( ! function_exists('getFullNameStudent')) {
 
+	function getInfoStudent()
+	{
+		$auth = service('authstudent');
+		$student = $auth->getCurrentStudent();
+		return $student;
+	}
+
+
 	/**
 	 * @return mixed
 	 */

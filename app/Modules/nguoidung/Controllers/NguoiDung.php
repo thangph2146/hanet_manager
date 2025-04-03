@@ -22,7 +22,8 @@ class NguoiDung extends BaseController
     {
         $data = [
             'title' => 'Thông tin cá nhân',
-            'active_menu' => 'profile'
+            'active_menu' => 'profile',
+            'profile' => getInfoStudent()
         ];
         return view('App\Modules\nguoidung\Views\profile', $data);
     }
