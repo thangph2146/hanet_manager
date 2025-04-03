@@ -15,6 +15,40 @@ class DangKySukienModel extends BaseModel
     }
     
     /**
+     * Kiểm tra người dùng đã đăng ký sự kiện hay chưa
+     * 
+     * @param int $suKienId ID sự kiện
+     * @param mixed $userId ID người dùng hoặc email
+     * @return bool
+     */
+    public function isRegistered($suKienId, $userId)
+    {
+        $email = $userId;
+        
+        // Nếu $userId không phải email, lấy email từ bảng nguoi_dung
+        if (!filter_var($userId, FILTER_VALIDATE_EMAIL)) {
+            $db = \Config\Database::connect();
+            $builder = $db->table('nguoi_dung');
+            $user = $builder->select('email')
+                            ->where('nguoi_dung_id', $userId)
+                            ->get()
+                            ->getRow();
+            
+            if ($user) {
+                $email = $user->email;
+            } else {
+                return false;
+            }
+        }
+        
+        // Kiểm tra trong bảng đăng ký sự kiện
+        return $this->where('su_kien_id', $suKienId)
+                   ->where('email', $email)
+                   ->where('deleted_at IS NULL')
+                   ->countAllResults() > 0;
+    }
+    
+    /**
      * Đăng ký tham gia sự kiện (phương thức phía front-end)
      * 
      * @param array $data Dữ liệu đăng ký
@@ -54,14 +88,14 @@ class DangKySukienModel extends BaseModel
      * @param int $length Độ dài mã xác nhận
      * @return string
      */
-    public function generateConfirmationCode(int $length = 8): string
+    public function generateConfirmationCode($length = 8): string
     {
         $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $code = '';
         $max = strlen($characters) - 1;
         
         for ($i = 0; $i < $length; $i++) {
-            $code .= $characters[random_int(0, $max)];
+            $code .= $characters[rand(0, $max)];
         }
         
         return $code;
@@ -86,40 +120,5 @@ class DangKySukienModel extends BaseModel
         // Cập nhật vào bảng sự kiện
         return $builder->where('su_kien_id', $eventId)
                       ->update(['tong_dang_ky' => $count]);
-    }
-    
-    /**
-     * Kiểm tra xem người dùng đã đăng ký sự kiện chưa
-     * 
-     * @param int $userId ID của người dùng hoặc email
-     * @param int $eventId ID của sự kiện
-     * @return bool
-     */
-    public function isRegistered($userId, $eventId)
-    {
-        // Kiểm tra xem $userId có phải là email không
-        if (filter_var($userId, FILTER_VALIDATE_EMAIL)) {
-            return $this->where('email', $userId)
-                        ->where('su_kien_id', $eventId)
-                        ->where('deleted_at IS NULL')
-                        ->countAllResults() > 0;
-        }
-        
-        // Nếu không phải email, lấy email của người dùng từ bảng users
-        $db = \Config\Database::connect();
-        $email = $db->table('users')
-                   ->select('email')
-                   ->where('id', $userId)
-                   ->get()
-                   ->getRow('email');
-        
-        if (!$email) {
-            return false;
-        }
-        
-        return $this->where('email', $email)
-                    ->where('su_kien_id', $eventId)
-                    ->where('deleted_at IS NULL')
-                    ->countAllResults() > 0;
     }
 } 

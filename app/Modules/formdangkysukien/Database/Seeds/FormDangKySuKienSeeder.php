@@ -41,13 +41,13 @@ class FormDangKySuKienSeeder extends Seeder
             }
         }
         
-        // Thêm dữ liệu vào bảng form_dang_ky_su_kien
+        // Thêm dữ liệu vào bảng form_dangky_sukien
         if (!empty($data)) {
             // Xóa dữ liệu cũ (nếu có)
-            $this->db->table('form_dang_ky_su_kien')->emptyTable();
+            $this->db->table('form_dangky_sukien')->emptyTable();
             
             // Thêm dữ liệu mới
-            $this->db->table('form_dang_ky_su_kien')->insertBatch($data);
+            $this->db->table('form_dangky_sukien')->insertBatch($data);
             echo "Đã tạo " . count($data) . " bản ghi form đăng ký sự kiện.\n";
         }
         

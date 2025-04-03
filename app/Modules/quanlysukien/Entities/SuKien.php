@@ -19,6 +19,8 @@ class SuKien extends BaseEntity
         'deleted_at',
         'thoi_gian_bat_dau',
         'thoi_gian_ket_thuc',
+        'thoi_gian_checkin_bat_dau',
+        'thoi_gian_checkin_ket_thuc',
         'bat_dau_dang_ky',
         'ket_thuc_dang_ky',
         'han_huy_dang_ky',
@@ -32,6 +34,9 @@ class SuKien extends BaseEntity
         'mo_ta' => 'string',
         'mo_ta_su_kien' => 'string',
         'chi_tiet_su_kien' => 'string',
+        'don_vi_to_chuc' => 'string',
+        'don_vi_phoi_hop' => 'string',
+        'doi_tuong_tham_gia' => 'string',
         'dia_diem' => 'string',
         'dia_chi_cu_the' => 'string',
         'toa_do_gps' => 'string',
@@ -211,6 +216,125 @@ class SuKien extends BaseEntity
         return $this->attributes['thoi_gian_ket_thuc'] instanceof Time 
             ? $this->attributes['thoi_gian_ket_thuc'] 
             : new Time($this->attributes['thoi_gian_ket_thuc']);
+    }
+    
+    /**
+     * Lấy thời gian bắt đầu check-in
+     *
+     * @return Time|null
+     */
+    public function getThoiGianCheckinBatDau(): ?Time
+    {
+        if (empty($this->attributes['thoi_gian_checkin_bat_dau'])) {
+            return null;
+        }
+        
+        return $this->attributes['thoi_gian_checkin_bat_dau'] instanceof Time 
+            ? $this->attributes['thoi_gian_checkin_bat_dau'] 
+            : new Time($this->attributes['thoi_gian_checkin_bat_dau']);
+    }
+    
+    /**
+     * Lấy thời gian kết thúc check-in
+     *
+     * @return Time|null
+     */
+    public function getThoiGianCheckinKetThuc(): ?Time
+    {
+        if (empty($this->attributes['thoi_gian_checkin_ket_thuc'])) {
+            return null;
+        }
+        
+        return $this->attributes['thoi_gian_checkin_ket_thuc'] instanceof Time 
+            ? $this->attributes['thoi_gian_checkin_ket_thuc'] 
+            : new Time($this->attributes['thoi_gian_checkin_ket_thuc']);
+    }
+    
+    /**
+     * Lấy đơn vị tổ chức
+     *
+     * @return string|null
+     */
+    public function getDonViToChuc(): ?string
+    {
+        return $this->attributes['don_vi_to_chuc'] ?? null;
+    }
+    
+    /**
+     * Lấy đơn vị phối hợp
+     *
+     * @return string|null
+     */
+    public function getDonViPhoiHop(): ?string
+    {
+        return $this->attributes['don_vi_phoi_hop'] ?? null;
+    }
+    
+    /**
+     * Lấy đối tượng tham gia
+     *
+     * @return string|null
+     */
+    public function getDoiTuongThamGia(): ?string
+    {
+        return $this->attributes['doi_tuong_tham_gia'] ?? null;
+    }
+    
+    /**
+     * Kiểm tra xem hiện tại có đang trong thời gian cho phép check-in không
+     *
+     * @return bool
+     */
+    public function isCheckinTime(): bool
+    {
+        $now = Time::now();
+        
+        // Nếu không có thời gian check-in cụ thể, sử dụng thời gian diễn ra sự kiện
+        if (empty($this->attributes['thoi_gian_checkin_bat_dau']) || empty($this->attributes['thoi_gian_checkin_ket_thuc'])) {
+            return (
+                $now >= $this->getThoiGianBatDau() && 
+                $now <= $this->getThoiGianKetThuc() && 
+                (bool)($this->attributes['cho_phep_check_in'] ?? false)
+            );
+        }
+        
+        return (
+            $now >= $this->getThoiGianCheckinBatDau() && 
+            $now <= $this->getThoiGianCheckinKetThuc() && 
+            (bool)($this->attributes['cho_phep_check_in'] ?? false)
+        );
+    }
+
+    /**
+     * Lấy thời gian bắt đầu check-in dưới dạng định dạng chuỗi
+     *
+     * @param string $format Định dạng ngày
+     * @return string
+     */
+    public function getThoiGianCheckinBatDauFormatted(string $format = 'd/m/Y H:i:s'): string
+    {
+        $thoiGianCheckinBatDau = $this->getThoiGianCheckinBatDau();
+        if (empty($thoiGianCheckinBatDau)) {
+            return '';
+        }
+        
+        return $thoiGianCheckinBatDau->format($format);
+    }
+    
+    /**
+     * Lấy thời gian kết thúc check-in dưới dạng định dạng chuỗi
+     *
+     * @param string $format Định dạng ngày
+     * @return string
+     */
+    public function getThoiGianCheckinKetThucFormatted(string $format = 'd/m/Y H:i:s'): string
+    {
+        $thoiGianCheckinKetThuc = $this->getThoiGianCheckinKetThuc();
+        if (empty($thoiGianCheckinKetThuc)) {
+            return '';
+        }
+        
+        return $thoiGianCheckinKetThuc->format($format);
     }
     
     /**
@@ -595,9 +719,9 @@ class SuKien extends BaseEntity
     public function getStatusHtml(): string
     {
         if ((int)($this->attributes['status'] ?? 0) === 1) {
-            return '<span class="badge badge-success">Hoạt động</span>';
+            return '<span class="badge badge-success" style="color: green;">Hoạt động</span>';
         }
-        return '<span class="badge badge-danger">Không hoạt động</span>';
+        return '<span class="badge badge-danger" style="color: red;">Không hoạt động</span>';
     }
     
     /**
@@ -748,7 +872,7 @@ class SuKien extends BaseEntity
      */
     public function getDetailUrl(): string
     {
-        return site_url('quanlysukien/view/' . $this->getId());
+        return site_url('quanlysukien/detail/' . $this->getId());
     }
 
     /**
@@ -781,8 +905,6 @@ class SuKien extends BaseEntity
         return site_url('quanlysukien/permanentDelete/' . $this->getId());
     }
 
-   
-    
     /**
      * Lấy tên loại sự kiện dựa trên ID loại sự kiện
      * 
@@ -807,4 +929,4 @@ class SuKien extends BaseEntity
         
         return null;
     }
-} 
+}

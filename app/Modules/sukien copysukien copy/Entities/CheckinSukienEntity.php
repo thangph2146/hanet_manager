@@ -17,7 +17,7 @@ class CheckinSukienEntity extends Entity
         'face_verified'     => 'boolean',
         'status'            => 'int',
         'bin'               => 'int',
-        'dang_ky_su_kien_id'=> 'int',
+        'dangky_sukien_id'=> 'int',
     ];
     
     // Các phương thức loại checkin
@@ -30,7 +30,7 @@ class CheckinSukienEntity extends Entity
      */
     public function getDangKySuKienId()
     {
-        return $this->attributes['dang_ky_su_kien_id'] ?? 0;
+        return $this->attributes['dangky_sukien_id'] ?? 0;
     }
     
     /**
@@ -38,7 +38,7 @@ class CheckinSukienEntity extends Entity
      */
     public function setDangKySuKienId(int $dangKySuKienId)
     {
-        $this->attributes['dang_ky_su_kien_id'] = $dangKySuKienId;
+        $this->attributes['dangky_sukien_id'] = $dangKySuKienId;
         
         return $this;
     }

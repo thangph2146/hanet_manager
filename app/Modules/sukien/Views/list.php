@@ -6,11 +6,35 @@
 
 <?= $this->section('keywords') ?><?= isset($meta_keywords) ? $meta_keywords : 'sự kiện hub, danh sách sự kiện, hội thảo, workshop, ngày hội việc làm' ?><?= $this->endSection() ?>
 
-<?php if(isset($canonical_url)): ?>
 <?= $this->section('additional_css') ?>
+<?php if(isset($canonical_url)): ?>
 <link rel="canonical" href="<?= $canonical_url ?>" />
-<?= $this->endSection() ?>
 <?php endif; ?>
+
+<style>
+    /* CSS để làm nổi bật thông báo lỗi */
+    .alert-danger {
+        border-left: 5px solid #dc3545;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .alert-heading {
+        color: #dc3545;
+        font-weight: 600;
+    }
+    
+    /* Hiệu ứng làm nổi bật thông báo */
+    @keyframes highlight {
+        0% { background-color: #ffecec; }
+        50% { background-color: #fff5f5; }
+        100% { background-color: #ffecec; }
+    }
+    
+    .alert-danger {
+        animation: highlight 2s ease-in-out;
+    }
+</style>
+<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
     <!-- Page Header -->
@@ -41,15 +65,43 @@
                     <?php elseif (isset($search) && !empty($search)): ?>
                     <p class="text-muted">Tìm thấy <?= count($events) ?> sự kiện phù hợp với từ khóa "<?= esc($search) ?>"</p>
                     <?php else: ?>
-                    <p class="text-muted">Khám phá tất cả các sự kiện sắp diễn ra tại HUB</p>
+                    <p class="text-muted">Khám phá tất cả các sự kiện sắp diễn ra tại HUB <span class="badge bg-info ms-1">Chỉ hiển thị sự kiện trong tương lai</span></p>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Flash Messages -->
+    <?php if (session()->getFlashdata('success')): ?>
+    <div class="container mt-4">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?= session()->getFlashdata('success') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('error')): ?>
+    <div class="container mt-4">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Không tìm thấy sự kiện</h5>
+            <p class="mb-0"><?= session()->getFlashdata('error') ?></p>
+            <?php if (session()->getFlashdata('search_term')): ?>
+            <p class="mt-2">Bạn đang tìm: <strong>"<?= session()->getFlashdata('search_term') ?>"</strong></p>
+            <?php endif; ?>
+            <hr>
+            <p class="mb-0">
+                <a href="<?= site_url('su-kien/list') ?>" class="alert-link"><i class="fas fa-list me-1"></i>Xem tất cả sự kiện</a> hoặc
+                <a href="#search-area" class="alert-link"><i class="fas fa-search me-1"></i>Tìm kiếm sự kiện khác</a>
+            </p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Search and Filter Section -->
-    <section class="container py-5">
+    <section class="container py-5" id="search-area">
         <div class="row mb-4">
             <div class="col-md-8">
                 <form action="<?= site_url('su-kien/list') ?>" method="get" class="d-flex">
@@ -145,6 +197,64 @@
         </div>
         <?php endif; ?>
     </section>
+
+    <!-- Hiển thị sự kiện tương tự nếu có -->
+    <?php if (session()->getFlashdata('similar_events')): ?>
+    <div class="container mt-4">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-white">
+                <h4 class="mb-0">
+                    <?php if (session()->getFlashdata('search_term')): ?>
+                    Các sự kiện tương tự với "<?= session()->getFlashdata('search_term') ?>"
+                    <?php else: ?>
+                    Các sự kiện bạn có thể quan tâm
+                    <?php endif; ?>
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <?php foreach (session()->getFlashdata('similar_events') as $event): ?>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 event-card">
+                            <div class="event-image">
+                                <?php 
+                                $imageSrc = !empty($event['hinh_anh']) 
+                                    ? (is_array($event['hinh_anh']) && isset($event['hinh_anh']['url']) 
+                                        ? $event['hinh_anh']['url'] 
+                                        : (is_string($event['hinh_anh']) ? $event['hinh_anh'] : ''))
+                                    : 'assets/modules/sukien/images/event-default.jpg';
+                                ?>
+                                <img src="<?= base_url($imageSrc) ?>" class="card-img-top" alt="<?= $event['ten_su_kien'] ?>">
+                                <div class="event-date">
+                                    <span class="day"><?= date('d', strtotime($event['ngay_to_chuc'])) ?></span>
+                                    <span class="month"><?= date('M', strtotime($event['ngay_to_chuc'])) ?></span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="<?= site_url('su-kien/detail/' . $event['slug']) ?>" class="text-decoration-none">
+                                        <?= $event['ten_su_kien'] ?>
+                                    </a>
+                                </h5>
+                                <p class="card-text event-meta">
+                                    <span class="event-time"><i class="far fa-clock me-1"></i><?= $event['thoi_gian'] ?></span>
+                                    <span class="event-location"><i class="fas fa-map-marker-alt me-1"></i><?= $event['dia_diem'] ?></span>
+                                </p>
+                                <p class="card-text event-description"><?= mb_substr(strip_tags($event['mo_ta_su_kien']), 0, 80) ?>...</p>
+                            </div>
+                            <div class="card-footer bg-white">
+                                <a href="<?= site_url('su-kien/detail/' . $event['slug']) ?>" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Danh sách tất cả sự kiện -->
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>

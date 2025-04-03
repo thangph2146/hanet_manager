@@ -4,6 +4,7 @@ namespace App\Modules\quanlysukien\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\quanlysukien\Models\SuKienModel;
+use App\Modules\quanlysukien\Libraries\Pager;
 use App\Libraries\Breadcrumb;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;

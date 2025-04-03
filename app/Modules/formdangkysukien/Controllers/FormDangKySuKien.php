@@ -35,22 +35,22 @@ class FormDangKySuKien extends BaseController
     protected $title = 'Form đăng ký sự kiện';
     protected $module_name = 'formdangkysukien';
     protected $controller_name = 'FormDangKySuKien';
-    protected $primary_key = 'form_dang_ky_su_kien_id';
+    protected $primary_key = 'form_dangky_sukien_id';
     // Search
     protected $field_sort = 'ten_form';
     protected $field_order = 'ASC';
 
     // Export
-    protected $export_excel = 'danh_sach_form_dang_ky_su_kien_excel';
+    protected $export_excel = 'danh_sach_form_dangky_sukien_excel';
     protected $export_excel_title = 'DANH SÁCH FORM ĐĂNG KÝ SỰ KIỆN (Excel)';
 
-    protected $export_pdf = 'danh_sach_form_dang_ky_su_kien_pdf';
+    protected $export_pdf = 'danh_sach_form_dangky_sukien_pdf';
     protected $export_pdf_title = 'DANH SÁCH FORM ĐĂNG KÝ SỰ KIỆN (PDF)';
 
-    protected $export_excel_deleted = 'danh_sach_form_dang_ky_su_kien_da_xoa_excel';
+    protected $export_excel_deleted = 'danh_sach_form_dangky_sukien_da_xoa_excel';
     protected $export_excel_deleted_title = 'DANH SÁCH FORM ĐĂNG KÝ SỰ KIỆN ĐÃ XÓA (Excel)';
 
-    protected $export_pdf_deleted = 'danh_sach_form_dang_ky_su_kien_da_xoa_pdf';
+    protected $export_pdf_deleted = 'danh_sach_form_dangky_sukien_da_xoa_pdf';
     protected $export_pdf_deleted_title = 'DANH SÁCH FORM ĐĂNG KÝ SỰ KIỆN ĐÃ XÓA (PDF)';
 
     protected $pager_only = [

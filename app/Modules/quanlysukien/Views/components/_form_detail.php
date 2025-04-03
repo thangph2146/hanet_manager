@@ -7,54 +7,43 @@
  * @var string $module_name Tên module
  */
 
-// Khởi tạo các biến mặc định
-$ten_su_kien = isset($data) && isset($data->ten_su_kien) ? $data->ten_su_kien : '';
-$mo_ta = isset($data) && isset($data->mo_ta) ? $data->mo_ta : '';
-$mo_ta_su_kien = isset($data) && isset($data->mo_ta_su_kien) ? $data->mo_ta_su_kien : '';
-$chi_tiet_su_kien = isset($data) && isset($data->chi_tiet_su_kien) ? $data->chi_tiet_su_kien : '';
-$thoi_gian_bat_dau = isset($data) && isset($data->thoi_gian_bat_dau) ? $data->thoi_gian_bat_dau : '';
-$thoi_gian_ket_thuc = isset($data) && isset($data->thoi_gian_ket_thuc) ? $data->thoi_gian_ket_thuc : '';
-$dia_diem = isset($data) && isset($data->dia_diem) ? $data->dia_diem : '';
-$dia_chi_cu_the = isset($data) && isset($data->dia_chi_cu_the) ? $data->dia_chi_cu_the : '';
-$toa_do_gps = isset($data) && isset($data->toa_do_gps) ? $data->toa_do_gps : '';
-$loai_su_kien_id = isset($data) && isset($data->loai_su_kien_id) ? $data->loai_su_kien_id : '';
-$ma_qr_code = isset($data) && isset($data->ma_qr_code) ? $data->ma_qr_code : '';
-$status = isset($data) && isset($data->status) ? $data->status : '';
-$tong_dang_ky = isset($data) && isset($data->tong_dang_ky) ? $data->tong_dang_ky : 0;
-$tong_check_in = isset($data) && isset($data->tong_check_in) ? $data->tong_check_in : 0;
-$tong_check_out = isset($data) && isset($data->tong_check_out) ? $data->tong_check_out : 0;
-$cho_phep_check_in = isset($data) && isset($data->cho_phep_check_in) ? $data->cho_phep_check_in : 0;
-$cho_phep_check_out = isset($data) && isset($data->cho_phep_check_out) ? $data->cho_phep_check_out : 0;
-$yeu_cau_face_id = isset($data) && isset($data->yeu_cau_face_id) ? $data->yeu_cau_face_id : 0;
-$cho_phep_checkin_thu_cong = isset($data) && isset($data->cho_phep_checkin_thu_cong) ? $data->cho_phep_checkin_thu_cong : 0;
-$bat_dau_dang_ky = isset($data) && isset($data->bat_dau_dang_ky) ? $data->bat_dau_dang_ky : '';
-$ket_thuc_dang_ky = isset($data) && isset($data->ket_thuc_dang_ky) ? $data->ket_thuc_dang_ky : '';
-$gio_bat_dau = isset($data) && isset($data->gio_bat_dau) ? $data->gio_bat_dau : '';
-$gio_ket_thuc = isset($data) && isset($data->gio_ket_thuc) ? $data->gio_ket_thuc : '';
-$so_luong_tham_gia = isset($data) && isset($data->so_luong_tham_gia) ? $data->so_luong_tham_gia : 0;
-$so_luong_dien_gia = isset($data) && isset($data->so_luong_dien_gia) ? $data->so_luong_dien_gia : 0;
-$gioi_han_loai_nguoi_dung = isset($data) && isset($data->gioi_han_loai_nguoi_dung) ? $data->gioi_han_loai_nguoi_dung : '';
-$hinh_thuc = isset($data) && isset($data->hinh_thuc) ? $data->hinh_thuc : '';
-$link_online = isset($data) && isset($data->link_online) ? $data->link_online : '';
-$mat_khau_online = isset($data) && isset($data->mat_khau_online) ? $data->mat_khau_online : '';
-$tu_khoa_su_kien = isset($data) && isset($data->tu_khoa_su_kien) ? $data->tu_khoa_su_kien : '';
-$hashtag = isset($data) && isset($data->hashtag) ? $data->hashtag : '';
-$slug = isset($data) && isset($data->slug) ? $data->slug : '';
-$lich_trinh = isset($data) && isset($data->lich_trinh) ? $data->lich_trinh : '';
-$so_luot_xem = isset($data) && isset($data->so_luot_xem) ? $data->so_luot_xem : 0;
-
-// Khởi tạo các biến từ dữ liệu đầu vào
-if (is_object($data)) {
-    $su_kien_id = $data->getId() ?? '';
-    $ten_loai_su_kien = $data->getTenLoaiSuKien() ?? '';
-    $created_at = $data->getCreatedAtFormatted() ?? '';
-    $updated_at = $data->getUpdatedAtFormatted() ?? '';
-} else {
-    $su_kien_id = '';
-    $ten_loai_su_kien = '';
-    $created_at = '';
-    $updated_at = '';
-}
+// Sử dụng getter method từ SuKien entity
+$su_kien_id = isset($data) ? $data->getId() : '';
+$ten_su_kien = isset($data) ? $data->getTenSuKien() : '';
+$mo_ta = isset($data) ? $data->getMoTa() : '';
+$mo_ta_su_kien = isset($data) ? $data->getMoTaSuKien() : '';
+$chi_tiet_su_kien = isset($data) ? $data->getChiTietSuKien() : '';
+$thoi_gian_bat_dau = isset($data) ? $data->getThoiGianBatDauFormatted() : '';
+$thoi_gian_ket_thuc = isset($data) ? $data->getThoiGianKetThucFormatted() : '';
+$dia_diem = isset($data) ? $data->getDiaDiem() : '';
+$dia_chi_cu_the = isset($data) ? $data->getDiaChiCuThe() : '';
+$toa_do_gps = isset($data) ? $data->getToaDoGPS() : '';
+$loai_su_kien_id = isset($data) ? $data->getLoaiSuKienId() : '';
+$ma_qr_code = isset($data) ? $data->getMaQRCode() : '';
+$status = isset($data) ? $data->getStatus() : '';
+$tong_dang_ky = isset($data) ? $data->getTongDangKy() : 0;
+$tong_check_in = isset($data) ? $data->getTongCheckIn() : 0;
+$tong_check_out = isset($data) ? $data->getTongCheckOut() : 0;
+$cho_phep_check_in = isset($data) ? $data->isAllowCheckIn() : 0;
+$cho_phep_check_out = isset($data) ? $data->isAllowCheckOut() : 0;
+$yeu_cau_face_id = isset($data) ? $data->isRequireFaceId() : 0;
+$cho_phep_checkin_thu_cong = isset($data) ? $data->isAllowManualCheckin() : 0;
+$bat_dau_dang_ky = isset($data) ? $data->getBatDauDangKy() : '';
+$ket_thuc_dang_ky = isset($data) ? $data->getKetThucDangKy() : '';
+$so_luong_tham_gia = isset($data) ? $data->getSoLuongThamGia() : 0;
+$so_luong_dien_gia = isset($data) ? $data->getSoLuongDienGia() : 0;
+$gioi_han_loai_nguoi_dung = isset($data) ? $data->getGioiHanLoaiNguoiDung() : '';
+$hinh_thuc = isset($data) ? $data->getHinhThuc() : '';
+$link_online = isset($data) ? $data->getLinkOnline() : '';
+$mat_khau_online = isset($data) ? $data->getMatKhauOnline() : '';
+$tu_khoa_su_kien = isset($data) ? $data->getTuKhoaSuKien() : '';
+$hashtag = isset($data) ? $data->getHashtag() : '';
+$slug = isset($data) ? $data->getSlug() : '';
+$lich_trinh = isset($data) ? $data->getLichTrinh() : '';
+$so_luot_xem = isset($data) ? $data->getSoLuotXem() : 0;
+$ten_loai_su_kien = isset($data) ? $data->getTenLoaiSuKien() : '';
+$created_at = isset($data) ? $data->getCreatedAtFormatted() : '';
+$updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
 ?>
 
 <style>

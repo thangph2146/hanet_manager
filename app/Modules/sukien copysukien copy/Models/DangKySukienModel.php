@@ -6,7 +6,7 @@ use CodeIgniter\Model;
 
 class DangKySukienModel extends Model
 {
-    protected $table            = 'dang_ky_su_kien';
+    protected $table            = 'dangky_sukien';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';

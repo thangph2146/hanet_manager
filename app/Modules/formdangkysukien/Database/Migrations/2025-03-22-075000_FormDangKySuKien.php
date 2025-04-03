@@ -83,7 +83,7 @@ class FormDangKySuKien extends Migration
         $this->forge->addKey('su_kien_id', false, false, 'idx_su_kien_id');
         
         // Tạo bảng
-        $this->forge->createTable('form_dang_ky_su_kien', true, [
+        $this->forge->createTable('form_dangky_sukien', true, [
             'ENGINE' => 'InnoDB',
             'CHARACTER SET' => 'utf8mb4',
             'COLLATE' => 'utf8mb4_unicode_ci',
@@ -91,12 +91,12 @@ class FormDangKySuKien extends Migration
         ]);
         
         // Thêm giá trị mặc định cho created_at bằng CURRENT_TIMESTAMP
-        $this->db->query('ALTER TABLE `form_dang_ky_su_kien` MODIFY `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NULL');
+        $this->db->query('ALTER TABLE `form_dangky_sukien` MODIFY `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NULL');
     }
 
     public function down()
     {
         // Xóa bảng
-        $this->forge->dropTable('form_dang_ky_su_kien');
+        $this->forge->dropTable('form_dangky_sukien');
     }
 } 

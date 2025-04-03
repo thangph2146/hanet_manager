@@ -478,4 +478,31 @@ class App extends BaseConfig
      * @var bool
      */
     public $CSPEnabled = false;
+
+    /**
+     * WebSocket URL for check-in display
+     * Cấu hình URL của server WebSocket (Ratchet)
+     *
+     * @var string
+     */
+    public $websocketUrl = 'ws://muster.vn:8080';
+    
+    /**
+     * Webhook URLs for check-in services
+     * Cấu hình các URL webhook từ các dịch vụ check-in khác nhau
+     * 
+     * @var array
+     */
+    public $webhookUrls = [
+        'hanet' => 'https://muster.vn/su-kien/hanet-webhook',
+        'hub' => 'https://checkin.hub.edu.vn/hook'
+    ];
+    
+    /**
+     * Debug mode for webhooks
+     * Bật chế độ debug để xem chi tiết dữ liệu webhook
+     * 
+     * @var bool
+     */
+    public $webhookDebug = true;
 }

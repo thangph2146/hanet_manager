@@ -958,7 +958,7 @@ class SukienModel extends Model
     public function getRegistrations($eventId)
     {
         // Trong triển khai thực tế:
-        // return $this->db->table('dang_ky_su_kien')
+        // return $this->db->table('dangky_sukien')
         //                 ->where('su_kien_id', $eventId)
         //                 ->get()
         //                 ->getResultArray();
@@ -984,7 +984,7 @@ class SukienModel extends Model
     public function registerEvent($data)
     {
         // Trong triển khai thực tế:
-        // return $this->db->table('dang_ky_su_kien')->insert($data);
+        // return $this->db->table('dangky_sukien')->insert($data);
         
         // Sử dụng mock data cho demo
         $lastId = end($this->mockRegistrations)['id'] ?? 0;
@@ -1010,7 +1010,7 @@ class SukienModel extends Model
     public function cancelRegistration($userId, $eventId)
     {
         // Trong triển khai thực tế:
-        // return $this->db->table('dang_ky_su_kien')
+        // return $this->db->table('dangky_sukien')
         //                 ->where('user_id', $userId)
         //                 ->where('su_kien_id', $eventId)
         //                 ->delete();
@@ -1036,7 +1036,7 @@ class SukienModel extends Model
     public function isRegistered($userId, $eventId)
     {
         // Trong triển khai thực tế:
-        // $count = $this->db->table('dang_ky_su_kien')
+        // $count = $this->db->table('dangky_sukien')
         //                   ->where('user_id', $userId)
         //                   ->where('su_kien_id', $eventId)
         //                   ->countAllResults();
@@ -1061,7 +1061,7 @@ class SukienModel extends Model
     public function getRegistrationCount($eventId)
     {
         // Trong triển khai thực tế:
-        // return $this->db->table('dang_ky_su_kien')
+        // return $this->db->table('dangky_sukien')
         //                 ->where('su_kien_id', $eventId)
         //                 ->countAllResults();
         
@@ -1087,7 +1087,7 @@ class SukienModel extends Model
     public function getUserRegistration($userId, $eventId)
     {
         // Trong triển khai thực tế:
-        // return $this->db->table('dang_ky_su_kien')
+        // return $this->db->table('dangky_sukien')
         //                 ->where('user_id', $userId)
         //                 ->where('su_kien_id', $eventId)
         //                 ->get()
@@ -1113,7 +1113,7 @@ class SukienModel extends Model
     public function updateAttendance($registrationId, $status)
     {
         // Trong triển khai thực tế:
-        // return $this->db->table('dang_ky_su_kien')
+        // return $this->db->table('dangky_sukien')
         //                 ->where('id', $registrationId)
         //                 ->update(['da_tham_gia' => $status]);
         

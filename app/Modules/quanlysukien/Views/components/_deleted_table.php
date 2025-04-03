@@ -17,20 +17,21 @@ $loaiSuKienList = $loaiSuKienModel->getForDropdown(false);
         <table id="dataTable" class="table table-striped table-hover m-0 w-100">
             <thead class="table-light">
                 <tr>
-                    <th width="5%" class="text-center align-middle">
+                    <th width="3%" class="text-center align-middle">
                         <div class="form-check">
                             <input type="checkbox" id="select-all" class="form-check-input cursor-pointer">
                         </div>
                     </th>
-                    <th width="5%" class="align-middle">ID</th>
-                    <th width="15%" class="align-middle">Tên sự kiện</th>
-                    <th width="10%" class="align-middle">Thời gian</th>
+                    <th width="3%" class="align-middle">ID</th>
+                    <th width="14%" class="align-middle">Tên sự kiện</th>
+                    <th width="12%" class="align-middle">Thời gian</th>
                     <th width="10%" class="align-middle">Địa điểm</th>
                     <th width="10%" class="align-middle">Loại sự kiện</th>
-                    <th width="10%" class="text-center align-middle">Hình thức</th>
+                    <th width="9%" class="align-middle">Hình thức</th>
+                    <th width="9%" class="align-middle">Tham gia</th>
                     <th width="5%" class="text-center align-middle">Trạng thái</th>
                     <th width="10%" class="text-center align-middle">Ngày xóa</th>
-                    <th width="10%" class="text-center align-middle">Thao tác</th>
+                    <th width="8%" class="text-center align-middle">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,33 +42,77 @@ $loaiSuKienList = $loaiSuKienModel->getForDropdown(false);
                                 <div class="form-check">
                                     <input class="form-check-input checkbox-item cursor-pointer" 
                                            type="checkbox" name="selected_ids[]" 
-                                           value="<?= $item->su_kien_id ?>">
+                                           value="<?= $item->getId() ?>">
                                 </div>
                             </td>
-                            <td><?= esc($item->su_kien_id) ?></td>
-                            <td><?= esc($item->ten_su_kien) ?></td>
+                            <td><?= $item->getId() ?></td>
                             <td>
-                                <div>Từ: <?= date('d/m/Y H:i', strtotime($item->thoi_gian_bat_dau)) ?></div>
-                                <div>Đến: <?= date('d/m/Y H:i', strtotime($item->thoi_gian_ket_thuc)) ?></div>
+                                <div class="fw-bold"><?= esc($item->getTenSuKien()) ?></div>
+                                <?php if ($item->getSlug()): ?>
+                                <div class="small text-muted"><?= $item->getSlug() ?></div>
+                                <?php endif; ?>
+                                <?php if ($item->getDonViToChuc()): ?>
+                                <div class="small text-muted">
+                                    <i class="bx bx-buildings me-1"></i><?= esc($item->getDonViToChuc()) ?>
+                                </div>
+                                <?php endif; ?>
                             </td>
-                            <td><?= esc($item->dia_diem) ?></td>
-                            <td><?= esc($loaiSuKienList[$item->loai_su_kien_id] ?? 'Không xác định') ?></td>
-                            <td class="text-center">
-                                <?php if ($item->hinh_thuc == 'offline'): ?>
+                            <td>
+                                <div>Từ: <?= $item->getThoiGianBatDauFormatted('d/m/Y H:i') ?></div>
+                                <div>Đến: <?= $item->getThoiGianKetThucFormatted('d/m/Y H:i') ?></div>
+                                <?php if ($item->getThoiGianCheckinBatDau()): ?>
+                                <div class="small text-muted">
+                                    <i class="bx bx-log-in me-1"></i>Check-in: 
+                                    <?= $item->getThoiGianCheckinBatDauFormatted('d/m/Y H:i') ?>
+                                </div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div><?= esc($item->getDiaDiem()) ?></div>
+                                <?php if ($item->getDiaChiCuThe()): ?>
+                                <div class="small text-muted"><?= esc($item->getDiaChiCuThe()) ?></div>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= esc($item->getTenLoaiSuKien()) ?></td>
+                            <td>
+                                <?php $hinhThuc = $item->getHinhThuc(); ?>
+                                <?php if ($hinhThuc == 'offline'): ?>
                                     <span class="badge bg-primary">Trực tiếp</span>
-                                <?php elseif ($item->hinh_thuc == 'online'): ?>
+                                <?php elseif ($hinhThuc == 'online'): ?>
                                     <span class="badge bg-info">Trực tuyến</span>
-                                <?php elseif ($item->hinh_thuc == 'hybrid'): ?>
+                                    <?php if ($item->getLinkOnline()): ?>
+                                    <div class="small mt-1">
+                                        <a href="<?= esc($item->getLinkOnline()) ?>" target="_blank" class="text-primary">
+                                            <i class="bx bx-link-external me-1"></i>Link
+                                        </a>
+                                    </div>
+                                    <?php endif; ?>
+                                <?php elseif ($hinhThuc == 'hybrid'): ?>
                                     <span class="badge bg-secondary">Kết hợp</span>
                                 <?php else: ?>
                                     <span class="badge bg-dark">Không xác định</span>
                                 <?php endif; ?>
                             </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-user me-1"></i>
+                                    <span>Giới hạn: <?= $item->getSoLuongThamGia() ?></span>
+                                </div>
+                                <div class="d-flex align-items-center small">
+                                    <i class="bx bx-user-check me-1 text-success"></i>
+                                    <span class="text-success">Đăng ký: <?= $item->getTongDangKy() ?></span>
+                                </div>
+                                <div class="d-flex align-items-center small">
+                                    <i class="bx bx-log-in-circle me-1 text-info"></i>
+                                    <span class="text-info">Check-in: <?= $item->getTongCheckIn() ?></span>
+                                </div>
+                            </td>
                             <td class="text-center">
-                                <?php if ($item->status == 1): ?>
-                                    <span class="badge bg-success">Hoạt động</span>
-                                <?php else: ?>
-                                    <span class="badge bg-danger">Vô hiệu</span>
+                                <?= $item->getStatusHtml() ?>
+                                <?php if ($item->getSoLuotXem() > 0): ?>
+                                <div class="small text-muted mt-1">
+                                    <i class="bx bx-show me-1"></i><?= $item->getSoLuotXem() ?>
+                                </div>
                                 <?php endif; ?>
                             </td>
                             <td class="text-center">
@@ -76,14 +121,14 @@ $loaiSuKienList = $loaiSuKienModel->getForDropdown(false);
                             <td>
                                 <div class="d-flex justify-content-center gap-1 action-btn-group">
                                     <button type="button" class="btn btn-success btn-sm btn-restore" 
-                                            data-id="<?= $item->su_kien_id ?>" 
-                                            data-name="<?= esc($item->ten_su_kien) ?>"
+                                            data-id="<?= $item->getId() ?>" 
+                                            data-name="<?= esc($item->getTenSuKien()) ?>"
                                             data-bs-toggle="tooltip" title="Khôi phục">
                                         <i class="bx bx-revision"></i>
                                     </button>
                                     <button type="button" class="btn btn-danger btn-sm btn-permanent-delete" 
-                                            data-id="<?= $item->su_kien_id ?>" 
-                                            data-name="<?= esc($item->ten_su_kien) ?>"
+                                            data-id="<?= $item->getId() ?>" 
+                                            data-name="<?= esc($item->getTenSuKien()) ?>"
                                             data-bs-toggle="tooltip" title="Xóa vĩnh viễn">
                                         <i class="bx bx-trash"></i>
                                     </button>
@@ -93,7 +138,7 @@ $loaiSuKienList = $loaiSuKienModel->getForDropdown(false);
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="10" class="text-center py-3">
+                        <td colspan="11" class="text-center py-3">
                             <div class="empty-state">
                                 <i class="bx bx-folder-open"></i>
                                 <p>Không có dữ liệu sự kiện đã xóa</p>

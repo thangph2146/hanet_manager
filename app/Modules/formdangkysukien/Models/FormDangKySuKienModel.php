@@ -9,7 +9,7 @@ use CodeIgniter\I18n\Time;
 
 class FormDangKySuKienModel extends BaseModel
 {
-    protected $table = 'form_dang_ky_su_kien';
+    protected $table = 'form_dangky_sukien';
     protected $primaryKey = 'form_id';
     protected $useAutoIncrement = true;
     

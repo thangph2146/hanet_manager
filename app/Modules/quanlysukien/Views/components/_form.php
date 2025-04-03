@@ -503,50 +503,155 @@ if (is_object($data)) {
         </div>
     </div>
 
-    <!-- Thông tin check-in -->
+    <!-- Thông tin check-in và check-out -->
     <div class="col-12">
         <div class="card mb-4 shadow-sm form-card">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0 text-white">
-                    <i class="fas fa-qrcode me-2"></i> Thông tin check-in/check-out
+                    <i class="fas fa-check-circle me-2"></i> Thông tin check-in và check-out
                 </h5>
             </div>
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="cho_phep_check_in" name="cho_phep_check_in" value="1" <?= $cho_phep_check_in ? 'checked' : '' ?>>
+                        <label for="thoi_gian_checkin_bat_dau" class="form-label fw-bold">
+                            <i class="fas fa-clock text-primary me-1"></i> Thời gian bắt đầu check-in
+                        </label>
+                        <input type="datetime-local" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('thoi_gian_checkin_bat_dau') ? 'is-invalid' : '' ?>" 
+                               id="thoi_gian_checkin_bat_dau" name="thoi_gian_checkin_bat_dau" 
+                               value="<?= is_object($data) ? $data->getThoiGianCheckinBatDau() : '' ?>">
+                        <?php if (isset($validation) && $validation->hasError('thoi_gian_checkin_bat_dau')) : ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('thoi_gian_checkin_bat_dau') ?>
+                            </div>
+                        <?php endif ?>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="thoi_gian_checkin_ket_thuc" class="form-label fw-bold">
+                            <i class="fas fa-clock text-primary me-1"></i> Thời gian kết thúc check-in
+                        </label>
+                        <input type="datetime-local" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('thoi_gian_checkin_ket_thuc') ? 'is-invalid' : '' ?>" 
+                               id="thoi_gian_checkin_ket_thuc" name="thoi_gian_checkin_ket_thuc" 
+                               value="<?= is_object($data) ? $data->getThoiGianCheckinKetThuc() : '' ?>">
+                        <?php if (isset($validation) && $validation->hasError('thoi_gian_checkin_ket_thuc')) : ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('thoi_gian_checkin_ket_thuc') ?>
+                            </div>
+                        <?php endif ?>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" id="cho_phep_check_in" name="cho_phep_check_in" value="1"
+                                  <?= $cho_phep_check_in ? 'checked' : '' ?>>
                             <label class="form-check-label fw-bold" for="cho_phep_check_in">
-                                <i class="fas fa-sign-in-alt text-primary me-1"></i> Cho phép check-in
+                                <i class="fas fa-door-open text-success me-1"></i> Cho phép check-in
                             </label>
                         </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="cho_phep_check_out" name="cho_phep_check_out" value="1" <?= $cho_phep_check_out ? 'checked' : '' ?>>
+                    <div class="col-md-3">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" id="cho_phep_check_out" name="cho_phep_check_out" value="1"
+                                  <?= $cho_phep_check_out ? 'checked' : '' ?>>
                             <label class="form-check-label fw-bold" for="cho_phep_check_out">
-                                <i class="fas fa-sign-out-alt text-primary me-1"></i> Cho phép check-out
+                                <i class="fas fa-door-closed text-danger me-1"></i> Cho phép check-out
                             </label>
                         </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="yeu_cau_face_id" name="yeu_cau_face_id" value="1" <?= $yeu_cau_face_id ? 'checked' : '' ?>>
+                    <div class="col-md-3">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" id="yeu_cau_face_id" name="yeu_cau_face_id" value="1"
+                                  <?= $yeu_cau_face_id ? 'checked' : '' ?>>
                             <label class="form-check-label fw-bold" for="yeu_cau_face_id">
                                 <i class="fas fa-user-check text-primary me-1"></i> Yêu cầu xác thực khuôn mặt
                             </label>
                         </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="cho_phep_checkin_thu_cong" name="cho_phep_checkin_thu_cong" value="1" <?= $cho_phep_checkin_thu_cong ? 'checked' : '' ?>>
+                    <div class="col-md-3">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" id="cho_phep_checkin_thu_cong" name="cho_phep_checkin_thu_cong" value="1"
+                                  <?= $cho_phep_checkin_thu_cong ? 'checked' : '' ?>>
                             <label class="form-check-label fw-bold" for="cho_phep_checkin_thu_cong">
-                                <i class="fas fa-user-edit text-primary me-1"></i> Cho phép check-in thủ công
+                                <i class="fas fa-edit text-warning me-1"></i> Cho phép check-in thủ công
                             </label>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin thêm -->
+    <div class="col-12">
+        <div class="card mb-4 shadow-sm form-card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-cog me-2"></i> Thông tin bổ sung
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="so_luong_tham_gia" class="form-label fw-bold">
+                            <i class="fas fa-users text-primary me-1"></i> Số lượng người tham gia tối đa
+                        </label>
+                        <input type="number" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('so_luong_tham_gia') ? 'is-invalid' : '' ?>" 
+                               id="so_luong_tham_gia" name="so_luong_tham_gia" 
+                               value="<?= $so_luong_tham_gia ?>" min="0">
+                        <?php if (isset($validation) && $validation->hasError('so_luong_tham_gia')) : ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('so_luong_tham_gia') ?>
+                            </div>
+                        <?php endif ?>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="doi_tuong_tham_gia" class="form-label fw-bold">
+                            <i class="fas fa-user-tag text-primary me-1"></i> Đối tượng tham gia
+                        </label>
+                        <input type="text" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('doi_tuong_tham_gia') ? 'is-invalid' : '' ?>" 
+                               id="doi_tuong_tham_gia" name="doi_tuong_tham_gia" 
+                               value="<?= is_object($data) ? $data->getDoiTuongThamGia() : '' ?>" 
+                               placeholder="Sinh viên, Giảng viên, Cán bộ, v.v.">
+                        <?php if (isset($validation) && $validation->hasError('doi_tuong_tham_gia')) : ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('doi_tuong_tham_gia') ?>
+                            </div>
+                        <?php endif ?>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="don_vi_to_chuc" class="form-label fw-bold">
+                            <i class="fas fa-building text-primary me-1"></i> Đơn vị tổ chức
+                        </label>
+                        <input type="text" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('don_vi_to_chuc') ? 'is-invalid' : '' ?>" 
+                               id="don_vi_to_chuc" name="don_vi_to_chuc" 
+                               value="<?= is_object($data) ? $data->getDonViToChuc() : '' ?>" 
+                               placeholder="Nhập đơn vị tổ chức">
+                        <?php if (isset($validation) && $validation->hasError('don_vi_to_chuc')) : ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('don_vi_to_chuc') ?>
+                            </div>
+                        <?php endif ?>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="don_vi_phoi_hop" class="form-label fw-bold">
+                            <i class="fas fa-handshake text-primary me-1"></i> Đơn vị phối hợp
+                        </label>
+                        <input type="text" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('don_vi_phoi_hop') ? 'is-invalid' : '' ?>" 
+                               id="don_vi_phoi_hop" name="don_vi_phoi_hop" 
+                               value="<?= is_object($data) ? $data->getDonViPhoiHop() : '' ?>" 
+                               placeholder="Nhập đơn vị phối hợp (nếu có)">
+                        <?php if (isset($validation) && $validation->hasError('don_vi_phoi_hop')) : ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('don_vi_phoi_hop') ?>
+                            </div>
+                        <?php endif ?>
                     </div>
                 </div>
             </div>

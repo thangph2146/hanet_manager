@@ -8,7 +8,7 @@ use App\Modules\quanlysukien\Entities\SuKien;
 
 class FormDangKySuKien extends BaseEntity
 {
-    protected $tableName = 'form_dang_ky_su_kien';
+    protected $tableName = 'form_dangky_sukien';
     protected $primaryKey = 'form_id';
     
     protected $dates = [

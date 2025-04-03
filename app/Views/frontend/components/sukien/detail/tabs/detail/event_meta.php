@@ -30,6 +30,9 @@
                     <div>
                         <h6 class="mb-1 fw-bold">Địa điểm</h6>
                         <span><?= $event['dia_diem'] ?></span>
+                        <?php if (!empty($event['dia_chi_cu_the'])): ?>
+                        <div class="small text-muted mt-1"><?= $event['dia_chi_cu_the'] ?></div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -44,5 +47,35 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Thêm thông tin về hình thức tổ chức (online/offline) -->
+            <div class="col-md-6 mb-3">
+                <div class="meta-item d-flex align-items-center">
+                    <div class="icon-container me-3">
+                        <i class="lni lni-laptop-phone text-primary"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Hình thức</h6>
+                        <span><?= isset($event['hinh_thuc']) ? $event['hinh_thuc'] : 'Offline' ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hiển thị thông tin liên kết nếu là sự kiện online -->
+            <?php if (isset($event['hinh_thuc']) && strtolower($event['hinh_thuc']) == 'online' && !empty($event['link_online'])): ?>
+            <div class="col-md-6 mb-3">
+                <div class="meta-item d-flex align-items-center">
+                    <div class="icon-container me-3">
+                        <i class="lni lni-link text-primary"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Liên kết tham gia</h6>
+                        <a href="<?= $event['link_online'] ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-1">
+                            <i class="lni lni-video"></i> Tham gia online
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </div>

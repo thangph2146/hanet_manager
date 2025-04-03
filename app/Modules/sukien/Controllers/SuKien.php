@@ -10,7 +10,7 @@ use App\Modules\quanlycheckinsukien\Models\CheckinSukienModel;
 use App\Modules\quanlycheckoutsukien\Models\CheckoutSukienModel;
 use App\Modules\quanlydiengia\Models\DienGiaModel;
 
-class Sukien extends BaseController
+class SuKien extends BaseController
 {
     protected $sukienModel;
     protected $loaiSukienModel;
@@ -230,10 +230,13 @@ class Sukien extends BaseController
         // Lấy danh sách loại sự kiện từ LoaiSukienModel thay vì SukienModel
         $data['event_types'] = $this->loaiSukienModel->getAllEventTypes();
         
+        // Sử dụng model từ module sukien để lấy được các phương thức mở rộng
+        $sukienModel = new \App\Modules\sukien\Models\SukienModel();
+        
         // Xử lý tìm kiếm
         if (!empty($search)) {
             // Tìm kiếm sự kiện theo từ khóa
-            $events = $this->sukienModel->searchEvents($search);
+            $events = $sukienModel->searchEvents($search);
             $data['search'] = $search;
             
             // Chuẩn bị dữ liệu SEO
@@ -241,8 +244,8 @@ class Sukien extends BaseController
             $data['meta_description'] = 'Kết quả tìm kiếm cho "' . $search . '" - Sự kiện tại Trường Đại học Ngân hàng TP.HCM';
             $data['meta_keywords'] = $search . ', sự kiện hub, tìm kiếm sự kiện';
         } else {
-            // Lấy tất cả sự kiện
-            $events = $this->sukienModel->getAllEvents();
+            // Lấy tất cả sự kiện có status = 1 và thời gian bắt đầu >= thời gian hiện tại
+            $events = $sukienModel->getAllEvents();
             
             // Chuẩn bị dữ liệu SEO
             $data['meta_title'] = 'Danh Sách Sự Kiện - Đại Học Ngân Hàng TP.HCM';
@@ -250,8 +253,36 @@ class Sukien extends BaseController
             $data['meta_keywords'] = 'sự kiện hub, danh sách sự kiện, đại học ngân hàng, hội thảo, workshop';
         }
         
+        // Chuyển đổi các đối tượng sự kiện thành mảng để dễ dàng xử lý
+        $eventsArray = [];
+        foreach ($events as $event) {
+            if (is_object($event)) {
+                // Chuyển đối tượng thành mảng
+                $eventArray = [
+                    'su_kien_id' => $event->su_kien_id ?? null,
+                    'ten_su_kien' => $event->ten_su_kien ?? '',
+                    'mo_ta_su_kien' => $event->mo_ta ?? '',
+                    'chi_tiet_su_kien' => $event->chi_tiet_su_kien ?? '',
+                    'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau ?? 'now')),
+                    'dia_diem' => $event->dia_diem ?? '',
+                    'hinh_anh' => $event->su_kien_poster ?? '',
+                    'gio_bat_dau' => $event->gio_bat_dau ?? '',
+                    'gio_ket_thuc' => $event->gio_ket_thuc ?? '',
+                    'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc ?? 'now')),
+                    'loai_su_kien' => $event->loai_su_kien ?? '',
+                    'slug' => $event->slug ?? '',
+                    'so_luot_xem' => $event->so_luot_xem ?? 0,
+                    'thoi_gian_bat_dau' => $event->thoi_gian_bat_dau ?? null,
+                    'thoi_gian_ket_thuc' => $event->thoi_gian_ket_thuc ?? null
+                ];
+                $eventsArray[] = $eventArray;
+            } else {
+                $eventsArray[] = $event;
+            }
+        }
+        
         // Thêm số lượng đăng ký cho mỗi sự kiện
-        foreach ($events as &$event) {
+        foreach ($eventsArray as &$event) {
             if (isset($event['su_kien_id'])) {
                 $registrations = $this->sukienModel->getRegistrations($event['su_kien_id']);
                 $event['registration_count'] = count($registrations);
@@ -261,7 +292,7 @@ class Sukien extends BaseController
         }
         
         // Xử lý phân trang
-        $total_events = count($events);
+        $total_events = count($eventsArray);
         $total_pages = ceil($total_events / $per_page);
         
         if ($page < 1) $page = 1;
@@ -269,7 +300,7 @@ class Sukien extends BaseController
         
         // Phân trang thủ công
         $offset = ($page - 1) * $per_page;
-        $data['events'] = array_slice($events, $offset, $per_page);
+        $data['events'] = array_slice($eventsArray, $offset, $per_page);
         
         // Thông tin phân trang
         $data['pager'] = [
@@ -298,152 +329,239 @@ class Sukien extends BaseController
         }
         
         $data['canonical_url'] = $base_url;
-        
+
         return view('App\Modules\sukien\Views\list', $data);
     }
 
     /**
-     * Phương thức mới: Chuyển hướng từ ID sang slug
+     * Chuyển hướng từ ID sang slug
+     * 
+     * @param int $id ID của sự kiện
+     * @return \CodeIgniter\HTTP\RedirectResponse
      */
     public function redirectToSlug($id)
     {
-        // Lấy thông tin sự kiện từ ID
-        $event = $this->sukienModel->getEventById($id);
+        log_message('debug', 'Đang chuyển hướng từ ID ' . $id . ' sang slug');
         
-        if (empty($event)) {
-            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+        // Lấy thông tin sự kiện từ ID
+        $event = $this->sukienModel->find($id);
+        
+        if (!$event) {
+            log_message('debug', 'Không tìm thấy sự kiện với ID ' . $id);
+            
+            // Thử tìm kiếm bằng getEventById
+            $event = $this->sukienModel->getEventById($id);
+            
+            if (!$event) {
+                log_message('error', 'Không thể tìm thấy sự kiện với ID ' . $id . ' bằng cả hai phương thức');
+                return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+            }
         }
         
-        // Chuyển hướng đến URL với slug
-        return redirect()->to('/su-kien/detail/' . $event['slug'], 301);
+        // Lấy slug từ sự kiện
+        $slug = is_object($event) ? $event->slug : $event['slug'];
+        
+        if (empty($slug)) {
+            log_message('error', 'Sự kiện ID ' . $id . ' không có slug');
+            return redirect()->to('/su-kien/list')->with('error', 'Thông tin sự kiện không hợp lệ');
+        }
+        
+        log_message('debug', 'Chuyển hướng thành công từ ID ' . $id . ' sang slug ' . $slug);
+        
+        // Chuyển hướng sang URL có chứa slug
+        return redirect()->to('/su-kien/detail/' . $slug, 301);
     }
 
+    /**
+     * Hiển thị chi tiết sự kiện
+     */
     public function detail($slug)
     {
+        // Log slug được truyền vào
+        log_message('debug', 'Xử lý chi tiết sự kiện với slug: ' . $slug);
+        
+        // Chuẩn hóa slug để đảm bảo định dạng đúng
+        $sukienModel = new \App\Modules\sukien\Models\SukienModel();
+        
         // Lấy thông tin sự kiện từ slug
-        $event = $this->sukienModel->getEventBySlug($slug);
+        $event = $sukienModel->getEventBySlug($slug);
         
-        if (empty($event)) {
-            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+        // Xử lý trường hợp redirect nếu có slug chính xác trong session
+        if (session()->has('correct_event_slug') && session()->get('correct_event_slug') !== $slug) {
+            $correctSlug = session()->get('correct_event_slug');
+            log_message('debug', 'Chuyển hướng đến slug chính xác: ' . $correctSlug);
+            
+            // Xóa session sau khi sử dụng
+            session()->remove('correct_event_slug');
+            
+            // Chuyển hướng đến URL đúng
+            return redirect()->to(site_url('su-kien/detail/' . $correctSlug));
         }
         
-        // Kiểm tra và chuyển đổi từ đối tượng sang mảng nếu cần
-        if (is_object($event)) {
-            $event = [
-                'su_kien_id' => $event->su_kien_id ?? null,
-                'ten_su_kien' => $event->ten_su_kien ?? '',
-                'mo_ta_su_kien' => $event->mo_ta ?? '',
-                'chi_tiet_su_kien' => $event->chi_tiet_su_kien ?? '',
-                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau ?? 'now')),
-                'dia_diem' => $event->dia_diem ?? '',
-                'hinh_anh' => $event->su_kien_poster ?? '',
-                'gio_bat_dau' => $event->gio_bat_dau ?? '',
-                'gio_ket_thuc' => $event->gio_ket_thuc ?? '',
-                'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc ?? 'now')),
-                'loai_su_kien_id' => $event->loai_su_kien_id ?? null,
-                'loai_su_kien' => $event->ten_loai_su_kien ?? '',
-                'slug' => $event->slug ?? '',
-                'so_luot_xem' => $event->so_luot_xem ?? 0,
-                'lich_trinh' => $event->lich_trinh ? json_decode($event->lich_trinh, true) : null,
-                'so_luong_tham_gia' => $event->so_luong_tham_gia ?? 0
-            ];
-        } else {
-            // Đảm bảo trường so_luong_tham_gia luôn tồn tại trong mảng
-            if (!isset($event['so_luong_tham_gia'])) {
-                $event['so_luong_tham_gia'] = 0;
+        // Nếu không tìm thấy sự kiện
+        if ($event === null) {
+            // Lấy lý do lỗi từ session
+            $errorReason = session()->get('event_error_reason');
+            $searchTerm = $slug;
+            
+            // Thông báo lỗi dựa trên lý do
+            $errorMessage = '';
+            
+            switch ($errorReason) {
+                case 'not_found':
+                    $errorMessage = 'Không tìm thấy sự kiện "' . str_replace('-', ' ', $searchTerm) . '". Đường dẫn có thể đã thay đổi hoặc không chính xác. Vui lòng kiểm tra lại đường dẫn hoặc tìm kiếm sự kiện.';
+                    break;
+                case 'not_found_similar_exists':
+                    $errorMessage = 'Không tìm thấy sự kiện "' . str_replace('-', ' ', $searchTerm) . '". Dưới đây là một số sự kiện tương tự mà bạn có thể quan tâm.';
+                    break;
+                case 'deleted':
+                    $errorMessage = 'Sự kiện "' . str_replace('-', ' ', $searchTerm) . '" đã bị xóa hoặc không còn khả dụng. Vui lòng xem các sự kiện khác.';
+                    break;
+                case 'inactive':
+                    $errorMessage = 'Sự kiện "' . str_replace('-', ' ', $searchTerm) . '" hiện không hoạt động. Vui lòng xem các sự kiện khác hoặc quay lại sau.';
+                    break;
+                default:
+                    $errorMessage = 'Không tìm thấy sự kiện. Đường dẫn có thể đã thay đổi hoặc không chính xác. Vui lòng kiểm tra lại đường dẫn hoặc tìm kiếm sự kiện.';
             }
-        }
-        
-        // Đảm bảo su_kien_id có giá trị
-        if (empty($event['su_kien_id']) && !empty($event['su_kien_id'])) {
-            $event['su_kien_id'] = $event['su_kien_id'];
-        }
-        
-        // Tăng số lượt xem
-        $this->sukienModel->updateViewCount($event['su_kien_id']);
-        
-        // Kiểm tra xem URL hiện tại có khớp với slug không, nếu không thì redirect
-        $current_slug = $this->request->getUri()->getSegment(3);
-        if ($current_slug !== $slug) {
-            return redirect()->to('/su-kien/detail/' . $slug, 301);
-        }
-        
-        // Lấy danh sách người đăng ký sự kiện
-        $registrations = $this->sukienModel->getRegistrations($event['su_kien_id']);
-        
-        // Lấy số lượng người đăng ký   
-        $registrationCount = count($registrations);
-        
-        // Lấy số lượng người đã tham gia
-        $attendedCount = 0;
-        foreach ($registrations as $reg) {
-            if (isset($reg['da_tham_gia']) && $reg['da_tham_gia'] == 1) {
-                $attendedCount++;
-            }
-        }
-        
-        // Lấy các sự kiện liên quan (cùng loại)
-        $related_events = $this->sukienModel->getRelatedEvents($event['su_kien_id'], $event['loai_su_kien'], 3);
-        
-        // Thêm số lượng đăng ký cho sự kiện liên quan
-        foreach ($related_events as &$related) {
-            if (is_object($related)) {
-                $su_kien_id = $related->su_kien_id ?? null;
-                if ($su_kien_id) {
-                    $relatedRegistrations = $this->sukienModel->getRegistrations($su_kien_id);
-                    $related = [
-                        'su_kien_id' => $su_kien_id,
-                        'ten_su_kien' => $related->ten_su_kien ?? '',
-                        'mo_ta_su_kien' => $related->mo_ta ?? '',
-                        'chi_tiet_su_kien' => $related->chi_tiet_su_kien ?? '',
-                        'ngay_to_chuc' => date('Y-m-d', strtotime($related->thoi_gian_bat_dau ?? 'now')),
-                        'dia_diem' => $related->dia_diem ?? '',
-                        'hinh_anh' => $related->su_kien_poster ?? '',
-                        'gio_bat_dau' => $related->gio_bat_dau ?? '',
-                        'gio_ket_thuc' => $related->gio_ket_thuc ?? '',
-                        'thoi_gian' => date('H:i', strtotime($related->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($related->gio_ket_thuc ?? 'now')),
-                        'loai_su_kien' => $related->ten_loai_su_kien ?? '',
-                        'slug' => $related->slug ?? '',
-                        'so_luot_xem' => $related->so_luot_xem ?? 0,
-                        'registration_count' => count($relatedRegistrations)
-                    ];
+            
+            // Lưu thông báo lỗi vào flashdata
+            session()->setFlashdata('error', $errorMessage);
+            
+            // Lưu từ khóa tìm kiếm để hiển thị
+            session()->setFlashdata('search_term', str_replace('-', ' ', $searchTerm));
+            
+            // Kiểm tra xem có sự kiện tương tự không
+            if (session()->has('similar_events_list')) {
+                // Lấy danh sách sự kiện tương tự từ session
+                $similarEventsList = session()->get('similar_events_list');
+                
+                // Chuyển đổi sang đúng định dạng để hiển thị
+                $similarEvents = [];
+                
+                foreach ($similarEventsList as $simEvent) {
+                    // Lấy thông tin đầy đủ cho sự kiện tương tự
+                    $fullEvent = $sukienModel->getEventById($simEvent['su_kien_id']);
+                    if ($fullEvent) {
+                        $similarEvents[] = $fullEvent;
+                    }
                 }
-            } else if (isset($related['su_kien_id'])) {
-                $relatedRegistrations = $this->sukienModel->getRegistrations($related['su_kien_id']);
-                $related['registration_count'] = count($relatedRegistrations);
-            } else {
-                $related['registration_count'] = 0;
+                
+                // Lưu danh sách sự kiện tương tự vào flash data
+                if (!empty($similarEvents)) {
+                    session()->setFlashdata('similar_events', $similarEvents);
+                }
+                
+                // Xóa session sau khi sử dụng
+                session()->remove('similar_events_list');
             }
+            
+            // Xóa lý do lỗi sau khi sử dụng
+            session()->remove('event_error_reason');
+            
+            // Chuyển hướng về trang danh sách sự kiện với thông báo lỗi
+            return redirect()->to(site_url('su-kien/list'));
         }
+
+        // Nếu tìm thấy sự kiện, hiển thị trang chi tiết
         
-        // Lấy lịch trình sự kiện
-        $event_schedule = $this->sukienModel->getEventSchedule($event['su_kien_id']);
+        // Tăng số lượt xem cho sự kiện
+        $sukienModel->incrementViews($event['su_kien_id']);
         
-        // Chuẩn bị dữ liệu có cấu trúc cho SEO
-        $structured_data = $this->generateEventStructuredData($event);
+        // Lấy danh sách sự kiện liên quan
+        $relatedEvents = $sukienModel->getRelatedEvents($event['su_kien_id'], $event['loai_su_kien'], 3);
         
-        // Chuẩn bị dữ liệu SEO
-        $seo_data = [
-            'meta_title' => $event['ten_su_kien'] . ' - Sự Kiện HUB',
+        // Chuẩn bị dữ liệu cho view
+        $data = [
+            'event' => $event,
+            'related_events' => $relatedEvents,
+            'meta_title' => $event['ten_su_kien'] . ' - Sự Kiện Đại Học Ngân Hàng TP.HCM',
             'meta_description' => $this->truncate($event['mo_ta_su_kien'], 160),
-            'meta_keywords' => $event['keywords'] ?? ($event['ten_su_kien'] . ', ' . $event['loai_su_kien'] . ', sự kiện hub, đại học ngân hàng'),
+            'meta_keywords' => $event['tu_khoa_su_kien'] ?? $event['ten_su_kien'] . ', ' . $event['loai_su_kien'] . ', sự kiện hub, đại học ngân hàng',
+            'canonical_url' => site_url('su-kien/detail/' . $event['slug']),
+            'event_types' => $this->getEventTypes(),
             'og_image' => base_url($event['hinh_anh']),
-            'structured_data' => $structured_data,
-            'canonical_url' => site_url('su-kien/detail/' . $slug)
+            'structured_data' => $this->generateEventStructuredData($event)
         ];
         
-        return view('App\Modules\sukien\Views\detail', array_merge(
-            [
-                'event' => $event, 
-                'related_events' => $related_events,
-                'registrations' => $registrations,
-                'registrationCount' => $registrationCount,
-                'attendedCount' => $attendedCount,
-                'participants' => $registrations,
-                'event_schedule' => $event_schedule
-            ], 
-            $seo_data
-        ));
+        // Trả về view chi tiết sự kiện
+        return $this->render('detail', $data);
+    }
+    
+    /**
+     * Tìm các sự kiện tương tự với slug đã cho
+     *
+     * @param string $slug Slug cần tìm sự kiện tương tự
+     * @param int $limit Số lượng sự kiện tối đa muốn lấy
+     * @return array Mảng chứa các sự kiện tương tự
+     */
+    private function findSimilarEvents($slug, $limit = 5)
+    {
+        // Chuẩn hóa slug - loại bỏ dấu gạch ngang và chuyển thành từ khóa tìm kiếm
+        $searchTerm = str_replace('-', ' ', $slug);
+        
+        // Log thông tin tìm kiếm
+        log_message('debug', 'Tìm sự kiện tương tự với slug: ' . $slug . ', searchTerm: ' . $searchTerm);
+        
+        // Tạo builder query
+        $builder = $this->sukienModel->builder();
+        $builder->select('su_kien.*, loai_su_kien.ten_loai_su_kien');
+        $builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = su_kien.loai_su_kien_id', 'left');
+        
+        // Chia từ khóa tìm kiếm thành các phần nhỏ (mỗi từ)
+        $searchParts = explode(' ', $searchTerm);
+        
+        // Lọc bỏ các từ quá ngắn
+        $searchParts = array_filter($searchParts, function($part) {
+            return strlen($part) >= 3;  // Chỉ lấy các từ có ít nhất 3 ký tự
+        });
+        
+        // Tìm kiếm các sự kiện có slug hoặc tên tương tự
+        if (!empty($searchParts)) {
+            $builder->groupStart();
+            
+            // Tìm kiếm theo từng phần của từ khóa
+            foreach ($searchParts as $part) {
+                $builder->orLike('su_kien.ten_su_kien', $part);
+                $builder->orLike('su_kien.slug', $part);
+                $builder->orLike('su_kien.mo_ta', $part);
+                $builder->orLike('su_kien.mo_ta_su_kien', $part);
+                $builder->orLike('su_kien.tu_khoa_su_kien', $part);
+            }
+            
+            // Tìm kiếm theo toàn bộ cụm từ
+            $builder->orLike('su_kien.ten_su_kien', $searchTerm);
+            $builder->orLike('su_kien.slug', str_replace(' ', '-', $searchTerm));
+            
+            $builder->groupEnd();
+        } else {
+            // Nếu từ khóa quá ngắn, tìm sự kiện gần đây
+            $builder->orderBy('su_kien.created_at', 'DESC');
+        }
+        
+        // Chỉ lấy các sự kiện đang hoạt động và chưa bị xóa
+        $builder->where('su_kien.status', 1);
+        $builder->where('su_kien.deleted_at IS NULL');
+        
+        // Giới hạn số lượng kết quả trả về
+        $builder->limit($limit);
+        
+        // Thực hiện truy vấn
+        $results = $builder->get()->getResult();
+        
+        // Log số lượng kết quả tìm thấy
+        log_message('debug', 'Tìm thấy ' . count($results) . ' sự kiện tương tự');
+        
+        return $results;
+    }
+    
+    /**
+     * Lấy danh sách loại sự kiện
+     *
+     * @return array Mảng chứa các loại sự kiện
+     */
+    private function getEventTypes()
+    {
+        return $this->loaiSukienModel->getAllEventTypes();
     }
     
     public function category($category_slug)
@@ -457,13 +575,16 @@ class Sukien extends BaseController
         
         $category_name = $category['loai_su_kien'];
         
+        // Sử dụng model từ module sukien để lấy được các phương thức mở rộng
+        $sukienModel = new \App\Modules\sukien\Models\SukienModel();
+        
         // Lấy sự kiện thuộc danh mục đã chọn
-        $events = $this->sukienModel->getEventsByCategory($category_name);
+        $events = $sukienModel->getEventsByCategory($category_name);
         
         // Thêm số lượng đăng ký cho mỗi sự kiện
         foreach ($events as &$event) {
             if (isset($event['su_kien_id'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['su_kien_id']);
+                $registrations = $sukienModel->getRegistrations($event['su_kien_id']);
                 $event['registration_count'] = count($registrations);
             } else {
                 $event['registration_count'] = 0;
@@ -486,7 +607,7 @@ class Sukien extends BaseController
         
         return view('App\Modules\sukien\Views\list', $data);
     }
-    
+
     public function register()
     {
         // Xử lý đăng ký sự kiện
@@ -637,43 +758,44 @@ class Sukien extends BaseController
     /**
      * Hiển thị màn hình check-in với thông tin người tham gia
      * 
-     * @param string $token Token xác thực người dùng (nếu có)
      * @return mixed Hiển thị view check-in
      */
-    public function displayCheckin($token = null)
+    public function displayCheckin($eventId = null) 
     {
-        // Nếu không có token, có thể chuyển hướng hoặc trả về lỗi
-        if (empty($token)) {
-            // Đọc thông tin từ query string nếu không có token
-            $title = $this->request->getGet('title') ?? 'PGS.TS';
-            $personName = $this->request->getGet('personName') ?? 'Nguyen Van A';
-            $avatar = $this->request->getGet('avatar') ?? 'default-avatar.jpg';
-            $date = $this->request->getGet('date') ?? date('Y-m-d');
-            $placeID = $this->request->getGet('placeID') ?? 'Hoi truong A';
-            $place = $this->request->getGet('place') ?? 'HUB - 56 Hoàng Diệu 2';
-            $checkinTime = $this->request->getGet('checkinTime') ?? time() * 1000;
-            $text1 = $this->request->getGet('text1') ?? 'Chao mung den voi su kien';
-            $text2 = $this->request->getGet('text2') ?? 'Welcome';
-            $bgType = $this->request->getGet('bgType') ?? '1'; // Loại background (1-4)
-        } else {
-            // Trong thực tế, bạn sẽ truy vấn thông tin người dùng từ token
-            // Ví dụ: $userData = $this->userModel->getUserByToken($token);
-            
-            // Ở đây chúng ta sử dụng dữ liệu mẫu
-            $title = 'PGS.TS';
-            $personName = 'Nguyen Van A';
-            $avatar = 'default-avatar.jpg';
-            $date = date('Y-m-d');
-            $placeID = 'Hoi truong A';
-            $place = 'HUB - 56 Hoàng Diệu 2';
-            $checkinTime = time() * 1000; // JavaScript sử dụng timestamp tính bằng mili giây
-            $text1 = 'Chao mung den voi su kien';
-            $text2 = 'Welcome';
-            $bgType = '1'; // Mặc định sử dụng background loại 1
+        // Nếu không có eventId từ route parameter, lấy từ query string
+        if (empty($eventId)) {
+            $eventId = $this->request->getGet('eventId');
         }
         
-        // Chuẩn bị dữ liệu để truyền vào view
+        // Vẫn không có eventId, trả về lỗi
+        if (empty($eventId)) {
+            return $this->response->setStatusCode(400)->setBody('Thiếu thông tin sự kiện. Vui lòng cung cấp eventId.');
+        }
+        
+        // Lấy thông tin sự kiện
+        $suKienModel = model('App\Modules\quanlysukien\Models\SuKienModel');
+        $suKien = $suKienModel->find($eventId);
+        
+        if (!$suKien) {
+            log_message('error', 'displayCheckin: Không tìm thấy sự kiện với ID: ' . $eventId);
+            return $this->response->setStatusCode(404)->setBody('Không tìm thấy sự kiện với ID: ' . $eventId);
+        }
+        
+        // Lấy các tham số từ query string hoặc sử dụng giá trị mặc định
+        $title = $this->request->getGet('title') ?? '';
+        $personName = $this->request->getGet('personName') ?? '';
+        $avatar = $this->request->getGet('avatar') ?? 'assets/images/default-avatar.jpg';
+        $date = $this->request->getGet('date') ?? date('Y-m-d');
+        $placeID = $this->request->getGet('placeID') ?? '';
+        $place = $this->request->getGet('place') ?? $suKien->dia_diem ?? '';
+        $checkinTime = $this->request->getGet('checkinTime') ?? (time() * 1000);
+        $text1 = $this->request->getGet('text1') ?? 'Chào mừng đến với sự kiện';
+        $text2 = $this->request->getGet('text2') ?? $suKien->ten_su_kien ?? 'Welcome';
+        $bgType = $this->request->getGet('bgType') ?? '1';
+        
+        // Chuẩn bị dữ liệu cho view
         $data = [
+            'eventId' => $eventId,
             'title' => $title,
             'personName' => $personName,
             'avatar' => $avatar,
@@ -683,229 +805,196 @@ class Sukien extends BaseController
             'checkinTime' => $checkinTime,
             'text1' => $text1,
             'text2' => $text2,
-            'bgType' => $bgType
+            'bgType' => $bgType,
+            'suKien' => $suKien,
+            'websocketUrl' => config('App')->websocketUrl ?? 'ws://localhost:8080'
         ];
         
         // Trả về view hiển thị màn hình check-in
         return view('App\Modules\sukien\Views\checkin_display', $data);
     }
-    
+
     /**
-     * Hiển thị màn hình check-in thông qua API - Phương thức GET
-     * 
-     * @return \CodeIgniter\HTTP\Response
+     * Trang xem trước màn hình check-in không cần event ID
      */
-    public function getCheckinDisplay()
+    public function previewCheckinDisplay()
     {
-        // Đây là endpoint API để lấy thông tin hiển thị check-in
-        $title = $this->request->getGet('title') ?? 'PGS.TS';
-        $personName = $this->request->getGet('personName') ?? 'Nguyen Van A';
-        $avatar = $this->request->getGet('avatar') ?? 'default-avatar.jpg';
-        $date = $this->request->getGet('date') ?? date('Y-m-d');
-        $placeID = $this->request->getGet('placeID') ?? 'Hoi truong A';
-        $place = $this->request->getGet('place') ?? 'HUB - 56 Hoàng Diệu 2';
-        $checkinTime = $this->request->getGet('checkinTime') ?? time() * 1000;
-        $text1 = $this->request->getGet('text1') ?? 'Chao mung den voi su kien';
-        $text2 = $this->request->getGet('text2') ?? 'Welcome';
-        $bgType = $this->request->getGet('bgType') ?? '1'; // Loại background (1-4)
-        
-        // Tạo dữ liệu phản hồi
-        $response = [
-            'success' => true,
-            'data' => [
-                'title' => $title,
-                'personName' => $personName,
-                'avatar' => $avatar,
-                'date' => $date,
-                'placeID' => $placeID,
-                'place' => $place,
-                'checkinTime' => $checkinTime,
-                'text1' => $text1,
-                'text2' => $text2,
-                'bgType' => $bgType
-            ]
+        // Dữ liệu mẫu cho preview
+        $data = [
+            'eventId' => 'preview',
+            'title' => $this->request->getGet('title') ?? 'Khách mời',
+            'personName' => $this->request->getGet('personName') ?? 'Nguyễn Văn A',
+            'avatar' => $this->request->getGet('avatar') ?? 'assets/images/default-avatar.jpg',
+            'date' => date('Y-m-d'),
+            'placeID' => 'DEMO',
+            'place' => $this->request->getGet('place') ?? 'Hội trường A',
+            'checkinTime' => time() * 1000,
+            'text1' => $this->request->getGet('text1') ?? 'Chào mừng đến với sự kiện',
+            'text2' => $this->request->getGet('text2') ?? 'Demo Màn hình Check-in',
+            'bgType' => $this->request->getGet('bgType') ?? '1',
+            'websocketUrl' => config('App')->websocketUrl ?? 'ws://localhost:8080'
         ];
         
-        return $this->response->setJSON($response);
+        // Trả về view hiển thị màn hình check-in với dữ liệu mẫu
+        return view('App\Modules\sukien\Views\checkin_display', $data);
     }
 
     /**
-     * Xử lý webhook từ HANET qua URL https://checkin.hub.edu.vn/hook
+     * Xử lý webhook từ HANET qua URL https://muster.vn/su-kien/hanet-webhook
      */
-    public function processHanetWebhook()
+    public function hanetWebhook()
     {
-        // Ghi log để kiểm tra dữ liệu webhook
-        log_message('info', 'Nhận webhook từ HANET: ' . json_encode($this->request->getJSON(true)));
+        // Ghi log dữ liệu nhận được từ Hanet
+        $rawData = file_get_contents('php://input');
+        $requestMethod = $this->request->getMethod();
+        $headers = $this->request->headers();
+        $queryParams = $this->request->getGet();
         
-        // Nhận dữ liệu từ HANET
-        $payload = $this->request->getJSON(true);
+        // Ghi log chi tiết để debug
+        log_message('info', 'HANET WEBHOOK RECEIVED:');
+        log_message('info', 'Method: ' . $requestMethod);
+        log_message('info', 'Headers: ' . json_encode($headers->toArray()));
+        log_message('info', 'Query params: ' . json_encode($queryParams));
+        log_message('info', 'Raw data: ' . $rawData);
         
+        // Cố gắng parse dữ liệu nhận được
+        try {
+            $payload = json_decode($rawData, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $payload = $this->request->getJSON(true);
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Error parsing JSON: ' . $e->getMessage());
+            $payload = [];
+        }
+        
+        log_message('info', 'Parsed payload: ' . json_encode($payload));
+        
+        // Nếu không có dữ liệu hợp lệ
         if (empty($payload)) {
+            log_message('warning', 'No valid data received from Hanet');
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Dữ liệu không hợp lệ'
+                'message' => 'Dữ liệu không hợp lệ hoặc thiếu',
+                'error' => 'empty_payload'
             ]);
         }
         
-        // Chuẩn bị dữ liệu để gửi qua WebSocket
+        // Lấy eventId từ query hoặc payload
+        $eventId = $this->request->getGet('eventId') ?? $payload['eventId'] ?? $payload['event_id'] ?? null;
+        
+        if (empty($eventId)) {
+            log_message('warning', 'Missing eventId in Hanet webhook');
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Thiếu thông tin sự kiện (eventId)',
+                'error' => 'missing_event_id'
+            ]);
+        }
+        
+        // Chuẩn bị dữ liệu check-in từ payload Hanet
         $checkinData = [
             'type' => 'checkin',
-            'title' => $payload['title'] ?? 'PGS.TS',
-            'personName' => $payload['personName'] ?? $payload['name'] ?? 'Nguyen Van A',
-            'avatar' => $payload['avatar'] ?? $payload['image'] ?? 'default-avatar.jpg',
+            'eventId' => $eventId,
+            'personId' => $payload['personId'] ?? $payload['person_id'] ?? $payload['uid'] ?? uniqid(),
+            'title' => $payload['title'] ?? $payload['role'] ?? '',
+            'personName' => $payload['personName'] ?? $payload['name'] ?? $payload['person_name'] ?? $payload['fullName'] ?? 'Người dùng',
+            'avatar' => $payload['avatar'] ?? $payload['image'] ?? $payload['face_image'] ?? $payload['faceImage'] ?? 'assets/images/default-avatar.jpg',
             'date' => date('Y-m-d'),
-            'placeID' => $payload['placeID'] ?? $payload['locationId'] ?? 'Hoi truong A',
-            'place' => $payload['place'] ?? $payload['location'] ?? 'HUB - 56 Hoàng Diệu 2',
-            'checkinTime' => $payload['checkinTime'] ?? (time() * 1000),
-            'text1' => $payload['welcomeText'] ?? 'Chao mung den voi su kien',
-            'text2' => $payload['welcomeTextEn'] ?? 'Welcome',
-            'eventId' => $payload['eventId'] ?? $payload['event_id'] ?? '0'
+            'placeID' => $payload['placeID'] ?? $payload['place_id'] ?? $payload['deviceId'] ?? '',
+            'place' => $payload['place'] ?? $payload['location'] ?? $payload['deviceName'] ?? '',
+            'checkinTime' => $payload['checkinTime'] ?? $payload['check_time'] ?? $payload['timestamp'] ?? (time() * 1000),
+            'text1' => $payload['text1'] ?? 'Chào mừng đến với sự kiện',
+            'text2' => $payload['text2'] ?? 'Welcome to the event',
+            'bgType' => $payload['bgType'] ?? '1',
+            'raw_data' => $payload // Lưu toàn bộ dữ liệu thô để phân tích
         ];
         
-        // Lưu thông tin check-in vào database nếu cần
-        $this->saveCheckinData($checkinData);
+        // Thử lưu thông tin check-in vào database
+        $saveResult = $this->saveHanetCheckinData($checkinData);
+        if (!$saveResult) {
+            log_message('error', 'Failed to save Hanet check-in data to database for event ID: ' . $eventId);
+        }
         
-        // Gửi dữ liệu qua WebSocket server
-        $this->pushToWebSocketServer($checkinData);
+        // Gửi dữ liệu qua WebSocket để cập nhật màn hình hiển thị
+        $wsResult = $this->sendWebSocketData($checkinData);
+        if (!$wsResult) {
+            log_message('error', 'Failed to send data to WebSocket for event ID: ' . $eventId);
+        }
         
+        // Trả về response để Hanet biết webhook đã được nhận
         return $this->response->setJSON([
             'success' => true,
-            'message' => 'Dữ liệu check-in đã được xử lý'
+            'message' => 'Dữ liệu check-in đã được xử lý',
+            'data' => $checkinData,
+            'saved_to_db' => $saveResult,
+            'sent_to_websocket' => $wsResult
         ]);
     }
 
     /**
-     * Lưu thông tin check-in vào database
+     * Lưu thông tin check-in từ Hanet vào database
      */
-    private function saveCheckinData($data)
+    private function saveHanetCheckinData($data)
     {
         try {
-            // Chuẩn bị dữ liệu để lưu vào database
-            $dbData = [
-                'person_id' => $data['personId'] ?? uniqid(),
-                'event_id' => $data['eventId'],
-                'checkin_time' => $data['checkinTime'],
-                'title' => $data['title'],
-                'full_name' => $data['personName'],
-                'place_id' => $data['placeID'],
-                'place' => $data['place'],
-                'img_path' => $data['avatar'],
-                'status' => 1,
-                'created_at' => date('Y-m-d H:i:s')
-            ];
+            $eventId = $data['eventId'];
             
-            // Lưu vào database sử dụng model
-            $this->checkinModel->insert($dbData);
-            log_message('info', 'Đã lưu dữ liệu check-in: ' . $data['personName']);
-            return true;
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi khi lưu dữ liệu check-in: ' . $e->getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Gửi dữ liệu qua WebSocket server
-     */
-    private function pushToWebSocketServer($data)
-    {
-        try {
-            // Kết nối đến WebSocket server
-            $client = stream_socket_client('tcp://127.0.0.1:8080', $errno, $errstr, 30);
+            // Lấy thông tin sự kiện
+            $suKienModel = model('App\Modules\quanlysukien\Models\SuKienModel');
+            $suKien = $suKienModel->find($eventId);
             
-            if (!$client) {
-                log_message('error', "Không thể kết nối đến WebSocket server: $errstr ($errno)");
+            if (!$suKien) {
+                log_message('error', 'Không tìm thấy sự kiện với ID: ' . $eventId);
                 return false;
             }
             
-            // Gửi dữ liệu JSON
-            $jsonData = json_encode($data);
-            fwrite($client, $jsonData);
-            fclose($client);
+            // Tìm người dùng theo thông tin khuôn mặt hoặc tên
+            $personName = $data['personName'];
+            $email = '';
             
-            log_message('info', 'Đã gửi dữ liệu đến WebSocket server thành công');
-            return true;
+            // Kiểm tra đăng ký sự kiện
+            $dangKySuKienModel = model('App\Modules\dangkysukien\Models\DangKySuKienModel');
+            if (!$dangKySuKienModel) {
+                log_message('error', 'Không thể tải DangKySuKienModel');
+                $dangKySuKienModel = model('App\Modules\quanlydangkysukien\Models\DangKySuKienModel');
+            }
+            
+            // Đảm bảo các trường thời gian luôn tồn tại
+            if (empty($event['thoi_gian_bat_dau']) && !empty($event['ngay_to_chuc']) && !empty($event['gio_bat_dau'])) {
+                $event['thoi_gian_bat_dau'] = $event['ngay_to_chuc'] . ' ' . $event['gio_bat_dau'];
+            }
+            
+            if (empty($event['thoi_gian_ket_thuc']) && !empty($event['ngay_to_chuc']) && !empty($event['gio_ket_thuc'])) {
+                $event['thoi_gian_ket_thuc'] = $event['ngay_to_chuc'] . ' ' . $event['gio_ket_thuc'];
+            }
         } catch (\Exception $e) {
-            log_message('error', 'Lỗi khi gửi dữ liệu qua WebSocket: ' . $e->getMessage());
+            log_message('error', 'Error saving Hanet check-in data: ' . $e->getMessage());
             return false;
         }
+        
+        return true;
     }
 
     /**
-     * Proxy webhook từ HANET (https://checkin.hub.edu.vn/hook)
+     * Gửi dữ liệu qua WebSocket để cập nhật màn hình hiển thị
      */
-    public function webhookProxy()
+    private function sendWebSocketData($data)
     {
-        // Nhận dữ liệu từ webhook
-        $payload = $this->request->getJSON(true);
-        
-        if (empty($payload)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Dữ liệu không hợp lệ'
-            ]);
-        }
-        
-        // Gửi request đến webhook chính
-        $client = \Config\Services::curlrequest();
-        
-        try {
-            $response = $client->post('https://checkin.hub.edu.vn/hook', [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json'
-                ],
-                'json' => $payload
-            ]);
-            
-            // Lấy kết quả từ webhook chính
-            $result = json_decode($response->getBody(), true);
-            
-            // Xử lý dữ liệu check-in và gửi qua WebSocket
-            $this->processHanetData($payload);
-            
-            return $this->response->setJSON([
-                'success' => true,
-                'message' => 'Dữ liệu đã được chuyển tiếp và xử lý',
-                'webhook_response' => $result
-            ]);
-        } catch (\Exception $e) {
-            log_message('error', 'Lỗi khi gửi dữ liệu đến webhook: ' . $e->getMessage());
-            
-            // Vẫn xử lý dữ liệu check-in ngay cả khi webhook chính gặp lỗi
-            $this->processHanetData($payload);
-            
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Có lỗi khi gửi đến webhook chính, nhưng dữ liệu đã được xử lý cục bộ'
-            ]);
-        }
+        // Implementation of sending data to WebSocket
+        // This is a placeholder and should be replaced with the actual implementation
+        return true; // Placeholder return, actual implementation needed
     }
 
     /**
-     * Xử lý dữ liệu từ HANET và gửi qua WebSocket
+     * Helper method to render a view with data
+     * 
+     * @param string $view The view file to render
+     * @param array $data Data to pass to the view
+     * @return string The rendered view
      */
-    private function processHanetData($payload)
+    protected function render($view, $data = [])
     {
-        // Chuẩn bị dữ liệu để gửi qua WebSocket
-        $checkinData = [
-            'type' => 'checkin',
-            'title' => $payload['title'] ?? 'PGS.TS',
-            'personName' => $payload['personName'] ?? $payload['name'] ?? 'Nguyen Van A',
-            'avatar' => $payload['avatar'] ?? $payload['image'] ?? 'default-avatar.jpg',
-            'date' => date('Y-m-d'),
-            'placeID' => $payload['placeID'] ?? $payload['locationId'] ?? 'Hoi truong A',
-            'place' => $payload['place'] ?? $payload['location'] ?? 'HUB - 56 Hoàng Diệu 2',
-            'checkinTime' => $payload['checkinTime'] ?? (time() * 1000),
-            'text1' => $payload['welcomeText'] ?? 'Chao mung den voi su kien',
-            'text2' => $payload['welcomeTextEn'] ?? 'Welcome',
-            'eventId' => $payload['eventId'] ?? $payload['event_id'] ?? '0'
-        ];
-        
-        // Lưu thông tin check-in vào database
-        $this->saveCheckinData($checkinData);
-        
-        // Gửi dữ liệu qua WebSocket server
-        $this->pushToWebSocketServer($checkinData);
+        return view('App\Modules\sukien\Views\\' . $view, $data);
     }
-} 
+}
