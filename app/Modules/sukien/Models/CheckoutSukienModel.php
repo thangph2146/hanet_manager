@@ -13,4 +13,19 @@ class CheckoutSukienModel extends BaseModel
     {
         parent::__construct();
     }
+    
+    /**
+     * Kiểm tra xem người dùng đã check-out khỏi sự kiện chưa
+     * 
+     * @param int $userId ID của người dùng
+     * @param int $eventId ID của sự kiện
+     * @return bool
+     */
+    public function hasUserCheckedOut($userId, $eventId)
+    {
+        return $this->where('nguoi_dung_id', $userId)
+                    ->where('su_kien_id', $eventId)
+                    ->where('deleted_at IS NULL')
+                    ->countAllResults() > 0;
+    }
 } 

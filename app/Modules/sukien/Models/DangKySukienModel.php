@@ -51,9 +51,10 @@ class DangKySukienModel extends BaseModel
     /**
      * Tạo mã xác nhận ngẫu nhiên
      * 
+     * @param int $length Độ dài mã xác nhận
      * @return string
      */
-    private function generateConfirmationCode($length = 8)
+    public function generateConfirmationCode(int $length = 8): string
     {
         $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $code = '';
@@ -72,7 +73,7 @@ class DangKySukienModel extends BaseModel
      * @param int $eventId ID sự kiện
      * @return bool
      */
-    private function updateEventRegistrationCount($eventId)
+    protected function updateEventRegistrationCount($eventId)
     {
         $db = \Config\Database::connect();
         $builder = $db->table('su_kien');
@@ -85,5 +86,40 @@ class DangKySukienModel extends BaseModel
         // Cập nhật vào bảng sự kiện
         return $builder->where('su_kien_id', $eventId)
                       ->update(['tong_dang_ky' => $count]);
+    }
+    
+    /**
+     * Kiểm tra xem người dùng đã đăng ký sự kiện chưa
+     * 
+     * @param int $userId ID của người dùng hoặc email
+     * @param int $eventId ID của sự kiện
+     * @return bool
+     */
+    public function isRegistered($userId, $eventId)
+    {
+        // Kiểm tra xem $userId có phải là email không
+        if (filter_var($userId, FILTER_VALIDATE_EMAIL)) {
+            return $this->where('email', $userId)
+                        ->where('su_kien_id', $eventId)
+                        ->where('deleted_at IS NULL')
+                        ->countAllResults() > 0;
+        }
+        
+        // Nếu không phải email, lấy email của người dùng từ bảng users
+        $db = \Config\Database::connect();
+        $email = $db->table('users')
+                   ->select('email')
+                   ->where('id', $userId)
+                   ->get()
+                   ->getRow('email');
+        
+        if (!$email) {
+            return false;
+        }
+        
+        return $this->where('email', $email)
+                    ->where('su_kien_id', $eventId)
+                    ->where('deleted_at IS NULL')
+                    ->countAllResults() > 0;
     }
 } 

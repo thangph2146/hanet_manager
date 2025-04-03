@@ -521,4 +521,53 @@ class SukienModel extends BaseModel
         
         return $result;
     }
+    
+    /**
+     * Lấy thời gian còn lại đến sự kiện
+     * 
+     * @param string $ngayToChuc Ngày tổ chức dạng Y-m-d H:i:s
+     * @return array Mảng chứa số ngày, giờ, phút, giây còn lại
+     */
+    public function getTimeRemaining($ngayToChuc)
+    {
+        $eventTime = strtotime($ngayToChuc);
+        $currentTime = time();
+        $timeRemaining = $eventTime - $currentTime;
+        
+        if ($timeRemaining <= 0) {
+            return [
+                'days' => -1,
+                'hours' => 0,
+                'minutes' => 0,
+                'seconds' => 0,
+                'total' => 0
+            ];
+        }
+        
+        $days = floor($timeRemaining / 86400);
+        $hours = floor(($timeRemaining % 86400) / 3600);
+        $minutes = floor(($timeRemaining % 3600) / 60);
+        $seconds = $timeRemaining % 60;
+        
+        return [
+            'days' => $days,
+            'hours' => $hours,
+            'minutes' => $minutes,
+            'seconds' => $seconds,
+            'total' => $timeRemaining
+        ];
+    }
+    
+    /**
+     * Định dạng ngày tổ chức sự kiện
+     * 
+     * @param string $ngayToChuc Ngày tổ chức
+     * @param string $format Định dạng chuỗi ngày tháng
+     * @return string Ngày tổ chức đã được định dạng
+     */
+    public function formatNgayToChuc($ngayToChuc, $format = 'd/m/Y H:i')
+    {
+        $timestamp = strtotime($ngayToChuc);
+        return date($format, $timestamp);
+    }
 } 
