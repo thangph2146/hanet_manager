@@ -1150,4 +1150,13 @@ class SuKienModel extends BaseModel
         // Gọi phương thức update của lớp cha với dữ liệu đã được làm sạch
         return parent::update($id, $cleanData);
     }
+    public function getUpcomingEvents($limit = 5)
+    {
+        $builder = $this->builder();
+        $builder->where('status', 1);
+        $builder->where('deleted_at IS NULL');
+        $builder->orderBy('thoi_gian_bat_dau', 'ASC');
+        $builder->limit($limit);
+        return $builder->get()->getResult();
+    }   
 }

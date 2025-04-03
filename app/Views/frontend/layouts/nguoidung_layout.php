@@ -39,11 +39,6 @@
             
             <!-- Page Content -->
             <div class="container-fluid">
-                <?php if(uri_string() === 'nguoi-dung/dashboard'): ?>
-                    <?= $this->include('frontend/components/nguoidung/dashboard_stats') ?>
-                    <?= $this->include('frontend/components/nguoidung/upcoming_events') ?>
-                <?php endif; ?>
-                
                 <!-- Main Content from page being extended -->
                 <?= $this->renderSection('content') ?>
             </div>

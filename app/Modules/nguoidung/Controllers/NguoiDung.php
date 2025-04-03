@@ -4,15 +4,20 @@ namespace App\Modules\nguoidung\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\nguoidung\Models\NguoiDungModel;
+use App\Modules\quanlydangkysukien\Models\DangKySuKienModel;
+use App\Modules\quanlysukien\Models\SuKienModel;
 
 class NguoiDung extends BaseController
 {
     protected $nguoidungModel;
+    protected $dangkysukienModel;
+    protected $sukienModel;
     
     public function __construct()
     {
-        // Khởi tạo model nếu cần
-        // $this->nguoidungModel = new NguoiDungModel();
+        // Khởi tạo model
+        $this->dangkysukienModel = new DangKySuKienModel();
+        $this->sukienModel = new SuKienModel();
     }
     
     /**
@@ -33,181 +38,56 @@ class NguoiDung extends BaseController
      */
     public function dashboard()
     {
+        // Lấy thông tin người dùng hiện tại
+        $profile = getInfoStudent();
+        $email = $profile->Email;
+        
+        // Lấy các sự kiện đã đăng ký (tất cả trạng thái)
+        $registeredEvents = $this->dangkysukienModel->getRegistrationsByEmail($email, [
+            'join_event_info' => true,
+            'order' => [
+                'su_kien.thoi_gian_bat_dau' => 'DESC'
+            ],
+            'limit' => 5
+        ]);
+        
+        // Lấy các sự kiện đã tham gia
+        $attendedEvents = $this->dangkysukienModel->getRegistrationsByEmail($email, [
+            'join_event_info' => true,
+            'where' => [
+                'da_check_in' => 1
+            ],
+            'order' => [
+                'su_kien.thoi_gian_bat_dau' => 'DESC'
+            ],
+            'limit' => 5
+        ]);
+        
+        // Lấy số lượng thống kê
+        $registeredCount = $this->dangkysukienModel->countRegistrationsByEmail($email);
+        $attendedCount = $this->dangkysukienModel->countRegistrationsByEmail($email, [
+            'where' => ['da_check_in' => 1]
+        ]);
+        
+        // Lấy các sự kiện sắp diễn ra
+        $upcomingEvents = $this->sukienModel->getUpcomingEvents(5);
+        
         $data = [
             'title' => 'Dashboard',
-            'active_menu' => 'dashboard'
-        ];
-        return view('App\Modules\nguoidung\Views\dashboard', $data);
-    }
-    
-    /**
-     * Hiển thị trang quản lý sự kiện chính
-     */
-    public function events()
-    {
-        return redirect()->to(site_url('nguoi-dung/events/current'));
-    }
-    
-    /**
-     * Hiển thị trang sự kiện đang diễn ra
-     */
-    public function currentEvents()
-    {
-        // Logic để lấy dữ liệu sự kiện đang diễn ra
-        $data = [
-            'title' => 'Sự kiện đang diễn ra',
-            'active_menu' => 'current_events'
-            // Các dữ liệu khác nếu cần
-        ];
-        
-        return view('frontend/components/nguoidung/current_events', $data);
-    }
-    
-    /**
-     * Hiển thị trang danh sách sự kiện
-     */
-    public function eventsList()
-    {
-        $data = [
-            'title' => 'Danh sách sự kiện',
-            'active_menu' => 'events_list'
-            // Các dữ liệu khác nếu cần
-        ];
-        
-        return view('frontend/components/nguoidung/events_list', $data);
-    }
-    
-    /**
-     * Hiển thị trang lịch sử đăng ký sự kiện
-     */
-    public function eventsHistory()
-    {
-        $data = [
-            'title' => 'Lịch sử đăng ký sự kiện',
-            'active_menu' => 'events_history'
-            // Các dữ liệu khác nếu cần
-        ];
-        
-        return view('frontend/components/nguoidung/event_history', $data);
-    }
-    
-    /**
-     * Tham gia sự kiện
-     */
-    public function joinEvent($eventId = null)
-    {
-        if ($eventId === null) {
-            return redirect()->to(site_url('nguoi-dung/events/current'))->with('error', 'Không tìm thấy sự kiện');
-        }
-        
-        // Logic xử lý tham gia sự kiện
-        // ...
-        
-        return redirect()->to(site_url('nguoi-dung/events/current'))->with('success', 'Tham gia sự kiện thành công');
-    }
-    
-    /**
-     * Đăng ký sự kiện
-     */
-    public function registerEvent()
-    {
-        // Xử lý AJAX request đăng ký sự kiện
-        if ($this->request->isAJAX()) {
-            $eventId = $this->request->getPost('event_id');
-            
-            // Logic xử lý đăng ký
-            // ...
-            
-            return $this->response->setJSON([
-                'success' => true,
-                'message' => 'Đăng ký sự kiện thành công'
-            ]);
-        }
-        
-        return redirect()->to(site_url('nguoi-dung/events/current'));
-    }
-    
-    /**
-     * Hủy đăng ký sự kiện
-     */
-    public function cancelRegistration()
-    {
-        // Xử lý AJAX request hủy đăng ký
-        if ($this->request->isAJAX()) {
-            $eventId = $this->request->getPost('event_id');
-            $reason = $this->request->getPost('reason');
-            
-            // Logic xử lý hủy đăng ký
-            // ...
-            
-            return $this->response->setJSON([
-                'success' => true,
-                'message' => 'Hủy đăng ký sự kiện thành công'
-            ]);
-        }
-        
-        return redirect()->to(site_url('nguoi-dung/events/history'));
-    }
-    
-    /**
-     * Đăng ký lại sự kiện
-     */
-    public function registerAgain()
-    {
-        // Xử lý AJAX request đăng ký lại
-        if ($this->request->isAJAX()) {
-            $eventId = $this->request->getPost('event_id');
-            
-            // Logic xử lý đăng ký lại
-            // ...
-            
-            return $this->response->setJSON([
-                'success' => true,
-                'message' => 'Đăng ký lại sự kiện thành công'
-            ]);
-        }
-        
-        return redirect()->to(site_url('nguoi-dung/events/history'));
-    }
-    
-    /**
-     * Tải chứng chỉ sự kiện
-     */
-    public function downloadCertificate($certificateId = null)
-    {
-        if ($certificateId === null) {
-            return redirect()->to(site_url('nguoi-dung/events/history'))->with('error', 'Không tìm thấy chứng chỉ');
-        }
-        
-        // Logic xử lý tải chứng chỉ
-        // ...
-        
-        // Giả lập tải file
-        return $this->response->download('path/to/certificate.pdf', null);
-    }
-    
-    /**
-     * Hiển thị chi tiết sự kiện
-     */
-    public function eventDetails($eventId = null)
-    {
-        if ($eventId === null) {
-            return redirect()->to(site_url('nguoi-dung/events/current'))->with('error', 'Không tìm thấy sự kiện');
-        }
-        
-        // Logic lấy chi tiết sự kiện
-        // ...
-        
-        $data = [
-            'title' => 'Chi tiết sự kiện',
-            'active_menu' => 'events',
-            'event' => [
-                'id' => $eventId,
-                'title' => 'Tên sự kiện '.$eventId,
-                // Các thông tin khác về sự kiện
+            'active_menu' => 'dashboard',
+            'profile' => $profile,
+            'registeredEvents' => $registeredEvents,
+            'attendedEvents' => $attendedEvents,
+            'upcomingEvents' => $upcomingEvents,
+            'stats' => [
+                'registered' => $registeredCount,
+                'attended' => $attendedCount,
+                'completion_rate' => $registeredCount > 0 ? round(($attendedCount / $registeredCount) * 100) : 0
             ]
         ];
         
-        return view('frontend/components/nguoidung/event_details', $data);
+        return view('App\Modules\nguoidung\Views\dashboard', $data);
     }
+    
+   
 } 

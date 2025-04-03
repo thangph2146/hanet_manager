@@ -313,7 +313,7 @@ function initAjaxCalendar(containerId, options = {}) {
     function updateCalendarWithEvents() {
         // Cập nhật calendar với sự kiện
         state.events.forEach(event => {
-            const eventDate = new Date(event.ngay_su_kien);
+            const eventDate = new Date(event.thoi_gian_bat_dau);
             const day = eventDate.getDate();
             
             if (eventDate.getMonth() === state.currentMonth && eventDate.getFullYear() === state.currentYear) {

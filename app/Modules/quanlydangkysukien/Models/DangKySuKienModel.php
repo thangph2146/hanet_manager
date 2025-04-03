@@ -1271,4 +1271,73 @@ class DangKySuKienModel extends BaseModel
 
         return parent::update($id, $data);
     }
+
+    /**
+     * Lấy danh sách đăng ký sự kiện theo email người dùng
+     *
+     * @param string $email Email người dùng
+     * @param array $options Các tùy chọn bổ sung (limit, offset, where, order, join_event_info)
+     * @return array Danh sách đăng ký sự kiện
+     */
+    public function getRegistrationsByEmail(string $email, array $options = [])
+    {
+        $builder = $this->builder();
+        
+        // Thêm điều kiện email
+        $builder->where('dangky_sukien.email', $email);
+        
+        // Thêm các điều kiện bổ sung nếu có
+        if (isset($options['where']) && is_array($options['where'])) {
+            foreach ($options['where'] as $field => $value) {
+                $builder->where("dangky_sukien.{$field}", $value);
+            }
+        }
+        
+        // Join với bảng sự kiện nếu cần
+        if (isset($options['join_event_info']) && $options['join_event_info'] === true) {
+            $builder->select('dangky_sukien.*, su_kien.*')
+                    ->join('su_kien', 'su_kien.su_kien_id = dangky_sukien.su_kien_id', 'left');
+        }
+        
+        // Thêm sắp xếp
+        if (isset($options['order']) && is_array($options['order'])) {
+            foreach ($options['order'] as $field => $direction) {
+                $builder->orderBy($field, $direction);
+            }
+        } else {
+            $builder->orderBy('dangky_sukien.created_at', 'DESC');
+        }
+        
+        // Thêm giới hạn và phân trang
+        if (isset($options['limit']) && is_numeric($options['limit'])) {
+            $offset = isset($options['offset']) && is_numeric($options['offset']) ? $options['offset'] : 0;
+            $builder->limit($options['limit'], $offset);
+        }
+        
+        return $builder->get()->getResult();
+    }
+
+    /**
+     * Đếm số lượng đăng ký sự kiện theo email người dùng
+     *
+     * @param string $email Email người dùng
+     * @param array $options Các tùy chọn bổ sung (where)
+     * @return int Số lượng đăng ký sự kiện
+     */
+    public function countRegistrationsByEmail(string $email, array $options = [])
+    {
+        $builder = $this->builder();
+        
+        // Thêm điều kiện email
+        $builder->where('dangky_sukien.email', $email);
+        
+        // Thêm các điều kiện bổ sung nếu có
+        if (isset($options['where']) && is_array($options['where'])) {
+            foreach ($options['where'] as $field => $value) {
+                $builder->where("dangky_sukien.{$field}", $value);
+            }
+        }
+        
+        return $builder->countAllResults();
+    }
 } 

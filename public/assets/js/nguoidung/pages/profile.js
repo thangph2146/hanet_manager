@@ -310,7 +310,7 @@ class ProfilePage {
         let html = '';
         
         events.forEach(event => {
-            const eventDateObj = new Date(event.ngay_su_kien);
+            const eventDateObj = new Date(event.thoi_gian_bat_dau);
             const formattedDate = eventDateObj.toLocaleDateString('vi-VN', {
                 day: '2-digit',
                 month: '2-digit',
