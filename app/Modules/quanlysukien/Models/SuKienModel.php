@@ -1158,5 +1158,16 @@ class SuKienModel extends BaseModel
         $builder->orderBy('thoi_gian_bat_dau', 'ASC');
         $builder->limit($limit);
         return $builder->get()->getResult();
-    }   
+    }
+
+    /**
+     * Lấy danh sách các loại sự kiện (categories)
+     *
+     * @return array
+     */
+    public function getCategories()
+    {
+        $loaiSuKienModel = new \App\Modules\quanlyloaisukien\Models\LoaiSuKienModel();
+        return $loaiSuKienModel->getForDropdown(true);
+    }
 }

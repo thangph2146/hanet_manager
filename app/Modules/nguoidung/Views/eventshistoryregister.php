@@ -222,8 +222,8 @@
                     </div>
                     <h3>Bạn chưa đăng ký sự kiện nào</h3>
                     <p>Bạn chưa đăng ký sự kiện nào. Hãy tìm kiếm và đăng ký tham gia các sự kiện sắp tới.</p>
-                    <a href="<?= base_url('nguoidung/sukien') ?>" class="btn btn-find-events">
-                        <i class="fas fa-search"></i> Tìm kiếm sự kiện
+                    <a href="<?= base_url('su-kien') ?>" class="btn btn-find-events">
+                        <i class="fas fa-search text-white" style="color: white; width: 40px; height: 30px;"></i> Tìm kiếm sự kiện
                     </a>
                 </div>
             <?php endif; ?>
