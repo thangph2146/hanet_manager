@@ -9,7 +9,6 @@ $sitemap_controller_name = 'Sitemap';
 
 $routes->group($module_url, ['namespace' => 'App\Modules\sukien\Controllers'], function ($routes) use ($controller_name, $sitemap_controller_name) {
     $routes->get('/', $controller_name . '::index');
-    $routes->get('list', $controller_name . '::list');
     
     // Sử dụng slug thay vì ID cho trang chi tiết
     $routes->get('detail/(:num)', $controller_name . '::redirectToSlug/$1'); // Redirect từ ID sang slug
