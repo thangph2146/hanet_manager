@@ -89,5 +89,60 @@ class NguoiDung extends BaseController
         return view('App\Modules\nguoidung\Views\dashboard', $data);
     }
     
+    public function eventsCheckin()
+    {
+        // Lấy thông tin người dùng hiện tại
+        $profile = getInfoStudent();
+        $email = $profile->Email;
+        
+        // Lấy các sự kiện đã tham gia
+        $attendedEvents = $this->dangkysukienModel->getRegistrationsByEmail($email, [
+            'join_event_info' => true,
+            'where' => [
+                'da_check_in' => 1
+            ],
+            'order' => [
+                'su_kien.thoi_gian_bat_dau' => 'DESC'
+            ]
+        ]);
+        
+        $data = [
+            'title' => 'Sự kiện đã tham gia',
+            'active_menu' => 'events_checkin',
+            'profile' => $profile,
+            'attendedEvents' => $attendedEvents
+        ];
+        
+        return view('App\Modules\nguoidung\Views\eventscheckin', $data);
+    }
+
+    public function eventsHistoryRegister()
+    {
+        // Lấy thông tin người dùng hiện tại
+        $profile = getInfoStudent();
+        $email = $profile->Email;
+        
+        // Lấy các sự kiện đã đăng ký (tất cả trạng thái)
+        $registeredEvents = $this->dangkysukienModel->getRegistrationsByEmail($email, [
+            'join_event_info' => true,
+            'order' => [
+                'su_kien.thoi_gian_bat_dau' => 'DESC'
+            ]
+        ]);
+        
+        $data = [
+            'title' => 'Lịch sử đăng ký sự kiện',
+            'active_menu' => 'events_history_register',
+            'profile' => $profile,
+            'registeredEvents' => $registeredEvents
+        ];
+        
+        return view('App\Modules\nguoidung\Views\eventshistoryregister', $data);
+    }
+    
+    public function eventsList()
+    {
+        return view('App\Modules\nguoidung\Views\eventslist');
+    }
    
 } 

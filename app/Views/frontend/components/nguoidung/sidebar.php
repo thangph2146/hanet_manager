@@ -23,17 +23,16 @@ $menu_items = [
             'url' => 'nguoi-dung/events',
             'submenu' => [
                 [
-                    'text' => 'Sự kiện đang diễn ra',
-                    'url' => 'nguoi-dung/events/current',
-                    'badge' => 'Live'
+                    'text' => 'Danh sách sự kiện',
+                    'url' => 'nguoi-dung/events-list',
                 ],
                 [
-                    'text' => 'Danh sách sự kiện',
-                    'url' => 'nguoi-dung/events/list'
+                    'text' => 'Danh sách sự kiện đã tham gia',
+                    'url' => 'nguoi-dung/events-checkin'
                 ],
                 [
                     'text' => 'Lịch sử đăng ký',
-                    'url' => 'nguoi-dung/events/history',
+                    'url' => 'nguoi-dung/events-history-register',
                     'badge' => '10'
                 ]
             ]

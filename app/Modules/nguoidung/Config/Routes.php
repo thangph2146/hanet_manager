@@ -15,4 +15,7 @@ function ($routes) use ($controller_name) {
     $routes->get('/', $controller_name . '::index');
     $routes->get('profile', $controller_name . '::profile');
     $routes->get('dashboard', $controller_name . '::dashboard');
+    $routes->get('events-history-register', $controller_name . '::eventsHistoryRegister');
+    $routes->get('events-checkin', $controller_name . '::eventsCheckin');
+    $routes->get('events-list', $controller_name . '::eventsList');
 });
