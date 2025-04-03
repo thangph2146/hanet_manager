@@ -214,7 +214,7 @@ class Sukien extends BaseController
         $event = $this->sukienModel->getEventById($id);
         
         if (empty($event)) {
-            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+            return redirect()->to('/su-kien')->with('error', 'Không tìm thấy sự kiện');
         }
         
         // Chuyển hướng đến URL với slug
@@ -227,7 +227,7 @@ class Sukien extends BaseController
         $event = $this->sukienModel->getEventBySlug($slug);
         
         if (empty($event)) {
-            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+            return redirect()->to('/su-kien')->with('error', 'Không tìm thấy sự kiện');
         }
         
         // Kiểm tra xem URL hiện tại có khớp với slug không, nếu không thì redirect
@@ -302,7 +302,7 @@ class Sukien extends BaseController
         $category = $this->loaiSukienModel->getEventTypeBySlug($category_slug);
         
         if (empty($category)) {
-            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy danh mục');
+            return redirect()->to('/su-kien')->with('error', 'Không tìm thấy danh mục');
         }
         
         $category_name = $category['loai_su_kien'];
@@ -402,14 +402,14 @@ class Sukien extends BaseController
                 $event = $this->sukienModel->getEvent($event_id);
                 
                 if (!$event) {
-                    return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+                    return redirect()->to('/su-kien')->with('error', 'Không tìm thấy sự kiện');
                 }
                 
                 return redirect()->to('/su-kien/detail/' . $event['slug'])->with('error', $this->validator->listErrors());
             }
         } else {
             // Không cho phép truy cập trực tiếp
-            return redirect()->to('/su-kien/list');
+            return redirect()->to('/su-kien');
         }
     }
     

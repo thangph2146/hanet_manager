@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\nguoidung\Models;
+namespace App\Modules\quanlynguoidung\Models;
 
 use App\Models\BaseModel;
-use App\Modules\nguoidung\Entities\NguoiDung;
-use App\Modules\nguoidung\Libraries\Pager;
+use App\Modules\quanlynguoidung\Entities\NguoiDung;
+use App\Modules\quanlynguoidung\Libraries\Pager;
 use CodeIgniter\I18n\Time;
 
 class NguoiDungModel extends BaseModel

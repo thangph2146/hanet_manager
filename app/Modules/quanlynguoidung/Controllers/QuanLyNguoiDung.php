@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\nguoidung\Controllers;
+namespace App\Modules\quanlynguoidung\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\nguoidung\Models\NguoiDungModel;
+use App\Modules\quanlynguoidung\Models\QuanLyNguoiDungModel;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -16,10 +16,10 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use CodeIgniter\I18n\Time;
-use App\Modules\nguoidung\Traits\ExportTrait;
-use App\Modules\nguoidung\Traits\RelationTrait;
+use App\Modules\quanlynguoidung\Traits\ExportTrait;
+use App\Modules\quanlynguoidung\Traits\RelationTrait;
 
-class NguoiDung extends BaseController
+class QuanLyNguoiDung extends BaseController
 {
     use ResponseTrait;
     use ExportTrait;
@@ -29,8 +29,8 @@ class NguoiDung extends BaseController
     protected $alert;
     protected $moduleUrl;
     protected $title;
-    protected $module_name = 'nguoidung';
-    protected $controller_name = 'NguoiDung';
+    protected $module_name = 'quanlynguoidung';
+    protected $controller_name = 'QuanLyNguoiDung';
     
     public function __construct()
     {

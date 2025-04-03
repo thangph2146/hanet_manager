@@ -29,244 +29,9 @@ class SuKien extends BaseController
         $this->dienGiaModel = new DienGiaModel();
     }
     
-    public function index()
-    {
-        // Lấy 3 sự kiện sắp tới (hiển thị ở carousel)
-        $featured_events = $this->sukienModel->getFeaturedEvents();
-        
-        // Lấy 6 sự kiện sắp diễn ra gần nhất (dành cho phần upcoming events)
-        $upcoming_events = $this->sukienModel->getUpcomingEvents(6);
-        
-        // Debug log
-        log_message('debug', 'Featured events count: ' . count($featured_events));
-        log_message('debug', 'Upcoming events count: ' . count($upcoming_events));
-        
-        // Thêm số lượng đăng ký và số lượt xem cho các sự kiện
-        foreach ($featured_events as &$event) {
-            if (is_object($event)) {
-                $su_kien_id = $event->su_kien_id ?? null;
-                if ($su_kien_id) {
-                    $registrations = $this->sukienModel->getRegistrations($su_kien_id);
-                    // Chuyển đổi đối tượng sang định dạng mảng cho view
-                    $event = [
-                        'su_kien_id' => $su_kien_id,
-                        'ten_su_kien' => $event->ten_su_kien ?? '',
-                        'mo_ta_su_kien' => $event->mo_ta ?? '',
-                        'chi_tiet_su_kien' => $event->chi_tiet_su_kien ?? '',
-                        'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau ?? 'now')),
-                        'dia_diem' => $event->dia_diem ?? '',
-                        'hinh_anh' => $event->su_kien_poster ?? '',
-                        'gio_bat_dau' => $event->gio_bat_dau ?? '',
-                        'gio_ket_thuc' => $event->gio_ket_thuc ?? '',
-                        'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc ?? 'now')),
-                        'loai_su_kien' => $event->ten_loai_su_kien ?? '',
-                        'slug' => $event->slug ?? '',
-                        'so_luot_xem' => $event->so_luot_xem ?? 0,
-                        'registration_count' => count($registrations)
-                    ];
-                }
-            } else if (isset($event['su_kien_id'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['su_kien_id']);
-                $event['registration_count'] = count($registrations);
-            } else {
-                $event['registration_count'] = 0;
-            }
-        }
-        
-        foreach ($upcoming_events as &$event) {
-            if (is_object($event)) {
-                $su_kien_id = $event->su_kien_id ?? null;
-                if ($su_kien_id) {
-                    $registrations = $this->sukienModel->getRegistrations($su_kien_id);
-                    // Chuyển đổi đối tượng sang định dạng mảng cho view
-                    $event = [
-                        'su_kien_id' => $su_kien_id,
-                        'ten_su_kien' => $event->ten_su_kien ?? '',
-                        'mo_ta_su_kien' => $event->mo_ta ?? '',
-                        'chi_tiet_su_kien' => $event->chi_tiet_su_kien ?? '',
-                        'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau ?? 'now')),
-                        'dia_diem' => $event->dia_diem ?? '',
-                        'hinh_anh' => $event->su_kien_poster ?? '',
-                        'gio_bat_dau' => $event->gio_bat_dau ?? '',
-                        'gio_ket_thuc' => $event->gio_ket_thuc ?? '',
-                        'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc ?? 'now')),
-                        'loai_su_kien' => $event->ten_loai_su_kien ?? '',
-                        'slug' => $event->slug ?? '',
-                        'so_luot_xem' => $event->so_luot_xem ?? 0,
-                        'registration_count' => count($registrations)
-                    ];
-                }
-            } else if (isset($event['su_kien_id'])) {
-                $registrations = $this->sukienModel->getRegistrations($event['su_kien_id']);
-                $event['registration_count'] = count($registrations);
-            } else {
-                $event['registration_count'] = 0;
-            }
-        }
-        
-        // Tìm sự kiện sắp diễn ra gần nhất
-        $job_fair_event = null;
-        $current_time = time();
-        
-        // Lọc các sự kiện chưa kết thúc và sắp xếp theo thời gian bắt đầu
-        $valid_events = array_filter($upcoming_events, function($event) use ($current_time) {
-            if (is_object($event)) {
-                $event_start_time = strtotime($event->thoi_gian_bat_dau);
-                $event_end_time = strtotime($event->thoi_gian_ket_thuc);
-                return $event_end_time > $current_time;
-            } else if (is_array($event)) {
-                $event_start_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_bat_dau']);
-                $event_end_time = strtotime($event['ngay_to_chuc'] . ' ' . $event['gio_ket_thuc']);
-                return $event_end_time > $current_time;
-            }
-            return false;
-        });
-        
-        // Sắp xếp theo thời gian bắt đầu
-        usort($valid_events, function($a, $b) {
-            if (is_object($a) && is_object($b)) {
-                $time_a = strtotime($a->thoi_gian_bat_dau);
-                $time_b = strtotime($b->thoi_gian_bat_dau);
-                return $time_a - $time_b;
-            } else if (is_array($a) && is_array($b)) {
-                $time_a = strtotime($a['ngay_to_chuc'] . ' ' . $a['gio_bat_dau']);
-                $time_b = strtotime($b['ngay_to_chuc'] . ' ' . $b['gio_bat_dau']);
-                return $time_a - $time_b;
-            } else if (is_object($a) && is_array($b)) {
-                $time_a = strtotime($a->thoi_gian_bat_dau);
-                $time_b = strtotime($b['ngay_to_chuc'] . ' ' . $b['gio_bat_dau']);
-                return $time_a - $time_b;
-            } else if (is_array($a) && is_object($b)) {
-                $time_a = strtotime($a['ngay_to_chuc'] . ' ' . $a['gio_bat_dau']);
-                $time_b = strtotime($b->thoi_gian_bat_dau);
-                return $time_a - $time_b;
-            }
-            return 0;
-        });
-        
-        // Debug log
-        log_message('debug', 'Valid events count: ' . count($valid_events));
-        if (!empty($valid_events)) {
-            log_message('debug', 'First valid event: ' . json_encode(reset($valid_events)));
-        }
-        
-        // Lấy sự kiện gần nhất
-        if (!empty($valid_events)) {
-            $job_fair_event = reset($valid_events);
-            
-            // Debug log
-            log_message('debug', 'Job fair event before processing: ' . json_encode($job_fair_event));
-            
-            // Kiểm tra xem sự kiện đã bắt đầu chưa
-            if (is_object($job_fair_event)) {
-                $event_start_time = strtotime($job_fair_event->thoi_gian_bat_dau);
-            } else {
-                $event_start_time = strtotime($job_fair_event['ngay_to_chuc'] . ' ' . $job_fair_event['gio_bat_dau']);
-            }
-            
-            // Nếu sự kiện đã bắt đầu, tìm sự kiện tiếp theo
-            if ($current_time > $event_start_time) {
-                // Bỏ qua sự kiện hiện tại và lấy sự kiện tiếp theo
-                next($valid_events);
-                $next_event = current($valid_events);
-                if ($next_event) {
-                    $job_fair_event = $next_event;
-                }
-            }
-            
-            // Thêm thông tin đăng ký cho sự kiện nổi bật
-            if ($job_fair_event) {
-                if (is_object($job_fair_event)) {
-                    $su_kien_id = $job_fair_event->su_kien_id ?? null;
-                    if ($su_kien_id) {
-                        $registrations = $this->sukienModel->getRegistrations($su_kien_id);
-                        // Chuyển đổi đối tượng sang mảng
-                        $job_fair_event = [
-                            'su_kien_id' => $su_kien_id,
-                            'ten_su_kien' => $job_fair_event->ten_su_kien ?? '',
-                            'mo_ta_su_kien' => $job_fair_event->mo_ta ?? '',
-                            'chi_tiet_su_kien' => $job_fair_event->chi_tiet_su_kien ?? '',
-                            'ngay_to_chuc' => date('Y-m-d', strtotime($job_fair_event->thoi_gian_bat_dau ?? 'now')),
-                            'dia_diem' => $job_fair_event->dia_diem ?? '',
-                            'hinh_anh' => $job_fair_event->su_kien_poster ?? '',
-                            'gio_bat_dau' => $job_fair_event->gio_bat_dau ?? '',
-                            'gio_ket_thuc' => $job_fair_event->gio_ket_thuc ?? '',
-                            'thoi_gian' => date('H:i', strtotime($job_fair_event->gio_bat_dau ?? 'now')) . ' - ' . date('H:i', strtotime($job_fair_event->gio_ket_thuc ?? 'now')),
-                            'loai_su_kien' => $job_fair_event->ten_loai_su_kien ?? '',
-                            'slug' => $job_fair_event->slug ?? '',
-                            'so_luot_xem' => $job_fair_event->so_luot_xem ?? 0,
-                            'registration_count' => count($registrations)
-                        ];
-                    }
-                } else if (isset($job_fair_event['su_kien_id'])) {
-                    $registrations = $this->sukienModel->getRegistrations($job_fair_event['su_kien_id']);
-                    $job_fair_event['registration_count'] = count($registrations);
-                }
-            }
-        }
-        
-        // Nếu không có job_fair_event, sử dụng sự kiện đầu tiên từ upcoming_events
-        if (empty($job_fair_event) && !empty($upcoming_events)) {
-            $job_fair_event = $upcoming_events[0];
-            log_message('debug', 'Using first upcoming event as job fair event: ' . json_encode($job_fair_event));
-        }
-        
-        // Nếu vẫn không có sự kiện nào, tạo một sự kiện mẫu
-        if (empty($job_fair_event)) {
-            log_message('debug', 'Creating a sample event for display');
-            $job_fair_event = [
-                'su_kien_id' => 0,
-                'ten_su_kien' => 'Sự Kiện Đại Học Ngân Hàng TP.HCM',
-                'mo_ta_su_kien' => 'Sự kiện mẫu dành cho sinh viên Đại học Ngân hàng TP.HCM',
-                'chi_tiet_su_kien' => 'Đây là sự kiện mẫu để đảm bảo hiển thị trên trang chủ',
-                'ngay_to_chuc' => date('Y-m-d', strtotime('+7 days')),
-                'dia_diem' => 'Trường Đại học Ngân hàng TP.HCM',
-                'dia_chi_cu_the' => '36 Tôn Thất Đạm, Phường Nguyễn Thái Bình, Quận 1, TP.HCM',
-                'hinh_anh' => 'assets/modules/sukien/images/event-default.jpg',
-                'gio_bat_dau' => '08:00:00',
-                'gio_ket_thuc' => '17:00:00',
-                'thoi_gian_bat_dau' => date('Y-m-d', strtotime('+7 days')) . ' 08:00:00',
-                'thoi_gian_ket_thuc' => date('Y-m-d', strtotime('+7 days')) . ' 17:00:00',
-                'thoi_gian' => '08:00 - 17:00',
-                'loai_su_kien_id' => 1,
-                'loai_su_kien' => 'Hội thảo',
-                'slug' => 'su-kien-mau',
-                'so_luot_xem' => 0,
-                'hinh_thuc' => 'Offline',
-                'tong_dang_ky' => 0,
-                'registration_count' => 0
-            ];
-        }
-        
-        // Debug log
-        log_message('debug', 'Final job fair event: ' . (empty($job_fair_event) ? 'EMPTY' : json_encode($job_fair_event)));
-        
-        // Lấy thông tin counter
-        $stats = [
-            'total_events' => $this->sukienModel->getTotalEvents(),
-            'total_participants' => $this->sukienModel->getTotalParticipants(),
-            'total_speakers' => $this->sukienModel->getTotalSpeakers(),
-            'founding_year' => 1976 // Năm thành lập trường
-        ];
-        
-        // Dữ liệu mẫu cho diễn giả
-        $speakers = $this->sukienModel->getSpeakers();
-        
-        // Chuẩn bị dữ liệu SEO
-        $data = [
-            'title' => 'Sự Kiện Đại Học Ngân Hàng TP.HCM',
-            'description' => 'Trang thông tin sự kiện của Trường Đại học Ngân hàng TP.HCM',
-            'keywords' => 'sự kiện, hội thảo, workshop, ngân hàng, đại học',
-            'upcoming_events' => $upcoming_events,
-            'job_fair_event' => $job_fair_event,
-            'stats' => $stats,
-            'speakers' => $speakers
-        ];
-        
-        return view('App\Modules\sukien\Views\welcome', $data);
-    }
 
-    public function list()
+
+    public function index()
     {
         // Lấy thông tin tìm kiếm nếu có
         $search = $this->request->getGet('search');
@@ -403,7 +168,7 @@ class SuKien extends BaseController
             
             if (!$event) {
                 log_message('error', 'Không thể tìm thấy sự kiện với ID ' . $id . ' bằng cả hai phương thức');
-                return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+                return redirect()->to('/su-kien')->with('error', 'Không tìm thấy sự kiện');
             }
         }
         
@@ -412,7 +177,7 @@ class SuKien extends BaseController
         
         if (empty($slug)) {
             log_message('error', 'Sự kiện ID ' . $id . ' không có slug');
-            return redirect()->to('/su-kien/list')->with('error', 'Thông tin sự kiện không hợp lệ');
+            return redirect()->to('/su-kien')->with('error', 'Thông tin sự kiện không hợp lệ');
         }
         
         log_message('debug', 'Chuyển hướng thành công từ ID ' . $id . ' sang slug ' . $slug);
@@ -619,7 +384,7 @@ class SuKien extends BaseController
         $category = $this->loaiSukienModel->getEventTypeBySlug($category_slug);
         
         if (empty($category)) {
-            return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy danh mục');
+            return redirect()->to('/su-kien')->with('error', 'Không tìm thấy danh mục');
         }
         
         $category_name = $category['loai_su_kien'];
@@ -722,14 +487,14 @@ class SuKien extends BaseController
                 $event = $this->sukienModel->getEvent($event_id);
                 
                 if (!$event) {
-                    return redirect()->to('/su-kien/list')->with('error', 'Không tìm thấy sự kiện');
+                    return redirect()->to('/su-kien')->with('error', 'Không tìm thấy sự kiện');
                 }
                 
                 return redirect()->to('/su-kien/detail/' . $event['slug'])->with('error', $this->validator->listErrors());
             }
         } else {
             // Không cho phép truy cập trực tiếp
-            return redirect()->to('/su-kien/list');
+            return redirect()->to('/su-kien');
         }
     }
     

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\nguoidung\Traits;
+namespace App\Modules\quanlynguoidung\Traits;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;

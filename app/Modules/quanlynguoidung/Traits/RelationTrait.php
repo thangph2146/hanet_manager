@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\nguoidung\Traits;
+namespace App\Modules\quanlynguoidung\Traits;
 
 use CodeIgniter\I18n\Time;
 use App\Modules\phongkhoa\Models\PhongKhoaModel;

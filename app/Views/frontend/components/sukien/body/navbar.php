@@ -9,18 +9,18 @@
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav me-auto">
 					<li class="nav-item">
-						<a class="nav-link <?= uri_string() == 'su-kien' ? 'active' : '' ?>" href="<?= site_url('su-kien') ?>">
+						<a class="nav-link" href="<?= site_url() ?>">
 							<i class="fas fa-home me-1"></i> Trang chủ
 						</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link <?= uri_string() == 'su-kien/list' ? 'active' : '' ?>" href="<?= site_url('su-kien/list') ?>">
+						<a class="nav-link <?= uri_string() == 'su-kien' ? 'active' : '' ?>" href="<?= site_url('su-kien') ?>">
 							<i class="fas fa-calendar-alt me-1"></i> Sự kiện
 						</a>
 					</li>
 					<li class="nav-item dropdown">
 						<a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-							<i class="fas fa-tags me-1"></i> Loại sự kiện
+							<i class="fas fa-calendar-alt me-1"></i> Loại sự kiện
 						</a>
 						<ul class="dropdown-menu">
 							<li><a class="dropdown-item" href="<?= site_url('su-kien/loai/hoi-thao') ?>">Hội thảo</a></li>
@@ -29,6 +29,17 @@
 							<li><a class="dropdown-item" href="<?= site_url('su-kien/loai/hoat-dong-sinh-vien') ?>">Hoạt động sinh viên</a></li>
 						</ul>
 					</li>
+					<?php if (isLoggedInStudent()): ?>
+					<li class="nav-item dropdown">
+						<a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+							<i class="fas fa-user-circle me-1"></i> Dashboard
+						</a>
+						<ul class="dropdown-menu">
+							<li><a class="dropdown-item" href="<?= site_url('su-kien/lich-su/da-tham-gia') ?>">Sự kiện đã tham gia</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('su-kien/lich-su/dang-ky') ?>">Sự kiện đã đăng ký</a></li>
+						</ul>
+					</li>
+					<?php endif; ?>
 				</ul>
 				<div class="d-flex align-items-center gap-2">
 					<a href="https://hub.edu.vn" target="_blank" class="btn btn-outline-light btn-sm px-3">
@@ -46,9 +57,9 @@
                          [
                              'actions' => [
                                  [
-                                     'title' => 'Settings',
-                                     'url' => site_url('students/dashboard'),
-                                     'icon' => 'cog'
+                                     'title' => 'Profile',
+                                     'url' => site_url('students/profile'),
+                                     'icon' => 'user'
                                  ],
                                  [
                                      'title' => 'Đăng xuất',

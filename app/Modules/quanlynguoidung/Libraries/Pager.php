@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\nguoidung\Libraries;
+namespace App\Modules\quanlynguoidung\Libraries;
 
 /**
  * Lớp Pager - cung cấp chức năng phân trang cho module NguoiDung
@@ -15,7 +15,7 @@ class Pager
      * 
      * @var string
      */
-    protected $module_name = 'nguoidung';
+    protected $module_name = 'quanlynguoidung';
 
     /**
      * Số lượng trang hiển thị xung quanh trang hiện tại
