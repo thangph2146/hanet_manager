@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Modules\nguoidung\Models\NguoiDungModel;
 use App\Modules\quanlydangkysukien\Models\DangKySuKienModel;
 use App\Modules\quanlysukien\Models\SuKienModel;
+use DateTime;
 
 class NguoiDung extends BaseController
 {
@@ -18,6 +19,28 @@ class NguoiDung extends BaseController
         // Khởi tạo model
         $this->dangkysukienModel = new DangKySuKienModel();
         $this->sukienModel = new SuKienModel();
+    }
+    
+    /**
+     * Chuyển đổi định dạng datetime sang dd/mm/yyyy h:i:s
+     * 
+     * @param string $datetime Chuỗi ngày giờ cần chuyển đổi
+     * @param bool $includeSeconds Có hiển thị giây hay không
+     * @return string
+     */
+    protected function formatDateTime($datetime, $includeSeconds = true)
+    {
+        if (empty($datetime)) {
+            return '';
+        }
+        
+        try {
+            $date = new DateTime($datetime);
+            $format = $includeSeconds ? 'd/m/Y H:i:s' : 'd/m/Y H:i';
+            return $date->format($format);
+        } catch (\Exception $e) {
+            return $datetime;
+        }
     }
     
     /**
@@ -91,9 +114,17 @@ class NguoiDung extends BaseController
     
     public function eventsCheckin()
     {
+        // Load text helper
+        helper('text');
+        
         // Lấy thông tin người dùng hiện tại
         $profile = getInfoStudent();
         $email = $profile->Email;
+        
+        // Lấy các tham số lọc thời gian
+        $startDate = $this->request->getGet('start_date');
+        $endDate = $this->request->getGet('end_date');
+        $search = $this->request->getGet('search');
         
         // Lấy các sự kiện đã tham gia
         $attendedEvents = $this->dangkysukienModel->getRegistrationsByEmail($email, [
@@ -106,11 +137,61 @@ class NguoiDung extends BaseController
             ]
         ]);
         
+        // Áp dụng bộ lọc tìm kiếm theo từ khóa
+        if (!empty($search)) {
+            $search = strtolower($search);
+            $attendedEvents = array_filter($attendedEvents, function($event) use ($search) {
+                return (
+                    stripos(strtolower($event->ten_sukien ?? ''), $search) !== false ||
+                    stripos(strtolower($event->dia_diem ?? ''), $search) !== false ||
+                    stripos(strtolower($event->to_chuc ?? ''), $search) !== false
+                );
+            });
+        }
+        
+        // Áp dụng bộ lọc thời gian nếu có trong eventsCheckin
+        if (!empty($startDate) || !empty($endDate)) {
+            $attendedEvents = array_filter($attendedEvents, function($event) use ($startDate, $endDate) {
+                $eventDate = isset($event->ngay_to_chuc) ? new DateTime($event->ngay_to_chuc) : null;
+                
+                if (!$eventDate) {
+                    return true; // Giữ lại sự kiện nếu không có ngày
+                }
+                
+                // Lọc theo ngày giờ bắt đầu
+                if (!empty($startDate)) {
+                    $startDateTime = new DateTime($startDate);
+                    if ($eventDate < $startDateTime) {
+                        return false;
+                    }
+                }
+                
+                // Lọc theo ngày giờ kết thúc
+                if (!empty($endDate)) {
+                    $endDateTime = new DateTime($endDate);
+                    if ($eventDate > $endDateTime) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+        }
+        
         $data = [
             'title' => 'Sự kiện đã tham gia',
             'active_menu' => 'events_checkin',
             'profile' => $profile,
-            'attendedEvents' => $attendedEvents
+            'attendedEvents' => $attendedEvents,
+            'current_filter' => [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'search' => $search
+            ],
+            'formatted_filter' => [
+                'start_date_formatted' => $this->formatDateTime($startDate, true),
+                'end_date_formatted' => $this->formatDateTime($endDate, true)
+            ]
         ];
         
         return view('App\Modules\nguoidung\Views\eventscheckin', $data);
@@ -118,9 +199,17 @@ class NguoiDung extends BaseController
 
     public function eventsHistoryRegister()
     {
+        // Load text helper
+        helper('text');
+        
         // Lấy thông tin người dùng hiện tại
         $profile = getInfoStudent();
         $email = $profile->Email;
+        
+        // Lấy các tham số lọc thời gian
+        $startDate = $this->request->getGet('start_date');
+        $endDate = $this->request->getGet('end_date');
+        $search = $this->request->getGet('search');
         
         // Lấy các sự kiện đã đăng ký (tất cả trạng thái)
         $registeredEvents = $this->dangkysukienModel->getRegistrationsByEmail($email, [
@@ -130,11 +219,79 @@ class NguoiDung extends BaseController
             ]
         ]);
         
+        // Áp dụng bộ lọc tìm kiếm theo từ khóa
+        if (!empty($search)) {
+            $search = strtolower($search);
+            $registeredEvents = array_filter($registeredEvents, function($event) use ($search) {
+                return (
+                    stripos(strtolower($event->ten_sukien ?? ''), $search) !== false ||
+                    stripos(strtolower($event->dia_diem ?? ''), $search) !== false ||
+                    stripos(strtolower($event->to_chuc ?? ''), $search) !== false
+                );
+            });
+        }
+        
+        // Áp dụng bộ lọc thời gian nếu có trong eventsHistoryRegister
+        if (!empty($startDate) || !empty($endDate)) {
+            $registeredEvents = array_filter($registeredEvents, function($event) use ($startDate, $endDate) {
+                $eventDate = isset($event->ngay_to_chuc) ? new DateTime($event->ngay_to_chuc) : null;
+                
+                if (!$eventDate) {
+                    return true; // Giữ lại sự kiện nếu không có ngày
+                }
+                
+                // Lọc theo ngày giờ bắt đầu
+                if (!empty($startDate)) {
+                    $startDateTime = new DateTime($startDate);
+                    if ($eventDate < $startDateTime) {
+                        return false;
+                    }
+                }
+                
+                // Lọc theo ngày giờ kết thúc
+                if (!empty($endDate)) {
+                    $endDateTime = new DateTime($endDate);
+                    if ($eventDate > $endDateTime) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+        }
+        
+        // Đếm số lượng mỗi loại trạng thái
+        $attendedEvents = 0;
+        $pendingEvents = 0;
+        $cancelledEvents = 0;
+        
+        foreach ($registeredEvents as $event) {
+            if ($event->trang_thai_dang_ky == 0) {
+                $cancelledEvents++;
+            } else if ($event->da_check_in == 1) {
+                $attendedEvents++;
+            } else {
+                $pendingEvents++;
+            }
+        }
+        
         $data = [
             'title' => 'Lịch sử đăng ký sự kiện',
             'active_menu' => 'events_history_register',
             'profile' => $profile,
-            'registeredEvents' => $registeredEvents
+            'registeredEvents' => $registeredEvents,
+            'attendedEvents' => $attendedEvents,
+            'pendingEvents' => $pendingEvents,
+            'cancelledEvents' => $cancelledEvents,
+            'current_filter' => [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'search' => $search
+            ],
+            'formatted_filter' => [
+                'start_date_formatted' => $this->formatDateTime($startDate, true),
+                'end_date_formatted' => $this->formatDateTime($endDate, true)
+            ]
         ];
         
         return view('App\Modules\nguoidung\Views\eventshistoryregister', $data);
@@ -148,77 +305,93 @@ class NguoiDung extends BaseController
         // Load text helper
         helper('text');
         
-        // Lấy model sự kiện
-        $sukienModel = $this->sukienModel;
-        $dangkyModel = $this->dangkysukienModel;
-        
         // Lấy thông tin người dùng hiện tại
-        $userData = session()->get('userData') ?? null;
-        $userEmail = $userData ? ($userData['email'] ?? '') : '';
+        $profile = getInfoStudent();
+        $email = $profile->Email;
         
-        // Khởi tạo các biến cần thiết
-        $events = [];
-        $upcomingCount = 0;
-        $registeredCount = 0;
-        $attendedCount = 0;
-        $userEvents = [];
-        $attendedEvents = [];
+        // Lấy các tham số lọc thời gian
+        $startDate = $this->request->getGet('start_date');
+        $endDate = $this->request->getGet('end_date');
+        $search = $this->request->getGet('search');
         
-        // Lấy danh sách sự kiện
-        $events = $sukienModel->findAll() ?? [];
+        // Lấy danh sách sự kiện từ model
+        $events = $this->sukienModel->getEvents([
+            'status' => 'published',
+            'order' => [
+                'thoi_gian_bat_dau' => 'DESC'
+            ]
+        ]);
         
-        // Đếm số sự kiện sắp diễn ra
-        $now = date('Y-m-d H:i:s');
-        $upcomingCount = count(array_filter($events, function($event) use ($now) {
-            return isset($event->thoi_gian_bat_dau) && $event->thoi_gian_bat_dau > $now;
-        }));
-        
-        // Nếu người dùng đã đăng nhập, lấy danh sách sự kiện đã đăng ký và đã tham gia
-        if (!empty($userEmail)) {
-            // Lấy danh sách sự kiện đã đăng ký
-            $registered = $dangkyModel->where('email', $userEmail)->findAll() ?? [];
-            
-            // Lọc ra các ID sự kiện đã đăng ký
-            $userEvents = array_map(function($regEvent) {
-                return $regEvent->ma_su_kien;
-            }, $registered);
-            
-            // Đếm số sự kiện đã đăng ký
-            $registeredCount = count($userEvents);
-            
-            // Lọc ra các ID sự kiện đã tham gia (đã check-in)
-            $attendedEvents = array_map(function($regEvent) {
-                return $regEvent->ma_su_kien;
-            }, array_filter($registered, function($regEvent) {
-                return isset($regEvent->da_check_in) && $regEvent->da_check_in == 1;
-            }));
-            
-            // Đếm số sự kiện đã tham gia
-            $attendedCount = count($attendedEvents);
+        // Áp dụng bộ lọc tìm kiếm theo từ khóa
+        if (!empty($search)) {
+            $search = strtolower($search);
+            $events = array_filter($events, function($event) use ($search) {
+                return (
+                    stripos(strtolower($event->ten_sukien ?? ''), $search) !== false ||
+                    stripos(strtolower($event->dia_diem ?? ''), $search) !== false ||
+                    stripos(strtolower($event->to_chuc ?? ''), $search) !== false ||
+                    stripos(strtolower($event->mo_ta ?? ''), $search) !== false
+                );
+            });
         }
         
         // Lấy danh sách phân loại sự kiện
-        $categories = $sukienModel->getCategories() ?? [];
+        $categories = $this->sukienModel->getCategories() ?? [];
         
         // Lấy các bộ lọc hiện tại
         $current_filter = [
-            'search' => $this->request->getGet('search'),
+            'search' => $search,
             'category' => $this->request->getGet('category'),
             'status' => $this->request->getGet('status'),
-            'sort' => $this->request->getGet('sort') ?: 'upcoming'
+            'sort' => $this->request->getGet('sort') ?: 'upcoming',
+            'start_date' => $startDate,
+            'end_date' => $endDate
         ];
+        
+        // Format hiển thị ngày giờ theo định dạng dd/mm/yyyy h:i:s
+        $formatted_filter = [
+            'start_date_formatted' => $this->formatDateTime($startDate, true),
+            'end_date_formatted' => $this->formatDateTime($endDate, true)
+        ];
+        
+        // Áp dụng bộ lọc thời gian nếu có
+        if (!empty($current_filter['start_date']) || !empty($current_filter['end_date'])) {
+            $events = array_filter($events, function($event) use ($current_filter) {
+                $eventDate = isset($event->thoi_gian_bat_dau) ? new DateTime($event->thoi_gian_bat_dau) : null;
+                
+                if (!$eventDate) {
+                    return true; // Giữ lại sự kiện nếu không có ngày
+                }
+                
+                // Lọc theo ngày và giờ bắt đầu
+                if (!empty($current_filter['start_date'])) {
+                    $startDate = new DateTime($current_filter['start_date']);
+                    if ($eventDate < $startDate) {
+                        return false;
+                    }
+                }
+                
+                // Lọc theo ngày và giờ kết thúc
+                if (!empty($current_filter['end_date'])) {
+                    $endDate = new DateTime($current_filter['end_date']);
+                    if ($eventDate > $endDate) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+        }
         
         // Truyền dữ liệu đến view
         $data = [
             'title' => 'Danh sách sự kiện',
+            'active_menu' => 'events',
+            'profile' => $profile,
             'events' => $events,
             'categories' => $categories,
-            'upcomingCount' => $upcomingCount,
-            'registeredCount' => $registeredCount,
-            'attendedCount' => $attendedCount,
-            'userEvents' => $userEvents,
-            'attendedEvents' => $attendedEvents,
-            'current_filter' => $current_filter
+            'current_filter' => $current_filter,
+            'formatted_filter' => $formatted_filter
         ];
         
         // Hiển thị view

@@ -58,62 +58,52 @@
     </div>
     
     <!-- Bộ lọc và tìm kiếm -->
-    <div class="filter-container">
-        <div class="search-box">
-            <input type="text" id="eventSearch" placeholder="Tìm kiếm sự kiện..." 
-                   value="<?= $current_filter['search'] ?? '' ?>">
-            <i class="fas fa-search"></i>
-        </div>
-        
-        <div class="filter-options">
-            <div class="filter-group">
-                <label for="eventCategory">Phân loại</label>
-                <select id="eventCategory">
-                    <option value="all" <?= (!isset($current_filter['category']) || $current_filter['category'] == 'all') ? 'selected' : '' ?>>Tất cả</option>
-                    <?php if(!empty($categories)): ?>
-                        <?php foreach($categories as $category_id => $category_name): ?>
-                            <option value="<?= $category_id ?>" <?= (isset($current_filter['category']) && $current_filter['category'] == $category_id) ? 'selected' : '' ?>><?= $category_name ?></option>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </select>
+    <div class="filter-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Bộ lọc</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="" method="get" id="filter-form" class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="search" class="form-label">Tìm kiếm:</label>
+                                    <input type="text" class="form-control" id="search" name="search" style="height: 50px;"
+                                        value="<?= esc($current_filter['search'] ?? '') ?>" placeholder="Tìm kiếm sự kiện...">
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label for="start_date" class="form-label">Từ ngày:
+                                        <?php if(isset($formatted_filter['start_date_formatted']) && !empty($formatted_filter['start_date_formatted'])): ?>
+                                        <span class="date-display">(<?= $formatted_filter['start_date_formatted'] ?>)</span>
+                                        <?php endif; ?>
+                                    </label>
+                                    <input type="datetime-local" class="form-control date-input" id="start_date" name="start_date" 
+                                           value="<?= $current_filter['start_date'] ?? '' ?>">
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label for="end_date" class="form-label">Đến ngày:
+                                        <?php if(isset($formatted_filter['end_date_formatted']) && !empty($formatted_filter['end_date_formatted'])): ?>
+                                        <span class="date-display">(<?= $formatted_filter['end_date_formatted'] ?>)</span>
+                                        <?php endif; ?>
+                                    </label>
+                                    <input type="datetime-local" class="form-control date-input" id="end_date" name="end_date"
+                                           value="<?= $current_filter['end_date'] ?? '' ?>">
+                                </div>
+                                
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary btn-apply-filters" style="height: 50px;">
+                                        <i class="fas fa-filter"></i> Áp dụng bộ lọc
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="filter-group">
-                <label for="eventSort">Sắp xếp</label>
-                <select id="eventSort">
-                    <option value="upcoming" <?= (isset($current_filter['sort']) && $current_filter['sort'] == 'upcoming') ? 'selected' : '' ?>>Sắp diễn ra</option>
-                    <option value="newest" <?= (isset($current_filter['sort']) && $current_filter['sort'] == 'newest') ? 'selected' : '' ?>>Mới nhất</option>
-                    <option value="popular" <?= (isset($current_filter['sort']) && $current_filter['sort'] == 'popular') ? 'selected' : '' ?>>Phổ biến nhất</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="eventStatus">Trạng thái</label>
-                <select id="eventStatus">
-                    <option value="all" <?= (isset($current_filter['status']) && $current_filter['status'] == 'all') ? 'selected' : '' ?>>Tất cả</option>
-                    <option value="upcoming" <?= (isset($current_filter['status']) && $current_filter['status'] == 'upcoming') ? 'selected' : '' ?>>Sắp diễn ra</option>
-                    <option value="ongoing" <?= (isset($current_filter['status']) && $current_filter['status'] == 'ongoing') ? 'selected' : '' ?>>Đang diễn ra</option>
-                    <option value="ended" <?= (isset($current_filter['status']) && $current_filter['status'] == 'ended') ? 'selected' : '' ?>>Đã kết thúc</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="registrationStatus">Đăng ký</label>
-                <select id="registrationStatus">
-                    <option value="all" <?= (isset($current_filter['registration']) && $current_filter['registration'] == 'all') ? 'selected' : '' ?>>Tất cả</option>
-                    <option value="registered" <?= (isset($current_filter['registration']) && $current_filter['registration'] == 'registered') ? 'selected' : '' ?>>Đã đăng ký</option>
-                    <option value="attended" <?= (isset($current_filter['registration']) && $current_filter['registration'] == 'attended') ? 'selected' : '' ?>>Đã tham gia</option>
-                    <option value="not_registered" <?= (isset($current_filter['registration']) && $current_filter['registration'] == 'not_registered') ? 'selected' : '' ?>>Chưa đăng ký</option>
-                </select>
-            </div>
-            
-            <button id="applyFilters" class="btn-apply-filters">
-                <i class="fas fa-filter"></i> Lọc
-            </button>
-            
-            <button id="resetFilters" class="btn-reset-filters">
-                <i class="fas fa-redo"></i> Đặt lại
-            </button>
         </div>
     </div>
     
@@ -320,5 +310,173 @@
 
 <?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/js/nguoidung/pages/eventslist.js') ?>"></script>
-<?= $this->endSection() ?>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý nút áp dụng bộ lọc
+    document.getElementById('filter-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        applyFilters();
+    });
+    
+    // Xử lý nút reset filter
+    document.getElementById('resetFilters')?.addEventListener('click', function() {
+        resetFilters();
+    });
+    
+    // Thiết lập ban đầu cho các trường datetime-local nếu có giá trị trong URL
+    initDateTimeFields();
+    
+    // Hàm định dạng ngày giờ theo dd/mm/yyyy h:i:s
+    function formatDateTimeVN(date) {
+        if (!date || isNaN(date.getTime())) return '';
+        
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    }
+    
+    // Hàm khởi tạo các trường thời gian
+    function initDateTimeFields() {
+        // Lấy tham số từ URL hiện tại
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Định dạng lại giá trị start_date nếu có
+        if(urlParams.has('start_date')) {
+            const startDateValue = urlParams.get('start_date');
+            try {
+                const date = new Date(startDateValue);
+                if(!isNaN(date.getTime())) {
+                    // Định dạng để phù hợp với trường datetime-local (YYYY-MM-DDThh:mm)
+                    const formattedDate = date.toISOString().slice(0, 16);
+                    document.getElementById('start_date').value = formattedDate;
+                    
+                    // Thêm định dạng hiển thị dd/mm/yyyy h:i:s bên cạnh trường input
+                    const formattedDisplayDate = formatDateTimeVN(date);
+                    const displaySpan = document.createElement('span');
+                    displaySpan.className = 'date-display';
+                    displaySpan.textContent = `(${formattedDisplayDate})`;
+                    
+                    const label = document.querySelector('label[for="start_date"]');
+                    // Kiểm tra nếu chưa có span hiển thị
+                    if (!label.querySelector('.date-display')) {
+                        label.appendChild(displaySpan);
+                    }
+                }
+            } catch(e) {
+                console.error('Lỗi khi xử lý ngày bắt đầu:', e);
+            }
+        }
+        
+        // Định dạng lại giá trị end_date nếu có
+        if(urlParams.has('end_date')) {
+            const endDateValue = urlParams.get('end_date');
+            try {
+                const date = new Date(endDateValue);
+                if(!isNaN(date.getTime())) {
+                    // Định dạng để phù hợp với trường datetime-local (YYYY-MM-DDThh:mm)
+                    const formattedDate = date.toISOString().slice(0, 16);
+                    document.getElementById('end_date').value = formattedDate;
+                    
+                    // Thêm định dạng hiển thị dd/mm/yyyy h:i:s bên cạnh trường input
+                    const formattedDisplayDate = formatDateTimeVN(date);
+                    const displaySpan = document.createElement('span');
+                    displaySpan.className = 'date-display';
+                    displaySpan.textContent = `(${formattedDisplayDate})`;
+                    
+                    const label = document.querySelector('label[for="end_date"]');
+                    // Kiểm tra nếu chưa có span hiển thị
+                    if (!label.querySelector('.date-display')) {
+                        label.appendChild(displaySpan);
+                    }
+                }
+            } catch(e) {
+                console.error('Lỗi khi xử lý ngày kết thúc:', e);
+            }
+        }
+        
+        // Thêm sự kiện change cho các trường ngày để cập nhật hiển thị ngay lập tức
+        document.getElementById('start_date').addEventListener('change', function() {
+            updateDateDisplay(this, 'start_date');
+        });
+        
+        document.getElementById('end_date').addEventListener('change', function() {
+            updateDateDisplay(this, 'end_date');
+        });
+    }
+    
+    // Hàm cập nhật hiển thị ngày giờ khi người dùng thay đổi
+    function updateDateDisplay(inputElement, fieldId) {
+        try {
+            const date = new Date(inputElement.value);
+            if(!isNaN(date.getTime())) {
+                const formattedDisplayDate = formatDateTimeVN(date);
+                
+                const label = document.querySelector(`label[for="${fieldId}"]`);
+                let displaySpan = label.querySelector('.date-display');
+                
+                if (!displaySpan) {
+                    displaySpan = document.createElement('span');
+                    displaySpan.className = 'date-display';
+                    label.appendChild(displaySpan);
+                }
+                
+                displaySpan.textContent = `(${formattedDisplayDate})`;
+            }
+        } catch(e) {
+            console.error('Lỗi khi cập nhật hiển thị ngày:', e);
+        }
+    }
+    
+    // Hàm áp dụng các bộ lọc
+    function applyFilters() {
+        let url = new URL(window.location.href);
+        let searchParams = new URLSearchParams(url.search);
+        
+        // Lấy giá trị từ các trường
+        const search = document.getElementById('search').value;
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        
+        // Cập nhật tham số URL
+        updateParam(searchParams, 'search', search);
+        
+        // Xử lý và cập nhật tham số ngày giờ
+        if(startDate) {
+            searchParams.set('start_date', new Date(startDate).toISOString());
+        } else {
+            searchParams.delete('start_date');
+        }
+        
+        if(endDate) {
+            searchParams.set('end_date', new Date(endDate).toISOString());
+        } else {
+            searchParams.delete('end_date');
+        }
+        
+        // Chuyển hướng đến URL mới
+        url.search = searchParams.toString();
+        window.location.href = url.toString();
+    }
+    
+    // Hàm reset tất cả bộ lọc
+    function resetFilters() {
+        window.location.href = window.location.pathname;
+    }
+    
+    // Hàm cập nhật tham số URL
+    function updateParam(params, key, value) {
+        if (value && value !== 'all') {
+            params.set(key, value);
+        } else {
+            params.delete(key);
+        }
+    }
+});
+</script>
+<?= $this->endSection() ?>

@@ -592,6 +592,25 @@ class EventsList {
             if (emptyState) emptyState.style.display = 'none';
         }
     }
+    
+    /**
+     * Định dạng ngày giờ theo kiểu dd/mm/yyyy h:i:s
+     * 
+     * @param {Date} date Đối tượng Date cần định dạng
+     * @return {string} Chuỗi ngày giờ đã định dạng
+     */
+    formatDateTimeVN(date) {
+        if (!date || isNaN(date.getTime())) return '';
+        
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    }
 }
 
 // Thêm CSS cho toast notification

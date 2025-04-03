@@ -1,6 +1,5 @@
 /**
- * Profile Page JS
- * Xử lý tương tác của trang hồ sơ người dùng
+ * JavaScript cho trang thông tin cá nhân
  */
 
 "use strict";
@@ -20,94 +19,199 @@ class ProfilePage {
         this.initEventListeners();
         this.initTooltips();
         
-        // Tải dữ liệu ban đầu
-        this.onTabChange();
+        // Thêm hiệu ứng xuất hiện cho các phần tử
+        this.addEntryAnimations();
     }
     
     initElements() {
         // Các elements chính
-        this.profileTabs = document.getElementById('profileTab');
         this.editProfileBtn = document.getElementById('edit-profile-btn');
         this.saveProfileBtn = document.getElementById('save-profile-btn');
-        this.confirmCancelBtn = document.getElementById('confirm-cancel-btn');
-        this.saveFeedbackBtn = document.getElementById('save-feedback-btn');
-        this.searchEventsInput = document.getElementById('search-events');
-        this.searchEventsBtn = document.getElementById('search-events-btn');
-        
-        // Containers
-        this.registeredContainer = document.getElementById('registered-events-container');
-        this.attendedContainer = document.getElementById('attended-events-container');
-        this.canceledContainer = document.getElementById('canceled-events-container');
-        this.availableContainer = document.getElementById('available-events-container');
-        
-        // Modals
-        this.editProfileModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
-        this.cancelEventModal = new bootstrap.Modal(document.getElementById('cancelEventModal'));
-        this.feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
         
         // Forms
         this.editProfileForm = document.getElementById('edit-profile-form');
-        this.cancelEventForm = document.getElementById('cancel-event-form');
-        this.feedbackForm = document.getElementById('feedback-form');
         
-        // Select elements
-        this.cancelReason = document.getElementById('cancel-reason');
-        this.otherReasonContainer = document.getElementById('other-reason-container');
-        this.otherReason = document.getElementById('other-reason');
-        
-        // Rating elements
-        this.ratingStars = document.querySelectorAll('.rating-star');
-        this.ratingValue = document.getElementById('rating-value');
+        // Modals
+        this.editProfileModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
     }
     
     initEventListeners() {
-        // Sự kiện khi chuyển tab
-        this.profileTabs.addEventListener('shown.bs.tab', (e) => this.onTabChange(e));
-        
-        // Sự kiện khi nhấn nút chỉnh sửa thông tin
+        // Sự kiện mở modal chỉnh sửa hồ sơ
         if (this.editProfileBtn) {
             this.editProfileBtn.addEventListener('click', () => this.openEditModal());
         }
         
-        // Sự kiện khi lưu thông tin
+        // Sự kiện lưu thông tin hồ sơ
         if (this.saveProfileBtn) {
             this.saveProfileBtn.addEventListener('click', () => this.saveProfile());
         }
         
-        // Sự kiện khi xác nhận hủy đăng ký sự kiện
-        if (this.confirmCancelBtn) {
-            this.confirmCancelBtn.addEventListener('click', () => this.cancelEvent());
-        }
-        
-        // Sự kiện khi gửi đánh giá
-        if (this.saveFeedbackBtn) {
-            this.saveFeedbackBtn.addEventListener('click', () => this.saveFeedback());
-        }
-        
-        // Sự kiện khi tìm kiếm sự kiện
-        if (this.searchEventsBtn) {
-            this.searchEventsBtn.addEventListener('click', () => this.searchEvents());
-        }
-        
-        if (this.searchEventsInput) {
-            this.searchEventsInput.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') {
-                    this.searchEvents();
+        // Xử lý chọn file ảnh đại diện
+        const avatarInput = document.getElementById('avatar');
+        if (avatarInput) {
+            avatarInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) { // 2MB
+                        this.showToast('Ảnh đại diện không được vượt quá 2MB', 'error');
+                        avatarInput.value = '';
+                    } else if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+                        this.showToast('Chỉ chấp nhận định dạng JPG hoặc PNG', 'error');
+                        avatarInput.value = '';
+                    } else {
+                        // Hiển thị xem trước nếu hợp lệ
+                        this.showImagePreview(file);
+                    }
                 }
             });
         }
         
-        // Sự kiện khi chọn lý do hủy
-        if (this.cancelReason) {
-            this.cancelReason.addEventListener('change', () => this.toggleOtherReason());
+        // Cải thiện UX của form bằng real-time validation
+        this.setupFormValidation();
+    }
+    
+    setupFormValidation() {
+        const fullnameInput = document.getElementById('fullname');
+        const phoneInput = document.getElementById('phone');
+        const password = document.getElementById('password');
+        const passwordConfirm = document.getElementById('password_confirm');
+        
+        if (fullnameInput) {
+            fullnameInput.addEventListener('input', () => {
+                this.validateInput(fullnameInput, fullnameInput.value.trim().length > 0, 
+                    'Họ tên không được để trống');
+            });
         }
         
-        // Sự kiện rating
-        this.ratingStars.forEach(star => {
-            star.addEventListener('click', (e) => this.handleRating(e));
-            star.addEventListener('mouseover', (e) => this.handleRatingHover(e));
-            star.addEventListener('mouseout', () => this.handleRatingOut());
-        });
+        if (phoneInput) {
+            phoneInput.addEventListener('input', () => {
+                const isValid = /^[0-9]{10,11}$/.test(phoneInput.value.trim());
+                this.validateInput(phoneInput, isValid, 'Số điện thoại phải có 10-11 chữ số');
+            });
+        }
+        
+        if (password && passwordConfirm) {
+            // Kiểm tra độ mạnh của mật khẩu
+            password.addEventListener('input', () => {
+                if (password.value.length > 0) {
+                    const strength = this.checkPasswordStrength(password.value);
+                    this.showPasswordStrength(strength);
+                    
+                    // Kiểm tra xác nhận mật khẩu nếu đã có
+                    if (passwordConfirm.value.length > 0) {
+                        this.validateInput(passwordConfirm, 
+                            password.value === passwordConfirm.value,
+                            'Mật khẩu xác nhận không khớp');
+                    }
+                } else {
+                    // Xóa thông báo độ mạnh mật khẩu
+                    const strengthEl = document.getElementById('password-strength');
+                    if (strengthEl) strengthEl.remove();
+                }
+            });
+            
+            // Kiểm tra mật khẩu xác nhận
+            passwordConfirm.addEventListener('input', () => {
+                if (passwordConfirm.value.length > 0) {
+                    this.validateInput(passwordConfirm, 
+                        password.value === passwordConfirm.value,
+                        'Mật khẩu xác nhận không khớp');
+                }
+            });
+        }
+    }
+    
+    checkPasswordStrength(password) {
+        if (password.length < 8) return { score: 1, text: 'Yếu', color: '#e74a3b' };
+        
+        let score = 0;
+        // Kiểm tra có chữ thường
+        if (/[a-z]/.test(password)) score++;
+        // Kiểm tra có chữ hoa
+        if (/[A-Z]/.test(password)) score++;
+        // Kiểm tra có số
+        if (/[0-9]/.test(password)) score++;
+        // Kiểm tra có ký tự đặc biệt
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+        
+        if (score === 4) return { score: 5, text: 'Rất mạnh', color: '#1cc88a' };
+        if (score === 3) return { score: 4, text: 'Mạnh', color: '#36b9cc' };
+        if (score === 2) return { score: 3, text: 'Trung bình', color: '#f6c23e' };
+        return { score: 2, text: 'Yếu', color: '#e74a3b' };
+    }
+    
+    showPasswordStrength(strength) {
+        let strengthEl = document.getElementById('password-strength');
+        
+        if (!strengthEl) {
+            strengthEl = document.createElement('div');
+            strengthEl.id = 'password-strength';
+            strengthEl.className = 'password-strength mt-2';
+            
+            const password = document.getElementById('password');
+            password.parentNode.appendChild(strengthEl);
+        }
+        
+        const strengthBar = `
+            <div class="strength-bar-container">
+                <div class="strength-bar" style="width: ${strength.score * 20}%; background-color: ${strength.color};"></div>
+            </div>
+            <div class="strength-text" style="color: ${strength.color};">${strength.text}</div>
+        `;
+        
+        strengthEl.innerHTML = strengthBar;
+    }
+    
+    validateInput(input, isValid, errorMessage) {
+        // Xóa thông báo lỗi cũ nếu có
+        const existingFeedback = input.nextElementSibling;
+        if (existingFeedback && existingFeedback.classList.contains('invalid-feedback')) {
+            existingFeedback.remove();
+        }
+        
+        if (!isValid) {
+            // Thêm class lỗi và thông báo
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+            
+            const feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            feedback.textContent = errorMessage;
+            input.parentNode.appendChild(feedback);
+        } else {
+            // Đánh dấu hợp lệ
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        }
+        
+        return isValid;
+    }
+    
+    showImagePreview(file) {
+        // Kiểm tra đã có container chưa
+        let previewContainer = document.getElementById('avatar-preview-container');
+        
+        if (!previewContainer) {
+            // Tạo container nếu chưa có
+            previewContainer = document.createElement('div');
+            previewContainer.id = 'avatar-preview-container';
+            previewContainer.className = 'avatar-preview-container mt-3 text-center';
+            
+            const avatarInput = document.getElementById('avatar');
+            avatarInput.parentNode.appendChild(previewContainer);
+        }
+        
+        // Đọc file và hiển thị
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewContainer.innerHTML = `
+                <div class="avatar-preview">
+                    <img src="${e.target.result}" alt="Xem trước ảnh đại diện" class="img-fluid rounded-circle">
+                </div>
+                <div class="avatar-preview-text mt-2">Ảnh được chọn</div>
+            `;
+        };
+        reader.readAsDataURL(file);
     }
     
     initTooltips() {
@@ -120,610 +224,474 @@ class ProfilePage {
         });
     }
     
-    onTabChange(e) {
-        // Xác định tab nào được hiển thị
-        const activeTabId = e ? e.target.id : document.querySelector('#profileTab .nav-link.active').id;
+    addEntryAnimations() {
+        // Thêm hiệu ứng xuất hiện mượt mà cho các phần tử
+        const profileHeader = document.querySelector('.profile-header');
+        const profileDetail = document.querySelector('.profile-detail');
+        const infoGroups = document.querySelectorAll('.info-group');
         
-        switch (activeTabId) {
-            case 'registered-tab':
-                this.loadRegisteredEvents();
-                break;
-            case 'attended-tab':
-                this.loadAttendedEvents();
-                break;
-            case 'canceled-tab':
-                this.loadCanceledEvents();
-                break;
-            case 'available-tab':
-                this.loadAvailableEvents();
-                break;
-            // Trường hợp tab thông tin cá nhân không cần tải dữ liệu
+        if (profileHeader) {
+            profileHeader.style.opacity = '0';
+            profileHeader.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                profileHeader.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                profileHeader.style.opacity = '1';
+                profileHeader.style.transform = 'translateY(0)';
+            }, 100);
         }
+        
+        if (profileDetail) {
+            profileDetail.style.opacity = '0';
+            profileDetail.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                profileDetail.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                profileDetail.style.opacity = '1';
+                profileDetail.style.transform = 'translateY(0)';
+            }, 400);
+        }
+        
+        // Hiệu ứng xuất hiện từng nhóm thông tin
+        infoGroups.forEach((group, index) => {
+            group.style.opacity = '0';
+            group.style.transform = 'translateX(-20px)';
+            
+            setTimeout(() => {
+                group.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                group.style.opacity = '1';
+                group.style.transform = 'translateX(0)';
+            }, 600 + (index * 100)); // Tăng delay theo thứ tự
+        });
     }
     
     openEditModal() {
         this.editProfileModal.show();
+        
+        // Hiệu ứng xuất hiện các trường trong modal
+        setTimeout(() => {
+            const formElements = document.querySelectorAll('.modal-body .form-control');
+            formElements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    element.style.transition = 'all 0.3s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, 100 + (index * 50));
+            });
+        }, 300);
     }
     
     saveProfile() {
-        // Kiểm tra form
-        if (!this.editProfileForm.checkValidity()) {
-            this.editProfileForm.reportValidity();
-            return;
-        }
-        
-        // Xử lý submit form
-        document.getElementById('save-profile-btn').disabled = true;
-        document.getElementById('save-profile-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
-        
-        // Submit form
-        this.editProfileForm.submit();
-    }
-    
-    loadRegisteredEvents() {
-        if (!this.registeredContainer) return;
-        
-        // Hiển thị loading
-        this.registeredContainer.innerHTML = `
-            <div class="col-12 text-center py-5 loading-container">
-                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-                <p>Đang tải dữ liệu...</p>
-            </div>
-        `;
-        
-        // Gọi API lấy sự kiện đã đăng ký
-        fetch(API_CONFIG.registeredEvents, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': API_CONFIG.csrfToken
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                this.renderEvents(this.registeredContainer, data.events, 'registered');
-            } else {
-                this.showEmptyState(this.registeredContainer, 'Không tìm thấy sự kiện đã đăng ký');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            this.showEmptyState(this.registeredContainer, 'Đã xảy ra lỗi khi tải dữ liệu');
-        });
-    }
-    
-    loadAttendedEvents() {
-        if (!this.attendedContainer) return;
-        
-        // Hiển thị loading
-        this.attendedContainer.innerHTML = `
-            <div class="col-12 text-center py-5 loading-container">
-                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-                <p>Đang tải dữ liệu...</p>
-            </div>
-        `;
-        
-        // Gọi API lấy sự kiện đã tham gia
-        fetch(API_CONFIG.attendedEvents, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': API_CONFIG.csrfToken
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                this.renderEvents(this.attendedContainer, data.events, 'attended');
-            } else {
-                this.showEmptyState(this.attendedContainer, 'Bạn chưa tham gia sự kiện nào');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            this.showEmptyState(this.attendedContainer, 'Đã xảy ra lỗi khi tải dữ liệu');
-        });
-    }
-    
-    loadCanceledEvents() {
-        if (!this.canceledContainer) return;
-        
-        // Hiển thị loading
-        this.canceledContainer.innerHTML = `
-            <div class="col-12 text-center py-5 loading-container">
-                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-                <p>Đang tải dữ liệu...</p>
-            </div>
-        `;
-        
-        // Gọi API lấy sự kiện đã hủy
-        fetch(API_CONFIG.canceledEvents, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': API_CONFIG.csrfToken
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                this.renderEvents(this.canceledContainer, data.events, 'canceled');
-            } else {
-                this.showEmptyState(this.canceledContainer, 'Không có sự kiện nào đã hủy');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            this.showEmptyState(this.canceledContainer, 'Đã xảy ra lỗi khi tải dữ liệu');
-        });
-    }
-    
-    loadAvailableEvents() {
-        if (!this.availableContainer) return;
-        
-        // Hiển thị loading
-        this.availableContainer.innerHTML = `
-            <div class="col-12 text-center py-5 loading-container">
-                <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-                <p>Đang tải dữ liệu...</p>
-            </div>
-        `;
-        
-        // Gọi API lấy sự kiện có thể đăng ký
-        const searchTerm = this.searchEventsInput ? this.searchEventsInput.value : '';
-        
-        fetch(`${API_CONFIG.availableEvents}?search=${encodeURIComponent(searchTerm)}`, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': API_CONFIG.csrfToken
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.events && data.events.length > 0) {
-                this.renderEvents(this.availableContainer, data.events, 'available');
-            } else {
-                this.showEmptyState(this.availableContainer, 'Không có sự kiện nào có thể đăng ký');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            this.showEmptyState(this.availableContainer, 'Đã xảy ra lỗi khi tải dữ liệu');
-        });
-    }
-    
-    searchEvents() {
-        this.loadAvailableEvents();
-    }
-    
-    renderEvents(container, events, type) {
-        if (!container) return;
-        
-        // Nếu không có sự kiện
-        if (!events || events.length === 0) {
-            this.showEmptyState(container, 'Không có sự kiện nào');
-            return;
-        }
-        
-        let html = '';
-        
-        events.forEach(event => {
-            const eventDateObj = new Date(event.thoi_gian_bat_dau);
-            const formattedDate = eventDateObj.toLocaleDateString('vi-VN', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+        if (this.validateProfileForm()) {
+            const formData = new FormData(this.editProfileForm);
+            this.showLoading();
+            
+            // Hiệu ứng lưu
+            this.saveProfileBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...';
+            this.saveProfileBtn.disabled = true;
+            
+            fetch(API_CONFIG.profileUpdate, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': API_CONFIG.csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                this.hideLoading();
+                
+                if (data.success) {
+                    this.showToast('Thông tin cá nhân đã được cập nhật', 'success');
+                    
+                    // Đóng modal với hiệu ứng
+                    const modalBackdrop = document.querySelector('.modal-backdrop');
+                    const modalContent = document.querySelector('.modal-content');
+                    
+                    if (modalContent) {
+                        modalContent.style.transition = 'all 0.3s ease';
+                        modalContent.style.transform = 'scale(0.9)';
+                        modalContent.style.opacity = '0';
+                    }
+                    
+                    setTimeout(() => {
+                        this.editProfileModal.hide();
+                        
+                        // Hiệu ứng làm mới trang
+                        const overlay = document.createElement('div');
+                        overlay.className = 'refresh-overlay';
+                        overlay.innerHTML = `
+                            <div class="refresh-spinner">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p>Đang cập nhật...</p>
+                            </div>
+                        `;
+                        document.body.appendChild(overlay);
+                        
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }, 300);
+                } else {
+                    this.saveProfileBtn.innerHTML = 'Lưu thay đổi';
+                    this.saveProfileBtn.disabled = false;
+                    this.showToast(data.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
+                }
+            })
+            .catch(error => {
+                this.hideLoading();
+                this.saveProfileBtn.innerHTML = 'Lưu thay đổi';
+                this.saveProfileBtn.disabled = false;
+                console.error('Error:', error);
+                this.showToast('Có lỗi xảy ra khi cập nhật thông tin', 'error');
             });
+        }
+    }
+    
+    validateProfileForm() {
+        // Xác thực form cơ bản
+        let isValid = true;
+        
+        const fullname = document.getElementById('fullname');
+        const phone = document.getElementById('phone');
+        const password = document.getElementById('password');
+        const passwordConfirm = document.getElementById('password_confirm');
+        
+        // Kiểm tra họ tên
+        if (fullname) {
+            isValid = this.validateInput(fullname, fullname.value.trim().length > 0, 
+                'Vui lòng nhập họ và tên') && isValid;
+        }
+        
+        // Kiểm tra số điện thoại
+        if (phone) {
+            const phoneValid = /^[0-9]{10,11}$/.test(phone.value.trim());
+            isValid = this.validateInput(phone, phoneValid, 
+                'Số điện thoại phải có 10-11 chữ số') && isValid;
+        }
+        
+        // Kiểm tra mật khẩu nếu có
+        if (password && passwordConfirm && password.value.length > 0) {
+            // Kiểm tra độ dài mật khẩu
+            isValid = this.validateInput(password, password.value.length >= 8, 
+                'Mật khẩu phải có ít nhất 8 ký tự') && isValid;
             
-            const startTimeObj = new Date(`2000-01-01T${event.gio_bat_dau}`);
-            const endTimeObj = new Date(`2000-01-01T${event.gio_ket_thuc}`);
-            const formattedTime = `${startTimeObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - ${endTimeObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
-            
-            html += `
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="event-card">
-                        <div class="event-card-image-container">
-                            <img src="${event.hinh_anh ? `${window.location.origin}/uploads/events/${event.hinh_anh}` : `${window.location.origin}/assets/images/events/default.jpg`}" 
-                                class="event-card-image" alt="${event.ten_su_kien}">
-                            <div class="event-card-date">
-                                <span class="event-day">${eventDateObj.getDate()}</span>
-                                <span class="event-month">${eventDateObj.toLocaleString('vi-VN', { month: 'short' })}</span>
-                            </div>
-                        </div>
-                        <div class="event-card-body">
-                            <h5 class="event-card-title">${event.ten_su_kien}</h5>
-                            <div class="event-card-info">
-                                <p><i class="fas fa-map-marker-alt"></i> ${event.dia_diem}</p>
-                                <p><i class="far fa-clock"></i> ${formattedTime}</p>
-                                <p><i class="far fa-calendar-alt"></i> ${formattedDate}</p>
-                            </div>
-                            <div class="event-card-actions">
-            `;
-            
-            // Các nút action tùy theo loại sự kiện
-            if (type === 'registered') {
-                html += `
-                    <a href="${window.location.origin}/nguoi-dung/events/details/${event.su_kien_id}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-info-circle"></i> Chi tiết
-                    </a>
-                    <button class="btn btn-sm btn-danger cancel-event-btn" data-event-id="${event.su_kien_id}" data-event-title="${event.ten_su_kien}">
-                        <i class="fas fa-times-circle"></i> Hủy đăng ký
-                    </button>
-                `;
-            } else if (type === 'attended') {
-                html += `
-                    <a href="${window.location.origin}/nguoi-dung/events/details/${event.su_kien_id}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-info-circle"></i> Chi tiết
-                    </a>
-                    ${!event.has_feedback ? `
-                    <button class="btn btn-sm btn-success feedback-btn" data-event-id="${event.su_kien_id}" data-event-title="${event.ten_su_kien}">
-                        <i class="fas fa-star"></i> Đánh giá
-                    </button>
-                    ` : `
-                    <button class="btn btn-sm btn-outline-success" disabled>
-                        <i class="fas fa-check"></i> Đã đánh giá
-                    </button>
-                    `}
-                `;
-            } else if (type === 'canceled') {
-                html += `
-                    <a href="${window.location.origin}/nguoi-dung/events/details/${event.su_kien_id}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-info-circle"></i> Chi tiết
-                    </a>
-                `;
-            } else if (type === 'available') {
-                html += `
-                    <a href="${window.location.origin}/nguoi-dung/events/details/${event.su_kien_id}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-info-circle"></i> Chi tiết
-                    </a>
-                    <button class="btn btn-sm btn-success register-event-btn" data-event-id="${event.su_kien_id}">
-                        <i class="fas fa-calendar-check"></i> Đăng ký
-                    </button>
-                `;
-            }
-            
-            html += `
-                            </div>
-                        </div>
-                    </div>
+            // Kiểm tra mật khẩu xác nhận
+            isValid = this.validateInput(passwordConfirm, 
+                password.value === passwordConfirm.value,
+                'Mật khẩu xác nhận không khớp') && isValid;
+        }
+        
+        return isValid;
+    }
+    
+    showLoading() {
+        // Tạo overlay loading
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'loading-overlay';
+        loadingOverlay.innerHTML = `
+            <div class="spinner-container">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang xử lý...</span>
                 </div>
-            `;
-        });
-        
-        container.innerHTML = html;
-        
-        // Gắn các event listener cho các nút
-        this.initEventCardButtons(container, type);
-    }
-    
-    showEmptyState(container, message) {
-        if (!container) return;
-        
-        container.innerHTML = `
-            <div class="col-12 text-center py-5 empty-state">
-                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                <p class="text-muted">${message}</p>
+                <p>Đang xử lý...</p>
             </div>
         `;
+        document.body.appendChild(loadingOverlay);
+        
+        // Hiệu ứng xuất hiện
+        setTimeout(() => {
+            loadingOverlay.style.opacity = '1';
+        }, 10);
     }
     
-    initEventCardButtons(container, type) {
-        // Gắn sự kiện cho các nút trong thẻ sự kiện
-        if (type === 'registered') {
-            const cancelButtons = container.querySelectorAll('.cancel-event-btn');
-            cancelButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const eventId = e.currentTarget.dataset.eventId;
-                    const eventTitle = e.currentTarget.dataset.eventTitle;
-                    this.openCancelModal(eventId, eventTitle);
-                });
-            });
-        } else if (type === 'attended') {
-            const feedbackButtons = container.querySelectorAll('.feedback-btn');
-            feedbackButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const eventId = e.currentTarget.dataset.eventId;
-                    const eventTitle = e.currentTarget.dataset.eventTitle;
-                    this.openFeedbackModal(eventId, eventTitle);
-                });
-            });
-        } else if (type === 'available') {
-            const registerButtons = container.querySelectorAll('.register-event-btn');
-            registerButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const eventId = e.currentTarget.dataset.eventId;
-                    this.registerEvent(eventId);
-                });
-            });
+    hideLoading() {
+        // Xóa overlay loading với hiệu ứng
+        const loadingOverlay = document.querySelector('.loading-overlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                loadingOverlay.remove();
+            }, 300);
         }
     }
     
-    openCancelModal(eventId, eventTitle) {
-        // Thiết lập modal hủy đăng ký
-        document.getElementById('cancel-event-id').value = eventId;
-        document.getElementById('cancelEventModalLabel').textContent = `Xác nhận hủy đăng ký: ${eventTitle}`;
-        
-        // Reset form
-        this.cancelEventForm.reset();
-        this.otherReasonContainer.classList.add('d-none');
-        
-        // Hiển thị modal
-        this.cancelEventModal.show();
-    }
-    
-    openFeedbackModal(eventId, eventTitle) {
-        // Thiết lập modal đánh giá
-        document.getElementById('feedback-event-id').value = eventId;
-        document.getElementById('feedback-event-title').textContent = eventTitle;
-        
-        // Reset form
-        this.feedbackForm.reset();
-        this.resetRating();
-        
-        // Hiển thị modal
-        this.feedbackModal.show();
-    }
-    
-    cancelEvent() {
-        // Kiểm tra form
-        if (!this.cancelEventForm.checkValidity()) {
-            this.cancelEventForm.reportValidity();
-            return;
-        }
-        
-        // Kiểm tra lý do nếu chọn 'Khác'
-        if (this.cancelReason.value === 'other' && !this.otherReason.value.trim()) {
-            this.otherReason.setCustomValidity('Vui lòng nhập lý do');
-            this.otherReason.reportValidity();
-            return;
-        } else {
-            this.otherReason.setCustomValidity('');
-        }
-        
-        // Lấy dữ liệu form
-        const eventId = document.getElementById('cancel-event-id').value;
-        const reason = this.cancelReason.value;
-        const otherReasonText = this.otherReason.value;
-        
-        // Disable buttons
-        this.confirmCancelBtn.disabled = true;
-        this.confirmCancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
-        
-        // Gọi API hủy đăng ký
-        fetch(API_CONFIG.cancelEvent, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': API_CONFIG.csrfToken
-            },
-            body: JSON.stringify({
-                event_id: eventId,
-                reason: reason,
-                other_reason: reason === 'other' ? otherReasonText : ''
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Hiển thị thông báo thành công
-                if (window.StudentUI) {
-                    window.StudentUI.showToast(data.message || 'Hủy đăng ký thành công!', 'success');
-                } else {
-                    alert(data.message || 'Hủy đăng ký thành công!');
-                }
-                
-                // Đóng modal
-                this.cancelEventModal.hide();
-                
-                // Tải lại dữ liệu
-                this.loadRegisteredEvents();
-                setTimeout(() => this.loadCanceledEvents(), 500);
-            } else {
-                // Hiển thị thông báo lỗi
-                if (window.StudentUI) {
-                    window.StudentUI.showToast(data.message || 'Đã xảy ra lỗi!', 'danger');
-                } else {
-                    alert(data.message || 'Đã xảy ra lỗi!');
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            
-            // Hiển thị thông báo lỗi
-            if (window.StudentUI) {
-                window.StudentUI.showToast('Đã xảy ra lỗi khi gửi yêu cầu!', 'danger');
-            } else {
-                alert('Đã xảy ra lỗi khi gửi yêu cầu!');
-            }
-        })
-        .finally(() => {
-            // Enable buttons
-            this.confirmCancelBtn.disabled = false;
-            this.confirmCancelBtn.innerHTML = 'Xác nhận hủy';
+    showToast(message, type = 'info') {
+        // Xóa toast cũ nếu có
+        const existingToasts = document.querySelectorAll('.toast-notification');
+        existingToasts.forEach(toast => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
         });
-    }
-    
-    registerEvent(eventId) {
-        if (!eventId) return;
         
-        // Gọi API đăng ký sự kiện
-        fetch(API_CONFIG.registerEvent, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': API_CONFIG.csrfToken
-            },
-            body: JSON.stringify({
-                event_id: eventId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Hiển thị thông báo thành công
-                if (window.StudentUI) {
-                    window.StudentUI.showToast(data.message || 'Đăng ký thành công!', 'success');
-                } else {
-                    alert(data.message || 'Đăng ký thành công!');
-                }
-                
-                // Tải lại dữ liệu
-                this.loadAvailableEvents();
-                setTimeout(() => this.loadRegisteredEvents(), 500);
-            } else {
-                // Hiển thị thông báo lỗi
-                if (window.StudentUI) {
-                    window.StudentUI.showToast(data.message || 'Đã xảy ra lỗi!', 'danger');
-                } else {
-                    alert(data.message || 'Đã xảy ra lỗi!');
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            
-            // Hiển thị thông báo lỗi
-            if (window.StudentUI) {
-                window.StudentUI.showToast('Đã xảy ra lỗi khi gửi yêu cầu!', 'danger');
-            } else {
-                alert('Đã xảy ra lỗi khi gửi yêu cầu!');
-            }
-        });
-    }
-    
-    saveFeedback() {
-        // Kiểm tra rating
-        if (parseInt(this.ratingValue.value) === 0) {
-            if (window.StudentUI) {
-                window.StudentUI.showToast('Vui lòng chọn số sao đánh giá!', 'warning');
-            } else {
-                alert('Vui lòng chọn số sao đánh giá!');
-            }
-            return;
+        // Tạo element toast
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        
+        // Icon cho toast
+        let icon = '';
+        switch (type) {
+            case 'success':
+                icon = '<i class="fas fa-check-circle"></i>';
+                break;
+            case 'error':
+                icon = '<i class="fas fa-exclamation-circle"></i>';
+                break;
+            default:
+                icon = '<i class="fas fa-info-circle"></i>';
         }
         
-        // Lấy dữ liệu form
-        const eventId = document.getElementById('feedback-event-id').value;
-        const rating = parseInt(this.ratingValue.value);
-        const comments = document.getElementById('feedback-comments').value;
+        // Nội dung toast
+        toast.innerHTML = `
+            ${icon}
+            <div class="toast-message">${message}</div>
+        `;
         
-        // Disable buttons
-        this.saveFeedbackBtn.disabled = true;
-        this.saveFeedbackBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+        // Thêm vào body
+        document.body.appendChild(toast);
         
-        // Gọi API gửi đánh giá
-        fetch(API_CONFIG.feedback, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': API_CONFIG.csrfToken
-            },
-            body: JSON.stringify({
-                event_id: eventId,
-                rating: rating,
-                comments: comments
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Hiển thị thông báo thành công
-                if (window.StudentUI) {
-                    window.StudentUI.showToast(data.message || 'Đánh giá thành công!', 'success');
-                } else {
-                    alert(data.message || 'Đánh giá thành công!');
-                }
-                
-                // Đóng modal
-                this.feedbackModal.hide();
-                
-                // Tải lại dữ liệu
-                this.loadAttendedEvents();
-            } else {
-                // Hiển thị thông báo lỗi
-                if (window.StudentUI) {
-                    window.StudentUI.showToast(data.message || 'Đã xảy ra lỗi!', 'danger');
-                } else {
-                    alert(data.message || 'Đã xảy ra lỗi!');
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            
-            // Hiển thị thông báo lỗi
-            if (window.StudentUI) {
-                window.StudentUI.showToast('Đã xảy ra lỗi khi gửi yêu cầu!', 'danger');
-            } else {
-                alert('Đã xảy ra lỗi khi gửi yêu cầu!');
-            }
-        })
-        .finally(() => {
-            // Enable buttons
-            this.saveFeedbackBtn.disabled = false;
-            this.saveFeedbackBtn.innerHTML = 'Gửi đánh giá';
-        });
-    }
-    
-    toggleOtherReason() {
-        const reasonValue = this.cancelReason.value;
+        // Hiển thị toast
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
         
-        if (reasonValue === 'other') {
-            this.otherReasonContainer.classList.remove('d-none');
-            this.otherReason.setAttribute('required', 'required');
-        } else {
-            this.otherReasonContainer.classList.add('d-none');
-            this.otherReason.removeAttribute('required');
-        }
-    }
-    
-    handleRating(e) {
-        const value = parseInt(e.currentTarget.dataset.value);
-        this.updateRating(value);
-        this.ratingValue.value = value;
-    }
-    
-    handleRatingHover(e) {
-        const value = parseInt(e.currentTarget.dataset.value);
-        this.updateRatingVisual(value);
-    }
-    
-    handleRatingOut() {
-        const value = parseInt(this.ratingValue.value) || 0;
-        this.updateRatingVisual(value);
-    }
-    
-    updateRating(value) {
-        this.ratingValue.value = value;
-        this.updateRatingVisual(value);
-    }
-    
-    updateRatingVisual(value) {
-        this.ratingStars.forEach(star => {
-            const starValue = parseInt(star.dataset.value);
-            if (starValue <= value) {
-                star.classList.remove('far');
-                star.classList.add('fas');
-            } else {
-                star.classList.remove('fas');
-                star.classList.add('far');
-            }
-        });
-    }
-    
-    resetRating() {
-        this.ratingValue.value = 0;
-        this.updateRatingVisual(0);
+        // Tự động ẩn sau 3 giây
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
     }
 }
 
-// Khởi tạo trang khi DOM đã tải xong
-document.addEventListener('DOMContentLoaded', () => {
+// Thêm CSS cho toast, loading và các phần tử UI tương tác
+document.addEventListener('DOMContentLoaded', function() {
+    // CSS cho các phần tử
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        .toast-notification {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: white;
+            color: #333;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            padding: 18px 25px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            z-index: 9999;
+            transform: translateY(30px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 350px;
+        }
+        
+        .toast-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-notification i {
+            font-size: 1.7rem;
+            margin-right: 15px;
+        }
+        
+        .toast-message {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        
+        .toast-success {
+            border-left: 5px solid #1cc88a;
+        }
+        
+        .toast-error {
+            border-left: 5px solid #e74a3b;
+        }
+        
+        .toast-info {
+            border-left: 5px solid #4e73df;
+        }
+        
+        .toast-success i {
+            color: #1cc88a;
+        }
+        
+        .toast-error i {
+            color: #e74a3b;
+        }
+        
+        .toast-info i {
+            color: #4e73df;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .spinner-container {
+            text-align: center;
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(78, 115, 223, 0.1);
+            animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.25rem;
+        }
+        
+        .spinner-container p {
+            margin-top: 20px;
+            color: #4e73df;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        /* Styles cho form validation */
+        .is-invalid {
+            border-color: #e74a3b !important;
+            padding-right: calc(1.5em + 0.75rem) !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23e74a3b' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23e74a3b' stroke='none'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right calc(0.375em + 0.1875rem) center !important;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem) !important;
+        }
+        
+        .is-valid {
+            border-color: #1cc88a !important;
+            padding-right: calc(1.5em + 0.75rem) !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%231cc88a' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right calc(0.375em + 0.1875rem) center !important;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem) !important;
+        }
+        
+        .invalid-feedback {
+            display: block;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+            color: #e74a3b;
+        }
+        
+        /* Avatar preview */
+        .avatar-preview-container {
+            margin-top: 15px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto;
+            border: 5px solid rgba(78, 115, 223, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-preview-text {
+            font-size: 0.9rem;
+            color: #4e73df;
+            font-weight: 600;
+        }
+        
+        /* Password strength */
+        .password-strength {
+            margin-top: 10px;
+            font-size: 0.875rem;
+        }
+        
+        .strength-bar-container {
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            margin-bottom: 5px;
+            overflow: hidden;
+        }
+        
+        .strength-bar {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .strength-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        /* Refresh effect */
+        .refresh-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .refresh-spinner {
+            text-align: center;
+        }
+        
+        .refresh-spinner p {
+            margin-top: 15px;
+            color: #4e73df;
+            font-weight: 600;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    `;
+    document.head.appendChild(styleElement);
+    
+    // Khởi tạo trang
     profilePage = new ProfilePage();
 });

@@ -81,29 +81,39 @@
             
             <!-- Bộ lọc và tìm kiếm -->
             <div class="filter-controls">
-                <div class="search-box">
-                    <input type="text" id="eventSearch" placeholder="Tìm kiếm sự kiện...">
-                    <i class="fas fa-search"></i>
-                </div>
-                
-                <div class="filter-options">
-                    <div class="sort-box">
-                        <select id="eventSort">
-                            <option value="newest">Mới nhất</option>
-                            <option value="oldest">Cũ nhất</option>
-                            <option value="name">Theo tên</option>
-                        </select>
+                <form action="" method="get" id="filter-form" class="w-100 row g-3 d-flex justify-content-center flex-wrap">
+                    <div class="col-md-3">
+                        <label for="search" class="form-label">Tìm kiếm:</label>
+                        <input type="text" class="form-control" id="search" name="search" style="height: 50px;"
+                            value="<?= esc($current_filter['search'] ?? '') ?>" placeholder="Tìm kiếm sự kiện...">
                     </div>
                     
-                    <div class="filter-box">
-                        <select id="statusFilter">
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="attended">Đã tham gia</option>
-                            <option value="pending">Chưa tham gia</option>
-                            <option value="cancelled">Đã hủy</option>
-                        </select>
+                    <div class="col-md-3">
+                        <label for="start_date" class="form-label">Từ ngày:
+                            <?php if(isset($formatted_filter['start_date_formatted']) && !empty($formatted_filter['start_date_formatted'])): ?>
+                            <span class="date-display">(<?= $formatted_filter['start_date_formatted'] ?>)</span>
+                            <?php endif; ?>
+                        </label>
+                        <input type="datetime-local" class="form-control date-input" id="start_date" name="start_date" 
+                               value="<?= $current_filter['start_date'] ?? '' ?>">
                     </div>
-                </div>
+                    
+                    <div class="col-md-3">
+                        <label for="end_date" class="form-label">Đến ngày:
+                            <?php if(isset($formatted_filter['end_date_formatted']) && !empty($formatted_filter['end_date_formatted'])): ?>
+                            <span class="date-display">(<?= $formatted_filter['end_date_formatted'] ?>)</span>
+                            <?php endif; ?>
+                        </label>
+                        <input type="datetime-local" class="form-control date-input" id="end_date" name="end_date"
+                               value="<?= $current_filter['end_date'] ?? '' ?>">
+                    </div>
+                    
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary btn-apply-filters" style="height: 50px;">
+                            <i class="fas fa-filter"></i> Áp dụng bộ lọc
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
         
@@ -233,6 +243,169 @@
 <?= $this->endSection(); ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/js/nguoidung/pages/eventshistoryregister.js') ?>"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý click vào các sự kiện để xem chi tiết
+    const eventCards = document.querySelectorAll('.event-card');
+    eventCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const eventId = this.getAttribute('data-event-id');
+            if (eventId) {
+                window.location.href = `<?= base_url('nguoidung/su-kien/chi-tiet/') ?>${eventId}`;
+            }
+        });
+    });
+    
+    // Xử lý form lọc
+    document.getElementById('filter-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        applyFilters();
+    });
+    
+    // Thiết lập ban đầu cho các trường datetime-local
+    initDateTimeFields();
+    
+    // Hàm định dạng ngày giờ theo dd/mm/yyyy h:i:s
+    function formatDateTimeVN(date) {
+        if (!date || isNaN(date.getTime())) return '';
+        
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    }
+    
+    // Hàm khởi tạo các trường thời gian
+    function initDateTimeFields() {
+        // Lấy tham số từ URL hiện tại
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Định dạng lại giá trị start_date nếu có
+        if(urlParams.has('start_date')) {
+            const startDateValue = urlParams.get('start_date');
+            try {
+                const date = new Date(startDateValue);
+                if(!isNaN(date.getTime())) {
+                    // Định dạng để phù hợp với trường datetime-local (YYYY-MM-DDThh:mm)
+                    const formattedDate = date.toISOString().slice(0, 16);
+                    document.getElementById('start_date').value = formattedDate;
+                    
+                    // Thêm định dạng hiển thị dd/mm/yyyy h:i:s bên cạnh trường input
+                    const formattedDisplayDate = formatDateTimeVN(date);
+                    const displaySpan = document.createElement('span');
+                    displaySpan.className = 'date-display';
+                    displaySpan.textContent = `(${formattedDisplayDate})`;
+                    
+                    const label = document.querySelector('label[for="start_date"]');
+                    // Kiểm tra nếu chưa có span hiển thị
+                    if (!label.querySelector('.date-display')) {
+                        label.appendChild(displaySpan);
+                    }
+                }
+            } catch(e) {
+                console.error('Lỗi khi xử lý ngày bắt đầu:', e);
+            }
+        }
+        
+        // Định dạng lại giá trị end_date nếu có
+        if(urlParams.has('end_date')) {
+            const endDateValue = urlParams.get('end_date');
+            try {
+                const date = new Date(endDateValue);
+                if(!isNaN(date.getTime())) {
+                    // Định dạng để phù hợp với trường datetime-local (YYYY-MM-DDThh:mm)
+                    const formattedDate = date.toISOString().slice(0, 16);
+                    document.getElementById('end_date').value = formattedDate;
+                    
+                    // Thêm định dạng hiển thị dd/mm/yyyy h:i:s bên cạnh trường input
+                    const formattedDisplayDate = formatDateTimeVN(date);
+                    const displaySpan = document.createElement('span');
+                    displaySpan.className = 'date-display';
+                    displaySpan.textContent = `(${formattedDisplayDate})`;
+                    
+                    const label = document.querySelector('label[for="end_date"]');
+                    // Kiểm tra nếu chưa có span hiển thị
+                    if (!label.querySelector('.date-display')) {
+                        label.appendChild(displaySpan);
+                    }
+                }
+            } catch(e) {
+                console.error('Lỗi khi xử lý ngày kết thúc:', e);
+            }
+        }
+        
+        // Thêm sự kiện change cho các trường ngày để cập nhật hiển thị ngay lập tức
+        document.getElementById('start_date').addEventListener('change', function() {
+            updateDateDisplay(this, 'start_date');
+        });
+        
+        document.getElementById('end_date').addEventListener('change', function() {
+            updateDateDisplay(this, 'end_date');
+        });
+    }
+    
+    // Hàm cập nhật hiển thị ngày giờ khi người dùng thay đổi
+    function updateDateDisplay(inputElement, fieldId) {
+        try {
+            const date = new Date(inputElement.value);
+            if(!isNaN(date.getTime())) {
+                const formattedDisplayDate = formatDateTimeVN(date);
+                
+                const label = document.querySelector(`label[for="${fieldId}"]`);
+                let displaySpan = label.querySelector('.date-display');
+                
+                if (!displaySpan) {
+                    displaySpan = document.createElement('span');
+                    displaySpan.className = 'date-display';
+                    label.appendChild(displaySpan);
+                }
+                
+                displaySpan.textContent = `(${formattedDisplayDate})`;
+            }
+        } catch(e) {
+            console.error('Lỗi khi cập nhật hiển thị ngày:', e);
+        }
+    }
+    
+    // Hàm áp dụng các bộ lọc
+    function applyFilters() {
+        let url = new URL(window.location.href);
+        let searchParams = new URLSearchParams(url.search);
+        
+        // Lấy giá trị từ các trường
+        const search = document.getElementById('search').value;
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        
+        // Cập nhật tham số URL
+        if (search) {
+            searchParams.set('search', search);
+        } else {
+            searchParams.delete('search');
+        }
+        
+        // Xử lý và cập nhật tham số ngày giờ
+        if(startDate) {
+            searchParams.set('start_date', new Date(startDate).toISOString());
+        } else {
+            searchParams.delete('start_date');
+        }
+        
+        if(endDate) {
+            searchParams.set('end_date', new Date(endDate).toISOString());
+        } else {
+            searchParams.delete('end_date');
+        }
+        
+        // Chuyển hướng đến URL mới
+        url.search = searchParams.toString();
+        window.location.href = url.toString();
+    }
+});
+</script>
 <?= $this->endSection() ?>
 

@@ -145,7 +145,7 @@
                     <h5 class="card-title mb-0">
                         <i class="fas fa-check-circle me-2"></i>Sự kiện đã tham gia
                     </h5>
-                    <a href="<?= base_url('nguoi-dung/profile') ?>" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                    <a href="<?= base_url('nguoi-dung/events-checkin') ?>" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="event-list">

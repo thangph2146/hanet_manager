@@ -296,13 +296,13 @@ class SuKienModel extends BaseModel
         
         // Lọc theo ngày tổ chức
         if (isset($criteria['start_date']) && !empty($criteria['start_date'])) {
-            $startDate = date('Y-m-d', strtotime($criteria['start_date']));
-            $builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau) >=', $startDate);
+            $startDate = date('Y-m-d H:i:s', strtotime($criteria['start_date']));
+            $builder->where($this->table . '.thoi_gian_bat_dau >=', $startDate);
         }
         
         if (isset($criteria['end_date']) && !empty($criteria['end_date'])) {
-            $endDate = date('Y-m-d', strtotime($criteria['end_date']));
-            $builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau) <=', $endDate);
+            $endDate = date('Y-m-d H:i:s', strtotime($criteria['end_date']));
+            $builder->where($this->table . '.thoi_gian_bat_dau <=', $endDate);
         }
         
         // Lọc sự kiện nổi bật
@@ -1170,4 +1170,63 @@ class SuKienModel extends BaseModel
         $loaiSuKienModel = new \App\Modules\quanlyloaisukien\Models\LoaiSuKienModel();
         return $loaiSuKienModel->getForDropdown(true);
     }
-}
+
+    /**
+     * Lấy danh sách sự kiện với các tùy chọn lọc
+     * 
+     * @param array $options Các tùy chọn lọc sự kiện
+     * @return array Mảng các đối tượng sự kiện
+     */
+    public function getEvents(array $options = [])
+    {
+        // Xây dựng truy vấn
+        $builder = $this->builder();
+        
+        // Áp dụng điều kiện trạng thái nếu có
+        if (isset($options['status'])) {
+            if ($options['status'] === 'published') {
+                $builder->where('status', 1);
+            } elseif ($options['status'] === 'draft') {
+                $builder->where('status', 0);
+            }
+        }
+        
+        // Áp dụng các điều kiện WHERE nếu có
+        if (isset($options['where']) && is_array($options['where'])) {
+            foreach ($options['where'] as $field => $value) {
+                $builder->where($field, $value);
+            }
+        }
+        
+        // Áp dụng LIKE điều kiện nếu có
+        if (isset($options['like']) && is_array($options['like'])) {
+            foreach ($options['like'] as $field => $value) {
+                $builder->like($field, $value);
+            }
+        }
+        
+        // Áp dụng sắp xếp nếu có
+        if (isset($options['order']) && is_array($options['order'])) {
+            foreach ($options['order'] as $field => $direction) {
+                $builder->orderBy($field, $direction);
+            }
+        } else {
+            // Mặc định sắp xếp theo thời gian tạo giảm dần
+            $builder->orderBy('created_at', 'DESC');
+        }
+        
+        // Áp dụng giới hạn và offset nếu có
+        if (isset($options['limit'])) {
+            $builder->limit($options['limit']);
+        }
+        
+        // Áp dụng offset nếu có
+        if (isset($options['offset'])) {
+            $builder->offset($options['offset']);
+        }
+        
+        // Thực hiện truy vấn
+        $query = $builder->get();
+        return $query->getResult();
+    }
+}   
