@@ -9,119 +9,175 @@ class SuKienSeeder extends Seeder
 {
     public function run()
     {
-        // Check if loai_su_kien exists and has data
-        if (!$this->checkDependency('loai_su_kien', 'LoaiSuKienSeeder')) {
-            return;
-        }
+        // Temporarily disable foreign key checks
+        $this->db->query('SET FOREIGN_KEY_CHECKS=0');
         
-        // Clear existing data to avoid duplicates
-        $this->clearTable('su_kien');
-        
-        // Load Text Helper để sử dụng các hàm xử lý text
-        helper('text');
-        
-        // Lấy danh sách loại sự kiện từ bảng loai_su_kien
-        $loaiSuKienList = $this->db->table('loai_su_kien')->limit(5)->get()->getResultArray();
-        
-        if (empty($loaiSuKienList)) {
-            echo "Cần phải có dữ liệu trong bảng loai_su_kien trước khi chạy seeder này.\n";
-            return;
-        }
-        
-        // Tạo dữ liệu mẫu dựa trên mockEvents
-        $mockEvents = $this->getMockEvents();
-        if (empty($mockEvents)) {
-            echo "Không có dữ liệu mockEvents để xử lý.\n";
-            return;
-        }
+        try {
+            // Check if loai_su_kien exists and has data
+            if (!$this->checkDependency('loai_su_kien', 'LoaiSuKienSeeder')) {
+                // Re-enable foreign key checks before exiting
+                $this->db->query('SET FOREIGN_KEY_CHECKS=1');
+                return;
+            }
+            
+            // Clear existing data to avoid duplicates
+            $this->clearTable('su_kien');
+            
+            // Load Text Helper để sử dụng các hàm xử lý text
+            helper('text');
+            
+            // Lấy danh sách loại sự kiện từ bảng loai_su_kien
+            $loaiSuKienList = $this->db->table('loai_su_kien')->get()->getResultArray();
+            
+            if (empty($loaiSuKienList)) {
+                echo "Cần phải có dữ liệu trong bảng loai_su_kien trước khi chạy seeder này.\n";
+                
+                // Re-enable foreign key checks before exiting
+                $this->db->query('SET FOREIGN_KEY_CHECKS=1');
+                return;
+            }
+            
+            // Display available loai_su_kien records for debugging
+            echo "Danh sách loại sự kiện hiện có trong cơ sở dữ liệu:\n";
+            foreach ($loaiSuKienList as $loai) {
+                echo "- ID: " . ($loai['loai_su_kien_id'] ?? 'N/A') . 
+                     ", Tên: " . ($loai['ten_loai_su_kien'] ?? 'N/A') . 
+                     ", Mã: " . ($loai['ma_loai_su_kien'] ?? 'N/A') . "\n";
+            }
+            
+            // Create a mapping array of loai_su_kien_id's that actually exist
+            $validLoaiSuKienIds = array_column($loaiSuKienList, 'loai_su_kien_id');
+            
+            // Tạo dữ liệu mẫu dựa trên mockEvents
+            $mockEvents = $this->getMockEvents();
+            if (empty($mockEvents)) {
+                echo "Không có dữ liệu mockEvents để xử lý.\n";
+                
+                // Re-enable foreign key checks before exiting
+                $this->db->query('SET FOREIGN_KEY_CHECKS=1');
+                return;
+            }
 
-        $now = Time::now();
-        $data = [];
-        
-        foreach ($mockEvents as $index => $event) {
-            // Chọn ngẫu nhiên loại sự kiện
-            $loaiSuKien = $loaiSuKienList[array_rand($loaiSuKienList)];
+            $now = Time::now();
+            $data = [];
             
-            // Tạo thời gian ngẫu nhiên
-            $startDate = clone $now;
-            $startDate->addDays(rand(-30, 60));
-            $startDate->setHour(rand(8, 18))->setMinute(0)->setSecond(0);
+            foreach ($mockEvents as $index => $event) {
+                // Choose a random event type from the valid IDs
+                $loaiSuKienId = $validLoaiSuKienIds[array_rand($validLoaiSuKienIds)];
+                
+                // Override the loai_su_kien_id from the mock data with a valid one
+                // Only use the event's loai_su_kien_id if it exists in the database
+                $eventLoaiSuKienId = $event['loai_su_kien_id'] ?? null;
+                if (!in_array($eventLoaiSuKienId, $validLoaiSuKienIds)) {
+                    $eventLoaiSuKienId = $loaiSuKienId;
+                }
+                
+                // Tạo thời gian ngẫu nhiên
+                $startDate = clone $now;
+                $startDate->addDays(rand(-30, 60));
+                $startDate->setHour(rand(8, 18))->setMinute(0)->setSecond(0);
+                
+                $endDate = clone $startDate;
+                $endDate->addHours(rand(2, 8));
+                
+                // Thời gian đăng ký
+                $registerStart = clone $startDate;
+                $registerStart->subDays(rand(14, 30));
+                
+                $registerEnd = clone $startDate;
+                $registerEnd->subDays(rand(1, 5));
+                
+                // Tạo lịch trình từ mockEvents nếu có
+                $lichTrinh = !empty($event['lich_trinh']) ? $event['lich_trinh'] : $this->generateSchedule($startDate);
+                
+                // Tạo slug từ tên sự kiện
+                $slug = url_title(convert_accented_characters($event['ten_su_kien'] ?? 'su-kien-' . ($index + 1)), '-', true);
+                
+                // Dữ liệu cho một sự kiện
+                $data[] = [
+                    'ten_su_kien' => $event['ten_su_kien'] ?? 'Sự kiện mẫu ' . ($index + 1),
+                    'su_kien_poster' => json_encode([
+                        'original' => $event['hinh_anh'] ?? 'uploads/sukien/default.jpg',
+                        'thumbnail' => str_replace('.jpg', '_thumb.jpg', $event['hinh_anh'] ?? 'uploads/sukien/default.jpg'),
+                        'alt_text' => 'Poster ' . ($event['ten_su_kien'] ?? 'Sự kiện mẫu ' . ($index + 1))
+                    ]),
+                    'mo_ta' => $event['mo_ta_su_kien'] ?? 'Mô tả ngắn gọn về sự kiện mẫu số ' . ($index + 1),
+                    'mo_ta_su_kien' => $event['mo_ta_su_kien'] ?? 'Mô tả chi tiết về sự kiện mẫu số ' . ($index + 1),
+                    'chi_tiet_su_kien' => $event['chi_tiet_su_kien'] ?? '<p>Chi tiết về sự kiện mẫu số ' . ($index + 1) . '</p>',
+                    'thoi_gian_bat_dau' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_bat_dau'] ?? '08:00:00') : $startDate->toDateTimeString(),
+                    'thoi_gian_ket_thuc' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_ket_thuc'] ?? '17:00:00') : $endDate->toDateTimeString(),
+                    'thoi_gian_checkin_bat_dau' => $event['thoi_gian_checkin_bat_dau'] ?? $startDate->toDateTimeString(),
+                    'thoi_gian_checkin_ket_thuc' => $event['thoi_gian_checkin_ket_thuc'] ?? $endDate->toDateTimeString(),
+                    'don_vi_to_chuc' => $event['don_vi_to_chuc'] ?? 'Trường Đại học Ngân hàng TP.HCM',
+                    'don_vi_phoi_hop' => $event['don_vi_phoi_hop'] ?? 'Trường Đại học Ngân hàng TP.HCM',
+                    'doi_tuong_tham_gia' => $event['doi_tuong_tham_gia'] ?? 'Tất cả',
+                    'dia_diem' => $event['dia_diem'] ?? 'Địa điểm sự kiện ' . ($index + 1),
+                    'dia_chi_cu_the' => $event['dia_chi_cu_the'] ?? 'Địa chỉ cụ thể ' . ($index + 1),
+                    'toa_do_gps' => $event['toa_do_gps'] ?? rand(10, 11) . '.' . rand(100000, 999999) . ',' . rand(106, 107) . '.' . rand(100000, 999999),
+                    'loai_su_kien_id' => $eventLoaiSuKienId,
+                    'ma_qr_code' => $event['ma_qr_code'] ?? 'QR_EVENT_' . ($index + 1) . '_' . rand(10000, 99999),
+                    'status' => $event['status'] ?? rand(0, 1),
+                    'tong_dang_ky' => $event['tong_dang_ky'] ?? rand(10, 200),
+                    'tong_check_in' => $event['tong_check_in'] ?? rand(5, 150),
+                    'tong_check_out' => $event['tong_check_out'] ?? rand(0, 100),
+                    'cho_phep_check_in' => 1,
+                    'cho_phep_check_out' => 1,
+                    'yeu_cau_face_id' => rand(0, 1),
+                    'cho_phep_checkin_thu_cong' => 1,
+                    'bat_dau_dang_ky' => !empty($event['bat_dau_dang_ky']) ? $event['bat_dau_dang_ky'] : $registerStart->toDateTimeString(),
+                    'ket_thuc_dang_ky' => !empty($event['ket_thuc_dang_ky']) ? $event['ket_thuc_dang_ky'] : $registerEnd->toDateTimeString(),
+                    'gio_bat_dau' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_bat_dau'] ?? '08:00:00') : $startDate->toDateTimeString(),
+                    'gio_ket_thuc' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_ket_thuc'] ?? '17:00:00') : $endDate->toDateTimeString(),
+                    'so_luong_tham_gia' => $event['so_luong_tham_gia'] ?? rand(50, 500),
+                    'so_luong_dien_gia' => $event['so_luong_dien_gia'] ?? rand(1, 10),
+                    'gioi_han_loai_nguoi_dung' => $event['gioi_han_loai_nguoi_dung'] ?? 'all',
+                    'tu_khoa_su_kien' => $event['tu_khoa_su_kien'] ?? 'sự kiện, mẫu, test',
+                    'hashtag' => $event['hashtags'] ?? '#SuKien' . ($index + 1),
+                    'slug' => $event['slug'] ?? $slug,
+                    'so_luot_xem' => $event['so_luot_xem'] ?? rand(50, 5000),
+                    'lich_trinh' => json_encode($lichTrinh),
+                    'hinh_thuc' => $event['hinh_thuc'] ?? 'offline',
+                    'link_online' => $event['link_online'] ?? null,
+                    'mat_khau_online' => $event['mat_khau_online'] ?? null,
+                    'version' => 1,
+                    'created_at' => $event['created_at'] ?? $now->subDays(rand(1, 30))->toDateTimeString(),
+                    'updated_at' => $event['updated_at'] ?? $now->toDateTimeString()
+                ];
+            }
             
-            $endDate = clone $startDate;
-            $endDate->addHours(rand(2, 8));
+            // Thêm dữ liệu vào bảng su_kien
+            if (!empty($data)) {
+                try {
+                    $this->db->table('su_kien')->insertBatch($data);
+                    echo "Đã tạo thành công " . count($data) . " bản ghi sự kiện mẫu.\n";
+                } catch (\Exception $e) {
+                    echo "Lỗi khi thêm dữ liệu sự kiện: " . $e->getMessage() . "\n";
+                    
+                    // Try inserting one by one to see which record fails
+                    echo "Đang thử thêm từng bản ghi một để xác định lỗi:\n";
+                    $successCount = 0;
+                    
+                    foreach ($data as $index => $record) {
+                        try {
+                            $this->db->table('su_kien')->insert($record);
+                            $successCount++;
+                            echo "Bản ghi $index đã được thêm thành công.\n";
+                        } catch (\Exception $e) {
+                            echo "Lỗi ở bản ghi $index: " . $e->getMessage() . "\n";
+                            echo "Loại sự kiện ID: " . $record['loai_su_kien_id'] . "\n";
+                        }
+                    }
+                    
+                    echo "Đã thêm thành công $successCount/" . count($data) . " bản ghi.\n";
+                }
+            }
             
-            // Thời gian đăng ký
-            $registerStart = clone $startDate;
-            $registerStart->subDays(rand(14, 30));
-            
-            $registerEnd = clone $startDate;
-            $registerEnd->subDays(rand(1, 5));
-            
-            // Tạo lịch trình từ mockEvents nếu có
-            $lichTrinh = !empty($event['lich_trinh']) ? $event['lich_trinh'] : $this->generateSchedule($startDate);
-            
-            // Tạo slug từ tên sự kiện
-            $slug = url_title(convert_accented_characters($event['ten_su_kien'] ?? 'su-kien-' . ($index + 1)), '-', true);
-            
-            // Dữ liệu cho một sự kiện
-            $data[] = [
-                'ten_su_kien' => $event['ten_su_kien'] ?? 'Sự kiện mẫu ' . ($index + 1),
-                'su_kien_poster' => json_encode([
-                    'original' => $event['hinh_anh'] ?? 'uploads/sukien/default.jpg',
-                    'thumbnail' => str_replace('.jpg', '_thumb.jpg', $event['hinh_anh'] ?? 'uploads/sukien/default.jpg'),
-                    'alt_text' => 'Poster ' . ($event['ten_su_kien'] ?? 'Sự kiện mẫu ' . ($index + 1))
-                ]),
-                'mo_ta' => $event['mo_ta_su_kien'] ?? 'Mô tả ngắn gọn về sự kiện mẫu số ' . ($index + 1),
-                'mo_ta_su_kien' => $event['mo_ta_su_kien'] ?? 'Mô tả chi tiết về sự kiện mẫu số ' . ($index + 1),
-                'chi_tiet_su_kien' => $event['chi_tiet_su_kien'] ?? '<p>Chi tiết về sự kiện mẫu số ' . ($index + 1) . '</p>',
-                'thoi_gian_bat_dau' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_bat_dau'] ?? '08:00:00') : $startDate->toDateTimeString(),
-                'thoi_gian_ket_thuc' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_ket_thuc'] ?? '17:00:00') : $endDate->toDateTimeString(),
-                'thoi_gian_checkin_bat_dau' => $event['thoi_gian_checkin_bat_dau'] ?? $startDate->toDateTimeString(),
-                'thoi_gian_checkin_ket_thuc' => $event['thoi_gian_checkin_ket_thuc'] ?? $endDate->toDateTimeString(),
-                'don_vi_to_chuc' => $event['don_vi_to_chuc'] ?? 'Trường Đại học Ngân hàng TP.HCM',
-                'don_vi_phoi_hop' => $event['don_vi_phoi_hop'] ?? 'Trường Đại học Ngân hàng TP.HCM',
-                'doi_tuong_tham_gia' => $event['doi_tuong_tham_gia'] ?? 'Tất cả',
-                'dia_diem' => $event['dia_diem'] ?? 'Địa điểm sự kiện ' . ($index + 1),
-                'dia_chi_cu_the' => $event['dia_chi_cu_the'] ?? 'Địa chỉ cụ thể ' . ($index + 1),
-                'toa_do_gps' => $event['toa_do_gps'] ?? rand(10, 11) . '.' . rand(100000, 999999) . ',' . rand(106, 107) . '.' . rand(100000, 999999),
-                'loai_su_kien_id' => $event['loai_su_kien_id'] ?? $loaiSuKien['loai_su_kien_id'],
-                'ma_qr_code' => $event['ma_qr_code'] ?? 'QR_EVENT_' . ($index + 1) . '_' . rand(10000, 99999),
-                'status' => $event['status'] ?? rand(0, 1),
-                'tong_dang_ky' => $event['tong_dang_ky'] ?? rand(10, 200),
-                'tong_check_in' => $event['tong_check_in'] ?? rand(5, 150),
-                'tong_check_out' => $event['tong_check_out'] ?? rand(0, 100),
-                'cho_phep_check_in' => 1,
-                'cho_phep_check_out' => 1,
-                'yeu_cau_face_id' => rand(0, 1),
-                'cho_phep_checkin_thu_cong' => 1,
-                'bat_dau_dang_ky' => !empty($event['bat_dau_dang_ky']) ? $event['bat_dau_dang_ky'] : $registerStart->toDateTimeString(),
-                'ket_thuc_dang_ky' => !empty($event['ket_thuc_dang_ky']) ? $event['ket_thuc_dang_ky'] : $registerEnd->toDateTimeString(),
-                'gio_bat_dau' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_bat_dau'] ?? '08:00:00') : $startDate->toDateTimeString(),
-                'gio_ket_thuc' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_ket_thuc'] ?? '17:00:00') : $endDate->toDateTimeString(),
-                'so_luong_tham_gia' => $event['so_luong_tham_gia'] ?? rand(50, 500),
-                'so_luong_dien_gia' => $event['so_luong_dien_gia'] ?? rand(1, 10),
-                'gioi_han_loai_nguoi_dung' => $event['gioi_han_loai_nguoi_dung'] ?? 'all',
-                'tu_khoa_su_kien' => $event['tu_khoa_su_kien'] ?? 'sự kiện, mẫu, test',
-                'hashtag' => $event['hashtags'] ?? '#SuKien' . ($index + 1),
-                'slug' => $event['slug'] ?? $slug,
-                'so_luot_xem' => $event['so_luot_xem'] ?? rand(50, 5000),
-                'lich_trinh' => json_encode($lichTrinh),
-                'hinh_thuc' => $event['hinh_thuc'] ?? 'offline',
-                'link_online' => $event['link_online'] ?? null,
-                'mat_khau_online' => $event['mat_khau_online'] ?? null,
-                'version' => 1,
-                'created_at' => $event['created_at'] ?? $now->subDays(rand(1, 30))->toDateTimeString(),
-                'updated_at' => $event['updated_at'] ?? $now->toDateTimeString()
-            ];
+            echo "Seeder SuKienSeeder đã được chạy thành công!\n";
+        } finally {
+            // Always re-enable foreign key checks at the end
+            $this->db->query('SET FOREIGN_KEY_CHECKS=1');
+            echo "Foreign key checks đã được bật lại.\n";
         }
-        
-        // Thêm dữ liệu vào bảng su_kien
-        if (!empty($data)) {
-            $this->db->table('su_kien')->insertBatch($data);
-            echo "Đã tạo thành công " . count($data) . " bản ghi sự kiện mẫu.\n";
-        }
-        
-        echo "Seeder SuKienSeeder đã được chạy thành công!\n";
     }
     
     /**
