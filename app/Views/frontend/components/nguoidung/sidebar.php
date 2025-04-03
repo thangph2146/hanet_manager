@@ -16,7 +16,7 @@ $menu_items = [
             'url' => 'nguoi-dung/dashboard',
         ]
     ],
-    'events' => [
+    'sự kiện' => [
         [
             'icon' => 'calendar-alt',
             'text' => 'Quản lý sự kiện',
@@ -33,21 +33,9 @@ $menu_items = [
                 [
                     'text' => 'Lịch sử đăng ký',
                     'url' => 'nguoi-dung/events-history-register',
-                    'badge' => '10'
                 ]
             ]
         ],
-        [
-            'icon' => 'envelope',
-            'text' => 'Thông báo',
-            'url' => 'nguoi-dung/notifications',
-            'badge' => '3'
-        ],
-        [
-            'icon' => 'comments',
-            'text' => 'Trò chuyện',
-            'url' => 'nguoi-dung/chat',
-        ]
     ],
 ];
 
@@ -121,7 +109,7 @@ function renderMenuItem($item, $current_url) {
             <div>SỰ KIỆN</div>
         </li>
         
-        <?php foreach($menu_items['events'] as $item): ?>
+        <?php foreach($menu_items['sự kiện'] as $item): ?>
             <?php renderMenuItem($item, $current_url); ?>
         <?php endforeach; ?>
     </ul>
