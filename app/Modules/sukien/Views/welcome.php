@@ -68,7 +68,7 @@
                 <div class="col-lg-5 mb-4 mb-lg-0" data-aos="fade-right">
                     <div class="hub-logo-wrapper position-relative">
                         <div class="hub-logo-bg"></div>
-                        <img src="<?= base_url('assets/modules/sukien/images/hub-logo.png') ?>" alt="HUB Logo" class="img-fluid hub-logo">
+                        <img src="<?= base_url('assets/modules/images/hub-logo.png') ?>" alt="HUB Logo" class="img-fluid hub-logo">
                     </div>
                 </div>
                 <div class="col-lg-7" data-aos="fade-left">

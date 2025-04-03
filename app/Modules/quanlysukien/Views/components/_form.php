@@ -71,6 +71,12 @@ if (is_object($data)) {
 }
 ?>
 
+<!-- Thêm CKEditor từ CDN -->
+<script src="https://cdn.ckeditor.com/4.20.2/standard-all/ckeditor.js"></script>
+
+<!-- Thay thế bằng TinyMCE - Trình soạn thảo an toàn và hiện đại hơn -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
 <style>
 .form-card {
     transition: all 0.3s ease;
@@ -346,7 +352,7 @@ if (is_object($data)) {
                         <label for="mo_ta" class="form-label fw-bold">
                             <i class="fas fa-align-left text-primary me-1"></i> Mô tả
                         </label>
-                        <textarea class="form-control <?= isset($validation) && $validation->hasError('mo_ta') ? 'is-invalid' : '' ?>" 
+                        <textarea class="form-control wysiwyg <?= isset($validation) && $validation->hasError('mo_ta') ? 'is-invalid' : '' ?>" 
                                   id="mo_ta" name="mo_ta" rows="3" 
                                   placeholder="Nhập mô tả sự kiện"><?= $mo_ta ?></textarea>
                         <?php if (isset($validation) && $validation->hasError('mo_ta')) : ?>
@@ -360,7 +366,7 @@ if (is_object($data)) {
                         <label for="mo_ta_su_kien" class="form-label fw-bold">
                             <i class="fas fa-file-alt text-primary me-1"></i> Mô tả chi tiết
                         </label>
-                        <textarea class="form-control <?= isset($validation) && $validation->hasError('mo_ta_su_kien') ? 'is-invalid' : '' ?>" 
+                        <textarea class="form-control wysiwyg <?= isset($validation) && $validation->hasError('mo_ta_su_kien') ? 'is-invalid' : '' ?>" 
                                   id="mo_ta_su_kien" name="mo_ta_su_kien" rows="5" 
                                   placeholder="Nhập mô tả chi tiết về sự kiện"><?= $mo_ta_su_kien ?></textarea>
                         <?php if (isset($validation) && $validation->hasError('mo_ta_su_kien')) : ?>
@@ -705,7 +711,7 @@ if (is_object($data)) {
     <!-- Lịch trình sự kiện -->
     <div class="card my-4">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Lịch trình sự kiện</h5>
+            <h5 class="mb-0 text-white">Lịch trình sự kiện</h5>
         </div>
         <div class="card-body">
             <div class="alert alert-info">
@@ -813,7 +819,7 @@ if (is_object($data)) {
                 <button type="reset" class="btn btn-outline-warning me-2">
                     <i class="fas fa-redo me-1"></i> Đặt lại
                 </button>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" id="submit-btn">
                     <i class="fas fa-save me-1"></i> Lưu thông tin
                 </button>
             </div>
@@ -823,6 +829,34 @@ if (is_object($data)) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý form submit để cập nhật dữ liệu từ CKEditor
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        // Nếu CKEditor được sử dụng, đảm bảo cập nhật dữ liệu vào form
+        if (typeof CKEDITOR !== 'undefined') {
+            for (const instance in CKEDITOR.instances) {
+                CKEDITOR.instances[instance].updateElement();
+            }
+        }
+    });
+
+    // Kiểm tra CKEditor sau 2 giây
+    setTimeout(function() {
+        if (typeof CKEDITOR === 'undefined') {
+            console.warn('CKEditor không được tải sau 2 giây. Vui lòng kiểm tra kết nối mạng hoặc tải lại trang.');
+            
+            // Hiển thị thông báo cho người dùng
+            const textareas = document.querySelectorAll('.wysiwyg');
+            textareas.forEach(textarea => {
+                const parent = textarea.parentNode;
+                const errorMsg = document.createElement('div');
+                errorMsg.classList.add('alert', 'alert-warning', 'mt-2');
+                errorMsg.innerHTML = '<strong>Lưu ý:</strong> Trình soạn thảo không thể tải. Bạn vẫn có thể sử dụng hộp văn bản cơ bản này. Vui lòng thử tải lại trang hoặc kiểm tra kết nối mạng.';
+                parent.appendChild(errorMsg);
+            });
+        }
+    }, 2000);
+
     // Thêm hiệu ứng cho form inputs
     const inputs = document.querySelectorAll('.form-control, .form-select');
     inputs.forEach(input => {

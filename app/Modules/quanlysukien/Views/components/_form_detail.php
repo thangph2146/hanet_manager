@@ -620,7 +620,7 @@ $updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
         <!-- Chi tiết lịch trình sự kiện -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">
+                <h5 class="mb-0 text-white">
                     <i class="fas fa-calendar me-2"></i> Lịch trình sự kiện
                 </h5>
             </div>

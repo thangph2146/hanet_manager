@@ -25,23 +25,50 @@ class SukienModel extends BaseModel
         // Lấy thời gian hiện tại
         $now = date('Y-m-d H:i:s');
         
-        // Sử dụng phương thức search từ lớp cha với các tiêu chí phù hợp
-        $criteria = [
-            'status' => 1,
-            'featured' => 1
-        ];
+        // Log để debug
+        log_message('debug', 'getFeaturedEvents: Current time = ' . $now);
         
-        $options = [
-            'limit' => 3,
-            'sort' => 'thoi_gian_bat_dau',
-            'order' => 'ASC',
-            'join_loai_su_kien' => true
-        ];
+        // Thiết lập builder
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select($this->table . '.*, loai_su_kien.ten_loai_su_kien');
+        $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
         
-        // Thêm điều kiện thời gian bắt đầu lớn hơn hoặc bằng thời gian hiện tại
-        $this->where('su_kien.thoi_gian_bat_dau >=', $now);
+        // Chỉ lấy sự kiện có trạng thái hoạt động
+        $this->builder->where($this->table . '.status', 1);
+        $this->builder->where($this->table . '.deleted_at IS NULL');
         
-        $events = $this->search($criteria, $options);
+        // Thử lấy sự kiện sắp diễn ra trước
+        $this->builder->where($this->table . '.thoi_gian_bat_dau >=', $now);
+        
+        // Sắp xếp theo thời gian bắt đầu (để lấy sự kiện gần nhất)
+        $this->builder->orderBy($this->table . '.thoi_gian_bat_dau', 'ASC');
+        
+        // Giới hạn số lượng kết quả
+        $this->builder->limit(3);
+        
+        // Thực hiện truy vấn
+        $events = $this->builder->get()->getResult($this->returnType);
+        
+        // Nếu không có sự kiện sắp diễn ra, lấy cả sự kiện đã diễn ra (để đảm bảo luôn có sự kiện hiển thị)
+        if (empty($events)) {
+            log_message('debug', 'No upcoming events found, looking for recent past events');
+            
+            $this->builder = $this->db->table($this->table);
+            $this->builder->select($this->table . '.*, loai_su_kien.ten_loai_su_kien');
+            $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
+            
+            $this->builder->where($this->table . '.status', 1);
+            $this->builder->where($this->table . '.deleted_at IS NULL');
+            
+            // Sắp xếp theo thời gian bắt đầu giảm dần (lấy sự kiện gần đây nhất)
+            $this->builder->orderBy($this->table . '.thoi_gian_bat_dau', 'DESC');
+            
+            $this->builder->limit(3);
+            
+            $events = $this->builder->get()->getResult($this->returnType);
+        }
+        
+        log_message('debug', 'getFeaturedEvents: Found ' . count($events) . ' events');
         
         // Chuyển đổi kết quả sang định dạng mảng tương thích với view hiện tại
         $result = [];
@@ -55,11 +82,11 @@ class SukienModel extends BaseModel
                 'dia_diem' => $event->dia_diem,
                 'dia_chi_cu_the' => $event->dia_chi_cu_the ?? '',
                 'hinh_anh' => $event->su_kien_poster,
-                'gio_bat_dau' => $event->gio_bat_dau,
-                'gio_ket_thuc' => $event->gio_ket_thuc,
+                'gio_bat_dau' => $event->gio_bat_dau ?? date('H:i', strtotime($event->thoi_gian_bat_dau)),
+                'gio_ket_thuc' => $event->gio_ket_thuc ?? date('H:i', strtotime($event->thoi_gian_ket_thuc)),
                 'thoi_gian_bat_dau' => $event->thoi_gian_bat_dau,
                 'thoi_gian_ket_thuc' => $event->thoi_gian_ket_thuc,
-                'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
+                'thoi_gian' => date('H:i', strtotime($event->thoi_gian_bat_dau)) . ' - ' . date('H:i', strtotime($event->thoi_gian_ket_thuc)),
                 'loai_su_kien_id' => $event->loai_su_kien_id,
                 'loai_su_kien' => $event->ten_loai_su_kien ?? '',
                 'slug' => $event->slug,
@@ -77,21 +104,53 @@ class SukienModel extends BaseModel
      */
     public function getUpcomingEvents($limit = 6)
     {
+        // Lấy thời gian hiện tại
         $now = date('Y-m-d H:i:s');
         
-        $criteria = [
-            'status' => 1,
-            'upcoming' => true
-        ];
+        // Log để debug
+        log_message('debug', 'getUpcomingEvents: Current time = ' . $now);
         
-        $options = [
-            'limit' => $limit,
-            'sort' => 'thoi_gian_bat_dau',
-            'order' => 'ASC',
-            'join_loai_su_kien' => true
-        ];
+        // Thiết lập builder
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select($this->table . '.*, loai_su_kien.ten_loai_su_kien');
+        $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
         
-        $events = $this->search($criteria, $options);
+        // Chỉ lấy sự kiện có trạng thái hoạt động
+        $this->builder->where($this->table . '.status', 1);
+        $this->builder->where($this->table . '.deleted_at IS NULL');
+        
+        // Thử lấy sự kiện sắp diễn ra trước
+        $this->builder->where($this->table . '.thoi_gian_bat_dau >=', $now);
+        
+        // Sắp xếp theo thời gian bắt đầu (để lấy sự kiện gần nhất)
+        $this->builder->orderBy($this->table . '.thoi_gian_bat_dau', 'ASC');
+        
+        // Giới hạn số lượng kết quả
+        $this->builder->limit($limit);
+        
+        // Thực hiện truy vấn
+        $events = $this->builder->get()->getResult($this->returnType);
+        
+        // Nếu không có sự kiện sắp diễn ra, lấy cả sự kiện đã diễn ra (để đảm bảo luôn có sự kiện hiển thị)
+        if (empty($events)) {
+            log_message('debug', 'No upcoming events found, looking for recent past events');
+            
+            $this->builder = $this->db->table($this->table);
+            $this->builder->select($this->table . '.*, loai_su_kien.ten_loai_su_kien');
+            $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
+            
+            $this->builder->where($this->table . '.status', 1);
+            $this->builder->where($this->table . '.deleted_at IS NULL');
+            
+            // Sắp xếp theo thời gian bắt đầu giảm dần (lấy sự kiện gần đây nhất)
+            $this->builder->orderBy($this->table . '.thoi_gian_bat_dau', 'DESC');
+            
+            $this->builder->limit($limit);
+            
+            $events = $this->builder->get()->getResult($this->returnType);
+        }
+        
+        log_message('debug', 'getUpcomingEvents: Found ' . count($events) . ' events');
         
         // Chuyển đổi kết quả sang định dạng mảng tương thích với view hiện tại
         $result = [];
@@ -105,11 +164,11 @@ class SukienModel extends BaseModel
                 'dia_diem' => $event->dia_diem,
                 'dia_chi_cu_the' => $event->dia_chi_cu_the ?? '',
                 'hinh_anh' => $event->su_kien_poster,
-                'gio_bat_dau' => $event->gio_bat_dau,
-                'gio_ket_thuc' => $event->gio_ket_thuc,
+                'gio_bat_dau' => $event->gio_bat_dau ?? date('H:i', strtotime($event->thoi_gian_bat_dau)),
+                'gio_ket_thuc' => $event->gio_ket_thuc ?? date('H:i', strtotime($event->thoi_gian_ket_thuc)),
                 'thoi_gian_bat_dau' => $event->thoi_gian_bat_dau,
                 'thoi_gian_ket_thuc' => $event->thoi_gian_ket_thuc,
-                'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
+                'thoi_gian' => date('H:i', strtotime($event->thoi_gian_bat_dau)) . ' - ' . date('H:i', strtotime($event->thoi_gian_ket_thuc)),
                 'loai_su_kien_id' => $event->loai_su_kien_id,
                 'loai_su_kien' => $event->ten_loai_su_kien ?? '',
                 'slug' => $event->slug,

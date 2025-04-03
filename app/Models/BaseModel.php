@@ -663,4 +663,8 @@ class BaseModel extends Model
         $this->concatFields = $fields;
         return $this;
     }
+    public function getCreatedAtFormatted()
+    {
+        return $this->created_at->format('d/m/Y H:i:s');
+    }
 }

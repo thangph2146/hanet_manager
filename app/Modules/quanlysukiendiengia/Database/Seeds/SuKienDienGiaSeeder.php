@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\sukiendiengia\Database\Seeds;
+namespace App\Modules\quanlysukiendiengia\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
 use CodeIgniter\I18n\Time;

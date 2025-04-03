@@ -3,7 +3,7 @@
 namespace App\Modules\sukien\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\quanlysukien\Models\SuKienModel;
+use App\Modules\sukien\Models\SukienModel;
 use App\Modules\quanlyloaisukien\Models\LoaiSuKienModel;
 use App\Modules\quanlydangkysukien\Models\DangKySuKienModel;
 use App\Modules\quanlycheckinsukien\Models\CheckinSukienModel;
@@ -21,7 +21,7 @@ class SuKien extends BaseController
     
     public function __construct()
     {
-        $this->sukienModel = new SuKienModel();
+        $this->sukienModel = new SukienModel();
         $this->loaiSukienModel = new LoaiSuKienModel();
         $this->dangKySukienModel = new DangKySuKienModel();
         $this->checkinModel = new CheckinSukienModel();
@@ -36,6 +36,10 @@ class SuKien extends BaseController
         
         // Lấy 6 sự kiện sắp diễn ra gần nhất (dành cho phần upcoming events)
         $upcoming_events = $this->sukienModel->getUpcomingEvents(6);
+        
+        // Debug log
+        log_message('debug', 'Featured events count: ' . count($featured_events));
+        log_message('debug', 'Upcoming events count: ' . count($upcoming_events));
         
         // Thêm số lượng đăng ký và số lượt xem cho các sự kiện
         foreach ($featured_events as &$event) {
@@ -140,9 +144,18 @@ class SuKien extends BaseController
             return 0;
         });
         
+        // Debug log
+        log_message('debug', 'Valid events count: ' . count($valid_events));
+        if (!empty($valid_events)) {
+            log_message('debug', 'First valid event: ' . json_encode(reset($valid_events)));
+        }
+        
         // Lấy sự kiện gần nhất
         if (!empty($valid_events)) {
             $job_fair_event = reset($valid_events);
+            
+            // Debug log
+            log_message('debug', 'Job fair event before processing: ' . json_encode($job_fair_event));
             
             // Kiểm tra xem sự kiện đã bắt đầu chưa
             if (is_object($job_fair_event)) {
@@ -191,6 +204,42 @@ class SuKien extends BaseController
                 }
             }
         }
+        
+        // Nếu không có job_fair_event, sử dụng sự kiện đầu tiên từ upcoming_events
+        if (empty($job_fair_event) && !empty($upcoming_events)) {
+            $job_fair_event = $upcoming_events[0];
+            log_message('debug', 'Using first upcoming event as job fair event: ' . json_encode($job_fair_event));
+        }
+        
+        // Nếu vẫn không có sự kiện nào, tạo một sự kiện mẫu
+        if (empty($job_fair_event)) {
+            log_message('debug', 'Creating a sample event for display');
+            $job_fair_event = [
+                'su_kien_id' => 0,
+                'ten_su_kien' => 'Sự Kiện Đại Học Ngân Hàng TP.HCM',
+                'mo_ta_su_kien' => 'Sự kiện mẫu dành cho sinh viên Đại học Ngân hàng TP.HCM',
+                'chi_tiet_su_kien' => 'Đây là sự kiện mẫu để đảm bảo hiển thị trên trang chủ',
+                'ngay_to_chuc' => date('Y-m-d', strtotime('+7 days')),
+                'dia_diem' => 'Trường Đại học Ngân hàng TP.HCM',
+                'dia_chi_cu_the' => '36 Tôn Thất Đạm, Phường Nguyễn Thái Bình, Quận 1, TP.HCM',
+                'hinh_anh' => 'assets/modules/sukien/images/event-default.jpg',
+                'gio_bat_dau' => '08:00:00',
+                'gio_ket_thuc' => '17:00:00',
+                'thoi_gian_bat_dau' => date('Y-m-d', strtotime('+7 days')) . ' 08:00:00',
+                'thoi_gian_ket_thuc' => date('Y-m-d', strtotime('+7 days')) . ' 17:00:00',
+                'thoi_gian' => '08:00 - 17:00',
+                'loai_su_kien_id' => 1,
+                'loai_su_kien' => 'Hội thảo',
+                'slug' => 'su-kien-mau',
+                'so_luot_xem' => 0,
+                'hinh_thuc' => 'Offline',
+                'tong_dang_ky' => 0,
+                'registration_count' => 0
+            ];
+        }
+        
+        // Debug log
+        log_message('debug', 'Final job fair event: ' . (empty($job_fair_event) ? 'EMPTY' : json_encode($job_fair_event)));
         
         // Lấy thông tin counter
         $stats = [
@@ -329,7 +378,7 @@ class SuKien extends BaseController
         }
         
         $data['canonical_url'] = $base_url;
-
+        
         return view('App\Modules\sukien\Views\list', $data);
     }
 
@@ -533,7 +582,7 @@ class SuKien extends BaseController
             $builder->orLike('su_kien.slug', str_replace(' ', '-', $searchTerm));
             
             $builder->groupEnd();
-        } else {
+            } else {
             // Nếu từ khóa quá ngắn, tìm sự kiện gần đây
             $builder->orderBy('su_kien.created_at', 'DESC');
         }
@@ -607,7 +656,7 @@ class SuKien extends BaseController
         
         return view('App\Modules\sukien\Views\list', $data);
     }
-
+    
     public function register()
     {
         // Xử lý đăng ký sự kiện
@@ -970,10 +1019,10 @@ class SuKien extends BaseController
             }
         } catch (\Exception $e) {
             log_message('error', 'Error saving Hanet check-in data: ' . $e->getMessage());
-            return false;
-        }
-        
-        return true;
+                return false;
+                }
+                
+                return true;
     }
 
     /**

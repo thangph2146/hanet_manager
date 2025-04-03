@@ -172,7 +172,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia) {
@@ -193,7 +193,7 @@ class SuKienDienGia extends BaseEntity
         
         // Use model instances to find data instead of trying to use find() on entity objects
         $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         
         $suKien = $suKienModel->find($suKienId);
         $dienGia = $dienGiaModel->find($dienGiaId);
@@ -214,7 +214,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getChucDanh')) {
@@ -233,7 +233,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getToChuc')) {
@@ -252,7 +252,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getGioiThieu')) {
@@ -271,7 +271,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getAvatar')) {
@@ -290,7 +290,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getEmail')) {
@@ -309,7 +309,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getDienThoai')) {
@@ -328,7 +328,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getWebsite')) {
@@ -347,7 +347,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getChuyenMon')) {
@@ -366,7 +366,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getThanhTuu')) {
@@ -385,7 +385,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getMangXaHoi')) {
@@ -404,7 +404,7 @@ class SuKienDienGia extends BaseEntity
         $dienGiaId = $this->getDienGiaId();
         
         // Use model instance to find data
-        $dienGiaModel = new \App\Modules\diengia\Models\DienGiaModel();
+        $dienGiaModel = new \App\Modules\quanlydiengia\Models\DienGiaModel();
         $dienGia = $dienGiaModel->find($dienGiaId);
         
         if ($dienGia && method_exists($dienGia, 'getStatus')) {
@@ -641,38 +641,7 @@ class SuKienDienGia extends BaseEntity
         return $time ? $time->format($format) : null;
     }
     
-    /**
-     * Lấy ngày tạo đã định dạng
-     *
-     * @return string|null
-     */
-    public function getCreatedAtFormatted(): ?string
-    {
-        $createdAt = $this->getCreatedAt();
-        return $createdAt ? $createdAt->format('d/m/Y H:i:s') : null;
-    }
-    
-    /**
-     * Lấy ngày cập nhật đã định dạng
-     *
-     * @return string|null
-     */
-    public function getUpdatedAtFormatted(): ?string
-    {
-        $updatedAt = $this->getUpdatedAt();
-        return $updatedAt ? $updatedAt->format('d/m/Y H:i:s') : null;
-    }
-    
-    /**
-     * Lấy ngày xóa đã định dạng
-     *
-     * @return string|null
-     */
-    public function getDeletedAtFormatted(): ?string
-    {
-        $deletedAt = $this->getDeletedAt();
-        return $deletedAt ? $deletedAt->format('d/m/Y H:i:s') : null;
-    }
+  
     
     /**
      * Lấy các quy tắc xác thực
