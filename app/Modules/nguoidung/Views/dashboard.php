@@ -15,7 +15,7 @@
                         <p class="welcome-text">Chào mừng bạn quay trở lại với hệ thống quản lý sự kiện của chúng tôi.</p>
                     </div>
                     <div class="col-md-4 text-md-end">
-                        <a href="<?= base_url('nguoi-dung/events/list') ?>" class="btn btn-primary btn-lg">
+                        <a href="<?= base_url('su-kien') ?>" class="btn btn-primary btn-lg">
                             <i class="fas fa-calendar-plus me-2"></i> Khám phá sự kiện
                         </a>
                     </div>
@@ -31,9 +31,9 @@
                 <div class="stat-icon">
                     <i class="fas fa-calendar-check"></i>
                 </div>
-                <div class="stat-content">
-                    <div class="stat-value" data-value="<?= $stats['registered'] ?>"><?= $stats['registered'] ?></div>
-                    <div class="stat-label">Sự kiện đã đăng ký</div>
+                <div class="stat-content text-white">
+                    <div class="stat-value text-white" data-value="<?= $stats['registered'] ?>"><?= $stats['registered'] ?></div>
+                    <div class="stat-label text-white">Sự kiện đã đăng ký</div>
                 </div>
             </div>
         </div>
@@ -42,9 +42,9 @@
                 <div class="stat-icon">
                     <i class="fas fa-user-check"></i>
                 </div>
-                <div class="stat-content">
-                    <div class="stat-value" data-value="<?= $stats['attended'] ?>"><?= $stats['attended'] ?></div>
-                    <div class="stat-label">Sự kiện đã tham gia</div>
+                <div class="stat-content text-white">
+                    <div class="stat-value text-white" data-value="<?= $stats['attended'] ?>"><?= $stats['attended'] ?></div>
+                    <div class="stat-label text-white">Sự kiện đã tham gia</div>
                 </div>
             </div>
         </div>
@@ -53,9 +53,9 @@
                 <div class="stat-icon">
                     <i class="fas fa-chart-line"></i>
                 </div>
-                <div class="stat-content">
-                    <div class="stat-value" data-value="<?= $stats['completion_rate'] ?>"><?= $stats['completion_rate'] ?>%</div>
-                    <div class="stat-label">Tỷ lệ tham gia</div>
+                <div class="stat-content text-white">
+                    <div class="stat-value text-white" data-value="<?= $stats['completion_rate'] ?>"><?= $stats['completion_rate'] ?>%</div>
+                    <div class="stat-label text-white">Tỷ lệ tham gia</div>
                 </div>
             </div>
         </div>
@@ -190,10 +190,10 @@
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <div class="empty-state p-4 text-center">
+                            <div class="empty-state p-4 text-center text-white">
                                 <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
                                 <p>Bạn chưa tham gia sự kiện nào.</p>
-                                <a href="<?= base_url('nguoi-dung/profile') ?>" class="btn btn-primary btn-sm">
+                                <a href="<?= base_url('nguoi-dung/profile') ?>" class="btn btn-primary btn-sm text-white">
                                     Xem sự kiện đã đăng ký
                                 </a>
                             </div>
