@@ -113,7 +113,7 @@ class NguoiDung extends BaseController
         return view('App\Modules\nguoidung\Views\dashboard', $data);
     }
     
-    public function eventsCheckin()
+    public function eventsHistoryRegister()
     {
         // Load text helper
         helper('text');
@@ -198,7 +198,7 @@ class NguoiDung extends BaseController
         return view('App\Modules\nguoidung\Views\eventscheckin', $data);
     }
 
-    public function eventsHistoryRegister()
+    public function eventsCheckin()
     {
         // Load text helper
         helper('text');
@@ -319,7 +319,7 @@ class NguoiDung extends BaseController
         $events = $this->sukienModel->getEvents([
             'status' => 'published',
             'order' => [
-                'thoi_gian_bat_dau' => 'DESC'
+                'thoi_gian_bat_dau' => 'ASC'
             ]
         ]);
         

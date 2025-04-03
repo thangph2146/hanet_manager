@@ -58,7 +58,7 @@
                              'actions' => [
                                  [
                                      'title' => 'Profile',
-                                     'url' => site_url('nguoi-dung/profile'),
+                                     'url' => site_url('nguoi-dung/thong-tin-ca-nhan'),
                                      'icon' => 'user'
                                  ],
                                  [

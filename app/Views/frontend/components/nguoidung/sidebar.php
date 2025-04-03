@@ -7,7 +7,7 @@ $menu_items = [
         [
             'icon' => 'user',
             'text' => 'Thông tin cá nhân',
-            'url' => 'nguoi-dung/profile',
+            'url' => 'nguoi-dung/thong-tin-ca-nhan',
             
         ],
         [
@@ -20,19 +20,19 @@ $menu_items = [
         [
             'icon' => 'calendar-alt',
             'text' => 'Quản lý sự kiện',
-            'url' => 'nguoi-dung/events',
+            'url' => 'nguoi-dung/',
             'submenu' => [
                 [
                     'text' => 'Danh sách sự kiện',
-                    'url' => 'nguoi-dung/events-list',
+                    'url' => 'nguoi-dung/danh-sach-su-kien',
                 ],
                 [
-                    'text' => 'Danh sách sự kiện đã tham gia',
-                    'url' => 'nguoi-dung/events-checkin'
+                    'text' => 'Sự kiện đã đăng ký',
+                    'url' => 'nguoi-dung/su-kien-da-dang-ky'
                 ],
                 [
-                    'text' => 'Lịch sử đăng ký',
-                    'url' => 'nguoi-dung/events-history-register',
+                    'text' => 'Lịch sử đã tham gia',
+                    'url' => 'nguoi-dung/su-kien-da-tham-gia',
                 ]
             ]
         ],

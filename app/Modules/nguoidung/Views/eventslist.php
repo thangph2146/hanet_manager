@@ -59,7 +59,6 @@
     
     <!-- Bộ lọc và tìm kiếm -->
     <div class="filter-section">
-        <div class="container">
             <div class="row">
                 <div class="col-md-12 mb-4">
                     <div class="card">
@@ -104,7 +103,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     </div>
     
     <!-- Danh sách sự kiện -->
