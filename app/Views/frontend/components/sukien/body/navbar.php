@@ -58,7 +58,7 @@
                              'actions' => [
                                  [
                                      'title' => 'Profile',
-                                     'url' => site_url('students/profile'),
+                                     'url' => site_url('nguoi-dung/profile'),
                                      'icon' => 'user'
                                  ],
                                  [

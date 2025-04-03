@@ -21,21 +21,6 @@ $notifications = [
 <?php
 $userdropdown = [
     [
-        'title' => 'Tài khoản', 
-        'actions' => [
-            [
-                'icon' => 'user',
-                'title' => 'Hồ sơ của tôi',
-                'url' => 'students/profile'
-            ],
-            [
-                'icon' => 'cog',
-                'title' => 'Cài đặt',
-                'url' => 'students/settings'
-            ]
-        ]
-    ],
-    [
         'title' => 'Đăng xuất',
         'actions' => [
             [
@@ -48,12 +33,10 @@ $userdropdown = [
     ]
 ];  
 ?>
-<!-- Link CSS file -->
-<link rel="stylesheet" href="<?= base_url('assets/css/student/components/header.css') ?>">
 
 <nav class="content-navbar">
     <!-- Sidebar Toggle - Chỉ hiển thị ở mobile -->
-    <button class="sidebar-toggle-btn d-lg-none">
+    <button class="sidebar-toggle-btn d-lg-none" id="sidebar-toggle">
         <i class="fas fa-bars"></i>
     </button>
     
@@ -108,7 +91,7 @@ $userdropdown = [
                     <?php endforeach; ?>
                 </div>
                 
-                <a href="<?= base_url('student/notifications') ?>" class="dropdown-item text-center view-all">
+                <a href="<?= base_url('nguoi-dung/notifications') ?>" class="dropdown-item text-center view-all">
                     Xem tất cả thông báo
                     <i class="fas fa-chevron-right ms-1"></i>
                 </a>
@@ -117,7 +100,7 @@ $userdropdown = [
         
         <!-- User Dropdown -->
         <div class="dropdown">
-            <a href="#" class="user-dropdown" id="user-dropdown" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false">
+            <a href="#" class="user-dropdown" id="user-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <div class="user-avatar">
                     <img src="<?= base_url('assets/images/avatars/default.jpg') ?>" alt="User Avatar">
                     <span class="user-status"></span>
@@ -127,22 +110,9 @@ $userdropdown = [
                 </div>
             </a>
             
-            <div class="dropdown-menu user-menu" aria-labelledby="user-dropdown" data-bs-popper="none">
-                <div class="dropdown-header">
-                    <div class="d-flex align-items-center">
-                        <div class="user-avatar me-3">
-                            <img src="<?= base_url('assets/images/avatars/default.jpg') ?>" alt="User Avatar">
-                            <span class="user-status"></span>
-                        </div>
-                        <div>
-                            <div class="fw-bold"><?= getFullNameStudent() ?></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="dropdown-divider"></div>
+            <ul class="dropdown-menu user-menu" aria-labelledby="user-dropdown">
                 <?php foreach($userdropdown as $user): ?>   
-                <div class="user-menu-section">
+                <li class="user-menu-section">
                     <small class="dropdown-header-text"><?= $user['title'] ?></small>
                     <?php foreach($user['actions'] as $action): ?>
                     <a class="dropdown-item <?= isset($action['type']) && $action['type'] == 'danger' ? 'text-danger' : '' ?>" href="<?= base_url($action['url']) ?>">
@@ -150,10 +120,10 @@ $userdropdown = [
                         <span><?= $action['title'] ?></span>
                     </a>
                     <?php endforeach; ?>
-                </div>
+                </li>
                 
                 <?php endforeach; ?>
-            </div>
+            </ul>
         </div>
     </div>
 </nav>
@@ -183,7 +153,79 @@ $userdropdown = [
     </div>
 </div>
 
-<!-- Link JS file -->
-<?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/js/student/components/header.js') ?>"></script> 
-<?= $this->endSection() ?>
+<!-- Script cho header -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý mobile search
+    const mobileSearchBtn = document.querySelector('.mobile-search-btn');
+    const mobileSearchClose = document.getElementById('mobile-search-close');
+    
+    if (mobileSearchBtn) {
+        mobileSearchBtn.addEventListener('click', function() {
+            if (window.StudentUI) {
+                window.StudentUI.openMobileSearch();
+            } else {
+                const mobileSearch = document.getElementById('mobile-search');
+                if (mobileSearch) {
+                    mobileSearch.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                    setTimeout(() => {
+                        mobileSearch.querySelector('input')?.focus();
+                    }, 300);
+                }
+            }
+        });
+    }
+    
+    if (mobileSearchClose) {
+        mobileSearchClose.addEventListener('click', function() {
+            if (window.StudentUI) {
+                window.StudentUI.closeMobileSearch();
+            } else {
+                const mobileSearch = document.getElementById('mobile-search');
+                if (mobileSearch) {
+                    mobileSearch.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+    }
+    
+    // Xử lý đóng thông báo
+    const notificationCloseButtons = document.querySelectorAll('.notification-close');
+    notificationCloseButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const item = btn.closest('.notification-item');
+            item.style.height = item.offsetHeight + 'px';
+            
+            // Trigger reflow
+            item.offsetHeight;
+            
+            item.style.height = '0';
+            item.style.opacity = '0';
+            item.style.marginTop = '0';
+            item.style.marginBottom = '0';
+            item.style.padding = '0';
+            
+            setTimeout(() => {
+                item.remove();
+                updateNotificationCount();
+            }, 300);
+        });
+    });
+    
+    function updateNotificationCount() {
+        const badge = document.querySelector('#notifications-dropdown .badge');
+        const items = document.querySelectorAll('.notification-item');
+        if (badge) {
+            const count = items.length;
+            badge.textContent = count;
+            if (count === 0) {
+                badge.style.display = 'none';
+            }
+        }
+    }
+});
+</script>

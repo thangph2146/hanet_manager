@@ -4,6 +4,7 @@ class Sidebar {
         this.sidebar = document.querySelector('.sidebar');
         this.backdrop = document.querySelector('.sidebar-backdrop');
         this.closeBtn = document.querySelector('.sidebar-close');
+        this.toggleBtn = document.querySelector('.sidebar-toggle-btn');
         this.searchInput = document.querySelector('.sidebar-search input');
         this.menuItems = document.querySelectorAll('.sidebar-link');
         this.submenuItems = document.querySelectorAll('.submenu-link');
@@ -24,6 +25,11 @@ class Sidebar {
         // Close button click
         if (this.closeBtn) {
             this.closeBtn.addEventListener('click', () => this.closeSidebar());
+        }
+
+        // Toggle button click
+        if (this.toggleBtn) {
+            this.toggleBtn.addEventListener('click', () => this.toggleSidebar());
         }
 
         // Backdrop click

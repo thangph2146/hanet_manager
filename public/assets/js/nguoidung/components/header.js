@@ -141,35 +141,64 @@ class Header {
         const userDropdownToggle = document.getElementById('user-dropdown');
         const userMenu = document.querySelector('.dropdown-menu.user-menu');
         
-        if (userDropdownToggle && userMenu) {
-            userDropdownToggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                if (userMenu.classList.contains('show')) {
-                    userMenu.classList.remove('show');
-                } else {
-                    // Đóng các dropdown khác nếu đang mở
-                    document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-                        if (menu !== userMenu) menu.classList.remove('show');
-                    });
-                    
-                    // Hiển thị dropdown người dùng
-                    userMenu.classList.add('show');
-                    
-                    // Định vị dropdown
-                    const rect = userDropdownToggle.getBoundingClientRect();
-                    userMenu.style.top = rect.bottom + 'px';
-                    userMenu.style.left = (window.innerWidth <= 576) ? '0' : (rect.left - userMenu.offsetWidth + rect.width) + 'px';
-                    userMenu.style.width = (window.innerWidth <= 576) ? '100%' : '';
-                }
+        if (!userDropdownToggle || !userMenu) return;
+        
+        // Sử dụng Bootstrap API nếu có sẵn
+        if (typeof bootstrap !== 'undefined') {
+            const dropdownInstance = new bootstrap.Dropdown(userDropdownToggle, {
+                autoClose: true
             });
             
-            // Đóng dropdown khi click ra ngoài
-            document.addEventListener('click', (e) => {
-                if (!userDropdownToggle.contains(e.target) && !userMenu.contains(e.target)) {
-                    userMenu.classList.remove('show');
-                }
+            // Lắng nghe sự kiện hiển thị/ẩn để cập nhật trạng thái
+            userDropdownToggle.addEventListener('shown.bs.dropdown', () => {
+                console.log('Dropdown đã hiển thị');
             });
+            
+            userDropdownToggle.addEventListener('hidden.bs.dropdown', () => {
+                console.log('Dropdown đã ẩn');
+            });
+            
+            return;
+        }
+        
+        // Fallback thủ công nếu không có Bootstrap
+        userDropdownToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Chuyển đổi trạng thái
+            userMenu.classList.toggle('show');
+            
+            if (userMenu.classList.contains('show')) {
+                // Đóng các dropdown khác
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    if (menu !== userMenu) menu.classList.remove('show');
+                });
+                
+                // Định vị dropdown
+                const rect = userDropdownToggle.getBoundingClientRect();
+                userMenu.style.top = rect.bottom + 'px';
+                userMenu.style.right = (window.innerWidth - rect.right) + 'px';
+                userMenu.style.left = 'auto';
+                
+                // Lắng nghe click bên ngoài
+                setTimeout(() => {
+                    document.addEventListener('click', this.closeUserDropdown);
+                }, 10);
+            }
+        });
+        
+        // Lưu trữ tham chiếu
+        this.userDropdownToggle = userDropdownToggle;
+        this.userMenu = userMenu;
+    }
+    
+    closeUserDropdown = (e) => {
+        if (!this.userMenu) return;
+        
+        if (!this.userDropdownToggle.contains(e.target) && !this.userMenu.contains(e.target)) {
+            this.userMenu.classList.remove('show');
+            document.removeEventListener('click', this.closeUserDropdown);
         }
     }
 

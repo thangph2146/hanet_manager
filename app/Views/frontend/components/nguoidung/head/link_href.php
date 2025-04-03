@@ -15,5 +15,6 @@
 <link href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.3/dist/apexcharts.css" rel="stylesheet">
     
 <!-- Layout CSS -->
-<link rel="stylesheet" href="<?= base_url('assets/css/student/layouts/student_layout.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/css/nguoidung/layouts/student_layout.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/css/nguoidung/style.css') ?>">
     
