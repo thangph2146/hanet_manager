@@ -650,4 +650,5 @@ class NguoiDungModel extends BaseModel
             'last_login' => Time::now()->toDateTimeString()
         ]);
     }
+    
 } 

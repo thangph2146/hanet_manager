@@ -29,7 +29,7 @@
                                 <div class="border p-4 rounded">
                                     <div class="text-center">
                                         <h3 class="">Đăng Ký Tài Khoản</h3>
-                                        <p>Đã có tài khoản? <a href="<?= base_url('login/student') ?>">Đăng nhập ngay</a></p>
+                                        <p>Đã có tài khoản? <a href="<?= base_url('login/nguoi-dung') ?>">Đăng nhập ngay</a></p>
                                     </div>
                                     
                                     <?php if (session()->getFlashdata('error')) : ?>

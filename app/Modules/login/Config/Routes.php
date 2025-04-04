@@ -11,10 +11,10 @@ $routes->setDefaultNamespace('App\Modules\login\Controllers');
 
 // Routes cho login student sử dụng controller mới
 $routes->get('login', function() {
-    return redirect()->to('login/student');
+    return redirect()->to('login/nguoi-dung');
 });
 $routes->get('@login.php', 'LoginController::index');
-$routes->get('login/student', 'LoginController::index');
+$routes->get('login/nguoi-dung', 'LoginController::index');
 $routes->post('login/create_student', 'LoginController::create_student');
 
 // Routes cho logout student
