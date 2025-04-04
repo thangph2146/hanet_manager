@@ -105,7 +105,7 @@ if ($registrationCount === 0 && isset($event['su_kien_id'])) {
     </div>
     
     <div class="card-footer">
-        <a href="<?= site_url('su-kien/detail/' . $event['slug']) ?>" class="btn-link">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
+        <a href="<?= site_url('su-kien/chi-tiet/' . $event['slug']) ?>" class="btn-link">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
         
         <?php if (strtotime($event['ngay_to_chuc']) > time()): ?>
         <a href="<?= site_url('su-kien/register?event=' . $event['su_kien_id']) ?>" class="btn btn-sm btn-outline-primary">Đăng ký</a>

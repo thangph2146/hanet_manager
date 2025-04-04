@@ -208,7 +208,7 @@
                             từ <?= date('H:i', strtotime($job_fair_event['gio_bat_dau'])) ?> 
                             đến <?= date('H:i', strtotime($job_fair_event['gio_ket_thuc'])) ?>
                         </p>
-                        <a href="<?= site_url('su-kien/detail/' . $job_fair_event['slug']) ?>" class="btn btn-light btn-lg">
+                        <a href="<?= site_url('su-kien/chi-tiet/' . $job_fair_event['slug']) ?>" class="btn btn-light btn-lg">
                             <i class="fas fa-info-circle me-2"></i>Xem chi tiết sự kiện
                         </a>
                     </div>
@@ -221,7 +221,7 @@
                             Thời gian: <?= date('H:i', strtotime($job_fair_event['gio_bat_dau'])) ?> 
                             - <?= date('H:i', strtotime($job_fair_event['gio_ket_thuc'])) ?>
                         </p>
-                        <a href="<?= site_url('su-kien/detail/' . $job_fair_event['slug']) ?>" class="btn btn-warning btn-lg">
+                        <a href="<?= site_url('su-kien/chi-tiet/' . $job_fair_event['slug']) ?>" class="btn btn-warning btn-lg">
                             <i class="fas fa-sign-in-alt me-2"></i>Tham gia ngay
                         </a>
                     </div>

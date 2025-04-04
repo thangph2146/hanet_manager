@@ -183,7 +183,7 @@ class SuKien extends BaseController
         log_message('debug', 'Chuyển hướng thành công từ ID ' . $id . ' sang slug ' . $slug);
         
         // Chuyển hướng sang URL có chứa slug
-        return redirect()->to('/su-kien/detail/' . $slug, 301);
+        return redirect()->to('/su-kien/chi-tiet/' . $slug, 301);
     }
 
     /**
@@ -209,7 +209,7 @@ class SuKien extends BaseController
             session()->remove('correct_event_slug');
             
             // Chuyển hướng đến URL đúng
-            return redirect()->to(site_url('su-kien/detail/' . $correctSlug));
+            return redirect()->to(site_url('su-kien/chi-tiet/' . $correctSlug));
         }
         
         // Nếu không tìm thấy sự kiện
@@ -291,7 +291,7 @@ class SuKien extends BaseController
             'meta_title' => $event['ten_su_kien'] . ' - Sự Kiện Đại Học Ngân Hàng TP.HCM',
             'meta_description' => $this->truncate($event['mo_ta_su_kien'], 160),
             'meta_keywords' => $event['tu_khoa_su_kien'] ?? $event['ten_su_kien'] . ', ' . $event['loai_su_kien'] . ', sự kiện hub, đại học ngân hàng',
-            'canonical_url' => site_url('su-kien/detail/' . $event['slug']),
+            'canonical_url' => site_url('su-kien/chi-tiet/' . $event['slug']),
             'event_types' => $this->getEventTypes(),
             'og_image' => base_url($event['hinh_anh']),
             'structured_data' => $this->generateEventStructuredData($event)
@@ -480,7 +480,7 @@ class SuKien extends BaseController
                 
                 // Chuyển hướng với thông báo thành công
                 $success_message = 'Bạn đã đăng ký thành công sự kiện: ' . $event['ten_su_kien'];
-                return redirect()->to('/su-kien/detail/' . $event['slug'])->with('success', $success_message);
+                return redirect()->to('/su-kien/chi-tiet/' . $event['slug'])->with('success', $success_message);
             } else {
                 // Dữ liệu không hợp lệ, quay lại với thông báo lỗi
                 $event_id = $this->request->getPost('su_kien_id');
@@ -490,7 +490,7 @@ class SuKien extends BaseController
                     return redirect()->to('/su-kien')->with('error', 'Không tìm thấy sự kiện');
                 }
                 
-                return redirect()->to('/su-kien/detail/' . $event['slug'])->with('error', $this->validator->listErrors());
+                return redirect()->to('/su-kien/chi-tiet/' . $event['slug'])->with('error', $this->validator->listErrors());
             }
         } else {
             // Không cho phép truy cập trực tiếp
@@ -528,7 +528,7 @@ class SuKien extends BaseController
                 'url' => 'https://hub.edu.vn'
             ],
             'image' => base_url($event['hinh_anh']),
-            'url' => site_url('su-kien/detail/' . $event['slug'])
+            'url' => site_url('su-kien/chi-tiet/' . $event['slug'])
         ];
         
         return json_encode($structured_data);

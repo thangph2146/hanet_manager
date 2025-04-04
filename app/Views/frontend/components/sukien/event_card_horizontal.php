@@ -73,7 +73,7 @@ $featured = isset($featured) ? $featured : false;
                 </p>
                 
                 <div class="d-flex justify-content-between align-items-center mt-auto">
-                    <a href="<?= site_url('su-kien/detail/' . $event['slug']) ?>" class="btn-link">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
+                    <a href="<?= site_url('su-kien/chi-tiet/' . $event['slug']) ?>" class="btn-link">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
                     
                     <?php if (isset($event['thoi_gian_bat_dau']) ? strtotime($event['thoi_gian_bat_dau']) > time() : strtotime($event['ngay_to_chuc']) > time()): ?>
                     <a href="<?= site_url('su-kien/register?event=' . $event['su_kien_id']) ?>" class="btn btn-sm btn-outline-primary">Đăng ký</a>

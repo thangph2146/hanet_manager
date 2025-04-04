@@ -258,7 +258,7 @@
                             </div>
                             
                             <div class="event-actions">
-                                <a href="<?= base_url('nguoidung/sukien/chi-tiet/' . ($event->ma_su_kien ?? 0)) ?>" class="btn btn-details">
+                                <a href="<?= base_url('/su-kien/chi-tiet/' . ($event->slug ?? 0)) ?>" class="btn btn-details">
                                     <i class="fas fa-info-circle"></i> Chi tiết
                                 </a>
                                 
@@ -273,7 +273,7 @@
                                         </div>
                                     <?php else: ?>
                                         <?php if(!isset($event->so_luong_toi_da) || !isset($event->so_luong_dang_ky) || $event->so_luong_dang_ky < $event->so_luong_toi_da): ?>
-                                            <a href="<?= base_url('nguoidung/sukien/dang-ky/' . ($event->ma_su_kien ?? 0)) ?>" class="btn btn-register" data-event-id="<?= $event->ma_su_kien ?? 0 ?>">
+                                            <a href="<?= base_url('/su-kien/chi-tiet/' . ($event->slug ?? 0)) ?>" class="btn btn-register" data-event-id="<?= $event->ma_su_kien ?? 0 ?>">
                                                 <i class="fas fa-calendar-plus"></i> Đăng ký
                                             </a>
                                         <?php else: ?>

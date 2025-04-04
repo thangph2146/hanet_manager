@@ -29,7 +29,7 @@
     <!-- Trang chi tiết sự kiện -->
     <?php foreach ($events as $event): ?>
     <url>
-        <loc><?= site_url('su-kien/detail/' . $event['slug']) ?></loc>
+        <loc><?= site_url('su-kien/chi-tiet/' . $event['slug']) ?></loc>
         <lastmod><?= date('Y-m-d\TH:i:sP', strtotime($event['updated_at'] ?? $current_date)) ?></lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>

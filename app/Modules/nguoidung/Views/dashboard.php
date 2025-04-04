@@ -160,7 +160,7 @@
                                     <?php endif; ?>
                                     
                                     <div class="event-actions">
-                                        <a href="<?= base_url('su-kien/detail/'.$event->slug) ?>" class="btn btn-details">
+                                        <a href="<?= base_url('su-kien/chi-tiet/'.$event->slug) ?>" class="btn btn-details">
                                             <i class="fas fa-info-circle"></i> Chi tiết
                                         </a>
                                         
@@ -253,7 +253,7 @@
                                     <?php endif; ?>
                                     
                                     <div class="event-actions">
-                                        <a href="<?= base_url('su-kien/detail/'.$event->slug) ?>" class="btn btn-details">
+                                        <a href="<?= base_url('su-kien/chi-tiet/'.$event->slug) ?>" class="btn btn-details">
                                             <i class="fas fa-info-circle"></i> Chi tiết
                                         </a>
                                         
@@ -359,7 +359,7 @@
                                     <?php endif; ?>
                                     
                                     <div class="event-actions">
-                                        <a href="<?= base_url('su-kien/detail/'.$event->slug) ?>" class="btn btn-details">
+                                        <a href="<?= base_url('su-kien/chi-tiet/'.$event->slug) ?>" class="btn btn-details">
                                             <i class="fas fa-info-circle"></i> Chi tiết
                                         </a>
                                         <a href="<?= base_url('nguoi-dung/sukien/dang-ky/' . $event->slug) ?>" class="btn btn-register">

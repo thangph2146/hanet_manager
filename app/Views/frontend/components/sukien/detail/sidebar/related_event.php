@@ -7,7 +7,7 @@
                 <?php if(isset($related_events) && !empty($related_events)): ?>
                     <?php foreach ($related_events as $related): ?>
                     <div class="related-event-item mb-3">
-                        <a href="<?= site_url('su-kien/detail/' . $related['slug']) ?>" class="text-decoration-none">
+                        <a href="<?= site_url('su-kien/chi-tiet/' . $related['slug']) ?>" class="text-decoration-none">
                             <div class="d-flex align-items-center">
                                 <div class="event-date text-center me-3">
                                     <div class="date-day"><?= date('d', strtotime($related['ngay_to_chuc'])) ?></div>

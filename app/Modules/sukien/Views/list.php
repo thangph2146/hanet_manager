@@ -232,7 +232,7 @@
                             </div>
                             <div class="card-body">
                                 <h5 class="card-title">
-                                    <a href="<?= site_url('su-kien/detail/' . $event['slug']) ?>" class="text-decoration-none">
+                                    <a href="<?= site_url('su-kien/chi-tiet/' . $event['slug']) ?>" class="text-decoration-none">
                                         <?= $event['ten_su_kien'] ?>
                                     </a>
                                 </h5>
@@ -243,7 +243,7 @@
                                 <p class="card-text event-description"><?= mb_substr(strip_tags($event['mo_ta_su_kien']), 0, 80) ?>...</p>
                             </div>
                             <div class="card-footer bg-white">
-                                <a href="<?= site_url('su-kien/detail/' . $event['slug']) ?>" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                                <a href="<?= site_url('su-kien/chi-tiet/' . $event['slug']) ?>" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
                             </div>
                         </div>
                     </div>

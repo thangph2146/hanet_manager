@@ -10,8 +10,7 @@ $routes->group($module_name, ['namespace' => 'App\Modules\sukien\Controllers'], 
     $routes->get('/', $controller_name . '::index');
     
     // Sử dụng slug thay vì ID cho trang chi tiết
-    $routes->get('detail/(:num)', $controller_name . '::redirectToSlug/$1'); // Redirect từ ID sang slug
-    $routes->get('detail/(:segment)', $controller_name . '::detail/$1', ['as' => 'sukien_detail']); // Thêm alias cho route
+    $routes->get('chi-tiet/(:segment)', $controller_name . '::detail/$1', ['as' => 'sukien_detail']); // Thêm alias cho route
     
     // Sử dụng slug cho danh mục
     $routes->get('loai/(:segment)', $controller_name . '::category/$1');
