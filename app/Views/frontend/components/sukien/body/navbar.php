@@ -35,8 +35,9 @@
 							<i class="fas fa-user-circle me-1"></i> Dashboard
 						</a>
 						<ul class="dropdown-menu">
-							<li><a class="dropdown-item" href="<?= site_url('su-kien/lich-su/da-tham-gia') ?>">Sự kiện đã tham gia</a></li>
-							<li><a class="dropdown-item" href="<?= site_url('su-kien/lich-su/dang-ky') ?>">Sự kiện đã đăng ký</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('nguoi-dung/danh-sach-su-kien') ?>">Danh sách sự kiện</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('nguoi-dung/su-kien-da-dang-ky') ?>">Sự kiện đã đăng ký</a></li>
+							<li><a class="dropdown-item" href="<?= site_url('nguoi-dung/su-kien-da-tham-gia') ?>">Sự kiện đã tham gia</a></li>
 						</ul>
 					</li>
 					<?php endif; ?>
