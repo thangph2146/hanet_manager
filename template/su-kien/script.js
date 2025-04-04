@@ -277,18 +277,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Hiệu ứng hover tiên tiến cho thẻ sự kiện
-    const eventCardsHover = document.querySelectorAll('.event-card');
-    eventCardsHover.forEach(card => {
+    const eventCardElements = document.querySelectorAll('.event-card');
+    eventCardElements.forEach(card => {
         card.addEventListener('mouseenter', function() {
-            this.classList.add('scale-up');
-            const img = this.querySelector('.event-card-img');
-            if (img) img.style.transform = 'scale(1.1)';
+            this.querySelector('.event-image img').style.transform = 'scale(1.1)';
+            this.querySelector('.event-image').style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+            
+            // Hiệu ứng nâng card
+            this.style.transform = 'translateY(-10px)';
+            this.style.boxShadow = '0 15px 35px rgba(0,0,0,0.1)';
+            
+            // Hiệu ứng button
+            const viewDetailsBtn = this.querySelector('.btn-view-details');
+            if (viewDetailsBtn) {
+                viewDetailsBtn.style.color = 'var(--primary-light)';
+                viewDetailsBtn.querySelector('i').style.transform = 'translateX(5px)';
+            }
         });
         
         card.addEventListener('mouseleave', function() {
-            this.classList.remove('scale-up');
-            const img = this.querySelector('.event-card-img');
-            if (img) img.style.transform = 'scale(1)';
+            this.querySelector('.event-image img').style.transform = 'scale(1)';
+            this.querySelector('.event-image').style.boxShadow = 'none';
+            
+            // Reset hiệu ứng nâng card
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 10px 30px rgba(0,0,0,0.05)';
+            
+            // Reset hiệu ứng button
+            const viewDetailsBtn = this.querySelector('.btn-view-details');
+            if (viewDetailsBtn) {
+                viewDetailsBtn.style.color = '';
+                viewDetailsBtn.querySelector('i').style.transform = '';
+            }
+        });
+        
+        // Thêm hiệu ứng focus outline cho accessibility
+        card.addEventListener('focus', function() {
+            this.style.outline = '2px solid var(--primary)';
+        });
+        
+        card.addEventListener('blur', function() {
+            this.style.outline = 'none';
         });
     });
     
@@ -487,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Thêm animation cho tất cả các event cards khi trang tải xong
     setTimeout(() => {
-        eventCardsHover.forEach((card, index) => {
+        eventCardElements.forEach((card, index) => {
             card.classList.add('fade-in');
             card.style.animationDelay = `${index * 100}ms`;
         });
@@ -550,126 +579,4 @@ document.addEventListener('DOMContentLoaded', function() {
         styleElement.textContent = additionalStyles;
         document.head.appendChild(styleElement);
     }
-    
-    // Preloader
-    const preloader = document.getElementById('preloader');
-    if (preloader) {
-        setTimeout(function() {
-            preloader.classList.add('loaded');
-            setTimeout(function() {
-                document.body.classList.remove('no-scroll');
-                preloader.style.display = 'none';
-            }, 600);
-        }, 800);
-    }
-    
-    // Hiệu ứng cho các sự kiện sắp tới
-    const upcomingEvents = document.querySelectorAll('.event-card[data-event-type="upcoming"]');
-    upcomingEvents.forEach(event => {
-        event.querySelector('.event-card-title').classList.add('text-primary');
-        event.querySelector('.register-button').classList.add('btn-pulse');
-    });
-    
-    // Khởi tạo tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl, {
-            trigger: 'hover'
-        });
-    });
 });
-
-// Hàm để hiển thị số lượng kết quả tìm thấy
-function displayResultCount(count) {
-    const resultInfo = document.querySelector('.search-result-info');
-    
-    if (!resultInfo) {
-        const searchContainer = document.querySelector('.search-container');
-        if (searchContainer) {
-            const resultInfoDiv = document.createElement('div');
-            resultInfoDiv.className = 'search-result-info mt-3 text-center';
-            resultInfoDiv.innerHTML = `<p>Hiển thị <span class="text-primary">${count}</span> sự kiện</p>`;
-            searchContainer.appendChild(resultInfoDiv);
-        }
-    } else {
-        resultInfo.innerHTML = `<p>Hiển thị <span class="text-primary">${count}</span> sự kiện</p>`;
-        
-        // Animation cho kết quả tìm kiếm
-        resultInfo.style.animation = 'none';
-        resultInfo.offsetHeight; // Trigger reflow
-        resultInfo.style.animation = 'fadeIn 0.5s ease-in-out';
-    }
-}
-
-// Hàm load more cho sự kiện
-function setupLoadMore() {
-    const loadMoreBtn = document.querySelector('.load-more-btn');
-    const eventCards = document.querySelectorAll('.event-card');
-    const itemsPerPage = 6;
-    let visibleItems = itemsPerPage;
-    
-    // Ẩn các thẻ sự kiện thừa ban đầu
-    eventCards.forEach((card, index) => {
-        if (index >= itemsPerPage) {
-            card.style.display = 'none';
-        }
-    });
-    
-    // Hiển thị thêm sự kiện khi nhấn Load More
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', function() {
-            const hiddenItems = document.querySelectorAll('.event-card[style="display: none;"]');
-            
-            if (hiddenItems.length === 0) {
-                this.disabled = true;
-                this.innerText = 'Đã hiển thị tất cả';
-                return;
-            }
-            
-            for (let i = 0; i < itemsPerPage && i < hiddenItems.length; i++) {
-                hiddenItems[i].style.display = 'block';
-                hiddenItems[i].setAttribute('data-aos', 'fade-up');
-                hiddenItems[i].setAttribute('data-aos-delay', (i * 100).toString());
-                AOS.refresh();
-            }
-            
-            visibleItems += Math.min(itemsPerPage, hiddenItems.length);
-            displayResultCount(visibleItems);
-            
-            if (visibleItems >= eventCards.length) {
-                this.disabled = true;
-                this.innerText = 'Đã hiển thị tất cả';
-                
-                // Hiệu ứng confetti khi hiển thị tất cả
-                createConfetti();
-            }
-        });
-        
-        // Hiển thị ban đầu số lượng sự kiện
-        displayResultCount(Math.min(itemsPerPage, eventCards.length));
-    }
-}
-
-// Gọi hàm setup Load More khi tài liệu đã sẵn sàng
-document.addEventListener('DOMContentLoaded', setupLoadMore);
-
-// Tạo hiệu ứng confetti
-function createConfetti() {
-    const confettiCount = 200;
-    const confettiColors = ['#800000', '#ff7675', '#ffeaa7', '#fdcb6e', '#FF5722'];
-    
-    for (let i = 0; i < confettiCount; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        confetti.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
-        confetti.style.left = Math.random() * 100 + 'vw';
-        confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
-        confetti.style.animationDelay = Math.random() * 5 + 's';
-        document.body.appendChild(confetti);
-        
-        // Xóa confetti sau khi animation kết thúc
-        setTimeout(() => {
-            confetti.remove();
-        }, 8000);
-    }
-}
