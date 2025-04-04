@@ -105,19 +105,16 @@ class Filters extends BaseConfig
 
         'loginStudent' => [
             'before' => [
-                'login/nguoi-dung*'
+                'nguoi-dung*',
+                'login/logoutstudent'
             ],
-            'except' => [
-                '/'  // Không áp dụng filter cho API
-            ]
+          
         ],
         'guestStudent' => [
             'before' => [
                 'login/nguoi-dung*'
             ],
-            'except' => [
-                '/'  // Không áp dụng filter cho API
-            ]
+         
         ]
 	];
 }

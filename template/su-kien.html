@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Danh sách sự kiện của Trường Đại học Ngân hàng TP.HCM">
+    <meta name="keywords" content="đại học ngân hàng, sự kiện hub, hội thảo, workshop, nghề nghiệp, sinh viên">
+    <meta name="author" content="Trường Đại học Ngân hàng TP.HCM">
+    <meta property="og:title" content="Danh Sách Sự Kiện - Đại Học Ngân Hàng TP.HCM">
+    <meta property="og:description" content="Khám phá tất cả các sự kiện sắp diễn ra tại HUB">
+    <meta property="og:image" content="template/assets/logo/HUB-logo-white.png">
+    <meta property="og:url" content="https://hub.edu.vn">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="index, follow">
+    <title>Danh Sách Sự Kiện - Đại Học Ngân Hàng TP.HCM</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="template/assets/logo/favicon.ico" type="image/x-icon">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- LineIcons CSS -->
+    <link href="https://cdn.lineicons.com/3.0/lineicons.css" rel="stylesheet">
+    
+    <!-- AOS - Animate On Scroll -->
+    <link href="https://unpkg.com/aos@next/dist/aos.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="su-kien/style.css">
+</head>
+
+<body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="trang-chu.html" aria-label="Trang chủ Đại học Ngân hàng TP.HCM">
+                <img src="https://hub.edu.vn/wp-content/uploads/2023/09/HUB-logo-white.png" alt="HUB Logo" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:5500/template/trang-chu.html">
+                            <i class="fas fa-home me-1"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="http://127.0.0.1:5500/template/su-kien.html" aria-current="page">
+                            <i class="fas fa-calendar-alt me-1"></i> Sự kiện
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="eventTypeDropdownLink" aria-expanded="false" aria-haspopup="true">
+                            <i class="fas fa-filter me-1"></i> Loại sự kiện
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="eventTypeDropdownLink">
+                            <li><a class="dropdown-item filter-btn" data-filter="all" href="http://127.0.0.1:5500/template/su-kien.html">Tất cả</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="1" href="http://127.0.0.1:5500/template/su-kien.html?type=1">Hội thảo</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="2" href="http://127.0.0.1:5500/template/su-kien.html?type=2">Hội nghị</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="3" href="http://127.0.0.1:5500/template/su-kien.html?type=3">Workshop</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="4" href="http://127.0.0.1:5500/template/su-kien.html?type=4">Khác</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar-alt me-1"></i>Dashboard
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="nguoi-dung/dang-ky-su-kien.html">Đăng ký sự kiện</a></li>
+                            <li><a class="dropdown-item" href="nguoi-dung/lich-su-dang-ky.html">Lịch sử đăng ký</a></li>
+                            <li><a class="dropdown-item" href="nguoi-dung/thong-tin-ca-nhan.html">Thông tin cá nhân</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="https://hub.edu.vn" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm px-3">
+                        <i class="fas fa-external-link-alt me-1"></i> HUB
+                    </a>
+                    <a href="http://127.0.0.1:5500/template/dang-nhap.html" class="btn btn-light btn-sm px-3 me-2 btn-login">
+                        <i class="fas fa-user-plus me-1"></i> Đăng nhập
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main>
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="http://127.0.0.1:5500/template/trang-chu.html">Trang chủ</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Danh sách sự kiện</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Header -->
+        <section class="page-header" data-aos="fade-down">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <h1 class="page-title">Danh Sách Sự Kiện</h1>
+                        <p class="page-description">Khám phá tất cả các sự kiện sắp diễn ra tại Đại học Ngân hàng TP.HCM</p>
+                        <div class="event-action-buttons">
+                            <a href="#" class="btn btn-sm btn-primary" id="btnThisWeek">
+                                <i class="fas fa-calendar-week me-1"></i> Xem sự kiện tuần này
+                            </a>
+                            <a href="#" class="btn btn-sm btn-outline-primary ms-2" id="btnViewAll">
+                                <i class="fas fa-list me-1"></i> Tất cả sự kiện
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Event Search and Filter -->
+        <section class="event-search-section" data-aos="fade-up" data-aos-delay="100">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" placeholder="Tìm kiếm sự kiện..." id="eventSearchInput" aria-label="Tìm kiếm sự kiện">
+                            <button class="btn btn-primary" type="button" id="searchButton">
+                                <i class="fas fa-search"></i>
+                                Tìm kiếm
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-outline-primary me-2" id="btnAllEvents">
+                                <i class="fas fa-globe-asia me-1"></i> Tất cả
+                            </button>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="eventFormatDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-filter me-1"></i> Hình thức
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="eventFormatDropdown">
+                                    <li><a class="dropdown-item format-filter-btn" data-format="all" href="#">Tất cả</a></li>
+                                    <li><a class="dropdown-item format-filter-btn" data-format="offline" href="#">Offline</a></li>
+                                    <li><a class="dropdown-item format-filter-btn" data-format="online" href="#">Online</a></li>
+                                    <li><a class="dropdown-item format-filter-btn" data-format="hybrid" href="#">Hybrid</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Event List -->
+        <section class="event-list-section">
+            <div class="container">
+                <div class="row" id="eventContainer">
+                    <!-- Các thẻ sự kiện sẽ được tạo động bằng JavaScript -->
+                </div>
+
+                <!-- No Events Found (Initially Hidden) -->
+                <div id="noEventsFound" class="text-center py-5 d-none">
+                    <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" alt="No Events" width="120" class="mb-3">
+                    <h3>Không tìm thấy sự kiện</h3>
+                    <p class="text-muted">Không tìm thấy sự kiện nào phù hợp với tiêu chí tìm kiếm của bạn.</p>
+                    <button id="resetSearch" class="btn btn-primary mt-2">
+                        <i class="fas fa-sync-alt me-2"></i>Xem tất cả sự kiện
+                    </button>
+                </div>
+                
+                <!-- Loading indicator -->
+                <div id="loadingEvents" class="text-center py-5 d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-2">Đang tải sự kiện...</p>
+                </div>
+                
+                <!-- Pagination -->
+                <nav aria-label="Phân trang sự kiện" class="mt-4">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- Phân trang sẽ được tạo động bằng JavaScript -->
+                    </ul>
+                </nav>
+
+                <!-- Thêm div này để hiển thị khi có lỗi -->
+                <div id="fallbackContainer" class="error-container d-none">
+                    <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" alt="Error loading events">
+                    <h3>Không thể tải danh sách sự kiện</h3>
+                    <p>Đã xảy ra lỗi khi tải danh sách sự kiện. Vui lòng thử lại sau.</p>
+                    <button class="btn btn-primary" id="retryLoadEvents">
+                        <i class="fas fa-sync-alt me-2"></i>Thử lại
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <h5 class="footer-title">Về chúng tôi</h5>
+                    <p>
+                        Trường Đại học Ngân hàng TP.HCM là một trong những cơ sở giáo dục đại học hàng đầu trong lĩnh vực tài chính - ngân hàng tại Việt Nam.
+                    </p>
+                    <div class="mt-4">
+                        <a href="#" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-icon" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <h5 class="footer-title">Liên kết</h5>
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="http://127.0.0.1:5500/template/trang-chu.html" class="footer-link">
+                                <i class="fas fa-chevron-right me-2"></i> Trang chủ
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://127.0.0.1:5500/template/su-kien.html" class="footer-link">
+                                <i class="fas fa-chevron-right me-2"></i> Sự kiện
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://127.0.0.1:5500/template/gioi-thieu.html" class="footer-link">
+                                <i class="fas fa-chevron-right me-2"></i> Giới thiệu
+                            </a>
+                        </li>
+                        <li>
+                            <a href="http://127.0.0.1:5500/template/lien-he.html" class="footer-link">
+                                <i class="fas fa-chevron-right me-2"></i> Liên hệ
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <h5 class="footer-title">Liên hệ</h5>
+                    <ul class="list-unstyled">
+                        <li class="contact-item">
+                            <i class="fas fa-map-marker-alt contact-icon"></i>
+                            <span class="contact-text">36 Tôn Thất Đạm, Q.1, TP.HCM</span>
+                        </li>
+                        <li class="contact-item">
+                            <i class="fas fa-phone contact-icon"></i>
+                            <span class="contact-text">(028) 38 212 593</span>
+                        </li>
+                        <li class="contact-item">
+                            <i class="fas fa-envelope contact-icon"></i>
+                            <span class="contact-text">info@hub.edu.vn</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="400">
+                    <h5 class="footer-title">Bản đồ</h5>
+                    <div class="rounded overflow-hidden">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.6219257597554!2d106.70230851744384!3d10.765753899999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f4949dbf177%3A0x77c434e30fb9ce86!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBOZ8OibiBIw6BuZyBUUC5IQ00!5e0!3m2!1svi!2s!4v1647942508574!5m2!1svi!2s" width="100%" height="150" style="border:0;" allowfullscreen="" loading="lazy" title="Bản đồ Trường Đại học Ngân hàng TP.HCM"></iframe>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start">
+                        <p>&copy; 2025 Trường Đại học Ngân hàng TP.HCM</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <p>Thiết kế bởi Ban Truyền thông HUB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" aria-label="Về đầu trang">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <!-- Template cho card sự kiện -->
+    <template id="event-card-template">
+        <div class="col-lg-4 col-md-6 mb-4" data-type="" data-format="">
+            <div class="event-card">
+                <div class="event-image">
+                    <img src="" alt="" loading="lazy">
+                    <div class="event-badge">
+                        <span class="badge"></span>
+                    </div>
+                </div>
+                <div class="event-content">
+                    <h3 class="event-title">
+                        <a href="#"></a>
+                    </h3>
+                    <div class="event-meta">
+                        <div class="meta-item date">
+                            <i class="far fa-calendar-alt"></i> <span></span>
+                        </div>
+                        <div class="meta-item location">
+                            <i class="fas fa-map-marker-alt"></i> <span></span>
+                        </div>
+                        <div class="meta-item participants">
+                            <i class="fas fa-users"></i> <span></span>
+                        </div>
+                        <div class="meta-item format">
+                            <i class="fas fa-wifi"></i> <span></span>
+                        </div>
+                    </div>
+                    <p class="event-description"></p>
+                    <div class="event-stats">
+                        <div class="stat views">
+                            <i class="far fa-eye"></i> <span></span>
+                        </div>
+                        <div class="stat registrations">
+                            <i class="far fa-user"></i> <span></span>
+                        </div>
+                    </div>
+                    <div class="event-actions">
+                        <a href="#" class="btn-view-details">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- AOS Animation Library -->
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="su-kien/script.js"></script>
+</body>
+</html>

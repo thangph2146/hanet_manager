@@ -22,7 +22,7 @@ class LoginController extends BaseController
         $password = $this->request->getPost('password');    
         $remember_me = (bool) $this->request->getPost('remember_me');
 
-        $authStudent = service('authStudent');
+        $authStudent = service('authstudent');
 
         if ($authStudent->login($email, $password, $remember_me)) {
             $redirect_url = session('redirect_url') ?? '/';

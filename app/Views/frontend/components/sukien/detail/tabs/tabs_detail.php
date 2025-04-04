@@ -11,7 +11,7 @@
                 <i class="lni lni-pencil-alt"></i> Tình trạng đăng ký
             </button>
         </li>
-        <?php if (!service('authStudent')->isLoggedInStudent()) : ?>
+        <?php if (!service('authstudent')->isLoggedInStudent()) : ?>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="event-registration-form-tab" data-bs-toggle="tab" data-bs-target="#event-registration-form" type="button" role="tab" aria-controls="event-registration-form" aria-selected="false">
                 <i class="lni lni-pencil-alt"></i> Form đăng ký
@@ -28,7 +28,7 @@
         <!-- Tab Tình trạng đăng ký -->
         <?= $this->include('frontend\components\sukien\detail\tabs\registration\event_registration_tab') ?>
         
-        <?php if (!service('authStudent')->isLoggedInStudent()) : ?>
+        <?php if (!service('authstudent')->isLoggedInStudent()) : ?>
         <!-- Tab Form đăng ký -->
         <?= $this->include('frontend\components\sukien\detail\tabs\registration\event_registration_form_tab') ?>
         <?php endif; ?>

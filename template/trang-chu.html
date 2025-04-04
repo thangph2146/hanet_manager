@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sự Kiện Đại Học Ngân Hàng TP.HCM - Thông tin về các sự kiện, hội thảo, workshop của Trường Đại học Ngân hàng TP.HCM">
+    <meta name="keywords" content="đại học ngân hàng, sự kiện hub, hội thảo, workshop, nghề nghiệp, sinh viên">
+    <meta name="author" content="Trường Đại học Ngân hàng TP.HCM">
+    <meta property="og:title" content="Sự Kiện Đại Học Ngân Hàng TP.HCM">
+    <meta property="og:description" content="Sự Kiện Đại Học Ngân Hàng TP.HCM - Thông tin về các sự kiện, hội thảo, workshop của Trường Đại học Ngân hàng TP.HCM">
+    <meta property="og:image" content="template/assets/logo/HUB-logo-white.png">
+    <meta property="og:url" content="https://hub.edu.vn">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="index, follow">
+    <title>Sự Kiện Đại Học Ngân Hàng TP.HCM</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="template/assets/logo/favicon.ico" type="image/x-icon">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- LineIcons CSS -->
+    <link href="https://cdn.lineicons.com/3.0/lineicons.css" rel="stylesheet">
+    
+    <!-- AOS - Animate On Scroll -->
+    <link href="https://unpkg.com/aos@next/dist/aos.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="trang-chu/style.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="trang-chu.html">
+                <img src="http://127.0.0.1:5500/template/assets/logo/HUB-logo-white.png" alt="HUB Logo" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="http://127.0.0.1:5500/template/trang-chu.html">
+                            <i class="fas fa-home me-1"></i> Trang chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:5500/template/su-kien.html">
+                            <i class="fas fa-calendar-alt me-1"></i> Sự kiện
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar-alt me-1"></i> Loại sự kiện
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="http://127.0.0.1:5500/template/su-kien.html?type=1">Hội thảo</a></li>
+                            <li><a class="dropdown-item" href="http://127.0.0.1:5500/template/su-kien.html?type=2">Nghề nghiệp</a></li>
+                            <li><a class="dropdown-item" href="http://127.0.0.1:5500/template/su-kien.html?type=3">Workshop</a></li>
+                            <li><a class="dropdown-item" href="http://127.0.0.1:5500/template/su-kien.html?type=4">Hoạt động sinh viên</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar-alt me-1"></i>Dashboard
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="nguoi-dung/dang-ky-su-kien.html">Đăng ký sự kiện</a></li>
+                            <li><a class="dropdown-item" href="nguoi-dung/lich-su-dang-ky.html">Lịch sử đăng ký</a></li>
+                            <li><a class="dropdown-item" href="nguoi-dung/thong-tin-ca-nhan.html">Thông tin cá nhân</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="https://hub.edu.vn" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm px-3">
+                        <i class="fas fa-external-link-alt me-1"></i> HUB
+                    </a>
+                    <a href="http://127.0.0.1:5500/template/dang-nhap.html" class="btn btn-light btn-sm px-3 me-2 btn-login">
+                        <i class="fas fa-user-plus me-1"></i> Đăng nhập
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main>
+        <!-- Hero Banner -->
+        <section id="home" class="hero-banner">
+            <div id="particles-js"></div>
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <h1 class="display-4 fw-bold" data-aos="fade-up" data-aos-delay="100">Sự Kiện Đại Học Ngân Hàng TP.HCM</h1>
+                        <p class="lead" data-aos="fade-up" data-aos-delay="200">Kết nối tri thức - Định hướng tương lai - Tạo giá trị cộng đồng</p>
+                        <div class="d-flex gap-3 mt-4" data-aos="fade-up" data-aos-delay="300">
+                            <a href="#events" class="btn btn-light btn-lg">Xem sự kiện</a>
+                            <a href="#registration" class="btn btn-outline-light btn-lg">Đăng ký tham gia</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 d-none d-lg-block" data-aos="fade-left" data-aos-delay="400">
+                        <img src="http://127.0.0.1:5500/template/assets/logo/HUB-logo-white.png" alt="HUB Events" class="img-fluid rounded-3 shadow-lg" width="100%">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- University Intro -->
+        <section id="about" class="university-intro">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-5 text-center mb-4 mb-lg-0">
+                        <img src="http://127.0.0.1:5500/template/assets/logo/HUB-logo.png" alt="Đại học Ngân hàng TP.HCM" class="university-logo shadow">
+                        <h2 class="mt-4">Đại Học Ngân Hàng TP.HCM</h2>
+                        <div class="action-buttons">
+                            <a href="https://hub.edu.vn" target="_blank" rel="noopener noreferrer" class="btn btn-primary"><i class="fas fa-globe me-2"></i>Website</a>
+                            <a href="https://www.facebook.com/DHNHTPHCM.HUB/" target="_blank" rel="noopener noreferrer" class="btn btn-primary"><i class="fab fa-facebook-f me-2"></i>Facebook</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <p>Trường Đại học Ngân hàng TP. Hồ Chí Minh (HUB) là trường đại học công lập trực thuộc Ngân hàng Nhà nước Việt Nam, được thành lập vào năm 1976. Trường có nhiệm vụ đào tạo cán bộ khoa học kỹ thuật, quản lý kinh tế có trình độ cao đẳng, đại học và sau đại học về các chuyên ngành: Tài chính - Ngân hàng, Kế toán - Kiểm toán, Quản trị kinh doanh, Hệ thống thông tin quản lý, Luật kinh tế...</p>
+                        <p>Trải qua hơn 47 năm xây dựng và phát triển, Trường đã trở thành trung tâm đào tạo nhân lực chất lượng cao cung cấp cho các ngân hàng, tổ chức tín dụng, tổ chức tài chính - tiền tệ và các doanh nghiệp trong cả nước. Trường cũng là cơ sở nghiên cứu, ứng dụng, chuyển giao khoa học công nghệ tiên tiến trong lĩnh vực kinh tế, tài chính, ngân hàng.</p>
+                        <div class="mt-4">
+                            <h4>Sứ mệnh</h4>
+                            <p>Đào tạo nguồn nhân lực chất lượng cao, nghiên cứu khoa học và chuyển giao công nghệ phục vụ sự phát triển của ngành Ngân hàng và đất nước.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- University Stats -->
+        <section class="university-stats">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card text-center">
+                            <div class="stat-number">1976</div>
+                            <div class="stat-text">Năm thành lập</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card text-center">
+                            <div class="stat-number">50+</div>
+                            <div class="stat-text">Giảng viên</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card text-center">
+                            <div class="stat-number">5+</div>
+                            <div class="stat-text">Ngành đào tạo</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card text-center">
+                            <div class="stat-number">70+</div>
+                            <div class="stat-text">Đối tác</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upcoming Events -->
+        <section id="events" class="upcoming-events">
+            <div class="container">
+                <h2 class="text-center section-title">Sự Kiện Sắp Diễn Ra</h2>
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="event-card" data-event-name="Ngày hội việc làm Banking Career Day 2023" data-event-date="2023-12-20T08:00:00">
+                            <div class="event-image">
+                                <img src="https://hub.edu.vn/wp-content/uploads/2023/12/ngay-hoi-viec-lam.jpeg" alt="Ngày hội việc làm">
+                                <div class="event-tag">
+                                    <span class="tag-color"></span>
+                                    Việc làm
+                                </div>
+                            </div>
+                            <div class="event-content">
+                                <div class="event-meta">
+                                    <div class="meta-item">
+                                        <i class="far fa-calendar-alt"></i> 20/12/2023
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="far fa-clock"></i> 08:00 - 17:00
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="fas fa-map-marker-alt"></i> Hội trường A, Cơ sở 36 Tôn Thất Đạm
+                                    </div>
+                                </div>
+                                <h3 class="event-title">
+                                    <a href="#">Ngày hội việc làm Banking Career Day 2023</a>
+                                </h3>
+                                <div class="event-description">
+                                    Kết nối sinh viên với nhà tuyển dụng hàng đầu trong lĩnh vực tài chính ngân hàng, tạo cơ hội việc làm và thực tập cho sinh viên năm cuối.
+                                </div>
+                                <div class="event-footer">
+                                    <div class="event-progress">
+                                        <div class="progress-label">
+                                            <span>Đã đăng ký: 120/200</span>
+                                            <span>60%</span>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar" style="width: 60%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="event-actions">
+                                        <a href="#registration" class="btn btn-primary">Đăng ký ngay</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="event-card" data-event-name="Hội thảo định hướng nghề nghiệp ngành Tài chính - Ngân hàng" data-event-date="2023-12-25T14:00:00">
+                            <div class="event-image">
+                                <img src="https://hub.edu.vn/wp-content/uploads/2023/11/hoi-thao-dinh-huong-nghe.jpg" alt="Hội thảo định hướng nghề nghiệp">
+                                <div class="event-tag">
+                                    <span class="tag-color tag-color-blue"></span>
+                                    Hội thảo
+                                </div>
+                            </div>
+                            <div class="event-content">
+                                <div class="event-meta">
+                                    <div class="meta-item">
+                                        <i class="far fa-calendar-alt"></i> 25/12/2023
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="far fa-clock"></i> 14:00 - 17:00
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="fas fa-map-marker-alt"></i> Phòng Hội thảo, Cơ sở 56 Hoàng Diệu 2
+                                    </div>
+                                </div>
+                                <h3 class="event-title">
+                                    <a href="#">Hội thảo định hướng nghề nghiệp ngành Tài chính - Ngân hàng</a>
+                                </h3>
+                                <div class="event-description">
+                                    Cung cấp thông tin, định hướng nghề nghiệp trong lĩnh vực tài chính - ngân hàng, với sự tham gia của các chuyên gia đầu ngành.
+                                </div>
+                                <div class="event-footer">
+                                    <div class="event-progress">
+                                        <div class="progress-label">
+                                            <span>Đã đăng ký: 45/100</span>
+                                            <span>45%</span>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar" style="width: 45%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="event-actions">
+                                        <a href="#registration" class="btn btn-primary">Đăng ký ngay</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="event-card" data-event-name="Cuộc thi ý tưởng khởi nghiệp sáng tạo HUB 2024" data-event-date="2024-01-10T08:00:00">
+                            <div class="event-image">
+                                <img src="https://hub.edu.vn/wp-content/uploads/2023/10/cuoc-thi-y-tuong.jpg" alt="Cuộc thi ý tưởng khởi nghiệp">
+                                <div class="event-tag">
+                                    <span class="tag-color tag-color-green"></span>
+                                    Cuộc thi
+                                </div>
+                            </div>
+                            <div class="event-content">
+                                <div class="event-meta">
+                                    <div class="meta-item">
+                                        <i class="far fa-calendar-alt"></i> 10/01/2024
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="far fa-clock"></i> 08:00 - 17:00
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="fas fa-map-marker-alt"></i> Sân khấu ngoài trời, Cơ sở 36 Tôn Thất Đạm
+                                    </div>
+                                </div>
+                                <h3 class="event-title">
+                                    <a href="#">Cuộc thi ý tưởng khởi nghiệp sáng tạo HUB 2024</a>
+                                </h3>
+                                <div class="event-description">
+                                    Sân chơi cho sinh viên thể hiện ý tưởng khởi nghiệp sáng tạo, với tổng giá trị giải thưởng lên đến 50 triệu đồng.
+                                </div>
+                                <div class="event-footer">
+                                    <div class="event-progress">
+                                        <div class="progress-label">
+                                            <span>Đã đăng ký: 25/60</span>
+                                            <span>42%</span>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar" style="width: 42%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="event-actions">
+                                        <a href="#registration" class="btn btn-primary">Đăng ký ngay</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- No Events Section (Hidden by default) -->
+        <section class="no-events d-none">
+            <div class="container">
+                <div class="empty-state-wrapper">
+                    <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" alt="No Events" width="150" class="mb-4">
+                    <h3>Không có sự kiện nào sắp diễn ra</h3>
+                    <p class="text-muted">Hiện tại chưa có sự kiện nào được lên lịch. Vui lòng quay lại sau!</p>
+                    <a href="#registration" class="btn btn-primary mt-3">Đăng ký nhận thông báo</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why Join Events -->
+        <section class="why-join-events">
+            <div class="container">
+                <h2 class="text-center section-title">Tại Sao Nên Tham Gia Sự Kiện</h2>
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="reason-card">
+                            <div class="reason-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <h3>Nâng cao kiến thức</h3>
+                            <p>Cập nhật kiến thức mới nhất từ các chuyên gia đầu ngành trong lĩnh vực tài chính, ngân hàng và kinh tế. Mở rộng hiểu biết về các xu hướng và thách thức trong thị trường hiện tại.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="reason-card">
+                            <div class="reason-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3>Mở rộng mạng lưới</h3>
+                            <p>Kết nối với các sinh viên, chuyên gia và nhà tuyển dụng trong ngành. Xây dựng mạng lưới quan hệ chuyên nghiệp, tạo cơ hội hợp tác và phát triển nghề nghiệp trong tương lai.</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="reason-card">
+                            <div class="reason-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <h3>Cơ hội việc làm</h3>
+                            <p>Tiếp cận trực tiếp với các nhà tuyển dụng hàng đầu trong ngành. Tìm hiểu về các vị trí thực tập và việc làm tiềm năng, đồng thời hiểu rõ hơn về yêu cầu và kỳ vọng của nhà tuyển dụng.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials">
+            <div class="container">
+                <h2 class="text-center section-title">Cảm Nhận Nổi Bật</h2>
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="testimonial-card">
+                            <div class="testimonial-avatar">
+                                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Testimonial" class="img-fluid">
+                            </div>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="testimonial-content">
+                                <h4>Nguyễn Thị Ánh</h4>
+                                <p class="position">Sinh viên năm 3, Khoa Tài chính - Ngân hàng</p>
+                                <p>"Các sự kiện tại trường rất bổ ích, giúp mình hiểu rõ hơn về ngành nghề và có cơ hội kết nối với các doanh nghiệp lớn. Mình đã nhận được vị trí thực tập tại một ngân hàng lớn sau khi tham gia Ngày hội việc làm."</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="testimonial-card">
+                            <div class="testimonial-avatar">
+                                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Testimonial" class="img-fluid">
+                            </div>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <div class="testimonial-content">
+                                <h4>Trần Minh Tuấn</h4>
+                                <p class="position">Cựu sinh viên, Khoa Quản trị Kinh doanh</p>
+                                <p>"Những hội thảo và workshop chuyên môn tại HUB đã giúp mình rèn luyện kỹ năng và định hướng nghề nghiệp rõ ràng. Đặc biệt, cuộc thi ý tưởng khởi nghiệp đã giúp mình phát triển dự án kinh doanh cá nhân."</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="testimonial-card">
+                            <div class="testimonial-avatar">
+                                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Testimonial" class="img-fluid">
+                            </div>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="testimonial-content">
+                                <h4>Lê Thị Hồng Nhung</h4>
+                                <p class="position">Sinh viên năm 4, Khoa Kế toán - Kiểm toán</p>
+                                <p>"Sự kiện giao lưu với doanh nghiệp giúp mình hiểu rõ hơn về yêu cầu thực tế của thị trường lao động. Mình đã cải thiện được nhiều kỹ năng mềm và có cái nhìn thực tế hơn về công việc tương lai."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Registration Form -->
+        <section id="registration" class="registration-form">
+            <div class="container">
+                <div class="form-container">
+                    <h3 class="form-title">Đăng Ký Tham Gia Sự Kiện</h3>
+                    <form id="registrationForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fullName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="fullName" placeholder="Nhập họ và tên" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" placeholder="Nhập email" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phone" placeholder="Nhập số điện thoại" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="eventSelect" class="form-label">Sự kiện <span class="text-danger">*</span></label>
+                                <select class="form-select" id="eventSelect" required>
+                                    <option value="" selected disabled>Chọn sự kiện</option>
+                                    <option value="event1">Ngày hội việc làm Banking Career Day 2023</option>
+                                    <option value="event2">Hội thảo định hướng nghề nghiệp ngành Tài chính - Ngân hàng</option>
+                                    <option value="event3">Cuộc thi ý tưởng khởi nghiệp sáng tạo HUB 2024</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Lời nhắn</label>
+                            <textarea class="form-control" id="message" rows="3" placeholder="Nhập lời nhắn (nếu có)"></textarea>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">Tôi đồng ý với <a href="#">điều khoản</a> và <a href="#">chính sách bảo mật</a> <span class="text-danger">*</span></label>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">Đăng ký ngay</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <h5 class="footer-title">Về chúng tôi</h5>
+                    <p>
+                        Trường Đại học Ngân hàng TP.HCM là một trong những cơ sở giáo dục đại học hàng đầu trong lĩnh vực tài chính - ngân hàng tại Việt Nam.
+                    </p>
+                    <div class="mt-4">
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4">
+                    <h5 class="footer-title">Liên kết</h5>
+                    <ul class="list-unstyled">
+                        <li>
+                            <a href="#" class="footer-link">Trang chủ</a>
+                        </li>
+                        <li>
+                            <a href="#events" class="footer-link">Sự kiện</a>
+                        </li>
+                        <li>
+                            <a href="#about" class="footer-link">Giới thiệu</a>
+                        </li>
+                        <li>
+                            <a href="#contact" class="footer-link">Liên hệ</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <h5 class="footer-title">Liên hệ</h5>
+                    <ul class="list-unstyled">
+                        <li class="contact-item">
+                            <i class="fas fa-map-marker-alt contact-icon"></i>
+                            <span class="contact-text">36 Tôn Thất Đạm, Q.1, TP.HCM</span>
+                        </li>
+                        <li class="contact-item">
+                            <i class="fas fa-phone contact-icon"></i>
+                            <span class="contact-text">(028) 38 212 593</span>
+                        </li>
+                        <li class="contact-item">
+                            <i class="fas fa-envelope contact-icon"></i>
+                            <span class="contact-text">info@hub.edu.vn</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <h5 class="footer-title">Bản đồ</h5>
+                    <div class="rounded overflow-hidden">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.6219257597554!2d106.70230851744384!3d10.765753899999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f4949dbf177%3A0x77c434e30fb9ce86!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBOZ8OibiBIw6BuZyBUUC5IQ00!5e0!3m2!1svi!2s!4v1647942508574!5m2!1svi!2s" width="100%" height="150" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start">
+                        <p>&copy; 2025 Trường Đại học Ngân hàng TP.HCM</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <p>Thiết kế bởi Ban Truyền thông HUB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- AOS Animation Library -->
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    
+    <!-- Particles.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="trang-chu/script.js"></script>
+</body>
+</html>
