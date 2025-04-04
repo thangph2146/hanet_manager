@@ -3,7 +3,7 @@
 namespace App\Modules\nguoidung\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\nguoidung\Models\NguoiDungModel;
+use App\Modules\quanlynguoidung\Models\NguoiDungModel;
 use App\Modules\quanlydangkysukien\Models\DangKySuKienModel;
 use App\Modules\quanlysukien\Models\SuKienModel;
 use DateTime;
@@ -17,10 +17,23 @@ class NguoiDung extends BaseController
     public function __construct()
     {
         // Khởi tạo model
+        $this->nguoidungModel = new NguoiDungModel();
         $this->dangkysukienModel = new DangKySuKienModel();
         $this->sukienModel = new SuKienModel();
-
         
+        // Kiểm tra session người dùng
+        if (!service('authStudent')->isLoggedInStudent()) {
+            // Lưu URL hiện tại vào session để sau khi đăng nhập thì quay lại
+            $uri = service('uri');
+            $currentUrl = (string)$uri;
+            if (!empty($currentUrl)) {
+                $_SESSION['redirect_url'] = $currentUrl;
+            }
+            
+            // Chuyển hướng về trang chủ
+            header('Location: /');
+            exit;
+        }
     }
     
     /**
@@ -400,4 +413,4 @@ class NguoiDung extends BaseController
         return view('App\Modules\nguoidung\Views\eventslist', $data);
     }
    
-} 
+}
