@@ -8,9 +8,6 @@
     <!-- Social Share -->
     <?= $this->include('frontend\components\sukien\detail\sidebar\social_share') ?>
 
-    <!-- Event Registration -->
-    <?= $this->include('frontend\components\sukien\detail\sidebar\event_registration') ?>
-
     <!-- Event Stats -->
     <?= $this->include('frontend\components\sukien\detail\sidebar\event_stats') ?>
 

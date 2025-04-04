@@ -252,4 +252,7 @@
 			background-color: var(--primary);
 			color: #ffffff;
 		}
+		label {
+			font-size: 15px;
+		}
 	</style>

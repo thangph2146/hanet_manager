@@ -8,10 +8,7 @@
             
             <!-- Registration Progress Bar -->
             <?= $this->include('frontend\components\sukien\detail\tabs\registration\event_registration_progress_bar') ?>
-            
-            <!-- Registration Form -->
-            <?= $this->include('frontend\components\sukien\detail\tabs\registration\event_registration_form') ?>
-            
+
             <!-- Registration Contact -->
             <?= $this->include('frontend\components\sukien\detail\tabs\registration\event_registration_contact') ?>
             
