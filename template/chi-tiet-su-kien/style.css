@@ -456,11 +456,189 @@ a:hover {
     border-radius: var(--card-border-radius);
 }
 
+/* Registration stats */
+.registration-stats {
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background-color: var(--white);
+    border-radius: var(--card-border-radius);
+    padding: 15px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 5px;
+}
+
+.stat-card-label {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+}
+
+/* Registration table */
+.registration-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    background-color: var(--white);
+    border-radius: var(--card-border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.registration-table th {
+    background-color: rgba(128, 0, 0, 0.05);
+    color: var(--primary);
+    font-weight: 600;
+    padding: 12px;
+    border-top: none;
+}
+
+.registration-table th:first-child,
+.registration-table td:first-child {
+    padding-left: 20px;
+}
+
+.registration-table th:last-child,
+.registration-table td:last-child {
+    padding-right: 20px;
+}
+
+.registration-table tbody tr {
+    transition: var(--transition);
+}
+
+.registration-table tbody tr:hover {
+    background-color: rgba(128, 0, 0, 0.03);
+}
+
+.registration-table td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+/* Search box */
+.search-registration .input-group {
+    width: 250px;
+}
+
+.search-registration .form-control:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 0.2rem rgba(128, 0, 0, 0.1);
+}
+
 /* Registration form */
 .registration-form {
-    padding: 20px;
+    padding: 25px;
     background-color: var(--light-gray);
     border-radius: var(--card-border-radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.registration-form h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--primary);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-gray);
+}
+
+.registration-form .form-label {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.registration-form .form-control {
+    padding: 10px 15px;
+    border: 1px solid var(--border-gray);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.registration-form .form-control:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 0.2rem rgba(128, 0, 0, 0.1);
+}
+
+.registration-form button[type="submit"] {
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    padding: 10px 25px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.registration-form button[type="submit"]:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Success message */
+.registration-success {
+    background-color: #f8f9fa;
+    border-radius: var(--card-border-radius);
+    padding: 30px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.success-icon {
+    font-size: 4rem;
+    color: #28a745;
+    margin-bottom: 20px;
+}
+
+.registration-success h3 {
+    font-size: 1.5rem;
+    color: #28a745;
+    margin-bottom: 15px;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+.char-count {
+    text-align: right;
+    font-size: 0.8rem;
+}
+
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-link {
+    color: var(--primary);
+    border-color: var(--border-gray);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.pagination .page-link:hover {
+    background-color: var(--primary-light);
+    color: var(--primary);
 }
 
 /* Sidebar styles */
@@ -778,5 +956,119 @@ a:hover {
     
     .event-details-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Chi tiết đăng ký */
+.attendee-detail {
+    color: var(--primary);
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.attendee-detail:hover {
+    color: var(--primary-hover);
+    text-decoration: underline !important;
+}
+
+/* Thông tin đăng ký thành công */
+.registration-info {
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--card-border-radius);
+    overflow: hidden;
+}
+
+.registration-info .card-header {
+    background-color: var(--primary);
+    padding: 12px 20px;
+}
+
+.registration-info .card-body {
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+.registration-info p {
+    margin-bottom: 8px;
+}
+
+/* Filter buttons */
+.registration-filter {
+    margin-bottom: 20px;
+}
+
+.registration-filter .btn-group {
+    width: 100%;
+}
+
+.registration-filter .btn {
+    flex: 1;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+/* Online fields */
+#online-fields {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: var(--card-border-radius);
+    margin-bottom: 20px;
+    border-left: 3px solid var(--primary);
+}
+
+/* Form select */
+.form-select {
+    padding: 10px 15px;
+    border: 1px solid var(--border-gray);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.form-select:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 0.2rem rgba(128, 0, 0, 0.1);
+}
+
+/* Form radio buttons */
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.form-check-input:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 0.2rem rgba(128, 0, 0, 0.1);
+}
+
+/* Form help text */
+.form-text {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    margin-top: 5px;
+}
+
+/* Additional info styles */
+.additional-info {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: var(--card-border-radius);
+}
+
+.additional-info p {
+    margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+    .registration-filter .btn-group {
+        flex-direction: column;
+    }
+    
+    .registration-filter .btn {
+        border-radius: 4px !important;
+        margin-bottom: 5px;
+    }
+    
+    .stat-card {
+        margin-bottom: 15px;
     }
 }

@@ -47,12 +47,12 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="trang-chu.html">
+                        <a class="nav-link" href="http://127.0.0.1:5500/template/trang-chu.html">
                             <i class="fas fa-home me-1"></i> Trang chủ
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="su-kien.html" aria-current="page">
+                        <a class="nav-link active" href="http://127.0.0.1:5500/template/su-kien.html" aria-current="page">
                             <i class="fas fa-calendar-alt me-1"></i> Sự kiện
                         </a>
                     </li>
@@ -61,11 +61,21 @@
                             <i class="fas fa-filter me-1"></i> Loại sự kiện
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="eventTypeDropdownLink">
-                            <li><a class="dropdown-item filter-btn" data-filter="all" href="#">Tất cả</a></li>
-                            <li><a class="dropdown-item filter-btn" data-filter="1" href="#">Hội thảo</a></li>
-                            <li><a class="dropdown-item filter-btn" data-filter="2" href="#">Hội nghị</a></li>
-                            <li><a class="dropdown-item filter-btn" data-filter="3" href="#">Workshop</a></li>
-                            <li><a class="dropdown-item filter-btn" data-filter="4" href="#">Khác</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="all" href="http://127.0.0.1:5500/template/su-kien.html">Tất cả</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="1" href="http://127.0.0.1:5500/template/su-kien.html?type=1">Hội thảo</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="2" href="http://127.0.0.1:5500/template/su-kien.html?type=2">Hội nghị</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="3" href="http://127.0.0.1:5500/template/su-kien.html?type=3">Workshop</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="4" href="http://127.0.0.1:5500/template/su-kien.html?type=4">Khác</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar-alt me-1"></i>Dashboard
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="http://127.0.0.1:5500/template/nguoi-dung/dang-ky-su-kien.html">Đăng ký sự kiện</a></li>
+                            <li><a class="dropdown-item" href="http://127.0.0.1:5500/template/nguoi-dung/lich-su-dang-ky.html">Lịch sử đăng ký</a></li>
+                            <li><a class="dropdown-item" href="http://127.0.0.1:5500/template/nguoi-dung/thong-tin-ca-nhan.html">Thông tin cá nhân</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -73,7 +83,7 @@
                     <a href="https://hub.edu.vn" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm px-3">
                         <i class="fas fa-external-link-alt me-1"></i> HUB
                     </a>
-                    <a href="#" class="btn btn-light btn-sm px-3 me-2 btn-login">
+                    <a href="http://127.0.0.1:5500/template/dang-nhap.html" class="btn btn-light btn-sm px-3 me-2 btn-login">
                         <i class="fas fa-user-plus me-1"></i> Đăng nhập
                     </a>
                 </div>
@@ -105,8 +115,8 @@
         <div class="container">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
-                    <li class="breadcrumb-item"><a href="#">Danh sách sự kiện</a></li>
+                    <li class="breadcrumb-item"><a href="http://127.0.0.1:5500/template/trang-chu.html">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="http://127.0.0.1:5500/template/su-kien.html">Danh sách sự kiện</a></li>
                     <li class="breadcrumb-item active">Đang tải...</li>
                 </ol>
             </nav>
@@ -379,7 +389,16 @@
                             <div class="tab-pane fade" id="attendees" role="tabpanel" aria-labelledby="attendees-tab">
                                 <div class="attendees-status">
                                     <h3>Danh sách người đăng ký</h3>
-                                    <p>Hiện chưa có người đăng ký cho sự kiện này.</p>
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Hiện chưa có người đăng ký cho sự kiện này.
+                                    </div>
+                                    <div class="text-center mt-4">
+                                        <button class="btn btn-primary register-now-btn" onclick="scrollToRegisterTab()">
+                                            <i class="fas fa-user-plus me-2"></i>
+                                            Đăng ký ngay
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -387,28 +406,269 @@
                             <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
                                 <div class="registration-form">
                                     <h3>Đăng ký tham gia</h3>
+                                    <p class="text-muted mb-4">Vui lòng điền đầy đủ thông tin bên dưới để đăng ký tham gia sự kiện.</p>
                                     <form id="event-registration-form">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="fullname" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="fullname" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                                <input type="email" class="form-control" id="email" required>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                                <input type="tel" class="form-control" id="phone" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="organization" class="form-label">Đơn vị/Tổ chức</label>
+                                                <input type="text" class="form-control" id="organization">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="participant-type" class="form-label">Bạn là <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="participant-type" required>
+                                                    <option value="">-- Chọn loại người tham gia --</option>
+                                                    <option value="khach">Khách mời</option>
+                                                    <option value="sinh_vien">Sinh viên</option>
+                                                    <option value="giang_vien">Giảng viên</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="reference-source" class="form-label">Bạn biết sự kiện này từ đâu?</label>
+                                                <select class="form-select" id="reference-source">
+                                                    <option value="">-- Chọn nguồn thông tin --</option>
+                                                    <option value="Facebook">Facebook</option>
+                                                    <option value="Website HUB">Website HUB</option>
+                                                    <option value="Email">Email</option>
+                                                    <option value="Bạn bè">Bạn bè</option>
+                                                    <option value="Đồng nghiệp">Đồng nghiệp</option>
+                                                    <option value="Khác">Khác</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Trường thông tin bổ sung cho sinh viên -->
+                                        <div id="student-fields" style="display: none;">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="student-id" class="form-label">Mã số sinh viên <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="student-id" placeholder="Nhập mã số sinh viên">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="major" class="form-label">Ngành học</label>
+                                                    <input type="text" class="form-control" id="major" placeholder="Nhập ngành học của bạn">
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="year" class="form-label">Năm học</label>
+                                                    <select class="form-select" id="year">
+                                                        <option value="">-- Chọn năm học --</option>
+                                                        <option value="1">Năm thứ 1</option>
+                                                        <option value="2">Năm thứ 2</option>
+                                                        <option value="3">Năm thứ 3</option>
+                                                        <option value="4">Năm thứ 4</option>
+                                                        <option value="5">Trên năm thứ 4</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="university" class="form-label">Trường đại học</label>
+                                                    <input type="text" class="form-control" id="university" placeholder="Nhập tên trường" value="Trường Đại học Ngân hàng TP.HCM">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Trường thông tin bổ sung cho giảng viên -->
+                                        <div id="faculty-fields" style="display: none;">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="faculty" class="form-label">Khoa/Bộ môn <span class="text-danger">*</span></label>
+                                                    <input type="text" class="form-control" id="faculty" placeholder="Nhập khoa hoặc bộ môn của bạn">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="presentation" class="form-label">Bạn có muốn tham gia trình bày không?</label>
+                                                    <select class="form-select" id="presentation">
+                                                        <option value="false">Không</option>
+                                                        <option value="true">Có</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Trường thông tin bổ sung cho khách mời -->
+                                        <div id="guest-fields" style="display: none;">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="job-title" class="form-label">Chức vụ</label>
+                                                    <input type="text" class="form-control" id="job-title" placeholder="Nhập chức vụ của bạn">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="company-position" class="form-label">Vị trí công ty</label>
+                                                    <input type="text" class="form-control" id="company-position" placeholder="Nhập vị trí của bạn tại công ty">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="interests" class="form-label">Lĩnh vực quan tâm</label>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="interests[]" id="interest-fintech" value="Fintech">
+                                                            <label class="form-check-label" for="interest-fintech">Fintech</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="interests[]" id="interest-blockchain" value="Blockchain">
+                                                            <label class="form-check-label" for="interest-blockchain">Blockchain</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="interests[]" id="interest-bigdata" value="Big Data">
+                                                            <label class="form-check-label" for="interest-bigdata">Big Data</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="interests[]" id="interest-ai" value="AI">
+                                                            <label class="form-check-label" for="interest-ai">AI</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="interests[]" id="interest-banking" value="Banking">
+                                                            <label class="form-check-label" for="interest-banking">Ngân hàng</label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" name="interests[]" id="interest-other" value="Other">
+                                                            <label class="form-check-label" for="interest-other">Khác</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
                                         <div class="mb-3">
-                                            <label for="fullname" class="form-label">Họ và tên</label>
-                                            <input type="text" class="form-control" id="fullname" required>
+                                            <label class="form-label">Hình thức tham gia <span class="text-danger">*</span></label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="participation-type" id="participation-offline" value="offline" checked required>
+                                                <label class="form-check-label" for="participation-offline">
+                                                    Trực tiếp (Offline)
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="participation-type" id="participation-online" value="online" required>
+                                                <label class="form-check-label" for="participation-online">
+                                                    Trực tuyến (Online)
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="participation-type" id="participation-hybrid" value="hybrid" required>
+                                                <label class="form-check-label" for="participation-hybrid">
+                                                    Kết hợp (Hybrid)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div id="online-fields" style="display: none;">
+                                            <div class="mb-3">
+                                                <label for="online-platform" class="form-label">Nền tảng trực tuyến <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="online-platform">
+                                                    <option value="zoom">Zoom</option>
+                                                    <option value="google-meet">Google Meet</option>
+                                                    <option value="microsoft-teams">Microsoft Teams</option>
+                                                    <option value="webex">Cisco Webex</option>
+                                                    <option value="skype">Skype</option>
+                                                    <option value="other">Khác</option>
+                                                </select>
+                                                <div class="form-text">Thông tin đăng nhập sẽ được gửi đến email của bạn sau khi đăng ký.</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="preferred-language" class="form-label">Ngôn ngữ ưa thích</label>
+                                                <select class="form-select" id="preferred-language">
+                                                    <option value="vi">Tiếng Việt</option>
+                                                    <option value="en">Tiếng Anh</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="email" class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="email" required>
+                                            <label for="participation-reason" class="form-label">Lý do bạn muốn tham gia sự kiện này? <span class="text-danger">*</span></label>
+                                            <textarea class="form-control" id="participation-reason" rows="2" placeholder="Chia sẻ lý do bạn quan tâm đến sự kiện này" required></textarea>
+                                            <div class="form-text">Thông tin này giúp Ban Tổ chức hiểu rõ hơn về nhu cầu của bạn</div>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="phone" class="form-label">Số điện thoại</label>
-                                            <input type="tel" class="form-control" id="phone" required>
+                                            <label for="note" class="form-label">Ghi chú/Góp ý</label>
+                                            <textarea class="form-control" id="note" rows="3" placeholder="Nhập ghi chú hoặc góp ý cho ban tổ chức (nếu có)"></textarea>
                                         </div>
+
                                         <div class="mb-3">
-                                            <label for="organization" class="form-label">Đơn vị/Tổ chức</label>
-                                            <input type="text" class="form-control" id="organization">
+                                            <label class="form-label">Thiết bị bạn sẽ sử dụng</label>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="platforms[]" id="platform-ios" value="iOS">
+                                                        <label class="form-check-label" for="platform-ios">iPhone/iPad (iOS)</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="platforms[]" id="platform-android" value="Android">
+                                                        <label class="form-check-label" for="platform-android">Android</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="platforms[]" id="platform-windows" value="Windows">
+                                                        <label class="form-check-label" for="platform-windows">Windows</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="platforms[]" id="platform-macos" value="macOS">
+                                                        <label class="form-check-label" for="platform-macos">Mac (macOS)</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="platforms[]" id="platform-linux" value="Linux">
+                                                        <label class="form-check-label" for="platform-linux">Linux</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="platforms[]" id="platform-other" value="Other">
+                                                        <label class="form-check-label" for="platform-other">Khác</label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
+
                                         <div class="mb-3">
-                                            <label for="note" class="form-label">Ghi chú</label>
-                                            <textarea class="form-control" id="note" rows="3"></textarea>
+                                            <label class="form-label">Tùy chọn liên hệ</label>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="newsletter-subscribe" name="contact_options[]" value="newsletter" checked>
+                                                <label class="form-check-label" for="newsletter-subscribe">
+                                                    Tôi muốn nhận thông báo về các sự kiện tương tự trong tương lai
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="checkbox" id="materials-subscribe" name="contact_options[]" value="materials" checked>
+                                                <label class="form-check-label" for="materials-subscribe">
+                                                    Tôi muốn nhận tài liệu liên quan đến sự kiện
+                                                </label>
+                                            </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Đăng ký</button>
+
+                                        <div class="form-check mb-4">
+                                            <input class="form-check-input" type="checkbox" id="agree-terms" required>
+                                            <label class="form-check-label" for="agree-terms">
+                                                Tôi đồng ý với <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">điều khoản tham gia</a> sự kiện
+                                            </label>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane me-2"></i>
+                                            Đăng ký
+                                        </button>
                                     </form>
                                 </div>
                             </div>
@@ -554,5 +814,26 @@
     
     <!-- Custom Script -->
     <script src="chi-tiet-su-kien/script.js"></script>
+
+    <!-- Terms Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsModalLabel">Điều khoản tham gia sự kiện</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>1. Đăng ký tham gia</h6>
+                    <p>Khi đăng ký tham gia sự kiện, bạn cam kết rằng thông tin cung cấp là chính xác và đầy đủ.</p>
+                    
+                    <h6>2. Xác nhận đăng ký</h6>
+                    <p>Sau khi đăng ký, bạn sẽ nhận được email xác nhận. Đăng ký của bạn chỉ có hiệu lực sau khi được ban tổ chức xác nhận.</p>
+                    
+                    <h6>3. Thay đổi hoặc hủy đăng ký</h6>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

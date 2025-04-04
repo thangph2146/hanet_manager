@@ -56,12 +56,12 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="trang-chu.html">
+                        <a class="nav-link" href="http://127.0.0.1:5500/template/trang-chu.html">
                             <i class="fas fa-home me-1"></i> Trang chủ
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="su-kien.html" aria-current="page">
+                        <a class="nav-link active" href="http://127.0.0.1:5500/template/su-kien.html" aria-current="page">
                             <i class="fas fa-calendar-alt me-1"></i> Sự kiện
                         </a>
                     </li>
@@ -70,11 +70,21 @@
                             <i class="fas fa-filter me-1"></i> Loại sự kiện
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="eventTypeDropdownLink">
-                            <li><a class="dropdown-item filter-btn" data-filter="all" href="#">Tất cả</a></li>
-                            <li><a class="dropdown-item filter-btn" data-filter="1" href="#">Hội thảo</a></li>
-                            <li><a class="dropdown-item filter-btn" data-filter="2" href="#">Hội nghị</a></li>
-                            <li><a class="dropdown-item filter-btn" data-filter="3" href="#">Workshop</a></li>
-                            <li><a class="dropdown-item filter-btn" data-filter="4" href="#">Khác</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="all" href="http://127.0.0.1:5500/template/su-kien.html">Tất cả</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="1" href="http://127.0.0.1:5500/template/su-kien.html?type=1">Hội thảo</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="2" href="http://127.0.0.1:5500/template/su-kien.html?type=2">Hội nghị</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="3" href="http://127.0.0.1:5500/template/su-kien.html?type=3">Workshop</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="4" href="http://127.0.0.1:5500/template/su-kien.html?type=4">Khác</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-calendar-alt me-1"></i>Dashboard
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="nguoi-dung/dang-ky-su-kien.html">Đăng ký sự kiện</a></li>
+                            <li><a class="dropdown-item" href="nguoi-dung/lich-su-dang-ky.html">Lịch sử đăng ký</a></li>
+                            <li><a class="dropdown-item" href="nguoi-dung/thong-tin-ca-nhan.html">Thông tin cá nhân</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -82,7 +92,7 @@
                     <a href="https://hub.edu.vn" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-sm px-3">
                         <i class="fas fa-external-link-alt me-1"></i> HUB
                     </a>
-                    <a href="#" class="btn btn-light btn-sm px-3 me-2 btn-login">
+                    <a href="http://127.0.0.1:5500/template/dang-nhap.html" class="btn btn-light btn-sm px-3 me-2 btn-login">
                         <i class="fas fa-user-plus me-1"></i> Đăng nhập
                     </a>
                 </div>
@@ -99,7 +109,7 @@
                     <div class="col-12">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0">
-                                <li class="breadcrumb-item"><a href="trang-chu.html">Trang chủ</a></li>
+                                <li class="breadcrumb-item"><a href="http://127.0.0.1:5500/template/trang-chu.html">Trang chủ</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">Danh sách sự kiện</li>
                             </ol>
                         </nav>
@@ -228,22 +238,22 @@
                     <h5 class="footer-title">Liên kết</h5>
                     <ul class="list-unstyled">
                         <li>
-                            <a href="trang-chu.html" class="footer-link">
+                            <a href="http://127.0.0.1:5500/template/trang-chu.html" class="footer-link">
                                 <i class="fas fa-chevron-right me-2"></i> Trang chủ
                             </a>
                         </li>
                         <li>
-                            <a href="su-kien.html" class="footer-link">
+                            <a href="http://127.0.0.1:5500/template/su-kien.html" class="footer-link">
                                 <i class="fas fa-chevron-right me-2"></i> Sự kiện
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="footer-link">
+                            <a href="http://127.0.0.1:5500/template/gioi-thieu.html" class="footer-link">
                                 <i class="fas fa-chevron-right me-2"></i> Giới thiệu
                             </a>
                         </li>
                         <li>
-                            <a href="#contact" class="footer-link">
+                            <a href="http://127.0.0.1:5500/template/lien-he.html" class="footer-link">
                                 <i class="fas fa-chevron-right me-2"></i> Liên hệ
                             </a>
                         </li>
@@ -330,7 +340,6 @@
                     </div>
                     <div class="event-actions">
                         <a href="#" class="btn-view-details">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
-                        <a href="#" class="btn btn-sm btn-primary">Đăng ký</a>
                     </div>
                 </div>
             </div>

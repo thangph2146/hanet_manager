@@ -255,8 +255,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const detailLink = template.querySelector('.btn-view-details');
         detailLink.href = `chi-tiet-su-kien.html?id=${event.su_kien_id}&slug=${event.slug}`;
         
-        const registerButton = template.querySelector('.event-actions .btn-primary');
-        registerButton.href = `dang-ky-su-kien.html?id=${event.su_kien_id}`;
         
         return template;
     }

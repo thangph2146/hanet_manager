@@ -740,4 +740,863 @@ function setupQRCodeShare() {
     });
     
     console.log("Đã thiết lập chia sẻ QR code");
+}
+
+// Tải dữ liệu đăng ký sự kiện
+async function loadRegistrationData(eventSlug) {
+    console.log("Đang tải dữ liệu đăng ký cho sự kiện:", eventSlug);
+    
+    try {
+        // Đường dẫn đến file JSON chứa dữ liệu đăng ký
+        const registrationDataUrl = "http://127.0.0.1:5500/template/data/dangkys-sukien.json";
+        
+        // Hiển thị trạng thái đang tải
+        const attendeesTab = document.getElementById('attendees');
+        if (attendeesTab) {
+            attendeesTab.innerHTML = `
+                <div class="loading-container text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-3">Đang tải danh sách người đăng ký...</p>
+                </div>
+            `;
+        }
+        
+        // Tải dữ liệu từ JSON
+        const response = await fetch(registrationDataUrl);
+        
+        if (!response.ok) {
+            throw new Error("Không thể tải dữ liệu đăng ký");
+        }
+        
+        const data = await response.json();
+        console.log("Đã tải dữ liệu đăng ký:", data);
+        
+        // Tìm sự kiện hiện tại 
+        const event = await getCurrentEvent();
+        if (!event) {
+            throw new Error("Không thể tìm thấy thông tin sự kiện");
+        }
+        
+        // Lọc dữ liệu đăng ký cho sự kiện hiện tại (theo ID thay vì slug)
+        const eventRegistrations = data.filter(reg => reg.su_kien_id === event.su_kien_id);
+        console.log(`Tìm thấy ${eventRegistrations.length} đăng ký cho sự kiện này`);
+        
+        // Hiển thị danh sách đăng ký
+        updateRegistrationList(eventRegistrations);
+        
+    } catch (error) {
+        console.error("Lỗi khi tải dữ liệu đăng ký:", error);
+        
+        // Hiển thị thông báo lỗi
+        const attendeesTab = document.getElementById('attendees');
+        if (attendeesTab) {
+            attendeesTab.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Không thể tải danh sách đăng ký: ${error.message}
+                </div>
+            `;
+        }
+    }
+}
+
+// Lấy sự kiện hiện tại
+async function getCurrentEvent() {
+    // Lấy slug từ URL
+    const slug = getCurrentEventSlug();
+    
+    try {
+        // Tải dữ liệu sự kiện từ JSON
+        const response = await fetch('http://127.0.0.1:5500/template/data/su-kien.json');
+        if (!response.ok) {
+            throw new Error("Không thể tải dữ liệu sự kiện");
+        }
+        
+        const events = await response.json();
+        // Tìm sự kiện theo slug
+        return events.find(event => event.slug === slug);
+    } catch (error) {
+        console.error("Lỗi khi tìm sự kiện:", error);
+        return null;
+    }
+}
+
+// Cập nhật giao diện hiển thị danh sách đăng ký
+function updateRegistrationList(registrations) {
+    const attendeesTab = document.getElementById('attendees');
+    if (!attendeesTab) {
+        console.error("Không tìm thấy phần tử #attendees");
+        return;
+    }
+    
+    // Nếu không có đăng ký
+    if (!registrations || registrations.length === 0) {
+        attendeesTab.innerHTML = `
+            <div class="attendees-status">
+                <h3>Danh sách người đăng ký</h3>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Hiện chưa có người đăng ký cho sự kiện này.
+                </div>
+                <div class="text-center mt-4">
+                    <button class="btn btn-primary register-now-btn" onclick="scrollToRegisterTab()">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Đăng ký ngay
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    // Tính toán thống kê
+    const confirmedCount = registrations.filter(r => r.status === 1).length;
+    const pendingCount = registrations.filter(r => r.status === 0).length;
+    const canceledCount = registrations.filter(r => r.status === -1).length;
+    const attendedCount = registrations.filter(r => r.da_check_in === true).length;
+    const confirmedRate = Math.round((confirmedCount / registrations.length) * 100);
+    const attendanceRate = registrations.filter(r => r.attendance_status === 'full').length;
+    
+    // Tạo phần tử HTML cho danh sách đăng ký
+    let attendeesHTML = `
+        <div class="attendees-status">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>Danh sách người đăng ký (${registrations.length})</h3>
+                <div class="search-registration">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="search-attendees" 
+                               placeholder="Tìm kiếm..." aria-label="Tìm kiếm">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="registration-stats mb-4">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-card-value">${registrations.length}</div>
+                            <div class="stat-card-label">Tổng đăng ký</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-card-value">${confirmedCount}</div>
+                            <div class="stat-card-label">Đã xác nhận</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-card-value">${attendedCount}</div>
+                            <div class="stat-card-label">Đã tham gia</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-card-value">${confirmedRate}%</div>
+                            <div class="stat-card-label">Tỷ lệ xác nhận</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="registration-filter mb-3">
+                <div class="btn-group" role="group" aria-label="Bộ lọc trạng thái">
+                    <button type="button" class="btn btn-outline-primary active filter-btn" data-filter="all">Tất cả</button>
+                    <button type="button" class="btn btn-outline-success filter-btn" data-filter="confirmed">Đã xác nhận</button>
+                    <button type="button" class="btn btn-outline-warning filter-btn" data-filter="pending">Chờ xác nhận</button>
+                    <button type="button" class="btn btn-outline-danger filter-btn" data-filter="canceled">Đã hủy</button>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover registration-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-center">#</th>
+                            <th scope="col">Họ và tên</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">SĐT</th>
+                            <th scope="col">Đơn vị</th>
+                            <th scope="col" class="text-center">Loại</th>
+                            <th scope="col" class="text-center">Trạng thái</th>
+                            <th scope="col" class="text-center">Tham dự</th>
+                            <th scope="col" class="text-center">Đăng ký lúc</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+    
+    // Thêm từng dòng dữ liệu
+    registrations.forEach((reg, index) => {
+        // Xác định trạng thái
+        const statusClass = reg.status === 1 ? 'success' : 
+                           reg.status === 0 ? 'warning' : 'danger';
+        const statusText = reg.status === 1 ? 'Đã xác nhận' : 
+                          reg.status === 0 ? 'Chờ xác nhận' : 'Đã hủy';
+        
+        // Xác định trạng thái tham dự
+        const attendanceClass = reg.attendance_status === 'full' ? 'success' : 
+                               reg.attendance_status === 'partial' ? 'warning' : 'secondary';
+        const attendanceText = reg.attendance_status === 'full' ? 'Đầy đủ' : 
+                              reg.attendance_status === 'partial' ? 'Một phần' : 'Chưa tham dự';
+        
+        // Định dạng ngày
+        const regDate = new Date(reg.ngay_dang_ky);
+        const formattedDate = `${regDate.getDate()}/${regDate.getMonth() + 1}/${regDate.getFullYear()}`;
+        
+        // Loại người đăng ký
+        const typeText = reg.loai_nguoi_dang_ky === 'khach' ? 'Khách' : 
+                        reg.loai_nguoi_dang_ky === 'sinh_vien' ? 'Sinh viên' : 'Giảng viên';
+        const typeClass = reg.loai_nguoi_dang_ky === 'khach' ? 'info' : 
+                         reg.loai_nguoi_dang_ky === 'sinh_vien' ? 'primary' : 'dark';
+        
+        attendeesHTML += `
+            <tr data-status="${reg.status === 1 ? 'confirmed' : (reg.status === 0 ? 'pending' : 'canceled')}">
+                <td class="text-center">${index + 1}</td>
+                <td>
+                    <a href="#" class="text-decoration-none attendee-detail" data-bs-toggle="modal" data-bs-target="#attendeeModal" data-id="${reg.dangky_sukien_id}">
+                        ${reg.ho_ten}
+                    </a>
+                </td>
+                <td>${reg.email}</td>
+                <td>${reg.dien_thoai || '-'}</td>
+                <td>${reg.don_vi_to_chuc || '-'}</td>
+                <td class="text-center">
+                    <span class="badge bg-${typeClass}">${typeText}</span>
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-${statusClass}">${statusText}</span>
+                </td>
+                <td class="text-center">
+                    <span class="badge bg-${attendanceClass}">${attendanceText}</span>
+                </td>
+                <td class="text-center">${formattedDate}</td>
+            </tr>
+        `;
+    });
+    
+    attendeesHTML += `
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination-container mt-3 d-flex justify-content-center">
+                <nav aria-label="Phân trang danh sách đăng ký">
+                    <ul class="pagination">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    `;
+    
+    // Cập nhật nội dung tab
+    attendeesTab.innerHTML = attendeesHTML;
+    
+    // Thêm chức năng tìm kiếm
+    const searchInput = document.getElementById('search-attendees');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.registration-table tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Thêm chức năng lọc theo trạng thái
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Xóa active class khỏi tất cả các nút
+            filterButtons.forEach(b => b.classList.remove('active'));
+            
+            // Thêm active class vào nút được nhấp
+            this.classList.add('active');
+            
+            const filterValue = this.getAttribute('data-filter');
+            const rows = document.querySelectorAll('.registration-table tbody tr');
+            
+            rows.forEach(row => {
+                if (filterValue === 'all' || row.getAttribute('data-status') === filterValue) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Thêm sự kiện cho việc xem chi tiết người đăng ký
+    const detailLinks = document.querySelectorAll('.attendee-detail');
+    detailLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const id = this.getAttribute('data-id');
+            const registration = registrations.find(r => r.dangky_sukien_id == id);
+            
+            if (registration) {
+                showAttendeeDetail(registration);
+            }
+        });
+    });
+}
+
+// Hiển thị chi tiết người đăng ký
+function showAttendeeDetail(registration) {
+    // Kiểm tra xem modal đã tồn tại chưa
+    let modal = document.getElementById('attendeeModal');
+    
+    // Nếu chưa, tạo mới
+    if (!modal) {
+        const modalHTML = `
+            <div class="modal fade" id="attendeeModal" tabindex="-1" aria-labelledby="attendeeModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="attendeeModalLabel">Chi tiết đăng ký</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="attendeeModalBody">
+                            <!-- Nội dung sẽ được điền ở đây -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        modal = document.getElementById('attendeeModal');
+    }
+    
+    // Định dạng ngày đăng ký
+    const regDate = new Date(registration.ngay_dang_ky);
+    const formattedDate = `${regDate.getDate()}/${regDate.getMonth() + 1}/${regDate.getFullYear()} ${regDate.getHours()}:${regDate.getMinutes()}`;
+    
+    // Xác định trạng thái
+    const status = registration.status === 1 ? '<span class="badge bg-success">Đã xác nhận</span>' : 
+                  registration.status === 0 ? '<span class="badge bg-warning">Chờ xác nhận</span>' : 
+                  '<span class="badge bg-danger">Đã hủy</span>';
+    
+    // Loại người đăng ký
+    const type = registration.loai_nguoi_dang_ky === 'khach' ? 'Khách' : 
+                registration.loai_nguoi_dang_ky === 'sinh_vien' ? 'Sinh viên' : 'Giảng viên';
+    
+    // Trạng thái tham dự
+    const attendance = registration.attendance_status === 'full' ? '<span class="badge bg-success">Đầy đủ</span>' : 
+                      registration.attendance_status === 'partial' ? '<span class="badge bg-warning">Một phần</span>' : 
+                      '<span class="badge bg-secondary">Chưa tham dự</span>';
+    
+    // Tạo nội dung chi tiết
+    const detailHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="fw-bold">Thông tin người đăng ký</h6>
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Họ và tên:</strong> ${registration.ho_ten}</p>
+                    <p class="mb-1"><strong>Email:</strong> ${registration.email}</p>
+                    <p class="mb-1"><strong>Số điện thoại:</strong> ${registration.dien_thoai || 'Không có'}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold">Thông tin đăng ký</h6>
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Mã xác nhận:</strong> ${registration.ma_xac_nhan || 'Chưa cấp'}</p>
+                    <p class="mb-1"><strong>Thời gian đăng ký:</strong> ${formattedDate}</p>
+                    <p class="mb-1"><strong>Trạng thái:</strong> ${status}</p>
+                    <p class="mb-1"><strong>Hình thức tham gia:</strong> ${registration.hinh_thuc_tham_gia}</p>
+                    <p class="mb-1"><strong>Đã điểm danh:</strong> ${registration.da_check_in ? 'Đã điểm danh vào' : 'Chưa điểm danh'}</p>
+                    <p class="mb-1"><strong>Tham dự:</strong> ${attendance}</p>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6 class="fw-bold">Ghi chú/Góp ý</h6>
+                <p>${registration.noi_dung_gop_y || 'Không có ghi chú'}</p>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6 class="fw-bold">Thông tin bổ sung</h6>
+                <div class="additional-info">
+                    <p><strong>Nguồn giới thiệu:</strong> ${registration.nguon_gioi_thieu || 'Không có'}</p>
+                    ${registration.ly_do_tham_du ? `<p><strong>Lý do tham dự:</strong> ${registration.ly_do_tham_du}</p>` : ''}
+                    ${registration.status === -1 ? `<p><strong>Lý do hủy:</strong> ${registration.ly_do_huy || 'Không có thông tin'}</p>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Cập nhật nội dung modal
+    const modalBody = document.getElementById('attendeeModalBody');
+    if (modalBody) {
+        modalBody.innerHTML = detailHTML;
+    }
+    
+    // Hiển thị modal (sử dụng Bootstrap Modal)
+    const modalInstance = new bootstrap.Modal(modal);
+    modalInstance.show();
+}
+
+// Nâng cao form đăng ký
+function enhanceRegistrationForm() {
+    const form = document.getElementById('event-registration-form');
+    if (!form) {
+        console.error("Không tìm thấy form đăng ký #event-registration-form");
+        return;
+    }
+    
+    // Thêm hiệu ứng khi đăng ký thành công
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Kiểm tra dữ liệu
+        if (!validateForm()) {
+            return;
+        }
+        
+        // Hiển thị trạng thái đang xử lý
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Đang xử lý...
+        `;
+        
+        // Lấy dữ liệu form
+        const formData = {
+            ho_ten: document.getElementById('fullname').value,
+            email: document.getElementById('email').value,
+            dien_thoai: document.getElementById('phone').value,
+            don_vi_to_chuc: document.getElementById('organization').value,
+            noi_dung_gop_y: document.getElementById('note').value,
+            loai_nguoi_dang_ky: document.getElementById('participant-type').value,
+            nguon_gioi_thieu: document.getElementById('reference-source').value,
+            hinh_thuc_tham_gia: document.querySelector('input[name="participation-type"]:checked').value,
+            ly_do_tham_du: document.getElementById('participation-reason').value,
+            su_kien_id: 1, // Tạm thời hardcode, sẽ cập nhật sau
+            ngay_dang_ky: new Date().toISOString(),
+            status: 0, // Trạng thái mặc định là "chờ xác nhận"
+            ma_xac_nhan: generateRandomCode(), // Tạo mã ngẫu nhiên
+            da_check_in: false,
+            da_check_out: false,
+            attendance_status: "not_attended"
+        };
+        
+        // Giả lập gửi dữ liệu đăng ký
+        console.log('Dữ liệu đăng ký:', formData);
+        
+        // Giả lập delay API
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Hiển thị thông báo thành công
+        const registerTab = document.getElementById('register');
+        
+        // Lưu giữ nội dung hiện tại của form để khôi phục sau
+        const formContent = registerTab.innerHTML;
+        
+        // Hiển thị thông báo thành công
+        registerTab.innerHTML = `
+            <div class="registration-success">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>Đăng ký thành công!</h3>
+                <p>Cảm ơn bạn đã đăng ký tham gia sự kiện của chúng tôi.</p>
+                <p>Mã xác nhận của bạn là: <strong>${formData.ma_xac_nhan}</strong></p>
+                <p>Chúng tôi đã gửi email xác nhận đến địa chỉ <strong>${formData.email}</strong>.</p>
+                <p>Vui lòng kiểm tra email của bạn để biết thêm chi tiết.</p>
+                
+                <div class="registration-info mt-4">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">Thông tin đăng ký</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Họ và tên:</strong> ${formData.ho_ten}</p>
+                                    <p><strong>Email:</strong> ${formData.email}</p>
+                                    <p><strong>Số điện thoại:</strong> ${formData.dien_thoai}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Đơn vị/Tổ chức:</strong> ${formData.don_vi_to_chuc || 'Không có'}</p>
+                                    <p><strong>Hình thức tham gia:</strong> ${formData.hinh_thuc_tham_gia}</p>
+                                    <p><strong>Trạng thái:</strong> <span class="badge bg-warning">Chờ xác nhận</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <button class="btn btn-primary me-2" id="view-registrations-btn">
+                        <i class="fas fa-list me-2"></i>
+                        Xem danh sách đăng ký
+                    </button>
+                    <button class="btn btn-outline-secondary" id="register-another-btn">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Đăng ký người khác
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Xử lý nút xem danh sách đăng ký
+        document.getElementById('view-registrations-btn').addEventListener('click', function() {
+            document.getElementById('attendees-tab').click();
+            // Tải lại danh sách đăng ký
+            loadRegistrationData(getCurrentEventSlug());
+        });
+        
+        // Xử lý nút đăng ký người khác
+        document.getElementById('register-another-btn').addEventListener('click', function() {
+            // Khôi phục form
+            registerTab.innerHTML = formContent;
+            // Thiết lập lại form
+            enhanceRegistrationForm();
+            // Reset form
+            document.getElementById('event-registration-form').reset();
+        });
+        
+    });
+    
+    // Thêm validation cho form
+    const inputs = form.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateInput(this);
+        });
+    });
+    
+    // Thêm bộ đếm ký tự cho ghi chú và lý do tham dự
+    ['note', 'participation-reason'].forEach(id => {
+        const field = document.getElementById(id);
+        if (field) {
+            const charCountContainer = document.createElement('div');
+            charCountContainer.className = 'char-count text-muted mt-1 small';
+            charCountContainer.textContent = '0/200 ký tự';
+            field.parentNode.appendChild(charCountContainer);
+            
+            field.addEventListener('input', function() {
+                const count = this.value.length;
+                charCountContainer.textContent = `${count}/200 ký tự`;
+                
+                if (count > 180) {
+                    charCountContainer.classList.add('text-danger');
+                } else {
+                    charCountContainer.classList.remove('text-danger');
+                }
+            });
+        }
+    });
+    
+    // Chức năng hiển thị/ẩn các trường form dựa vào lựa chọn
+    const participationType = document.querySelectorAll('input[name="participation-type"]');
+    participationType.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const onlineFields = document.getElementById('online-fields');
+            if (onlineFields) {
+                if (this.value === 'online' || this.value === 'hybrid') {
+                    onlineFields.style.display = 'block';
+                } else {
+                    onlineFields.style.display = 'none';
+                }
+            }
+        });
+    });
+    
+    console.log("Đã nâng cao form đăng ký");
+}
+
+// Tạo mã xác nhận ngẫu nhiên
+function generateRandomCode() {
+    const prefix = "XN";
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    return prefix + randomNum;
+}
+
+// Validation form
+function validateForm() {
+    const inputs = document.querySelectorAll('#event-registration-form input[required], #event-registration-form textarea[required], #event-registration-form select[required]');
+    let isValid = true;
+    
+    inputs.forEach(input => {
+        if (!validateInput(input)) {
+            isValid = false;
+        }
+    });
+    
+    return isValid;
+}
+
+// Validate từng trường input
+function validateInput(input) {
+    const value = input.value.trim();
+    const feedbackEl = input.nextElementSibling?.classList.contains('invalid-feedback') ? 
+                      input.nextElementSibling : null;
+    
+    // Xóa feedback cũ nếu có
+    if (feedbackEl) {
+        input.parentNode.removeChild(feedbackEl);
+    }
+    
+    // Nếu trường bắt buộc mà trống
+    if (input.hasAttribute('required') && value === '') {
+        input.classList.add('is-invalid');
+        const feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback';
+        feedback.textContent = 'Trường này không được để trống';
+        input.parentNode.insertBefore(feedback, input.nextSibling);
+        return false;
+    }
+    
+    // Nếu là email và không hợp lệ
+    if (input.type === 'email' && value !== '') {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+            input.classList.add('is-invalid');
+            const feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            feedback.textContent = 'Email không hợp lệ';
+            input.parentNode.insertBefore(feedback, input.nextSibling);
+            return false;
+        }
+    }
+    
+    // Nếu là số điện thoại và không hợp lệ
+    if (input.id === 'phone' && value !== '') {
+        const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+        if (!phoneRegex.test(value)) {
+            input.classList.add('is-invalid');
+            const feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            feedback.textContent = 'Số điện thoại không hợp lệ (phải có 10 số và bắt đầu bằng 0)';
+            input.parentNode.insertBefore(feedback, input.nextSibling);
+            return false;
+        }
+    }
+    
+    // Nếu hợp lệ
+    input.classList.remove('is-invalid');
+    input.classList.add('is-valid');
+    return true;
+}
+
+// Cập nhật loadEventData để tải cả dữ liệu đăng ký
+const originalLoadEventData = loadEventData;
+loadEventData = async function(slug) {
+    await originalLoadEventData(slug);
+    
+    // Sau khi tải dữ liệu sự kiện, tải dữ liệu đăng ký
+    await loadRegistrationData(slug);
+    
+    // Nâng cao form đăng ký
+    enhanceRegistrationForm();
+}
+
+// Lấy slug của sự kiện hiện tại
+function getCurrentEventSlug() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("slug") || "hoi-thao-tai-chinh-ngan-hang-ky-nguyen-so";
+}
+
+// Hàm để chuyển đến tab đăng ký
+function scrollToRegisterTab() {
+    const registerTab = document.getElementById('register-tab');
+    if (registerTab) {
+        registerTab.click();
+        // Cuộn đến form
+        const form = document.getElementById('event-registration-form');
+        if (form) {
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+}
+
+// Thêm các hàm cho form đăng ký
+
+// Hiển thị/ẩn trường online-fields khi thay đổi loại tham gia
+document.addEventListener('DOMContentLoaded', function() {
+    const registrationForm = document.getElementById('event-registration-form');
+    if (registrationForm) {
+        // Xử lý hiển thị/ẩn online-fields
+        const participationTypes = document.querySelectorAll('input[name="participation-type"]');
+        const onlineFields = document.getElementById('online-fields');
+        
+        participationTypes.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'online' || this.value === 'hybrid') {
+                    onlineFields.style.display = 'block';
+                } else {
+                    onlineFields.style.display = 'none';
+                }
+            });
+        });
+        
+        // Xử lý hiển thị/ẩn các trường theo loại người tham gia
+        const participantType = document.getElementById('participant-type');
+        const studentFields = document.getElementById('student-fields');
+        const facultyFields = document.getElementById('faculty-fields');
+        const guestFields = document.getElementById('guest-fields');
+        
+        participantType.addEventListener('change', function() {
+            // Ẩn tất cả các trường bổ sung
+            studentFields.style.display = 'none';
+            facultyFields.style.display = 'none';
+            guestFields.style.display = 'none';
+            
+            // Hiển thị trường tương ứng
+            if (this.value === 'sinh_vien') {
+                studentFields.style.display = 'block';
+            } else if (this.value === 'giang_vien') {
+                facultyFields.style.display = 'block';
+            } else if (this.value === 'khach') {
+                guestFields.style.display = 'block';
+            }
+        });
+        
+        // Xử lý hiển thị/ẩn diet-details
+        const specialDiet = document.getElementById('special-diet');
+        const dietDetails = document.getElementById('diet-details');
+        
+        specialDiet.addEventListener('change', function() {
+            dietDetails.style.display = this.checked ? 'block' : 'none';
+        });
+        
+        // Xử lý hiển thị/ẩn accessibility-details
+        const accessibilityNeeds = document.getElementById('accessibility-needs');
+        const accessibilityDetails = document.getElementById('accessibility-details');
+        
+        accessibilityNeeds.addEventListener('change', function() {
+            accessibilityDetails.style.display = this.checked ? 'block' : 'none';
+        });
+        
+        // Xử lý submit form
+        registrationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Tạo đối tượng thông tin đăng ký
+            const registrationData = {
+                ho_ten: document.getElementById('fullname').value,
+                email: document.getElementById('email').value,
+                dien_thoai: document.getElementById('phone').value,
+                don_vi_to_chuc: document.getElementById('organization').value,
+                loai_nguoi_dang_ky: document.getElementById('participant-type').value,
+                nguon_gioi_thieu: document.getElementById('reference-source').value,
+                hinh_thuc_tham_gia: document.querySelector('input[name="participation-type"]:checked').value,
+                ly_do_tham_du: document.getElementById('participation-reason').value,
+                noi_dung_gop_y: document.getElementById('note').value,
+                thong_tin_dang_ky: {}
+            };
+            
+            // Thêm thông tin về nền tảng trực tuyến nếu có
+            if (registrationData.hinh_thuc_tham_gia === 'online' || registrationData.hinh_thuc_tham_gia === 'hybrid') {
+                registrationData.thong_tin_dang_ky.online_platform = document.getElementById('online-platform').value;
+                registrationData.thong_tin_dang_ky.preferred_language = document.getElementById('preferred-language').value;
+            }
+            
+            // Thêm thông tin về thiết bị
+            registrationData.thong_tin_dang_ky.platforms = [];
+            document.querySelectorAll('input[name="platforms[]"]:checked').forEach(checkbox => {
+                registrationData.thong_tin_dang_ky.platforms.push(checkbox.value);
+            });
+            
+            // Thêm thông tin về yêu cầu đặc biệt
+            registrationData.thong_tin_dang_ky.special_requirements = [];
+            document.querySelectorAll('input[name="special-requirements[]"]:checked').forEach(checkbox => {
+                registrationData.thong_tin_dang_ky.special_requirements.push(checkbox.value);
+                
+                if (checkbox.value === 'diet' && document.getElementById('diet-type').value) {
+                    registrationData.thong_tin_dang_ky.diet_type = document.getElementById('diet-type').value;
+                }
+                
+                if (checkbox.value === 'accessibility' && document.getElementById('accessibility-notes').value) {
+                    registrationData.thong_tin_dang_ky.accessibility_notes = document.getElementById('accessibility-notes').value;
+                }
+            });
+            
+            // Thêm thông tin về tùy chọn liên hệ
+            registrationData.thong_tin_dang_ky.contact_options = [];
+            document.querySelectorAll('input[name="contact_options[]"]:checked').forEach(checkbox => {
+                registrationData.thong_tin_dang_ky.contact_options.push(checkbox.value);
+            });
+            
+            // Thêm thông tin dựa vào loại người tham gia
+            if (registrationData.loai_nguoi_dang_ky === 'sinh_vien') {
+                registrationData.thong_tin_dang_ky.student_id = document.getElementById('student-id').value;
+                registrationData.thong_tin_dang_ky.major = document.getElementById('major').value;
+                registrationData.thong_tin_dang_ky.year = document.getElementById('year').value;
+                registrationData.thong_tin_dang_ky.university = document.getElementById('university').value;
+            } else if (registrationData.loai_nguoi_dang_ky === 'giang_vien') {
+                registrationData.thong_tin_dang_ky.faculty = document.getElementById('faculty').value;
+                registrationData.thong_tin_dang_ky.presentation = document.getElementById('presentation').value;
+            } else if (registrationData.loai_nguoi_dang_ky === 'khach') {
+                registrationData.thong_tin_dang_ky.job_title = document.getElementById('job-title').value;
+                registrationData.thong_tin_dang_ky.company_position = document.getElementById('company-position').value;
+                
+                registrationData.thong_tin_dang_ky.interests = [];
+                document.querySelectorAll('input[name="interests[]"]:checked').forEach(checkbox => {
+                    registrationData.thong_tin_dang_ky.interests.push(checkbox.value);
+                });
+            }
+            
+            // Gửi dữ liệu
+            console.log('Dữ liệu đăng ký:', registrationData);
+            
+            // Hiển thị thông báo
+            showRegistrationSuccessMessage();
+        });
+    }
+});
+
+function showRegistrationSuccessMessage() {
+    // Ẩn form
+    const registrationForm = document.getElementById('event-registration-form');
+    registrationForm.style.display = 'none';
+    
+    // Hiển thị thông báo thành công
+    const registrationFormContainer = document.querySelector('.registration-form');
+    const successMessage = document.createElement('div');
+    successMessage.className = 'alert alert-success mt-3';
+    successMessage.innerHTML = `
+        <h4 class="alert-heading"><i class="fas fa-check-circle me-2"></i> Đăng ký thành công!</h4>
+        <p>Cảm ơn bạn đã đăng ký tham gia sự kiện. Chúng tôi sẽ gửi email xác nhận đến địa chỉ email của bạn trong thời gian sớm nhất.</p>
+        <hr>
+        <p class="mb-0">Vui lòng kiểm tra hộp thư của bạn để nhận thông tin chi tiết về sự kiện.</p>
+    `;
+    
+    registrationFormContainer.appendChild(successMessage);
+    
+    // Cuộn lên đầu form
+    registrationFormContainer.scrollIntoView({ behavior: 'smooth' });
 } 

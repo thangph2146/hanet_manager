@@ -52,13 +52,13 @@ class Login extends BaseController
 
 	public function deleteStudent()
 	{
-		service('authStudent')->logout();
+		service('authstudent')->logout();
 		return redirect()->to('login/showlogoutmessagestudent')
 						 ->withCookies();
 	}
 	public function logoutStudent()
 	{
-		service('authStudent')->logout();
+		service('authstudent')->logout();
 		return redirect()->to('login/showlogoutmessagestudent')
 						 ->withCookies();
 	}
@@ -200,7 +200,7 @@ class Login extends BaseController
 
 	/*public function deleteStudent()
 	{
-		service('authStudent')->logout();
+		service('authstudent')->logout();
 		return redirect()->to('login/showlogoutmessageStudent')
 						 ->withCookies();
 	}*/

@@ -21,24 +21,12 @@ class NguoiDung extends BaseController
         $this->dangkysukienModel = new DangKySuKienModel();
         $this->sukienModel = new SuKienModel();
         
-        // Kiểm tra session người dùng
-        if (!service('authStudent')->isLoggedInStudent()) {
-            // Lưu URL hiện tại vào session để sau khi đăng nhập thì quay lại
-            $uri = service('uri');
-            $currentUrl = (string)$uri;
-            if (!empty($currentUrl)) {
-                $_SESSION['redirect_url'] = $currentUrl;
-            }
-            
-            // Chuyển hướng về trang chủ
-            header('Location: /');
-            exit;
-        }
+       
     }
     
     public function index()
     {   
-        return redirect()->to('/nguoi-dung/dashboard');
+        
     }
     
     /**
