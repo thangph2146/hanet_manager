@@ -36,6 +36,11 @@ class NguoiDung extends BaseController
         }
     }
     
+    public function index()
+    {   
+        return redirect()->to('/nguoi-dung/dashboard');
+    }
+    
     /**
      * Chuyển đổi định dạng datetime sang dd/mm/yyyy h:i:s
      * 
@@ -76,6 +81,9 @@ class NguoiDung extends BaseController
      */
     public function dashboard()
     {
+        // Load text helper
+        helper('text');
+        
         // Lấy thông tin người dùng hiện tại
         $profile = getInfoStudent();
         $email = $profile->Email;

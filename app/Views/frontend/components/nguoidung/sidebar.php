@@ -5,16 +5,17 @@ $active_menu = $active_menu ?? '';
 $menu_items = [
     'main' => [
         [
+            'icon' => 'home',
+            'text' => 'Dashboard',
+            'url' => 'nguoi-dung/dashboard',
+        ],
+        [
             'icon' => 'user',
             'text' => 'Thông tin cá nhân',
             'url' => 'nguoi-dung/thong-tin-ca-nhan',
             
-        ],
-        [
-            'icon' => 'home',
-            'text' => 'Dashboard',
-            'url' => 'nguoi-dung/dashboard',
         ]
+        
     ],
     'sự kiện' => [
         [

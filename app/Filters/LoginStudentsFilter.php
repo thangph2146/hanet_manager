@@ -10,7 +10,7 @@ class LoginStudentsFilter implements FilterInterface
     {
         if (!service('authstudent')->isLoggedInStudent()) {
             session()->set('redirect_url', current_url());
-            return redirect()->to('login/student')
+            return redirect()->to('login/nguoi-dung')
                              ->with('info', 'Vui lòng Đăng nhập trước!');
         }
     }
