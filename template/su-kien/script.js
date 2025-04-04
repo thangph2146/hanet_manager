@@ -3,16 +3,46 @@
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Khởi tạo AOS Animation Library
-    AOS.init({
-        duration: 800,
-        easing: 'ease-in-out',
-        once: true,
-        offset: 50,
-        delay: 50,
-        mirror: false
-    });
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true,
+            offset: 50,
+            delay: 50,
+            mirror: false
+        });
+    } else {
+        console.warn('Thư viện AOS không được tải');
+    }
     
-    // Navbar scroll effect
+    // Biến và elements cơ bản
+    const eventContainer = document.getElementById('eventContainer');
+    const searchInput = document.getElementById('eventSearchInput');
+    const searchButton = document.getElementById('searchButton');
+    const resetButton = document.getElementById('resetSearch');
+    const noEventsFound = document.getElementById('noEventsFound');
+    const loadingEvents = document.getElementById('loadingEvents');
+    const pagination = document.getElementById('pagination');
+    const eventCardTemplate = document.getElementById('event-card-template');
+    
+    // Biến lưu trữ dữ liệu và trạng thái
+    let allEvents = [];
+    let filteredEvents = [];
+    let currentPage = 1;
+    let eventsPerPage = 6;
+    let currentFilter = 'all';
+    let currentFormatFilter = 'all';
+    
+    // Loại sự kiện
+    const eventTypes = {
+        1: { name: 'Hội thảo', class: 'bg-seminar' },
+        2: { name: 'Hội nghị', class: 'bg-conference' },
+        3: { name: 'Workshop', class: 'bg-workshop' },
+        4: { name: 'Sự kiện', class: 'bg-event' }
+    };
+    
+    // Hiệu ứng cuộn và nút back to top
     const navbar = document.querySelector('.navbar');
     const backToTop = document.querySelector('.back-to-top');
     
@@ -26,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Back to top button với animation mượt mà
     if (backToTop) {
         backToTop.addEventListener('click', function(e) {
             e.preventDefault();
@@ -37,546 +66,678 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Tìm kiếm sự kiện - cải thiện
-    const searchInput = document.getElementById('eventSearchInput');
-    const searchButton = document.getElementById('searchButton');
-    const resetButton = document.getElementById('resetSearch');
-    const eventCards = document.querySelectorAll('#eventContainer .col-md-4');
-    const noEventsFound = document.getElementById('noEventsFound');
+    // Preloader
+    window.addEventListener('load', function() {
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+            preloader.classList.add('loaded');
+            setTimeout(function() {
+                preloader.style.display = 'none';
+            }, 500);
+        }
+    });
     
-    // Thêm debounce function để tối ưu hóa việc tìm kiếm
+    // Debounce function để tối ưu hóa tìm kiếm
     function debounce(func, wait = 300) {
         let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
+        return function(...args) {
             clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
+            timeout = setTimeout(() => func.apply(this, args), wait);
         };
     }
     
-    // Hàm xử lý tìm kiếm nâng cao
-    function handleSearch() {
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        let hasResults = false;
-        let visibleCount = 0;
-        
-        // Thêm loading state
-        if (searchTerm.length > 0) {
-            document.body.classList.add('searching');
-        }
-        
-        // Áp dụng hiệu ứng cho từng card
-        eventCards.forEach((card, index) => {
-            const eventTitle = card.querySelector('.event-title').textContent.toLowerCase();
-            const eventDescription = card.querySelector('.event-description').textContent.toLowerCase();
-            const eventMeta = card.querySelector('.event-meta').textContent.toLowerCase();
-            const eventType = card.dataset.type;
+    // Format date function
+    function formatDate(dateString) {
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+        return new Date(dateString).toLocaleDateString('vi-VN', options);
+    }
+    
+    // Format time function
+    function formatTime(dateString) {
+        const options = { hour: '2-digit', minute: '2-digit' };
+        return new Date(dateString).toLocaleTimeString('vi-VN', options);
+    }
+    
+    // Format number function
+    function formatNumber(num) {
+        return new Intl.NumberFormat('vi-VN').format(num);
+    }
+    
+    // Load sự kiện từ JSON
+    async function loadEvents() {
+        showLoading(true);
+        try {
+            // Thử các đường dẫn khác nhau
+            let response;
+            const possiblePaths = [
+                'http://127.0.0.1:5500/template/data/su-kien.json',
+            ];
             
-            // Tìm kiếm mở rộng
-            if (searchTerm === '' || 
-                eventTitle.includes(searchTerm) || 
-                eventDescription.includes(searchTerm) || 
-                eventMeta.includes(searchTerm)) {
-                
-                // Thêm hiệu ứng animation staggered delay
-                setTimeout(() => {
-                    card.style.display = '';
-                    card.classList.add('fade-in');
-                    card.style.animationDelay = `${index * 50}ms`;
-                }, 50);
-                
-                hasResults = true;
-                visibleCount++;
+            for (const path of possiblePaths) {
+                try {
+                    response = await fetch(path);
+                    if (response.ok) break;
+                } catch (e) {
+                    console.warn(`Không thể tải từ đường dẫn: ${path}`);
+                }
+            }
+            
+            if (!response || !response.ok) {
+                // Dữ liệu mẫu dự phòng khi không tải được JSON
+                console.warn('Sử dụng dữ liệu mẫu dự phòng');
+                allEvents = getDummyEvents();
             } else {
-                card.classList.remove('fade-in');
-                card.classList.add('filter-transition', 'filter-hidden');
-                setTimeout(() => {
-                    card.style.display = 'none';
-                    card.classList.remove('filter-transition', 'filter-hidden');
-                }, 300);
+                allEvents = await response.json();
             }
-        });
-        
-        // Hiển thị thông báo "Không tìm thấy sự kiện" với animation
-        if (hasResults) {
-            if (!noEventsFound.classList.contains('d-none')) {
-                noEventsFound.classList.add('filter-transition', 'filter-hidden');
-                setTimeout(() => {
-                    noEventsFound.classList.add('d-none');
-                    noEventsFound.classList.remove('filter-transition', 'filter-hidden');
-                }, 300);
-            }
-        } else {
-            noEventsFound.classList.remove('d-none');
-            setTimeout(() => {
-                noEventsFound.classList.add('fade-in');
-            }, 10);
-        }
-        
-        // Hiển thị số kết quả tìm kiếm
-        if (searchTerm.length > 0) {
-            showNotification(`Tìm thấy ${visibleCount} sự kiện phù hợp`, visibleCount > 0 ? 'info' : 'error');
-        }
-        
-        // Xóa loading state
-        setTimeout(() => {
-            document.body.classList.remove('searching');
-        }, 300);
-    }
-    
-    // Áp dụng debounce để tìm kiếm khi gõ
-    const debouncedSearch = debounce(handleSearch, 300);
-    
-    // Đăng ký sự kiện tìm kiếm
-    if (searchButton) {
-        searchButton.addEventListener('click', handleSearch);
-    }
-    
-    if (searchInput) {
-        searchInput.addEventListener('input', debouncedSearch);
-        searchInput.addEventListener('keyup', function(e) {
-            if (e.key === 'Enter') {
-                handleSearch();
-            }
-        });
-        
-        // Focus animation
-        searchInput.addEventListener('focus', function() {
-            this.parentElement.classList.add('focused');
-        });
-        
-        searchInput.addEventListener('blur', function() {
-            this.parentElement.classList.remove('focused');
-        });
-    }
-    
-    // Đặt lại tìm kiếm với hiệu ứng
-    if (resetButton) {
-        resetButton.addEventListener('click', function() {
-            searchInput.value = '';
             
-            // Thêm hiệu ứng animation khi reset
-            eventCards.forEach((card, index) => {
-                card.style.display = '';
-                setTimeout(() => {
-                    card.classList.add('fade-in');
-                    card.style.animationDelay = `${index * 50}ms`;
-                }, 50);
+            filteredEvents = [...allEvents];
+            renderEvents();
+            showLoading(false);
+        } catch (error) {
+            console.error('Lỗi khi tải sự kiện:', error);
+            showNotification('Không thể tải dữ liệu sự kiện. Vui lòng thử lại sau.', 'error');
+            // Sử dụng dữ liệu mẫu khi có lỗi
+            allEvents = getDummyEvents();
+            filteredEvents = [...allEvents];
+            renderEvents();
+            showLoading(false);
+        }
+    }
+    
+    // Hàm tạo dữ liệu mẫu dự phòng
+    function getDummyEvents() {
+        return [
+            {
+                su_kien_id: 1,
+                ten_su_kien: "Hội thảo khoa học \"Tài chính và Ngân hàng trong kỷ nguyên số\"",
+                su_kien_poster: {
+                    url: "https://hub.edu.vn/wp-content/uploads/2023/12/hoi-thao-khoa-hoc.jpg",
+                    alt: "Hội thảo khoa học"
+                },
+                mo_ta: "Hội thảo tập trung vào những thách thức và cơ hội của ngành tài chính ngân hàng trong thời đại số.",
+                dia_diem: "CS Tôn Thất Đạm",
+                dia_chi_cu_the: "36 Tôn Thất Đạm, Quận 1, TP.HCM",
+                thoi_gian_bat_dau: "2023-06-15 08:00:00",
+                thoi_gian_ket_thuc: "2023-06-15 17:00:00",
+                loai_su_kien_id: 1,
+                hinh_thuc: "offline",
+                tong_dang_ky: 132,
+                so_luot_xem: 1326,
+                slug: "hoi-thao-tai-chinh-ngan-hang-ky-nguyen-so",
+                status: 1
+            },
+            {
+                su_kien_id: 2,
+                ten_su_kien: "Ngày hội việc làm HUB lần thứ 13 - Năm 2023",
+                su_kien_poster: {
+                    url: "https://hub.edu.vn/wp-content/uploads/2023/12/ngay-hoi-viec-lam.jpeg",
+                    alt: "Ngày hội việc làm"
+                },
+                mo_ta: "Cơ hội kết nối với hơn 50 doanh nghiệp hàng đầu trong lĩnh vực tài chính, ngân hàng và công nghệ.",
+                dia_diem: "CS Hoàng Diệu",
+                dia_chi_cu_the: "56 Hoàng Diệu 2, Quận Thủ Đức, TP.HCM",
+                thoi_gian_bat_dau: "2023-06-22 08:30:00",
+                thoi_gian_ket_thuc: "2023-06-22 16:30:00",
+                loai_su_kien_id: 2,
+                hinh_thuc: "offline",
+                tong_dang_ky: 168,
+                so_luot_xem: 980,
+                slug: "ngay-hoi-viec-lam-hub-lan-13-2023",
+                status: 1
+            }
+        ];
+    }
+    
+    // Hiển thị/ẩn trạng thái loading
+    function showLoading(isLoading) {
+        if (isLoading) {
+            loadingEvents.classList.remove('d-none');
+            eventContainer.classList.add('d-none');
+            pagination.classList.add('d-none');
+        } else {
+            loadingEvents.classList.add('d-none');
+            eventContainer.classList.remove('d-none');
+            pagination.classList.remove('d-none');
+        }
+    }
+    
+    // Tạo thẻ sự kiện từ template
+    function createEventCard(event) {
+        // Kiểm tra template có tồn tại không
+        if (!eventCardTemplate) {
+            console.warn('Không tìm thấy template, tạo event card thủ công');
+            return createManualEventCard(event);
+        }
+        
+        const template = eventCardTemplate.content.cloneNode(true);
+        const eventCard = template.querySelector('.col-lg-4');
+        
+        // Thiết lập các thuộc tính data
+        eventCard.dataset.type = event.loai_su_kien_id;
+        eventCard.dataset.format = event.hinh_thuc;
+        
+        // Poster
+        const posterImg = template.querySelector('.event-image img');
+        posterImg.src = event.su_kien_poster?.url || 'https://hub.edu.vn/wp-content/uploads/2023/12/event-default.jpg';
+        posterImg.alt = event.su_kien_poster?.alt || event.ten_su_kien;
+        
+        // Badge 
+        const badge = template.querySelector('.event-badge .badge');
+        const eventType = eventTypes[event.loai_su_kien_id] || eventTypes[4];
+        badge.textContent = eventType.name.toUpperCase();
+        badge.className = `badge ${eventType.class}`;
+        
+        // Title
+        const titleLink = template.querySelector('.event-title a');
+        titleLink.textContent = event.ten_su_kien;
+        titleLink.href = `chi-tiet-su-kien.html?id=${event.su_kien_id}&slug=${event.slug}`;
+        
+        // Meta data
+        template.querySelector('.meta-item.date span').textContent = 
+            `${formatDate(event.thoi_gian_bat_dau)} ${formatTime(event.thoi_gian_bat_dau)}`;
+        template.querySelector('.meta-item.location span').textContent = event.dia_diem;
+        template.querySelector('.meta-item.participants span').textContent = 
+            `${formatNumber(event.tong_dang_ky)} người tham gia`;
+        template.querySelector('.meta-item.format span').textContent = 
+            event.hinh_thuc === 'offline' ? 'offline' : 
+            event.hinh_thuc === 'online' ? 'online' : 'hybrid';
+        
+        // Description
+        template.querySelector('.event-description').textContent = event.mo_ta;
+        
+        // Stats
+        template.querySelector('.stat.views span').textContent = 
+            `${formatNumber(event.so_luot_xem)} lượt xem`;
+        template.querySelector('.stat.registrations span').textContent = 
+            `${formatNumber(event.tong_dang_ky)} đã đăng ký`;
+        
+        // Action buttons
+        const detailLink = template.querySelector('.btn-view-details');
+        detailLink.href = `chi-tiet-su-kien.html?id=${event.su_kien_id}&slug=${event.slug}`;
+        
+        const registerButton = template.querySelector('.event-actions .btn-primary');
+        registerButton.href = `dang-ky-su-kien.html?id=${event.su_kien_id}`;
+        
+        return template;
+    }
+    
+    // Hàm tạo thẻ sự kiện thủ công khi không tìm thấy template
+    function createManualEventCard(event) {
+        const eventType = eventTypes[event.loai_su_kien_id] || eventTypes[4];
+        const cardHTML = `
+            <div class="col-lg-4 col-md-6 mb-4" data-type="${event.loai_su_kien_id}" data-format="${event.hinh_thuc}">
+                <div class="event-card">
+                    <div class="event-image">
+                        <img src="${event.su_kien_poster?.url || 'https://hub.edu.vn/wp-content/uploads/2023/12/event-default.jpg'}" alt="${event.su_kien_poster?.alt || event.ten_su_kien}" loading="lazy">
+                        <div class="event-badge">
+                            <span class="badge ${eventType.class}">${eventType.name.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div class="event-content">
+                        <h3 class="event-title">
+                            <a href="chi-tiet-su-kien.html?id=${event.su_kien_id}&slug=${event.slug}">${event.ten_su_kien}</a>
+                        </h3>
+                        <div class="event-meta">
+                            <div class="meta-item date">
+                                <i class="far fa-calendar-alt"></i> <span>${formatDate(event.thoi_gian_bat_dau)} ${formatTime(event.thoi_gian_bat_dau)}</span>
+                            </div>
+                            <div class="meta-item location">
+                                <i class="fas fa-map-marker-alt"></i> <span>${event.dia_diem}</span>
+                            </div>
+                            <div class="meta-item participants">
+                                <i class="fas fa-users"></i> <span>${formatNumber(event.tong_dang_ky)} người tham gia</span>
+                            </div>
+                            <div class="meta-item format">
+                                <i class="fas fa-wifi"></i> <span>${event.hinh_thuc}</span>
+                            </div>
+                        </div>
+                        <p class="event-description">${event.mo_ta}</p>
+                        <div class="event-stats">
+                            <div class="stat views">
+                                <i class="far fa-eye"></i> <span>${formatNumber(event.so_luot_xem)} lượt xem</span>
+                            </div>
+                            <div class="stat registrations">
+                                <i class="far fa-user"></i> <span>${formatNumber(event.tong_dang_ky)} đã đăng ký</span>
+                            </div>
+                        </div>
+                        <div class="event-actions">
+                            <a href="chi-tiet-su-kien.html?id=${event.su_kien_id}&slug=${event.slug}" class="btn-view-details">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
+                            <a href="dang-ky-su-kien.html?id=${event.su_kien_id}" class="btn btn-sm btn-primary">Đăng ký</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = cardHTML;
+        return tempDiv.firstElementChild;
+    }
+    
+    // Render danh sách sự kiện với phân trang
+    function renderEvents() {
+        eventContainer.innerHTML = '';
+        
+        if (filteredEvents.length === 0) {
+            noEventsFound.classList.remove('d-none');
+            pagination.classList.add('d-none');
+            return;
+        }
+        
+        noEventsFound.classList.add('d-none');
+        
+        // Tính toán sự kiện cho trang hiện tại
+        const startIndex = (currentPage - 1) * eventsPerPage;
+        const endIndex = Math.min(startIndex + eventsPerPage, filteredEvents.length);
+        const currentEvents = filteredEvents.slice(startIndex, endIndex);
+        
+        // Render từng sự kiện
+        currentEvents.forEach((event, index) => {
+            const eventCard = createEventCard(event);
+            eventContainer.appendChild(eventCard);
+            
+            // Animation delay
+            const card = eventContainer.children[eventContainer.children.length - 1];
+            setTimeout(() => {
+                card.classList.add('fade-in');
+            }, index * 100);
+        });
+        
+        // Render phân trang
+        renderPagination();
+    }
+    
+    // Render phân trang
+    function renderPagination() {
+        pagination.innerHTML = '';
+        const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
+        
+        if (totalPages <= 1) {
+            pagination.classList.add('d-none');
+            return;
+        }
+        
+        pagination.classList.remove('d-none');
+        
+        // Nút Previous
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        
+        const prevLink = document.createElement('a');
+        prevLink.className = 'page-link';
+        prevLink.href = '#';
+        prevLink.setAttribute('aria-label', 'Previous');
+        prevLink.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        
+        if (currentPage > 1) {
+            prevLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                goToPage(currentPage - 1);
+            });
+        }
+        
+        prevLi.appendChild(prevLink);
+        pagination.appendChild(prevLi);
+        
+        // Page numbers
+        const maxVisiblePages = window.innerWidth < 768 ? 3 : 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        // First page
+        if (startPage > 1) {
+            const firstLi = document.createElement('li');
+            firstLi.className = 'page-item';
+            
+            const firstLink = document.createElement('a');
+            firstLink.className = 'page-link';
+            firstLink.href = '#';
+            firstLink.textContent = '1';
+            
+            firstLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                goToPage(1);
             });
             
-            // Ẩn thông báo không tìm thấy
-            noEventsFound.classList.add('filter-transition', 'filter-hidden');
-            setTimeout(() => {
-                noEventsFound.classList.add('d-none');
-                noEventsFound.classList.remove('filter-transition', 'filter-hidden');
-            }, 300);
+            firstLi.appendChild(firstLink);
+            pagination.appendChild(firstLi);
             
-            showNotification('Đã đặt lại bộ lọc', 'info');
-        });
-    }
-    
-    // Lọc theo loại sự kiện - nâng cao
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const allEventsButton = document.getElementById('btnAllEvents');
-    
-    // Hàm xử lý lọc sự kiện với hiệu ứng
-    function filterEvents(eventType) {
-        let hasResults = false;
-        let visibleCount = 0;
-        
-        // Thêm loading state
-        document.body.classList.add('filtering');
-        
-        // Áp dụng hiệu ứng cho từng card
-        eventCards.forEach((card, index) => {
-            if (eventType === 'all' || card.dataset.type === eventType) {
-                // Thêm staggered animation
-                setTimeout(() => {
-                    card.style.display = '';
-                    card.classList.add('fade-in');
-                    card.style.animationDelay = `${index * 50}ms`;
-                }, 50);
+            // Ellipsis after first page
+            if (startPage > 2) {
+                const ellipsisLi = document.createElement('li');
+                ellipsisLi.className = 'page-item disabled';
                 
-                hasResults = true;
-                visibleCount++;
-            } else {
-                card.classList.remove('fade-in');
-                card.classList.add('filter-transition', 'filter-hidden');
-                setTimeout(() => {
-                    card.style.display = 'none';
-                    card.classList.remove('filter-transition', 'filter-hidden');
-                }, 300);
+                const ellipsisSpan = document.createElement('span');
+                ellipsisSpan.className = 'page-link';
+                ellipsisSpan.innerHTML = '&hellip;';
+                
+                ellipsisLi.appendChild(ellipsisSpan);
+                pagination.appendChild(ellipsisLi);
             }
-        });
-        
-        // Hiển thị thông báo "Không tìm thấy sự kiện" với animation
-        if (hasResults) {
-            if (!noEventsFound.classList.contains('d-none')) {
-                noEventsFound.classList.add('filter-transition', 'filter-hidden');
-                setTimeout(() => {
-                    noEventsFound.classList.add('d-none');
-                    noEventsFound.classList.remove('filter-transition', 'filter-hidden');
-                }, 300);
-            }
-        } else {
-            noEventsFound.classList.remove('d-none');
-            setTimeout(() => {
-                noEventsFound.classList.add('fade-in');
-            }, 10);
         }
         
-        // Hiển thị số kết quả lọc
-        const filterName = eventType === 'all' ? 'tất cả' : 
-                          eventType === 'hoi-thao' ? 'hội thảo' :
-                          eventType === 'hoi-nghi' ? 'hội nghị' :
-                          eventType === 'workshop' ? 'workshop' : eventType;
-        
-        showNotification(`Đang hiển thị ${visibleCount} sự kiện ${filterName}`, 'info');
-        
-        // Xóa loading state
-        setTimeout(() => {
-            document.body.classList.remove('filtering');
-        }, 500);
-    }
-    
-    // Đăng ký sự kiện cho các nút lọc
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
+        // Page numbers
+        for (let i = startPage; i <= endPage; i++) {
+            const pageLi = document.createElement('li');
+            pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
             
-            // Xóa lớp active từ tất cả các nút
-            filterButtons.forEach(btn => btn.classList.remove('active'));
+            const pageLink = document.createElement('a');
+            pageLink.className = 'page-link';
+            pageLink.href = '#';
+            pageLink.textContent = i;
             
-            // Thêm lớp active vào nút được nhấp
-            this.classList.add('active');
-            
-            // Lọc sự kiện theo loại
-            const filterType = this.dataset.filter;
-            filterEvents(filterType);
-        });
-    });
-    
-    // Nút "Tất cả" với hiệu ứng pulse
-    if (allEventsButton) {
-        allEventsButton.addEventListener('click', function() {
-            // Xóa lớp active từ tất cả các nút lọc
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // Thêm hiệu ứng khi nhấp
-            this.classList.add('active', 'pulse');
-            setTimeout(() => {
-                this.classList.remove('pulse');
-            }, 700);
-            
-            // Hiển thị tất cả sự kiện
-            filterEvents('all');
-        });
-    }
-    
-    // Hiệu ứng hover tiên tiến cho thẻ sự kiện
-    const eventCardElements = document.querySelectorAll('.event-card');
-    eventCardElements.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.querySelector('.event-image img').style.transform = 'scale(1.1)';
-            this.querySelector('.event-image').style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
-            
-            // Hiệu ứng nâng card
-            this.style.transform = 'translateY(-10px)';
-            this.style.boxShadow = '0 15px 35px rgba(0,0,0,0.1)';
-            
-            // Hiệu ứng button
-            const viewDetailsBtn = this.querySelector('.btn-view-details');
-            if (viewDetailsBtn) {
-                viewDetailsBtn.style.color = 'var(--primary-light)';
-                viewDetailsBtn.querySelector('i').style.transform = 'translateX(5px)';
-            }
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.querySelector('.event-image img').style.transform = 'scale(1)';
-            this.querySelector('.event-image').style.boxShadow = 'none';
-            
-            // Reset hiệu ứng nâng card
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 10px 30px rgba(0,0,0,0.05)';
-            
-            // Reset hiệu ứng button
-            const viewDetailsBtn = this.querySelector('.btn-view-details');
-            if (viewDetailsBtn) {
-                viewDetailsBtn.style.color = '';
-                viewDetailsBtn.querySelector('i').style.transform = '';
-            }
-        });
-        
-        // Thêm hiệu ứng focus outline cho accessibility
-        card.addEventListener('focus', function() {
-            this.style.outline = '2px solid var(--primary)';
-        });
-        
-        card.addEventListener('blur', function() {
-            this.style.outline = 'none';
-        });
-    });
-    
-    // Smooth scrolling for anchor links với easing
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href');
-            
-            if (targetId === '#') return;
-            
-            const targetElement = document.querySelector(targetId);
-            
-            if (targetElement) {
-                e.preventDefault();
-                const offsetTop = targetElement.getBoundingClientRect().top + window.pageYOffset - 100;
-                
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth'
+            if (i !== currentPage) {
+                pageLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    goToPage(i);
                 });
-                
-                // Highlight target khi scroll đến
-                setTimeout(() => {
-                    targetElement.classList.add('highlight-target');
-                    setTimeout(() => {
-                        targetElement.classList.remove('highlight-target');
-                    }, 1500);
-                }, 700);
             }
+            
+            pageLi.appendChild(pageLink);
+            pagination.appendChild(pageLi);
+        }
+        
+        // Ellipsis before last page
+        if (endPage < totalPages - 1) {
+            const ellipsisLi = document.createElement('li');
+            ellipsisLi.className = 'page-item disabled';
+            
+            const ellipsisSpan = document.createElement('span');
+            ellipsisSpan.className = 'page-link';
+            ellipsisSpan.innerHTML = '&hellip;';
+            
+            ellipsisLi.appendChild(ellipsisSpan);
+            pagination.appendChild(ellipsisLi);
+        }
+        
+        // Last page
+        if (endPage < totalPages) {
+            const lastLi = document.createElement('li');
+            lastLi.className = 'page-item';
+            
+            const lastLink = document.createElement('a');
+            lastLink.className = 'page-link';
+            lastLink.href = '#';
+            lastLink.textContent = totalPages;
+            
+            lastLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                goToPage(totalPages);
+            });
+            
+            lastLi.appendChild(lastLink);
+            pagination.appendChild(lastLi);
+        }
+        
+        // Next button
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        
+        const nextLink = document.createElement('a');
+        nextLink.className = 'page-link';
+        nextLink.href = '#';
+        nextLink.setAttribute('aria-label', 'Next');
+        nextLink.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        
+        if (currentPage < totalPages) {
+            nextLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                goToPage(currentPage + 1);
+            });
+        }
+        
+        nextLi.appendChild(nextLink);
+        pagination.appendChild(nextLi);
+    }
+    
+    // Chuyển đến trang cụ thể
+    function goToPage(page) {
+        if (page === currentPage) return;
+        
+        currentPage = page;
+        renderEvents();
+        
+        // Scroll lên đầu phần sự kiện
+        const eventSection = document.querySelector('.event-list-section');
+        window.scrollTo({
+            top: eventSection.offsetTop - 100,
+            behavior: 'smooth'
         });
-    });
+    }
     
-    // Thông báo khi đăng ký sự kiện (demo) với hiệu ứng nâng cao
-    const registerButtons = document.querySelectorAll('.event-actions .btn-primary');
-    
-    registerButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
+    // Hàm xử lý tìm kiếm
+    function handleSearch() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        
+        // Thực hiện tìm kiếm
+        filteredEvents = allEvents.filter(event => {
+            // Lọc theo từ khóa
+            if (searchTerm && 
+                !event.ten_su_kien.toLowerCase().includes(searchTerm) && 
+                !event.mo_ta.toLowerCase().includes(searchTerm) &&
+                !(event.dia_diem && event.dia_diem.toLowerCase().includes(searchTerm))) {
+                return false;
+            }
             
-            const eventCard = this.closest('.event-card');
-            const eventTitle = eventCard.querySelector('.event-title').textContent.trim();
+            // Lọc theo loại sự kiện
+            if (currentFilter !== 'all' && event.loai_su_kien_id.toString() !== currentFilter) {
+                return false;
+            }
             
-            // Thêm hiệu ứng khi đăng ký
-            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Đang đăng ký...';
-            this.disabled = true;
+            // Lọc theo hình thức 
+            if (currentFormatFilter !== 'all' && event.hinh_thuc !== currentFormatFilter) {
+                return false;
+            }
             
-            // Hiệu ứng nhấp nháy cho card
-            eventCard.classList.add('registering');
-            
-            // Giả lập xử lý đăng ký (setTimeout)
-            setTimeout(() => {
-                // Hiển thị thông báo
-                showNotification(`Đăng ký tham gia "${eventTitle}" thành công!`, 'success');
-                
-                // Khôi phục button
-                this.innerHTML = 'Đã đăng ký';
-                this.classList.remove('btn-primary');
-                this.classList.add('btn-success');
-                this.disabled = false;
-                
-                // Xóa hiệu ứng
-                eventCard.classList.remove('registering');
-                
-                // Cập nhật số lượng đăng ký
-                const statElement = eventCard.querySelector('.event-stats .stat:last-child');
-                if (statElement) {
-                    const currentText = statElement.textContent;
-                    const numMatch = currentText.match(/(\d+)(?=\s+đã đăng ký)/);
-                    if (numMatch && numMatch[1]) {
-                        const currentNum = parseInt(numMatch[1]);
-                        statElement.innerHTML = `<i class="far fa-user"></i> ${currentNum + 1} đã đăng ký`;
-                    }
-                }
-            }, 1500);
+            return true;
         });
-    });
+        
+        // Reset về trang đầu tiên
+        currentPage = 1;
+        
+        // Render lại danh sách sự kiện
+        renderEvents();
+        
+        // Hiển thị thông báo kết quả
+        if (searchTerm) {
+            showNotification(`Tìm thấy ${filteredEvents.length} sự kiện phù hợp`, 
+                filteredEvents.length > 0 ? 'info' : 'error');
+        }
+    }
     
-    // Hàm hiển thị thông báo được cải thiện
+    // Xử lý lọc sự kiện theo loại
+    function filterEventsByType(type) {
+        currentFilter = type;
+        handleSearch();
+        
+        // Hiển thị thông báo
+        const filterName = type === 'all' ? 'tất cả' : 
+                          eventTypes[type]?.name.toLowerCase() || 'sự kiện';
+        
+        showNotification(`Đang hiển thị ${filteredEvents.length} ${filterName}`, 'info');
+    }
+    
+    // Xử lý lọc sự kiện theo hình thức
+    function filterEventsByFormat(format) {
+        currentFormatFilter = format;
+        handleSearch();
+        
+        // Hiển thị thông báo
+        const formatName = format === 'all' ? 'tất cả hình thức' : 
+                            format === 'offline' ? 'offline' :
+                            format === 'online' ? 'online' : 'hybrid';
+        
+        showNotification(`Đang hiển thị ${filteredEvents.length} sự kiện ${formatName}`, 'info');
+    }
+    
+    // Lọc sự kiện trong tuần này
+    function filterThisWeekEvents() {
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        startOfWeek.setHours(0, 0, 0, 0);
+        startOfWeek.setDate(today.getDate() - today.getDay()); // Chủ nhật là ngày đầu tuần
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        
+        filteredEvents = allEvents.filter(event => {
+            const eventDate = new Date(event.thoi_gian_bat_dau);
+            return eventDate >= startOfWeek && eventDate <= endOfWeek;
+        });
+        
+        currentPage = 1;
+        renderEvents();
+        
+        showNotification(`Có ${filteredEvents.length} sự kiện trong tuần này`, 'info');
+    }
+    
+    // Reset tất cả bộ lọc
+    function resetAllFilters() {
+        searchInput.value = '';
+        currentFilter = 'all';
+        currentFormatFilter = 'all';
+        filteredEvents = [...allEvents];
+        currentPage = 1;
+        
+        // Reset active state của các nút lọc
+        document.querySelectorAll('.filter-btn, .format-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+        document.querySelector('.format-filter-btn[data-format="all"]').classList.add('active');
+        
+        // Render lại danh sách
+        renderEvents();
+        
+        showNotification('Đã đặt lại tất cả bộ lọc', 'info');
+    }
+    
+    // Hiển thị thông báo
     function showNotification(message, type = 'info') {
-        // Kiểm tra xem đã có thông báo chưa
+        // Xóa thông báo cũ
         const existingNotification = document.querySelector('.notification');
         if (existingNotification) {
             existingNotification.remove();
         }
         
-        // Chọn icon phù hợp với loại thông báo
-        let icon = '';
-        switch(type) {
-            case 'success':
-                icon = '<i class="fas fa-check-circle text-success me-2"></i>';
-                break;
-            case 'error':
-                icon = '<i class="fas fa-times-circle text-danger me-2"></i>';
-                break;
-            case 'info':
-            default:
-                icon = '<i class="fas fa-info-circle text-primary me-2"></i>';
-                break;
-        }
-        
-        // Tạo phần tử thông báo
+        // Tạo thông báo mới
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         
         const content = document.createElement('div');
         content.className = 'notification-content';
         
-        const messageElement = document.createElement('div');
-        messageElement.className = 'd-flex align-items-center';
-        messageElement.innerHTML = icon + message;
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
         
         const closeButton = document.createElement('button');
         closeButton.className = 'notification-close';
-        closeButton.innerHTML = '&times;';
-        closeButton.addEventListener('click', function() {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        });
+        closeButton.textContent = '×';
+        closeButton.addEventListener('click', () => notification.remove());
         
-        content.appendChild(messageElement);
+        content.appendChild(messageSpan);
         content.appendChild(closeButton);
         notification.appendChild(content);
         
         document.body.appendChild(notification);
         
-        // Hiệu ứng hiển thị
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
+        // Hiển thị thông báo
+        setTimeout(() => notification.classList.add('show'), 10);
         
         // Tự động ẩn sau 5 giây
-        const autoHideTimer = setTimeout(() => {
+        setTimeout(() => {
             notification.classList.remove('show');
-            setTimeout(() => {
-                if (document.body.contains(notification)) {
-                    notification.remove();
-                }
-            }, 300);
+            setTimeout(() => notification.remove(), 300);
         }, 5000);
-        
-        // Tạm dừng hẹn giờ khi hover
-        notification.addEventListener('mouseenter', () => {
-            clearTimeout(autoHideTimer);
-        });
-        
-        // Tiếp tục hẹn giờ khi không hover
-        notification.addEventListener('mouseleave', () => {
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    if (document.body.contains(notification)) {
-                        notification.remove();
-                    }
-                }, 300);
-            }, 2000);
+    }
+    
+    // Đăng ký sự kiện
+    // Tìm kiếm
+    if (searchButton) {
+        searchButton.addEventListener('click', handleSearch);
+    }
+    
+    if (searchInput) {
+        const debouncedSearch = debounce(handleSearch, 300);
+        searchInput.addEventListener('input', debouncedSearch);
+        searchInput.addEventListener('keyup', e => {
+            if (e.key === 'Enter') handleSearch();
         });
     }
     
-    // Lazy loading for images với hiệu ứng fade-in
-    if ('loading' in HTMLImageElement.prototype) {
-        const lazyImages = document.querySelectorAll('img[loading="lazy"]');
-        lazyImages.forEach(img => {
-            img.classList.add('lazy-image');
-            img.addEventListener('load', () => {
-                img.classList.add('loaded');
+    // Reset tìm kiếm
+    if (resetButton) {
+        resetButton.addEventListener('click', resetAllFilters);
+    }
+    
+    // Lọc theo loại sự kiện
+    document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class từ tất cả buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
             });
-            img.src = img.dataset.src;
+            
+            // Add active class cho button được click
+            this.classList.add('active');
+            
+            // Lọc sự kiện
+            filterEventsByType(this.dataset.filter);
         });
-    } else {
-        // Fallback with IntersectionObserver
-        const lazyImageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const lazyImage = entry.target;
-                    lazyImage.classList.add('lazy-image');
-                    lazyImage.src = lazyImage.dataset.src;
-                    
-                    lazyImage.addEventListener('load', () => {
-                        lazyImage.classList.add('loaded');
-                    });
-                    
-                    observer.unobserve(lazyImage);
-                }
+    });
+    
+    // Lọc theo hình thức
+    document.querySelectorAll('.format-filter-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class từ tất cả buttons
+            document.querySelectorAll('.format-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
             });
-        }, {
-            rootMargin: '0px 0px 200px 0px' // Preload images 200px before they appear in viewport
+            
+            // Add active class cho button được click
+            this.classList.add('active');
+            
+            // Lọc sự kiện
+            filterEventsByFormat(this.dataset.format);
         });
-        
-        const lazyImages = document.querySelectorAll('img[data-src]');
-        lazyImages.forEach(img => {
-            lazyImageObserver.observe(img);
+    });
+    
+    // Lọc sự kiện trong tuần này
+    const btnThisWeek = document.getElementById('btnThisWeek');
+    if (btnThisWeek) {
+        btnThisWeek.addEventListener('click', function(e) {
+            e.preventDefault();
+            filterThisWeekEvents();
         });
     }
     
-    // Thêm animation cho tất cả các event cards khi trang tải xong
-    setTimeout(() => {
-        eventCardElements.forEach((card, index) => {
-            card.classList.add('fade-in');
-            card.style.animationDelay = `${index * 100}ms`;
+    // Xem tất cả sự kiện
+    const btnViewAll = document.getElementById('btnViewAll');
+    if (btnViewAll) {
+        btnViewAll.addEventListener('click', function(e) {
+            e.preventDefault();
+            resetAllFilters();
         });
-    }, 200);
-    
-    // Thêm CSS nếu cần
-    const additionalStyles = `
-        /* Thêm styles cho các hiệu ứng mới */
-        .lazy-image {
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-        
-        .lazy-image.loaded {
-            opacity: 1;
-        }
-        
-        .highlight-target {
-            animation: highlight-pulse 1.5s ease-in-out;
-        }
-        
-        @keyframes highlight-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(128, 0, 0, 0); }
-            50% { box-shadow: 0 0 0 10px rgba(128, 0, 0, 0.1); }
-        }
-        
-        .pulse {
-            animation: button-pulse 0.7s ease-in-out;
-        }
-        
-        @keyframes button-pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .registering {
-            animation: registering-pulse 1.5s infinite;
-        }
-        
-        @keyframes registering-pulse {
-            0%, 100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); }
-            50% { box-shadow: 0 10px 30px rgba(128, 0, 0, 0.15); }
-        }
-        
-        .focused {
-            box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.2);
-            border-radius: 50px;
-        }
-        
-        body.searching,
-        body.filtering {
-            cursor: progress;
-        }
-    `;
-    
-    // Thêm CSS vào trang nếu chưa có
-    if (!document.getElementById('additional-styles')) {
-        const styleElement = document.createElement('style');
-        styleElement.id = 'additional-styles';
-        styleElement.textContent = additionalStyles;
-        document.head.appendChild(styleElement);
     }
+    
+    // Nút All Events
+    const btnAllEvents = document.getElementById('btnAllEvents');
+    if (btnAllEvents) {
+        btnAllEvents.addEventListener('click', function(e) {
+            e.preventDefault();
+            resetAllFilters();
+        });
+    }
+    
+    // Load dữ liệu sự kiện khi trang được tải
+    loadEvents();
 });

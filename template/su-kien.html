@@ -39,12 +39,16 @@
 </head>
 
 <body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="spinner"></div>
+    </div>
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container">
             <a class="navbar-brand" href="trang-chu.html" aria-label="Trang chủ Đại học Ngân hàng TP.HCM">
-                <img src="template/assets/logo/HUB-logo-white.png" alt="HUB Logo" height="40">
+                <img src="https://hub.edu.vn/wp-content/uploads/2023/09/HUB-logo-white.png" alt="HUB Logo" height="40">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -66,10 +70,11 @@
                             <i class="fas fa-filter me-1"></i> Loại sự kiện
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="eventTypeDropdownLink">
-                            <li><a class="dropdown-item" href="#">Hội thảo</a></li>
-                            <li><a class="dropdown-item" href="#">Nghề nghiệp</a></li>
-                            <li><a class="dropdown-item" href="#">Workshop</a></li>
-                            <li><a class="dropdown-item" href="#">Hoạt động sinh viên</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="all" href="#">Tất cả</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="1" href="#">Hội thảo</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="2" href="#">Hội nghị</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="3" href="#">Workshop</a></li>
+                            <li><a class="dropdown-item filter-btn" data-filter="4" href="#">Khác</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -111,8 +116,11 @@
                         <h1 class="page-title">Danh Sách Sự Kiện</h1>
                         <p class="page-description">Khám phá tất cả các sự kiện sắp diễn ra tại Đại học Ngân hàng TP.HCM</p>
                         <div class="event-action-buttons">
-                            <a href="#" class="btn btn-sm btn-primary">
+                            <a href="#" class="btn btn-sm btn-primary" id="btnThisWeek">
                                 <i class="fas fa-calendar-week me-1"></i> Xem sự kiện tuần này
+                            </a>
+                            <a href="#" class="btn btn-sm btn-outline-primary ms-2" id="btnViewAll">
+                                <i class="fas fa-list me-1"></i> Tất cả sự kiện
                             </a>
                         </div>
                     </div>
@@ -139,15 +147,14 @@
                                 <i class="fas fa-globe-asia me-1"></i> Tất cả
                             </button>
                             <div class="dropdown">
-                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="eventTypeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-filter me-1"></i> Lọc theo loại
+                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="eventFormatDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-filter me-1"></i> Hình thức
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="eventTypeDropdown">
-                                    <li><a class="dropdown-item filter-btn" data-filter="all" href="#">Tất cả</a></li>
-                                    <li><a class="dropdown-item filter-btn" data-filter="hoi-thao" href="#">Hội thảo</a></li>
-                                    <li><a class="dropdown-item filter-btn" data-filter="hoi-nghi" href="#">Hội nghị</a></li>
-                                    <li><a class="dropdown-item filter-btn" data-filter="workshop" href="#">Workshop</a></li>
-                                    <li><a class="dropdown-item filter-btn" data-filter="seminar" href="#">Seminar</a></li>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="eventFormatDropdown">
+                                    <li><a class="dropdown-item format-filter-btn" data-format="all" href="#">Tất cả</a></li>
+                                    <li><a class="dropdown-item format-filter-btn" data-format="offline" href="#">Offline</a></li>
+                                    <li><a class="dropdown-item format-filter-btn" data-format="online" href="#">Online</a></li>
+                                    <li><a class="dropdown-item format-filter-btn" data-format="hybrid" href="#">Hybrid</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -160,281 +167,7 @@
         <section class="event-list-section">
             <div class="container">
                 <div class="row" id="eventContainer">
-                    <!-- Event Card 1 - Hội thảo -->
-                    <div class="col-lg-4 col-md-6 mb-4" data-type="hoi-thao" data-aos="fade-up" data-aos-delay="100">
-                        <div class="event-card">
-                            <div class="event-image">
-                                <img src="https://hub.edu.vn/wp-content/uploads/2023/12/hoi-thao-khoa-hoc.jpg" alt="Hội thảo khoa học" loading="lazy">
-                                <div class="event-badge">
-                                    <span class="badge bg-seminar">SEMINAR</span>
-                                </div>
-                            </div>
-                            <div class="event-content">
-                                <h3 class="event-title">
-                                    <a href="#">Hội thảo khoa học "Tài chính và Ngân hàng trong kỷ nguyên số"</a>
-                                </h3>
-                                <div class="event-meta">
-                                    <div class="meta-item">
-                                        <i class="far fa-calendar-alt"></i> 15/06/2023
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-map-marker-alt"></i> CS Tôn Thất Đạm
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-users"></i> 132 người tham gia
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-wifi"></i> offline
-                                    </div>
-                                </div>
-                                <p class="event-description">
-                                    Hội thảo tập trung vào những thách thức và cơ hội của ngành tài chính ngân hàng trong thời đại số...
-                                </p>
-                                <div class="event-stats">
-                                    <div class="stat">
-                                        <i class="far fa-eye"></i> 1,326 lượt xem
-                                    </div>
-                                    <div class="stat">
-                                        <i class="far fa-user"></i> 9 đã đăng ký
-                                    </div>
-                                </div>
-                                <div class="event-actions">
-                                    <a href="#" class="btn-view-details">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
-                                    <a href="#" class="btn btn-sm btn-primary">Đăng ký</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 2 - Hội nghị -->
-                    <div class="col-lg-4 col-md-6 mb-4" data-type="hoi-nghi" data-aos="fade-up" data-aos-delay="200">
-                        <div class="event-card">
-                            <div class="event-image">
-                                <img src="https://hub.edu.vn/wp-content/uploads/2023/12/ngay-hoi-viec-lam.jpeg" alt="Ngày hội việc làm" loading="lazy">
-                                <div class="event-badge">
-                                    <span class="badge bg-conference">HỘI NGHỊ</span>
-                                </div>
-                            </div>
-                            <div class="event-content">
-                                <h3 class="event-title">
-                                    <a href="#">Ngày hội việc làm HUB lần thứ 13 - Năm 2023</a>
-                                </h3>
-                                <div class="event-meta">
-                                    <div class="meta-item">
-                                        <i class="far fa-calendar-alt"></i> 22/06/2023
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-map-marker-alt"></i> CS Hoàng Diệu
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-users"></i> 168 người tham gia
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-wifi"></i> offline
-                                    </div>
-                                </div>
-                                <p class="event-description">
-                                    Cơ hội kết nối với hơn 50 doanh nghiệp hàng đầu trong lĩnh vực tài chính, ngân hàng và công nghệ...
-                                </p>
-                                <div class="event-stats">
-                                    <div class="stat">
-                                        <i class="far fa-eye"></i> 980 lượt xem
-                                    </div>
-                                    <div class="stat">
-                                        <i class="far fa-user"></i> 9 đã đăng ký
-                                    </div>
-                                </div>
-                                <div class="event-actions">
-                                    <a href="#" class="btn-view-details">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
-                                    <a href="#" class="btn btn-sm btn-primary">Đăng ký</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 3 - Workshop -->
-                    <div class="col-lg-4 col-md-6 mb-4" data-type="workshop" data-aos="fade-up" data-aos-delay="300">
-                        <div class="event-card">
-                            <div class="event-image">
-                                <img src="https://hub.edu.vn/wp-content/uploads/2023/11/hoi-thao-dinh-huong-nghe.jpg" alt="Workshop kỹ năng" loading="lazy">
-                                <div class="event-badge">
-                                    <span class="badge bg-workshop">WORKSHOP</span>
-                                </div>
-                            </div>
-                            <div class="event-content">
-                                <h3 class="event-title">
-                                    <a href="#">Workshop "Kỹ năng phân tích dữ liệu trong lĩnh vực tài chính"</a>
-                                </h3>
-                                <div class="event-meta">
-                                    <div class="meta-item">
-                                        <i class="far fa-calendar-alt"></i> 30/06/2023
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-map-marker-alt"></i> CS Hàm Nghi
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-users"></i> 143 người tham gia
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-wifi"></i> hybrid
-                                    </div>
-                                </div>
-                                <p class="event-description">
-                                    Học hỏi các kỹ năng phân tích dữ liệu cơ bản và nâng cao, ứng dụng thực tế trong ngành tài chính...
-                                </p>
-                                <div class="event-stats">
-                                    <div class="stat">
-                                        <i class="far fa-eye"></i> 645 lượt xem
-                                    </div>
-                                    <div class="stat">
-                                        <i class="far fa-user"></i> 15 đã đăng ký
-                                    </div>
-                                </div>
-                                <div class="event-actions">
-                                    <a href="#" class="btn-view-details">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
-                                    <a href="#" class="btn btn-sm btn-primary">Đăng ký</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 4 - Cuộc thi -->
-                    <div class="col-lg-4 col-md-6 mb-4" data-type="hoi-nghi" data-aos="fade-up" data-aos-delay="100">
-                        <div class="event-card">
-                            <div class="event-image">
-                                <img src="https://hub.edu.vn/wp-content/uploads/2023/10/cuoc-thi-y-tuong.jpg" alt="Cuộc thi ý tưởng" loading="lazy">
-                                <div class="event-badge">
-                                    <span class="badge bg-conference">HỘI NGHỊ</span>
-                                </div>
-                            </div>
-                            <div class="event-content">
-                                <h3 class="event-title">
-                                    <a href="#">Cuộc thi "Sinh viên với ý tưởng khởi nghiệp" 2023</a>
-                                </h3>
-                                <div class="event-meta">
-                                    <div class="meta-item">
-                                        <i class="far fa-calendar-alt"></i> 05/07/2023
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-map-marker-alt"></i> CS Tôn Thất Đạm
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-users"></i> 83 người tham gia
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-wifi"></i> offline
-                                    </div>
-                                </div>
-                                <p class="event-description">
-                                    Cơ hội cho sinh viên thể hiện tài năng và sáng tạo trong lĩnh vực khởi nghiệp...
-                                </p>
-                                <div class="event-stats">
-                                    <div class="stat">
-                                        <i class="far fa-eye"></i> 720 lượt xem
-                                    </div>
-                                    <div class="stat">
-                                        <i class="far fa-user"></i> 9 đã đăng ký
-                                    </div>
-                                </div>
-                                <div class="event-actions">
-                                    <a href="#" class="btn-view-details">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
-                                    <a href="#" class="btn btn-sm btn-primary">Đăng ký</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 5 - Hội thảo -->
-                    <div class="col-lg-4 col-md-6 mb-4" data-type="hoi-thao" data-aos="fade-up" data-aos-delay="200">
-                        <div class="event-card">
-                            <div class="event-image">
-                                <img src="https://hub.edu.vn/wp-content/uploads/2023/11/xu-huong-cong-nghe.jpg" alt="Xu hướng công nghệ" loading="lazy">
-                                <div class="event-badge">
-                                    <span class="badge bg-seminar">SEMINAR</span>
-                                </div>
-                            </div>
-                            <div class="event-content">
-                                <h3 class="event-title">
-                                    <a href="#">Hội thảo "Xu hướng công nghệ tài chính 2023"</a>
-                                </h3>
-                                <div class="event-meta">
-                                    <div class="meta-item">
-                                        <i class="far fa-calendar-alt"></i> 12/07/2023
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-map-marker-alt"></i> CS Hoàng Diệu
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-users"></i> 187 người tham gia
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-wifi"></i> online
-                                    </div>
-                                </div>
-                                <p class="event-description">
-                                    Cập nhật những xu hướng mới nhất trong lĩnh vực công nghệ tài chính và blockchain...
-                                </p>
-                                <div class="event-stats">
-                                    <div class="stat">
-                                        <i class="far fa-eye"></i> 435 lượt xem
-                                    </div>
-                                    <div class="stat">
-                                        <i class="far fa-user"></i> 8 đã đăng ký
-                                    </div>
-                                </div>
-                                <div class="event-actions">
-                                    <a href="#" class="btn-view-details">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
-                                    <a href="#" class="btn btn-sm btn-primary">Đăng ký</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Event Card 6 - Workshop -->
-                    <div class="col-lg-4 col-md-6 mb-4" data-type="workshop" data-aos="fade-up" data-aos-delay="300">
-                        <div class="event-card">
-                            <div class="event-image">
-                                <img src="https://hub.edu.vn/wp-content/uploads/2023/10/ky-nang-mem.jpg" alt="Kỹ năng mềm" loading="lazy">
-                                <div class="event-badge">
-                                    <span class="badge bg-workshop">WORKSHOP</span>
-                                </div>
-                            </div>
-                            <div class="event-content">
-                                <h3 class="event-title">
-                                    <a href="#">Workshop "Kỹ năng mềm cho sinh viên tài chính ngân hàng"</a>
-                                </h3>
-                                <div class="event-meta">
-                                    <div class="meta-item">
-                                        <i class="far fa-calendar-alt"></i> 18/07/2023
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-map-marker-alt"></i> CS Hàm Nghi
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-users"></i> 120 người tham gia
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-wifi"></i> hybrid
-                                    </div>
-                                </div>
-                                <p class="event-description">
-                                    Phát triển kỹ năng giao tiếp, thuyết trình và làm việc nhóm cho sinh viên ngành tài chính ngân hàng...
-                                </p>
-                                <div class="event-stats">
-                                    <div class="stat">
-                                        <i class="far fa-eye"></i> 515 lượt xem
-                                    </div>
-                                    <div class="stat">
-                                        <i class="far fa-user"></i> 12 đã đăng ký
-                                    </div>
-                                </div>
-                                <div class="event-actions">
-                                    <a href="#" class="btn-view-details">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
-                                    <a href="#" class="btn btn-sm btn-primary">Đăng ký</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Các thẻ sự kiện sẽ được tạo động bằng JavaScript -->
                 </div>
 
                 <!-- No Events Found (Initially Hidden) -->
@@ -447,24 +180,30 @@
                     </button>
                 </div>
                 
+                <!-- Loading indicator -->
+                <div id="loadingEvents" class="text-center py-5 d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="mt-2">Đang tải sự kiện...</p>
+                </div>
+                
                 <!-- Pagination -->
                 <nav aria-label="Phân trang sự kiện" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- Phân trang sẽ được tạo động bằng JavaScript -->
                     </ul>
                 </nav>
+
+                <!-- Thêm div này để hiển thị khi có lỗi -->
+                <div id="fallbackContainer" class="error-container d-none">
+                    <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" alt="Error loading events">
+                    <h3>Không thể tải danh sách sự kiện</h3>
+                    <p>Đã xảy ra lỗi khi tải danh sách sự kiện. Vui lòng thử lại sau.</p>
+                    <button class="btn btn-primary" id="retryLoadEvents">
+                        <i class="fas fa-sync-alt me-2"></i>Thử lại
+                    </button>
+                </div>
             </div>
         </section>
     </main>
@@ -551,6 +290,52 @@
     <a href="#" class="back-to-top" aria-label="Về đầu trang">
         <i class="fas fa-arrow-up"></i>
     </a>
+
+    <!-- Template cho card sự kiện -->
+    <template id="event-card-template">
+        <div class="col-lg-4 col-md-6 mb-4" data-type="" data-format="">
+            <div class="event-card">
+                <div class="event-image">
+                    <img src="" alt="" loading="lazy">
+                    <div class="event-badge">
+                        <span class="badge"></span>
+                    </div>
+                </div>
+                <div class="event-content">
+                    <h3 class="event-title">
+                        <a href="#"></a>
+                    </h3>
+                    <div class="event-meta">
+                        <div class="meta-item date">
+                            <i class="far fa-calendar-alt"></i> <span></span>
+                        </div>
+                        <div class="meta-item location">
+                            <i class="fas fa-map-marker-alt"></i> <span></span>
+                        </div>
+                        <div class="meta-item participants">
+                            <i class="fas fa-users"></i> <span></span>
+                        </div>
+                        <div class="meta-item format">
+                            <i class="fas fa-wifi"></i> <span></span>
+                        </div>
+                    </div>
+                    <p class="event-description"></p>
+                    <div class="event-stats">
+                        <div class="stat views">
+                            <i class="far fa-eye"></i> <span></span>
+                        </div>
+                        <div class="stat registrations">
+                            <i class="far fa-user"></i> <span></span>
+                        </div>
+                    </div>
+                    <div class="event-actions">
+                        <a href="#" class="btn-view-details">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
+                        <a href="#" class="btn btn-sm btn-primary">Đăng ký</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

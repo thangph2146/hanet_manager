@@ -1,0 +1,187 @@
+[
+  {
+    "su_kien_id": 1,
+    "ten_su_kien": "Hội thảo khoa học \"Tài chính và Ngân hàng trong kỷ nguyên số\"",
+    "su_kien_poster": {
+      "url": "https://hub.edu.vn/wp-content/uploads/2025/12/hoi-thao-khoa-hoc.jpg",
+      "alt": "Hội thảo khoa học"
+    },
+    "mo_ta": "Hội thảo tập trung vào những thách thức và cơ hội của ngành tài chính ngân hàng trong thời đại số.",
+    "dia_diem": "CS Tôn Thất Đạm",
+    "dia_chi_cu_the": "36 Tôn Thất Đạm, Quận 1, TP.HCM",
+    "thoi_gian_bat_dau": "2025-06-15 08:00:00",
+    "thoi_gian_ket_thuc": "2025-06-15 17:00:00",
+    "loai_su_kien_id": 1,
+    "hinh_thuc": "offline",
+    "tong_dang_ky": 132,
+    "so_luot_xem": 1326,
+    "slug": "hoi-thao-tai-chinh-ngan-hang-ky-nguyen-so",
+    "status": 1,
+    "lich_trinh": [
+      {
+        "tieu_de": "Đăng ký và khai mạc",
+        "mo_ta": "Mô tả chi tiết cho phiên 1",
+        "thoi_gian_bat_dau": "2025-04-03 14:44:14",
+        "thoi_gian_ket_thuc": "2025-04-03 14:44:14",
+        "nguoi_phu_trach": "Ban tổ chức"
+      },
+      {
+        "tieu_de": "Phiên thảo luận chính",
+        "mo_ta": "Mô tả chi tiết cho phiên 2",
+        "thoi_gian_bat_dau": "2025-04-03 14:44:14",
+        "thoi_gian_ket_thuc": "2025-04-03 14:44:14",
+        "nguoi_phu_trach": "Diễn giả 2"
+      },
+      {
+        "tieu_de": "Giải lao",
+        "mo_ta": "Mô tả chi tiết cho phiên 3",
+        "thoi_gian_bat_dau": "2025-04-03 14:44:14",
+        "thoi_gian_ket_thuc": "2025-04-03 14:44:14",
+        "nguoi_phu_trach": "Diễn giả 3"
+      },
+      {
+        "tieu_de": "Phát biểu của khách mời",
+        "mo_ta": "Mô tả chi tiết cho phiên 4",
+        "thoi_gian_bat_dau": "2025-04-03 14:44:14",
+        "thoi_gian_ket_thuc": "2025-04-03 14:44:14",
+        "nguoi_phu_trach": "Ban tổ chức"
+      }
+    ]
+  },
+  {
+    "su_kien_id": 2,
+    "ten_su_kien": "Ngày hội việc làm HUB lần thứ 13 - Năm 2025",
+    "su_kien_poster": {
+      "url": "https://hub.edu.vn/wp-content/uploads/2025/12/ngay-hoi-viec-lam.jpeg",
+      "alt": "Ngày hội việc làm"
+    },
+    "mo_ta": "Cơ hội kết nối với hơn 50 doanh nghiệp hàng đầu trong lĩnh vực tài chính, ngân hàng và công nghệ.",
+    "dia_diem": "CS Hoàng Diệu",
+    "dia_chi_cu_the": "56 Hoàng Diệu 2, Quận Thủ Đức, TP.HCM",
+    "thoi_gian_bat_dau": "2025-06-22 08:30:00",
+    "thoi_gian_ket_thuc": "2025-06-22 16:30:00",
+    "loai_su_kien_id": 2,
+    "hinh_thuc": "offline",
+    "tong_dang_ky": 168,
+    "so_luot_xem": 980,
+    "slug": "ngay-hoi-viec-lam-hub-lan-13-2025",
+    "status": 1
+  },
+  {
+    "su_kien_id": 3,
+    "ten_su_kien": "Workshop \"Kỹ năng phân tích dữ liệu trong lĩnh vực tài chính\"",
+    "su_kien_poster": {
+      "url": "https://hub.edu.vn/wp-content/uploads/2025/11/hoi-thao-dinh-huong-nghe.jpg",
+      "alt": "Workshop kỹ năng"
+    },
+    "mo_ta": "Học hỏi các kỹ năng phân tích dữ liệu cơ bản và nâng cao, ứng dụng thực tế trong ngành tài chính.",
+    "dia_diem": "CS Hàm Nghi",
+    "dia_chi_cu_the": "36 Hàm Nghi, Quận 1, TP.HCM",
+    "thoi_gian_bat_dau": "2025-06-30 09:00:00",
+    "thoi_gian_ket_thuc": "2025-06-30 16:00:00",
+    "loai_su_kien_id": 3,
+    "hinh_thuc": "hybrid",
+    "tong_dang_ky": 143,
+    "so_luot_xem": 645,
+    "link_online": "https://meet.hub.edu.vn/workshop-phan-tich-du-lieu",
+    "slug": "workshop-ky-nang-phan-tich-du-lieu-tai-chinh",
+    "status": 1
+  },
+  {
+    "su_kien_id": 4,
+    "ten_su_kien": "Cuộc thi \"Sinh viên với ý tưởng khởi nghiệp\" 2025",
+    "su_kien_poster": {
+      "url": "https://hub.edu.vn/wp-content/uploads/2025/10/cuoc-thi-y-tuong.jpg",
+      "alt": "Cuộc thi ý tưởng"
+    },
+    "mo_ta": "Cơ hội cho sinh viên thể hiện tài năng và sáng tạo trong lĩnh vực khởi nghiệp.",
+    "dia_diem": "CS Tôn Thất Đạm",
+    "dia_chi_cu_the": "36 Tôn Thất Đạm, Quận 1, TP.HCM",
+    "thoi_gian_bat_dau": "2025-07-05 08:00:00",
+    "thoi_gian_ket_thuc": "2025-07-05 17:00:00",
+    "loai_su_kien_id": 2,
+    "hinh_thuc": "offline",
+    "tong_dang_ky": 83,
+    "so_luot_xem": 720,
+    "slug": "cuoc-thi-sinh-vien-voi-y-tuong-khoi-nghiep-2025",
+    "status": 1
+  },
+  {
+    "su_kien_id": 5,
+    "ten_su_kien": "Hội thảo \"Xu hướng công nghệ tài chính 2025\"",
+    "su_kien_poster": {
+      "url": "https://hub.edu.vn/wp-content/uploads/2025/11/xu-huong-cong-nghe.jpg",
+      "alt": "Xu hướng công nghệ"
+    },
+    "mo_ta": "Cập nhật những xu hướng mới nhất trong lĩnh vực công nghệ tài chính và blockchain.",
+    "dia_diem": "CS Hoàng Diệu",
+    "dia_chi_cu_the": "56 Hoàng Diệu 2, Quận Thủ Đức, TP.HCM",
+    "thoi_gian_bat_dau": "2025-07-12 14:00:00",
+    "thoi_gian_ket_thuc": "2025-07-12 17:30:00",
+    "loai_su_kien_id": 1,
+    "hinh_thuc": "online",
+    "tong_dang_ky": 187,
+    "so_luot_xem": 435,
+    "link_online": "https://meet.hub.edu.vn/xu-huong-cong-nghe-tai-chinh",
+    "slug": "hoi-thao-xu-huong-cong-nghe-tai-chinh-2025",
+    "status": 1
+  },
+  {
+    "su_kien_id": 6,
+    "ten_su_kien": "Workshop \"Kỹ năng mềm cho sinh viên tài chính ngân hàng\"",
+    "su_kien_poster": {
+      "url": "https://hub.edu.vn/wp-content/uploads/2025/10/ky-nang-mem.jpg",
+      "alt": "Kỹ năng mềm"
+    },
+    "mo_ta": "Phát triển kỹ năng giao tiếp, thuyết trình và làm việc nhóm cho sinh viên ngành tài chính ngân hàng.",
+    "dia_diem": "CS Hàm Nghi",
+    "dia_chi_cu_the": "36 Hàm Nghi, Quận 1, TP.HCM",
+    "thoi_gian_bat_dau": "2025-07-18 08:30:00",
+    "thoi_gian_ket_thuc": "2025-07-18 16:00:00",
+    "loai_su_kien_id": 3,
+    "hinh_thuc": "hybrid",
+    "tong_dang_ky": 120,
+    "so_luot_xem": 515,
+    "link_online": "https://meet.hub.edu.vn/ky-nang-mem-sinh-vien",
+    "slug": "workshop-ky-nang-mem-sinh-vien-tai-chinh-ngan-hang",
+    "status": 1
+  },
+  {
+    "su_kien_id": 7,
+    "ten_su_kien": "Chuỗi hội thảo \"Định hướng nghề nghiệp ngành Kinh tế số\"",
+    "su_kien_poster": {
+      "url": "https://hub.edu.vn/wp-content/uploads/2025/09/dinh-huong-nghe-nghiep.jpg",
+      "alt": "Định hướng nghề nghiệp"
+    },
+    "mo_ta": "Chuỗi hội thảo giúp sinh viên định hướng nghề nghiệp trong lĩnh vực kinh tế số đang phát triển mạnh mẽ.",
+    "dia_diem": "CS Tôn Thất Đạm",
+    "dia_chi_cu_the": "36 Tôn Thất Đạm, Quận 1, TP.HCM",
+    "thoi_gian_bat_dau": "2025-07-25 09:00:00",
+    "thoi_gian_ket_thuc": "2025-07-25 11:30:00",
+    "loai_su_kien_id": 1,
+    "hinh_thuc": "offline",
+    "tong_dang_ky": 95,
+    "so_luot_xem": 320,
+    "slug": "chuoi-hoi-thao-dinh-huong-nghe-nghiep-kinh-te-so",
+    "status": 1
+  },
+  {
+    "su_kien_id": 8,
+    "ten_su_kien": "Talkshow \"Chia sẻ kinh nghiệm làm việc tại Big4\"",
+    "su_kien_poster": {
+      "url": "https://hub.edu.vn/wp-content/uploads/2025/08/big4-talkshow.jpg",
+      "alt": "Talkshow Big4"
+    },
+    "mo_ta": "Gặp gỡ và lắng nghe chia sẻ từ các cựu sinh viên HUB đang làm việc tại các công ty Big4.",
+    "dia_diem": "CS Hoàng Diệu",
+    "dia_chi_cu_the": "56 Hoàng Diệu 2, Quận Thủ Đức, TP.HCM",
+    "thoi_gian_bat_dau": "2025-08-02 14:00:00",
+    "thoi_gian_ket_thuc": "2025-08-02 16:30:00",
+    "loai_su_kien_id": 4,
+    "hinh_thuc": "offline",
+    "tong_dang_ky": 76,
+    "so_luot_xem": 385,
+    "slug": "talkshow-chia-se-kinh-nghiem-lam-viec-tai-big4",
+    "status": 1
+  }
+]
