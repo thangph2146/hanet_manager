@@ -7,6 +7,7 @@
     --primary-lighter: #cc0000;  /* Đỏ đô rất nhạt */
     --primary-ultra-light: #ffeeee; /* Đỏ đô rất nhạt, gần như trắng */
     --white: #ffffff;
+    --white-color: #ffffff;
     --light-gray: #f8f8f8;
     --medium-gray: #e9ecef;
     --dark-gray: #6c757d;
@@ -287,10 +288,11 @@ a:hover {
     transition: all 0.2s ease;
     color: var(--dark-color);
     font-weight: 500;
+    background-color: #fff;
+    cursor: pointer;
 }
 
 .dropdown-item:hover {
-    background-color: rgba(128, 0, 0, 0.1);
     color: var(--primary);
     transform: translateX(5px);
 }
