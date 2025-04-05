@@ -163,6 +163,25 @@ class QuanLyNguoiDung extends BaseController
                 $data['mat_khau_local'] = password_hash($data['mat_khau_local'], PASSWORD_DEFAULT);
             }
 
+            // Xử lý file ảnh đại diện
+            $avatarFile = $this->request->getFile('avatar_file');
+            if ($avatarFile && $avatarFile->isValid() && !$avatarFile->hasMoved()) {
+                // Tạo thư mục nếu chưa tồn tại
+                $uploadPath = 'public/data/images/users';
+                if (!is_dir($uploadPath)) {
+                    mkdir($uploadPath, 0777, true);
+                }
+                
+                // Tạo tên file ngẫu nhiên với mã người dùng
+                $newName = $data['AccountId'] . '_' . uniqid() . '.' . $avatarFile->getExtension();
+                
+                // Di chuyển file đến thư mục đích
+                $avatarFile->move($uploadPath, $newName);
+                
+                // Cập nhật đường dẫn avatar trong dữ liệu
+                $data['avatar'] = $uploadPath . '/' . $newName;
+            }
+
             // Log dữ liệu trước khi lưu
             log_message('debug', 'Create user - Data before save: ' . json_encode($data));
 
@@ -284,6 +303,31 @@ class QuanLyNguoiDung extends BaseController
             if (!empty($data['mat_khau_local'])) {
                 $data['mat_khau_local'] = password_hash($data['mat_khau_local'], PASSWORD_DEFAULT);
             }
+
+            // Xử lý file ảnh đại diện
+            $avatarFile = $this->request->getFile('avatar_file');
+            if ($avatarFile && $avatarFile->isValid() && !$avatarFile->hasMoved()) {
+                // Tạo thư mục nếu chưa tồn tại
+                $uploadPath = 'public/data/images/users';
+                if (!is_dir($uploadPath)) {
+                    mkdir($uploadPath, 0777, true);
+                }
+                
+                // Tạo tên file ngẫu nhiên với mã người dùng
+                $newName = $data['AccountId'] . '_' . uniqid() . '.' . $avatarFile->getExtension();
+                
+                // Di chuyển file đến thư mục đích
+                $avatarFile->move($uploadPath, $newName);
+                
+                // Cập nhật đường dẫn avatar trong dữ liệu
+                $data['avatar'] = $uploadPath . '/' . $newName;
+                
+                // Xóa file avatar cũ nếu có
+                if (!empty($existingRecord->avatar) && file_exists($existingRecord->avatar)) {
+                    @unlink($existingRecord->avatar);
+                }
+            }
+
             // Lưu dữ liệu trực tiếp
             if ($this->model->update($id, $data)) {
                 $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);

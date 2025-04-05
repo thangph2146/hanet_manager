@@ -59,7 +59,7 @@ $status = old('status', $status);
 ?>
 
 <!-- Form chính -->
-<form action="<?= $action ?>" method="<?= $method ?>" id="form-<?= $module_name ?>" class="needs-validation" novalidate>
+<form action="<?= $action ?>" method="<?= $method ?>" id="form-<?= $module_name ?>" class="needs-validation" enctype="multipart/form-data" novalidate>
     <?= csrf_field() ?>
     
     <?php if ($id): ?>
@@ -281,19 +281,29 @@ $status = old('status', $status);
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-user-check'></i></span>
-                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('AccountType') ? 'is-invalid' : '' ?>" 
+                        <select class="form-select <?= isset($validation) && $validation->hasError('AccountType') ? 'is-invalid' : '' ?>" 
                             id="AccountType" name="AccountType" 
-                            value="<?= esc($AccountType) ?>" 
-                            placeholder="Nhập loại tài khoản"
-                            maxlength="20"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
                             title="Phân loại tài khoản người dùng">
+                            <option value="">-- Chọn loại tài khoản --</option>
+                            <?php if (isset($loaiNguoiDungList) && is_array($loaiNguoiDungList)): ?>
+                                <?php foreach ($loaiNguoiDungList as $loai): ?>
+                                    <option value="<?= esc($loai->getTenLoai()) ?>" <?= $AccountType === $loai->getTenLoai() ? 'selected' : '' ?>>
+                                        <?= esc($loai->getTenLoai()) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
                         <?php if (isset($validation) && $validation->hasError('AccountType')): ?>
                             <div class="invalid-feedback">
                                 <?= $validation->getError('AccountType') ?>
                             </div>
                         <?php endif; ?>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Chọn loại tài khoản người dùng
                     </div>
                 </div>
 
@@ -340,6 +350,40 @@ $status = old('status', $status);
                                 <?= $validation->getError('HomePhone') ?>
                             </div>
                         <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Avatar -->
+                <div class="col-md-6">
+                    <label for="avatar" class="form-label fw-semibold">
+                        Ảnh đại diện
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-image'></i></span>
+                        <input type="file" class="form-control <?= isset($validation) && $validation->hasError('avatar_file') ? 'is-invalid' : '' ?>" 
+                            id="avatar_file" name="avatar_file" 
+                            accept="image/*"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Chọn ảnh đại diện">
+                        <input type="hidden" name="avatar" value="<?= esc($data->avatar ?? '') ?>">
+                        <?php if (isset($validation) && $validation->hasError('avatar_file')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('avatar_file') ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php if(isset($data) && $data->avatar): ?>
+                    <div class="mt-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="<?= base_url($data->avatar) ?>" alt="Avatar" class="img-thumbnail" style="height: 64px; width: auto;">
+                            <span class="text-muted small"><?= $data->avatar ?></span>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    <div class="form-text text-muted">
+                        <i class='bx bx-info-circle me-1'></i>
+                        Tải lên ảnh đại diện (JPG, PNG, GIF)
                     </div>
                 </div>
 
@@ -720,5 +764,34 @@ $status = old('status', $status);
             
             progressBar.style.width = Math.min(100, progress) + '%';
         });
+        
+        // Xem trước ảnh đại diện
+        const avatarFileInput = document.getElementById('avatar_file');
+        if (avatarFileInput) {
+            avatarFileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // Tạo hoặc cập nhật phần tử xem trước
+                        let previewContainer = document.querySelector('.avatar-preview');
+                        if (!previewContainer) {
+                            previewContainer = document.createElement('div');
+                            previewContainer.className = 'avatar-preview mt-2';
+                            avatarFileInput.parentElement.parentElement.appendChild(previewContainer);
+                        }
+                        
+                        // Cập nhật nội dung
+                        previewContainer.innerHTML = `
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="${e.target.result}" alt="Preview" class="img-thumbnail" style="height: 64px; width: auto;">
+                                <span class="text-muted small">Xem trước ảnh đại diện</span>
+                            </div>
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
     });
 </script> 

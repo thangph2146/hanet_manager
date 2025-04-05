@@ -82,6 +82,14 @@ class NguoiDung extends BaseEntity
             'rules' => 'permit_empty|max_length[20]',
             'label' => 'Số điện thoại nhà'
         ],
+        'avatar' => [
+            'rules' => 'permit_empty|max_length[255]',
+            'label' => 'Ảnh đại diện'
+        ],
+        'avatar_file' => [
+            'rules' => 'permit_empty|uploaded[avatar_file,0]|is_image[avatar_file]|max_size[avatar_file,2048]',
+            'label' => 'File ảnh đại diện'
+        ],
         'PW' => [
             'rules' => 'permit_empty|max_length[255]',
             'label' => 'Mật khẩu'
@@ -130,6 +138,14 @@ class NguoiDung extends BaseEntity
         ],
         'HomePhone' => [
             'max_length' => '{field} không được vượt quá 20 ký tự'
+        ],
+        'avatar' => [
+            'max_length' => '{field} không được vượt quá 255 ký tự'
+        ],
+        'avatar_file' => [
+            'uploaded' => '{field} không upload được',
+            'is_image' => '{field} phải là định dạng hình ảnh (JPG, PNG, GIF)',
+            'max_size' => '{field} không được vượt quá 2MB'
         ],
         'PW' => [
             'max_length' => '{field} không được vượt quá 255 ký tự'
@@ -417,9 +433,9 @@ class NguoiDung extends BaseEntity
     /**
      * Lấy thông tin loại người dùng
      *
-     * @return \App\Modules\loainguoidung\Entities\LoaiNguoiDung|null
+     * @return \App\Modules\quanlyloainguoidung\Entities\LoaiNguoiDung|null
      */
-    public function getLoaiNguoiDung(): ?\App\Modules\loainguoidung\Entities\LoaiNguoiDung
+    public function getLoaiNguoiDung(): ?\App\Modules\quanlyloainguoidung\Entities\LoaiNguoiDung
     {
         if (!isset($this->attributes['loai_nguoi_dung_id'])) {
             return null;
@@ -584,6 +600,36 @@ class NguoiDung extends BaseEntity
         }
         return $nganh->ten_nganh . 
                (!empty($nganh->ma_nganh) ? ' (' . $nganh->ma_nganh . ')' : '');
+    }
+
+    /**
+     * Lấy đường dẫn avatar
+     *
+     * @return string|null
+     */
+    public function getAvatar(): ?string
+    {
+        return $this->attributes['avatar'] ?? null;
+    }
+
+    /**
+     * Lấy URL đầy đủ của avatar
+     *
+     * @return string
+     */
+    public function getAvatarUrl(): string
+    {
+        if (empty($this->attributes['avatar'])) {
+            return base_url('public/data/images/default-avatar.png');
+        }
+
+        // Kiểm tra xem avatar có phải là URL đầy đủ không
+        if (strpos($this->attributes['avatar'], 'http://') === 0 || strpos($this->attributes['avatar'], 'https://') === 0) {
+            return $this->attributes['avatar'];
+        }
+
+        // Nếu không, thêm base_url
+        return base_url($this->attributes['avatar']);
     }
 
     /**

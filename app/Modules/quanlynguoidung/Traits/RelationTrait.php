@@ -17,7 +17,7 @@ trait RelationTrait
     protected $phongKhoaModel;
     protected $loaiNguoiDungModel;
     protected $namHocModel;
-    protected $bacHocModel;
+    protected $quanLyBacHocModel;
     protected $heDaoTaoModel;
     protected $nganhModel;
     protected $khoaHocModel;
@@ -536,7 +536,7 @@ trait RelationTrait
         $phongKhoaList = $this->phongKhoaModel->getAllActive(100, 0, 'ten_phong_khoa', 'ASC');
         $loaiNguoiDungList = $this->loaiNguoiDungModel->getAllActive(100, 0, 'ten_loai', 'ASC');
         $namHocList = $this->namHocModel->getAllActive(100, 0, 'ten_nam_hoc', 'ASC');
-        $bacHocList = $this->bacHocModel->getAllActive(100, 0, 'ten_bac_hoc', 'ASC');
+        $bacHocList = $this->quanLyBacHocModel->getAllActive(100, 0, 'ten_bac_hoc', 'ASC');
         $heDaoTaoList = $this->heDaoTaoModel->getAllActive(100, 0, 'ten_he_dao_tao', 'ASC');
         $nganhList = $this->nganhModel->getAllActive(100, 0, 'ten_nganh', 'ASC');
         $khoaHocList = $this->khoaHocModel->getAllActive(100, 0, 'ten_khoa_hoc', 'ASC');

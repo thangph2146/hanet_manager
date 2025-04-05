@@ -65,6 +65,11 @@ class NguoiDung extends Migration
                 'constraint' => 20,
                 'null' => true
             ],
+            'avatar' => [
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+                'null' => true
+            ],
             'loai_nguoi_dung_id' => [
                 'type' => 'INT',
                 'constraint' => 11,

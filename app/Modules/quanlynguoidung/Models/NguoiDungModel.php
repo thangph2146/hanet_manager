@@ -33,6 +33,7 @@ class NguoiDungModel extends BaseModel
         'HomePhone1',
         'PW',
         'HomePhone',
+        'avatar',
         'loai_nguoi_dung_id',
         'mat_khau_local',
         'nam_hoc_id',
