@@ -167,6 +167,64 @@ class LoaiSuKienModel extends BaseModel
     }
     
     /**
+     * Lấy tất cả bản ghi đang hoạt động
+     *
+     * @param int $limit Số lượng bản ghi trên mỗi trang
+     * @param int $offset Vị trí bắt đầu lấy dữ liệu
+     * @param string $sort Trường sắp xếp
+     * @param string $order Thứ tự sắp xếp (ASC, DESC)
+     * @return array
+     */
+    public function getAllActive(int $limit = 10, int $offset = 0, string $sort = 'ten_loai_su_kien', string $order = 'ASC')
+    {
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select('*');
+        $this->builder->where('status', 1);
+        $this->builder->where('deleted_at IS NULL');
+        
+        if ($sort && $order) {
+            $this->builder->orderBy($sort, $order);
+        }
+        
+        $total = $this->countAllActive();
+        $currentPage = $limit > 0 ? floor($offset / $limit) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $limit, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($limit)
+                        ->setCurrentPage($currentPage);
+        }
+        
+        if ($limit > 0) {
+            $result = $this->builder->limit($limit, $offset)->get()->getResult($this->returnType);
+            return $result ?: [];
+        }
+        
+        return $this->findAll();
+    }
+    
+    /**
+     * Đếm tổng số bản ghi đang hoạt động
+     *
+     * @param array $conditions Điều kiện bổ sung
+     * @return int
+     */
+    public function countAllActive($conditions = [])
+    {
+        $builder = $this->builder();
+        $builder->where('status', 1);
+        $builder->where('deleted_at IS NULL');
+        
+        if (!empty($conditions)) {
+            $builder->where($conditions);
+        }
+        
+        return $builder->countAllResults();
+    }
+    
+    /**
      * Tìm kiếm loại sự kiện dựa vào các tiêu chí
      *
      * @param array $criteria Các tiêu chí tìm kiếm

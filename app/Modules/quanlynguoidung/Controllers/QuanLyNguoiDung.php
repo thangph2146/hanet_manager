@@ -3,7 +3,7 @@
 namespace App\Modules\quanlynguoidung\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\quanlynguoidung\Models\QuanLyNguoiDungModel;
+use App\Modules\quanlynguoidung\Models\NguoiDungModel;
 use App\Libraries\Alert;
 use CodeIgniter\Database\Exceptions\DataException;
 use CodeIgniter\HTTP\ResponseInterface;

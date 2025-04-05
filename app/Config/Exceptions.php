@@ -101,6 +101,40 @@ class Exceptions extends BaseConfig
      */
     public function handler(int $statusCode, Throwable $exception): ExceptionHandlerInterface
     {
+        // Xử lý riêng cho lỗi 403
+        if ($statusCode === 403) {
+            // Lưu thông tin lỗi vào session cho trang lỗi hiển thị
+            if (!session()->has('error_message')) {
+                session()->setFlashdata('error_message', $exception->getMessage() ?: 'Bạn không có quyền truy cập vào tài nguyên này.');
+            }
+            
+            // Nếu là AJAX request, trả về JSON
+            if (is_ajax()) {
+                $response = service('response');
+                return new class($this) implements ExceptionHandlerInterface {
+                    protected $config;
+                    
+                    public function __construct($config) {
+                        $this->config = $config;
+                    }
+                    
+                    public function handle(
+                        int $statusCode,
+                        Throwable $exception
+                    ): void {
+                        $response = service('response');
+                        $response->setStatusCode(403)
+                                ->setContentType('application/json')
+                                ->setBody(json_encode([
+                                    'success' => false,
+                                    'message' => $exception->getMessage() ?: 'Bạn không có quyền truy cập vào tài nguyên này.',
+                                    'redirect' => site_url('dashboard')
+                                ]));
+                    }
+                };
+            }
+        }
+        
         return new ExceptionHandler($this);
     }
 }

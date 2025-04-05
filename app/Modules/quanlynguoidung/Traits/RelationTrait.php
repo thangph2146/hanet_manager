@@ -4,13 +4,13 @@ namespace App\Modules\quanlynguoidung\Traits;
 
 use CodeIgniter\I18n\Time;
 use App\Modules\phongkhoa\Models\PhongKhoaModel;
-use App\Modules\loainguoidung\Models\LoaiNguoiDungModel;
+use App\Modules\quanlyloainguoidung\Models\LoaiNguoiDungModel;
 use App\Modules\namhoc\Models\NamHocModel;
 use App\Modules\quanlybachoc\Models\QuanLyBacHocModel;
 use App\Modules\hedaotao\Models\HeDaoTaoModel;
 use App\Modules\nganh\Models\NganhModel;
 use App\Modules\khoahoc\Models\KhoaHocModel;
-use App\Modules\loaisukien\Models\LoaiSuKienModel;
+use App\Modules\quanlyloaisukien\Models\LoaiSuKienModel;
 
 trait RelationTrait
 {
