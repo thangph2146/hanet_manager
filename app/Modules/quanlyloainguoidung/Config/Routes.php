@@ -5,6 +5,7 @@ namespace Config;
 // Create a new instance of our RouteCollection class.
 $routes = Services::routes();
 $module_name = 'quanlyloainguoidung';
+$module_url = $module_name;
 $controller_name = 'QuanLyLoaiNguoiDung';
 // Định nghĩa routes cho module Nganh
 $routes->group($module_url, ['namespace' => 'App\Modules\\' . $module_name . '\Controllers'], 
