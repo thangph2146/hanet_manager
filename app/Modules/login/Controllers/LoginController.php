@@ -15,7 +15,10 @@ class LoginController extends BaseController
         $googleAuthUrl = $googleAuth->getAuthUrl('student');    
         return view('App\Modules\login\student\Views\login', ['googleAuthUrl' => $googleAuthUrl]);
     }
-
+    public function register()
+    {
+        return view('App\Modules\login\student\Views\register');
+    }
     public function create_student()
     {
         $email = $this->request->getPost('email');
@@ -36,6 +39,144 @@ class LoginController extends BaseController
         return redirect()->back()
                          ->withInput()
                          ->with('warning', 'Login đã xảy ra lỗi!');
+    }
+
+    /**
+     * Xử lý đăng ký tài khoản sinh viên mới
+     * @return \CodeIgniter\HTTP\RedirectResponse
+     */
+    public function create_student_account()
+    {
+        $rules = [
+            'fullname' => [
+                'label' => 'Họ và tên',
+                'rules' => 'required|min_length[3]|max_length[100]',
+                'errors' => [
+                    'required' => '{field} không được để trống',
+                    'min_length' => '{field} phải có ít nhất {param} ký tự',
+                    'max_length' => '{field} không được quá {param} ký tự'
+                ]
+            ],
+            'email' => [
+                'label' => 'Email sinh viên',
+                'rules' => 'required|valid_email|is_unique[nguoi_dung.Email]',
+                'errors' => [
+                    'required' => '{field} không được để trống',
+                    'valid_email' => '{field} phải đúng định dạng',
+                    'is_unique' => '{field} đã tồn tại trong hệ thống'
+                ]
+            ],
+            'username' => [
+                'label' => 'Tên của bạn',
+                'rules' => 'required|min_length[2]|max_length[50]',
+                'errors' => [
+                    'required' => '{field} không được để trống',
+                    'min_length' => '{field} phải có ít nhất {param} ký tự',
+                    'max_length' => '{field} không được quá {param} ký tự'
+                ]
+            ],
+            'password' => [
+                'label' => 'Mật khẩu',
+                'rules' => 'required|min_length[6]|max_length[255]',
+                'errors' => [
+                    'required' => '{field} không được để trống',
+                    'min_length' => '{field} phải có ít nhất {param} ký tự',
+                    'max_length' => '{field} không được quá {param} ký tự'
+                ]
+            ],
+            'password_confirm' => [
+                'label' => 'Xác nhận mật khẩu',
+                'rules' => 'required|matches[password]',
+                'errors' => [
+                    'required' => '{field} không được để trống',
+                    'matches' => '{field} không khớp với mật khẩu'
+                ]
+            ],
+            'mobile' => [
+                'label' => 'Số điện thoại',
+                'rules' => 'permit_empty|min_length[10]|max_length[20]',
+                'errors' => [
+                    'min_length' => '{field} phải có ít nhất {param} ký tự',
+                    'max_length' => '{field} không được quá {param} ký tự'
+                ]
+            ],
+            'agree' => [
+                'label' => 'Điều khoản sử dụng',
+                'rules' => 'required',
+                'errors' => [
+                    'required' => 'Bạn phải đồng ý với {field}'
+                ]
+            ]
+        ];
+        
+        if (!$this->validate($rules)) {
+            return redirect()->back()
+                            ->withInput()
+                            ->with('error', $this->validator->getErrors());
+        }
+        
+        // Lấy dữ liệu từ form
+        $username = $this->request->getPost('username');
+        $fullname = $this->request->getPost('fullname');
+        $email = $this->request->getPost('email');
+        $password = $this->request->getPost('password');
+        $mobile = $this->request->getPost('mobile');
+        
+        // Tạo AccountId từ email sinh viên
+        $accountId = explode('@', $email)[0]; // Lấy phần trước @ làm tên đăng nhập
+
+        // Kiểm tra xem AccountId đã tồn tại chưa
+        $studentModel = new StudentModel();
+        $existingAccount = $studentModel->where('AccountId', $accountId)->first();
+        
+        // Nếu đã tồn tại, thêm số ngẫu nhiên vào cuối
+        if ($existingAccount) {
+            $accountId = $accountId . rand(100, 999);
+        }
+        
+        // Tạo dữ liệu người dùng mới
+        $studentData = [
+            'AccountId' => $accountId,
+            'FirstName' => $username,
+            'FullName' => $fullname,
+            'Email' => $email,
+            'MobilePhone' => $mobile,
+            'PW' => password_hash($password, PASSWORD_DEFAULT),
+            'mat_khau_local' => password_hash($password, PASSWORD_DEFAULT),
+            'loai_nguoi_dung_id' => 2, // ID cho loại người dùng sinh viên
+            'status' => 1,
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+        
+        try {
+            if ($studentModel->insert($studentData)) {
+                // Đăng nhập tự động sau khi đăng ký
+                $authStudent = service('authstudent');
+                if ($authStudent->login($email, $password, false)) {
+                    return redirect()->to('/')
+                                    ->with('success', 'Đăng ký tài khoản thành công và đã đăng nhập!')
+                                    ->withCookies();
+                }
+                
+                // Nếu đăng nhập tự động không thành công, chuyển hướng đến trang đăng nhập
+                return redirect()->to('login/nguoi-dung')
+                                ->with('success', 'Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
+            } else {
+                $errors = $studentModel->errors();
+                if (empty($errors)) {
+                    $errors = ['database' => 'Không thể tạo tài khoản. Vui lòng thử lại sau.'];
+                }
+                
+                return redirect()->back()
+                                ->withInput()
+                                ->with('error', $errors);
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Lỗi khi đăng ký: ' . $e->getMessage());
+            return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại sau.');
+        }
     }
 
     /**
