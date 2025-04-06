@@ -273,7 +273,7 @@ class SuKien extends BaseController
             session()->remove('event_error_reason');
             
             // Chuyển hướng về trang danh sách sự kiện với thông báo lỗi
-            return redirect()->to(site_url('su-kien/list'));
+            return redirect()->to(site_url('su-kien'));
         }
 
         // Nếu tìm thấy sự kiện, hiển thị trang chi tiết
@@ -475,8 +475,8 @@ class SuKien extends BaseController
                 // Thêm nguoi_dung_id nếu có trong form hoặc từ session
                 if ($this->request->getPost('nguoi_dung_id')) {
                     $data['nguoi_dung_id'] = $this->request->getPost('nguoi_dung_id');
-                } elseif (service('authstudent')->isLoggedInStudent()) {
-                    $data['nguoi_dung_id'] = service('authstudent')->getStudentData()->nguoi_dung_id;
+                } elseif (service('authnguoidung')->isLoggedInStudent()) {
+                    $data['nguoi_dung_id'] = service('authnguoidung')->getStudentData()->nguoi_dung_id;
                 }
                 
                 // Kiểm tra xem đã đăng ký trước đó chưa
@@ -850,8 +850,8 @@ class SuKien extends BaseController
             return redirect()->back()->with('error', 'Method not allowed');
         }
 
-        $isLoggedIn = service('authstudent')->isLoggedInStudent();
-        $userData = $isLoggedIn ? service('authstudent')->getUserData() : null;
+        $isLoggedIn = service('authnguoidung')->isLoggedInStudent();
+        $userData = $isLoggedIn ? service('authnguoidung')->getUserData() : null;
         $userId = $userData ? $userData->nguoi_dung_id ?? null : null;
 
         log_message('debug', 'User info: ' . json_encode([
@@ -1002,11 +1002,11 @@ class SuKien extends BaseController
         // Kiểm tra người dùng
         echo '<h3>Thông tin người dùng:</h3>';
         echo '<pre>';
-        $isLoggedIn = service('authstudent')->isLoggedInStudent();
+        $isLoggedIn = service('authnguoidung')->isLoggedInStudent();
         echo 'Đã đăng nhập: ' . ($isLoggedIn ? 'Có' : 'Không') . "\n";
         
         if ($isLoggedIn) {
-            $userData = service('authstudent')->getUserData();
+            $userData = service('authnguoidung')->getUserData();
             if ($userData) {
                 echo "ID: " . ($userData->nguoi_dung_id ?? 'N/A') . "\n";
                 echo "Tên: " . ($userData->FullName ?? 'N/A') . "\n";

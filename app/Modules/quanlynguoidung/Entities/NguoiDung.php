@@ -26,6 +26,7 @@ class NguoiDung extends BaseEntity
         'he_dao_tao_id' => 'int',
         'nganh_id' => 'int',
         'phong_khoa_id' => 'int',
+        'bin' => 'int',
         'status' => 'int',
         'last_login' => 'datetime',
         'created_at' => 'datetime',
@@ -51,7 +52,7 @@ class NguoiDung extends BaseEntity
     // Các quy tắc xác thực cụ thể cho NguoiDung
     protected $validationRules = [
         'AccountId' => [
-            'rules' => 'required|max_length[50]|is_unique[nguoi_dung.AccountId,nguoi_dung_id,{nguoi_dung_id}]',
+            'rules' => 'permit_empty|max_length[50]|is_unique[nguoi_dung.AccountId,nguoi_dung_id,{nguoi_dung_id}]',
             'label' => 'Tài khoản'
         ],
         'Email' => [
@@ -59,7 +60,7 @@ class NguoiDung extends BaseEntity
             'label' => 'Email'
         ],
         'FullName' => [
-            'rules' => 'permit_empty|max_length[100]',
+            'rules' => 'required|max_length[100]',
             'label' => 'Họ và tên đầy đủ'
         ],
         'LastName' => [
@@ -67,7 +68,7 @@ class NguoiDung extends BaseEntity
             'label' => 'Họ'
         ],
         'MiddleName' => [
-            'rules' => 'permit_empty|max_length[100]',
+            'rules' => 'required|max_length[100]',
             'label' => 'Tên đệm'
         ],
         'FirstName' => [
@@ -75,7 +76,7 @@ class NguoiDung extends BaseEntity
             'label' => 'Tên'
         ],
         'MobilePhone' => [
-            'rules' => 'permit_empty|max_length[20]',
+            'rules' => 'required|max_length[20]',
             'label' => 'Số điện thoại di động'
         ],
         'AccountType' => [
@@ -110,15 +111,42 @@ class NguoiDung extends BaseEntity
             'rules' => 'permit_empty|integer',
             'label' => 'ID người dùng'
         ],
+        'loai_nguoi_dung_id' => [
+            'rules' => 'permit_empty|integer',
+            'label' => 'Loại người dùng'
+        ],
+        'nam_hoc_id' => [
+            'rules' => 'permit_empty|integer',
+            'label' => 'Năm học'
+        ],
+        'bac_hoc_id' => [
+            'rules' => 'permit_empty|integer',
+            'label' => 'Bậc học'
+        ],
+        'he_dao_tao_id' => [
+            'rules' => 'permit_empty|integer',
+            'label' => 'Hệ đào tạo'
+        ],
+        'nganh_id' => [
+            'rules' => 'permit_empty|integer',
+            'label' => 'Ngành'
+        ],
+        'phong_khoa_id' => [
+            'rules' => 'permit_empty|integer',
+            'label' => 'Phòng/Khoa'
+        ],
+        'bin' => [
+            'rules' => 'permit_empty|integer',
+            'label' => 'Bin'
+        ],
         'status' => [
-            'rules' => 'required|in_list[0,1]',
+            'rules' => 'permit_empty|in_list[0,1]',
             'label' => 'Trạng thái'
         ]
     ];
     
     protected $validationMessages = [
         'AccountId' => [
-            'required' => '{field} là bắt buộc',
             'max_length' => '{field} không được vượt quá 50 ký tự',
             'is_unique' => '{field} đã tồn tại trong hệ thống'
         ],
@@ -129,6 +157,7 @@ class NguoiDung extends BaseEntity
             'is_unique' => '{field} đã tồn tại trong hệ thống'
         ],
         'FullName' => [
+            'required' => '{field} là bắt buộc',
             'max_length' => '{field} không được vượt quá 100 ký tự'
         ],
         'LastName' => [
@@ -136,6 +165,7 @@ class NguoiDung extends BaseEntity
             'max_length' => '{field} không được vượt quá 100 ký tự'
         ],
         'MiddleName' => [
+            'required' => '{field} là bắt buộc',
             'max_length' => '{field} không được vượt quá 100 ký tự'
         ],
         'FirstName' => [
@@ -143,6 +173,7 @@ class NguoiDung extends BaseEntity
             'max_length' => '{field} không được vượt quá 100 ký tự'
         ],
         'MobilePhone' => [
+            'required' => '{field} là bắt buộc',
             'max_length' => '{field} không được vượt quá 20 ký tự'
         ],
         'AccountType' => [
@@ -171,8 +202,28 @@ class NguoiDung extends BaseEntity
         'u_id' => [
             'integer' => '{field} phải là số nguyên'
         ],
+        'loai_nguoi_dung_id' => [
+            'integer' => '{field} phải là số nguyên'
+        ],
+        'nam_hoc_id' => [
+            'integer' => '{field} phải là số nguyên'
+        ],
+        'bac_hoc_id' => [
+            'integer' => '{field} phải là số nguyên'
+        ],
+        'he_dao_tao_id' => [
+            'integer' => '{field} phải là số nguyên'
+        ],
+        'nganh_id' => [
+            'integer' => '{field} phải là số nguyên'
+        ],
+        'phong_khoa_id' => [
+            'integer' => '{field} phải là số nguyên'
+        ],
+        'bin' => [
+            'integer' => '{field} phải là số nguyên'
+        ],
         'status' => [
-            'required' => '{field} không được để trống',
             'in_list' => '{field} không hợp lệ'
         ]
     ];
@@ -198,18 +249,32 @@ class NguoiDung extends BaseEntity
     }
     
     /**
-     * Lấy họ và tên
+     * Lấy họ tên đầy đủ của người dùng
+     * Phương thức này tương thích với getFullName() trong AuthenticationNguoiDung
      *
-     * @return string
+     * @return string Họ tên đầy đủ
      */
     public function getFullName(): string
     {
-        if (!empty($this->attributes['FullName'])) {
-            return $this->attributes['FullName'] ?? '';
+        // Ưu tiên sử dụng các trường LastName, MiddleName và FirstName nếu có
+        if (!empty($this->getLastName())) {
+            $nameParts[] = $this->getLastName();
         }
         
-        // Nếu FullName trống, tạo từ LastName, MiddleName và FirstName
-        return $this->getDisplayName();
+        if (!empty($this->getMiddleName())) {
+            $nameParts[] = $this->getMiddleName();
+        }
+        
+        if (!empty($this->getFirstName())) {
+            $nameParts[] = $this->getFirstName();
+        }
+        
+        if (!empty($nameParts)) {
+            return implode(' ', $nameParts);
+        }
+        
+        // Nếu không có các trường riêng lẻ, sử dụng FullName
+        return $this->attributes['FullName'] ?? '';
     }
     
     /**
@@ -662,11 +727,11 @@ class NguoiDung extends BaseEntity
     public function getField(string $field, $default = null)
     {
         // Kiểm tra xem trường có tồn tại trong attributes không
-        if (isset($this->attributes[$field])) {
+        if (isset($this->attributes[$field]) && ($this->attributes[$field] !== '' || $this->attributes[$field] === 0 || $this->attributes[$field] === '0')) {
             return $this->attributes[$field];
         }
         
-        // Nếu không tồn tại, trả về giá trị mặc định
+        // Nếu không tồn tại hoặc giá trị rỗng, trả về giá trị mặc định
         return $default;
     }
 
@@ -726,5 +791,30 @@ class NguoiDung extends BaseEntity
         }
         
         return implode(' ', $nameParts);
+    }
+    public function verifyPassword($password)
+	{
+        // Kiểm tra với PW (mật khẩu lưu từ Azure) trước
+        if (!empty($this->PW) && password_verify($password, $this->PW)) {
+            return true;
+        }
+        
+        // Nếu không khớp hoặc không có PW, kiểm tra với mat_khau_local
+        if (!empty($this->mat_khau_local) && password_verify($password, $this->mat_khau_local)) {
+            return true;
+        }
+        
+        return false;
+	}
+	
+	/**
+     * Mã hóa mật khẩu
+     *
+     * @param string $password Mật khẩu cần mã hóa
+     * @return string Mật khẩu đã mã hóa
+     */
+    public function hashPassword(string $password): string
+    {
+        return password_hash($password, PASSWORD_DEFAULT);
     }
 } 

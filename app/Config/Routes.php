@@ -102,6 +102,17 @@ $routes->GET('settings/delete/(:num)', 'Settings::delete/$1');
 $routes->POST('students/create_student', 'Students::create_student');
 $routes->GET('students/logout', 'Students::logout');
 
+// Người dùng routes
+$routes->GET('login/nguoi-dung', 'Login::index');
+$routes->POST('login/create_nguoidung', 'Login::create_nguoidung');
+$routes->GET('login/logoutnguoidung', 'Login::logoutnguoidung');
+$routes->GET('login/deletenguoidung', 'Login::logoutnguoidung');
+
+// Module Login routes
+$routes->GET('login/nguoidung', 'App\Modules\login\Controllers\LoginController::index');
+$routes->POST('login/nguoidung/create', 'App\Modules\login\Controllers\LoginController::create_nguoidung');
+$routes->GET('login/nguoidung/logout', 'App\Modules\login\Controllers\LoginController::logoutnguoidung');
+
 // Sidebar routes
 $routes->POST('sidebar/update-state', 'SidebarController::updateState');
 $routes->GET('sidebar/get-state', 'SidebarController::getState');

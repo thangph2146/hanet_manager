@@ -106,7 +106,7 @@ class Filters extends BaseConfig
         'loginStudent' => [
             'before' => [
                 'nguoi-dung*',
-                'login/logoutstudent'
+                'login/logoutnguoidung'
             ],
           
         ],

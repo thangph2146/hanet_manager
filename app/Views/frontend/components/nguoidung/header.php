@@ -27,7 +27,7 @@ $userdropdown = [
                 'type' => 'danger',
                 'icon' => 'power-off',
                 'title' => 'Đăng xuất',
-                'url' => 'login/logoutstudent'
+                'url' => 'login/logoutnguoidung'
             ]
         ]
     ]
@@ -98,33 +98,39 @@ $userdropdown = [
             </div>
         </div>
         
-        <!-- User Dropdown -->
-        <div class="dropdown">
-            <a href="#" class="user-dropdown" id="user-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="user-avatar">
-                    <img src="<?= base_url('assets/images/avatars/default.jpg') ?>" alt="User Avatar">
-                    <span class="user-status"></span>
-                </div>
-                <div class="user-info d-none d-md-block">
-                    <div class="user-name"><?= getFullNameStudent() ?></div>
-                </div>
-            </a>
-            
-            <ul class="dropdown-menu user-menu" aria-labelledby="user-dropdown">
-                <?php foreach($userdropdown as $user): ?>   
-                <li class="user-menu-section">
-                    <small class="dropdown-header-text"><?= $user['title'] ?></small>
-                    <?php foreach($user['actions'] as $action): ?>
-                    <a class="dropdown-item <?= isset($action['type']) && $action['type'] == 'danger' ? 'text-danger' : '' ?>" href="<?= base_url($action['url']) ?>">
-                        <i class="fas fa-<?= $action['icon'] ?>"></i>
-                        <span><?= $action['title'] ?></span>
-                    </a>
-                    <?php endforeach; ?>
-                </li>
-                
-                <?php endforeach; ?>
-            </ul>
-        </div>
+        <?php if (!isLoggedInStudent()): ?>
+					<a href="<?= site_url('login') ?>" class="btn btn-light btn-sm px-3 me-2 btn-login">
+						<i class="fas fa-user-plus me-1"></i> Đăng nhập
+					</a>
+					<?php else: ?>
+					 <!-- User Dropdown -->
+					 <?php 
+                     // Định nghĩa menu người dùng
+                     $userMenuGroups = [
+                         [
+                             'actions' => [
+                                 [
+                                     'title' => 'Profile',
+                                     'url' => 'nguoi-dung/thong-tin-ca-nhan',
+                                     'icon' => 'user'
+                                 ],
+                                 [
+                                     'title' => 'Đăng xuất',
+                                     'url' => 'login/logoutnguoidung',
+                                     'icon' => 'sign-out-alt',
+                                     'type' => 'danger'
+                                 ]
+                             ]
+                         ]
+                     ];
+                       // Hiển thị dropdown người dùng với dữ liệu đã định nghĩa
+                     echo view('frontend/components/nguoidung_dropdown', [
+						'username' => getFullNameStudent(),
+						'avatar' => base_url('assets/images/avatars/default.jpg'),
+						'menu_groups' => $userMenuGroups
+					]);
+					 ?>
+					<?php endif; ?>
     </div>
 </nav>
 

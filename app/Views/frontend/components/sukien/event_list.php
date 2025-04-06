@@ -58,7 +58,7 @@ function getEventTypeName($event_type) {
         <p><?= $empty_message ?></p>
         <p><small class="text-muted">Chúng tôi chỉ hiển thị các sự kiện có trạng thái hoạt động và thời gian diễn ra trong tương lai.</small></p>
         <?php endif; ?>
-        <a href="<?= site_url('su-kien/list') ?>" class="btn btn-primary mt-3">Xem tất cả sự kiện</a>
+        <a href="<?= site_url('su-kien') ?>" class="btn btn-primary mt-3">Xem tất cả sự kiện</a>
     </div>
 </div>
 <?php else: ?>

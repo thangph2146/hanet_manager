@@ -59,7 +59,7 @@ class NguoiDung extends BaseController
         $data = [
             'title' => 'Thông tin cá nhân',
             'active_menu' => 'profile',
-            'profile' => getInfoStudent()
+            'profile' => getInfoNguoiDung()
         ];
         return view('App\Modules\nguoidung\Views\profile', $data);
     }
@@ -70,7 +70,7 @@ class NguoiDung extends BaseController
     public function updateProfile()
     {
         // Lấy thông tin người dùng hiện tại
-        $profile = getInfoStudent();
+        $profile = getInfoNguoiDung();
         $nguoi_dung_id = $profile->nguoi_dung_id;
         
         // Ghi log yêu cầu cập nhật
@@ -211,7 +211,7 @@ class NguoiDung extends BaseController
         helper('text');
         
         // Lấy thông tin người dùng hiện tại
-        $profile = getInfoStudent();
+        $profile = getInfoNguoiDung();
         $email = $profile->Email;
         
         // Lấy các sự kiện đã đăng ký (tất cả trạng thái)
@@ -267,7 +267,7 @@ class NguoiDung extends BaseController
         helper('text');
         
         // Lấy thông tin người dùng hiện tại
-        $profile = getInfoStudent();
+        $profile = getInfoNguoiDung();
         $email = $profile->Email;
         
         // Lấy các tham số lọc thời gian
@@ -352,7 +352,7 @@ class NguoiDung extends BaseController
         helper('text');
         
         // Lấy thông tin người dùng hiện tại
-        $profile = getInfoStudent();
+        $profile = getInfoNguoiDung();
         $email = $profile->Email;
         
         // Lấy các tham số lọc thời gian
@@ -455,7 +455,7 @@ class NguoiDung extends BaseController
         helper('text');
         
         // Lấy thông tin người dùng hiện tại
-        $profile = getInfoStudent();
+        $profile = getInfoNguoiDung();
         $email = $profile->Email;
         
         // Lấy các tham số lọc thời gian

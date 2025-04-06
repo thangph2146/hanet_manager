@@ -59,9 +59,94 @@ if ( ! function_exists('getFullName')) {
 	 */
 	function getFullName()
 	{
-		$auth = service('auth');
-
-		return $auth->getFullName();
+		try {
+			$auth = service('auth');
+			$user = $auth->getCurrentUser();
+			
+			if ($user === null) {
+				log_message('error', 'User is null');
+				return 'Guest';
+			}
+			
+			// Thử lấy tên từ các trường riêng biệt trước
+			$nameParts = [];
+			
+			// Xử lý khi $user là đối tượng
+			if (is_object($user)) {
+				if (!empty($user->LastName)) {
+					$nameParts[] = $user->LastName;
+				}
+				
+				if (!empty($user->MiddleName)) {
+					$nameParts[] = $user->MiddleName;
+				}
+				
+				if (!empty($user->FirstName)) {
+					$nameParts[] = $user->FirstName;
+				}
+				
+				// Nếu không có các trường riêng biệt, thử dùng FullName
+				if (empty($nameParts) && !empty($user->FullName)) {
+					return $user->FullName;
+				}
+			}
+			// Xử lý khi $user là mảng
+			else if (is_array($user)) {
+				// Nếu là phần tử đầu tiên của mảng
+				if (!empty($user[0])) {
+					$firstUser = $user[0];
+					
+					if (is_object($firstUser)) {
+						if (!empty($firstUser->LastName)) {
+							$nameParts[] = $firstUser->LastName;
+						}
+						
+						if (!empty($firstUser->MiddleName)) {
+							$nameParts[] = $firstUser->MiddleName;
+						}
+						
+						if (!empty($firstUser->FirstName)) {
+							$nameParts[] = $firstUser->FirstName;
+						}
+						
+						// Nếu không có các trường riêng biệt, thử dùng FullName
+						if (empty($nameParts) && !empty($firstUser->FullName)) {
+							return $firstUser->FullName;
+						}
+					}
+					else if (is_array($firstUser)) {
+						if (!empty($firstUser['LastName'])) {
+							$nameParts[] = $firstUser['LastName'];
+						}
+						
+						if (!empty($firstUser['MiddleName'])) {
+							$nameParts[] = $firstUser['MiddleName'];
+						}
+						
+						if (!empty($firstUser['FirstName'])) {
+							$nameParts[] = $firstUser['FirstName'];
+						}
+						
+						// Nếu không có các trường riêng biệt, thử dùng FullName
+						if (empty($nameParts) && !empty($firstUser['FullName'])) {
+							return $firstUser['FullName'];
+						}
+					}
+				}
+			}
+			
+			// Nếu có các phần tên riêng biệt
+			if (!empty($nameParts)) {
+				return implode(' ', $nameParts);
+			}
+			
+			// Sử dụng phương thức getFullName của service
+			return $auth->getFullName();
+			
+		} catch (\Exception $e) {
+			log_message('error', 'Error in getFullName: ' . $e->getMessage());
+			return 'Người dùng';
+		}
 	}
 }
 

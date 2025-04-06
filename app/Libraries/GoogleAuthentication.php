@@ -196,7 +196,7 @@ class GoogleAuthentication {
                     return false;
                 }
                 
-                // Đăng nhập sinh viên - sử dụng logInStudent tương tự như trong AuthenticationStudent
+                // Đăng nhập sinh viên - sử dụng logInStudent tương tự như trong AuthenticationNguoiDung
                 $this->logInStudent($student);
                 log_message('info', 'Student logged in successfully via Google: ' . $student->nguoi_dung_id);
                 return true;

@@ -59,12 +59,12 @@
                              'actions' => [
                                  [
                                      'title' => 'Profile',
-                                     'url' => site_url('nguoi-dung/thong-tin-ca-nhan'),
+                                     'url' => 'nguoi-dung/thong-tin-ca-nhan',
                                      'icon' => 'user'
                                  ],
                                  [
                                      'title' => 'Đăng xuất',
-                                     'url' => site_url('login/logoutstudent'),
+                                     'url' => 'login/logoutnguoidung',
                                      'icon' => 'sign-out-alt',
                                      'type' => 'danger'
                                  ]
@@ -72,7 +72,7 @@
                          ]
                      ];
                        // Hiển thị dropdown người dùng với dữ liệu đã định nghĩa
-                     echo view('frontend/components/user_dropdown', [
+                     echo view('frontend/components/nguoidung_dropdown', [
 						'username' => getFullNameStudent(),
 						'avatar' => base_url('assets/images/avatars/default.jpg'),
 						'menu_groups' => $userMenuGroups

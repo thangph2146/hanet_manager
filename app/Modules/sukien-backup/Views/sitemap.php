@@ -10,7 +10,7 @@
     
     <!-- Trang danh sách sự kiện -->
     <url>
-        <loc><?= site_url('su-kien/list') ?></loc>
+        <loc><?= site_url('su-kien') ?></loc>
         <lastmod><?= $current_date ?></lastmod>
         <changefreq>daily</changefreq>
         <priority>0.9</priority>

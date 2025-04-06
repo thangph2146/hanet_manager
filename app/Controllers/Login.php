@@ -10,58 +10,79 @@
  */
 namespace App\Controllers;
 
-use App\Models\StudentModel;
+use App\Modules\quanlynguoidung\Models\NguoiDungModel;
 use App\Models\StudentInfoModel;
 use App\Models\UserModel;
 
 class Login extends BaseController
 {
-
+	// Login Nguoi Dung
 	public function index()
 	{
 		$googleAuth = service('googleAuth');
-		$googleAuthUrl = $googleAuth->getAuthUrl('student');	
-		return view('login/student/Views/login', ['googleAuthUrl' => $googleAuthUrl]);
+		$googleAuthUrl = $googleAuth->getAuthUrl('nguoidung');	
+		return view('login/nguoidung/Views/login', ['googleAuthUrl' => $googleAuthUrl]);
 	}
 
-	public function create_student()
+	public function create_nguoidung()
 	{
 		$email = $this->request->getPost('email');
 		$password = $this->request->getPost('password');	
 		$remember_me = (bool) $this->request->getPost('remember_me');
 
-		$authStudent = service('authStudent');
+		$authnguoidung = service('authnguoidung');
 
-		if ($authStudent->login($email, $password, $remember_me)) {
-
-			$redirect_url = session('redirect_url') ?? 'students/dashboard';
+		if ($authnguoidung->login($email, $password, $remember_me)) {
+			// Cập nhật thời gian đăng nhập cuối cùng
+			$nguoi_dung = $authnguoidung->getCurrentNguoiDung();
+			
+			$redirect_url = session('redirect_url') ?? 'nguoi-dung/dashboard';
 
 			unset($_SESSION['redirect_url']);
 
 			return redirect()->to($redirect_url)
-							 ->with('info', 'Bạn đã login thành công!')
+							 ->with('success', 'Đăng nhập thành công!')
 							 ->withCookies();
 
 		}
 
 		return redirect()->back()
 						 ->withInput()
-						 ->with('warning', 'Login đã xảy ra lỗi!');
+						 ->with('warning', 'Đăng nhập không thành công! Vui lòng kiểm tra email và mật khẩu.');
 
 	}
 
-	public function deleteStudent()
+	public function deleteNguoiDung()
 	{
-		service('authstudent')->logout();
-		return redirect()->to('login/showlogoutmessagestudent')
+		$nguoi_dung = service('authnguoidung')->getCurrentNguoiDung();
+		$name = $nguoi_dung ? $nguoi_dung->getFullName() : 'Người dùng';
+		
+		service('authnguoidung')->logout();
+		
+		return redirect()->to('login/nguoi-dung')
+						 ->with('success', 'Đăng xuất thành công! Hẹn gặp lại ' . $name)
 						 ->withCookies();
 	}
-	public function logoutStudent()
+	
+	public function logoutnguoidung()
 	{
-		service('authstudent')->logout();
-		return redirect()->to('login/showlogoutmessagestudent')
-						 ->withCookies();
+		$nguoi_dung = service('authnguoidung')->getCurrentNguoiDung();
+		$name = $nguoi_dung ? $nguoi_dung->getFullName() : 'Người dùng';
+		
+		service('authnguoidung')->logout();
+		
+		return redirect()->to('login/nguoi-dung')
+						 ->with('success', 'Đăng xuất thành công! Hẹn gặp lại ' . $name)
+						 ->withCookies();	
 	}
+	
+	public function showlogoutmessagenguoidung()
+	{
+		return redirect()->to('login/nguoi-dung')
+						 ->with('info', 'Bạn đã đăng xuất thành công!');
+	}
+
+	// Login Admin
 	public function admin()
 	{
 		// Lấy URL đăng nhập Google
@@ -85,12 +106,12 @@ class Login extends BaseController
 			unset($_SESSION['redirect_url']);
 
 			return redirect()->to($redirect_url)
-							 ->with('info', 'Bạn đã login thành công!')
+							 ->with('success', 'Đăng nhập thành công!')
 							 ->withCookies();
 		} else {
 			return redirect()->back()
 							 ->withInput()
-							 ->with('warning', 'Login đã xảy ra lỗi!');
+							 ->with('warning', 'Đăng nhập không thành công! Vui lòng kiểm tra email và mật khẩu.');
 		}
 	}
 	
@@ -120,7 +141,7 @@ class Login extends BaseController
 		}
 		
 		if (empty($code)) {
-			$redirect = ($login_type == 'student') ? 'login' : 'login/admin';
+			$redirect = ($login_type == 'nguoidung') ? 'login/nguoi-dung' : 'login/admin';
 			return redirect()->to($redirect)
 							 ->with('warning', 'Không thể xác thực với Google!');
 		}
@@ -130,21 +151,21 @@ class Login extends BaseController
 		$googleUser = $googleAuth->handleCallback($code, $login_type);
 		
 		if (empty($googleUser)) {
-			$redirect = ($login_type == 'student') ? 'login' : 'login/admin';
+			$redirect = ($login_type == 'nguoidung') ? 'login/nguoi-dung' : 'login/admin';
 			return redirect()->to($redirect)
 							 ->with('warning', 'Không thể lấy thông tin từ Google!');
 		}
 		
 		// Xác định model và điều kiện tìm kiếm dựa trên login_type
-		if ($login_type == 'student') {
-			$model = new StudentModel();
+		if ($login_type == 'nguoidung') {
+			$model = new NguoiDungModel();
 			$user = $model->where('Email', $googleUser['email'])->first();
-			$redirect_failure = 'login';
+			$redirect_failure = 'login/nguoi-dung';
 			
 			// Hiển thị thông báo phù hợp nếu không tìm thấy người dùng
 			if ($user === null) {
 				return redirect()->to($redirect_failure)
-								 ->with('warning', 'Không tìm thấy tài khoản sinh viên với email: ' . $googleUser['email']);
+								 ->with('warning', 'Không tìm thấy tài khoản người dùng với email: ' . $googleUser['email']);
 			}
 		} else {
 			$model = new UserModel();
@@ -161,8 +182,8 @@ class Login extends BaseController
 		// Đăng nhập người dùng
 		if ($googleAuth->loginWithGoogle($googleUser, $login_type)) {
 			// Xác định redirect_url dựa trên login_type
-			if ($login_type == 'student') {
-				$redirect_url = session('redirect_url') ?? 'students/dashboard';
+			if ($login_type == 'nguoidung') {
+				$redirect_url = session('redirect_url') ?? 'nguoi-dung/dashboard';
 			} else {
 				$redirect_url = session('redirect_url') ?? 'users/dashboard';
 			}
@@ -173,7 +194,7 @@ class Login extends BaseController
 							 ->with('info', 'Bạn đã đăng nhập thành công với Google!')
 							 ->withCookies();
 		} else {
-			$redirect = ($login_type == 'student') ? 'login' : 'login/admin';
+			$redirect = ($login_type == 'nguoidung') ? 'login/nguoi-dung' : 'login/admin';
 			return redirect()->to($redirect)
 							 ->with('warning', 'Đăng nhập với Google không thành công!');
 		}
@@ -184,8 +205,13 @@ class Login extends BaseController
 	 */
 	public function delete()
 	{
+		$user = service('auth')->getCurrentUser();
+		$name = $user ? $user->name : 'Quản trị viên';
+		
 		service('auth')->logout();
-		return redirect()->to('login/showlogoutmessage')
+		
+		return redirect()->to('login/admin')
+						 ->with('success', 'Đăng xuất thành công! Hẹn gặp lại ' . $name)
 						 ->withCookies();
 	}
 
@@ -195,12 +221,12 @@ class Login extends BaseController
 	public function showLogoutMessage()
 	{
 		return redirect()->to('login/admin')
-						 ->with('info', 'bạn đã logout thành công!');
+						 ->with('info', 'Bạn đã đăng xuất thành công!');
 	}
 
 	/*public function deleteStudent()
 	{
-		service('authstudent')->logout();
+		service('authnguoidung')->logout();
 		return redirect()->to('login/showlogoutmessageStudent')
 						 ->withCookies();
 	}*/
@@ -210,7 +236,7 @@ class Login extends BaseController
 	 */
 	public function showLogoutMessageStudent()
 	{
-		return redirect()->to('login')
-						 ->with('info', 'bạn đã logout thành công!');
+		return redirect()->to('login/nguoi-dung')
+						 ->with('info', 'Bạn đã đăng xuất thành công!');
 	}
 }

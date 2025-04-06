@@ -613,7 +613,6 @@ class SukienModel extends BaseModel
         // Tìm ID loại sự kiện từ tên
         $loaiSukienModel = new \App\Modules\quanlyloaisukien\Models\LoaiSuKienModel();
         $loaiSukien = $loaiSukienModel->where('ten_loai_su_kien', $category)
-                                     ->orWhere('slug', strtolower(str_replace(' ', '-', $category)))
                                      ->first();
         
         $loaiSuKienId = $loaiSukien ? $loaiSukien->loai_su_kien_id : 0;

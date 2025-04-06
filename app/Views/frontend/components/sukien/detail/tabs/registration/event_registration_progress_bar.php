@@ -1,7 +1,7 @@
 <?php
 // Kiểm tra người dùng đã đăng nhập chưa và đã đăng ký sự kiện này chưa
-$isLoggedIn = service('authstudent')->isLoggedInStudent();
-$userData = $isLoggedIn ? service('authstudent')->getUserData() : null;
+$isLoggedIn = service('authnguoidung')->isLoggedInStudent();
+$userData = $isLoggedIn ? service('authnguoidung')->getUserData() : null;
 $isRegistered = false;
 $registrationTime = null;
 

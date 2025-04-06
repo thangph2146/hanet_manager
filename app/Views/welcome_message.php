@@ -31,7 +31,7 @@
                                 <span class="text-white fw-bold">Trường Đại học Ngân hàng TP.HCM</span>
                             </p>
                             <div class="d-flex justify-content-center gap-3 flex-wrap" data-aos="fade-up" data-aos-delay="300">
-                                <a href="<?= site_url('su-kien/list') ?>" class="btn btn-gradient btn-lg">
+                                <a href="<?= site_url('su-kien') ?>" class="btn btn-gradient btn-lg">
                                     <i class="fas fa-calendar-alt me-2"></i>Xem tất cả sự kiện
                                 </a>
                             </div>
@@ -85,7 +85,7 @@
                             <a href="https://hub.edu.vn" target="_blank" class="btn btn-gradient">
                                 <i class="fas fa-external-link-alt me-2"></i>Tìm hiểu thêm
                             </a>
-                            <a href="<?= site_url('su-kien/list') ?>" class="btn btn-outline-primary btn-hover-gradient">
+                            <a href="<?= site_url('su-kien') ?>" class="btn btn-outline-primary btn-hover-gradient">
                                 <i class="fas fa-calendar-week me-2"></i>Xem sự kiện
                             </a>
                         </div>
@@ -153,7 +153,7 @@
                 <?php endforeach; ?>
             </div>
             <div class="text-center mt-4">
-                <a href="<?= site_url('su-kien/list') ?>" class="btn btn-primary">Xem tất cả sự kiện</a>
+                <a href="<?= site_url('su-kien') ?>" class="btn btn-primary">Xem tất cả sự kiện</a>
             </div>
         </div>
     </section>
@@ -229,7 +229,7 @@
             <?php else: ?>
                 <h2 class="countdown-title">Không có sự kiện nào sắp diễn ra</h2>
                 <div class="text-center mt-4">
-                    <a href="<?= site_url('su-kien/list') ?>" class="btn btn-light btn-lg">Xem tất cả sự kiện</a>
+                    <a href="<?= site_url('su-kien') ?>" class="btn btn-light btn-lg">Xem tất cả sự kiện</a>
                 </div>
             <?php endif; ?>
         </div>

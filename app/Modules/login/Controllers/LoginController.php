@@ -12,40 +12,46 @@ class LoginController extends BaseController
     public function index()
     {
         $googleAuth = service('googleAuth');
-        $googleAuthUrl = $googleAuth->getAuthUrl('student');    
-        return view('App\Modules\login\student\Views\login', ['googleAuthUrl' => $googleAuthUrl]);
+        $googleAuthUrl = $googleAuth->getAuthUrl('nguoidung');    
+        return view('App\Modules\login\nguoidung\Views\login', ['googleAuthUrl' => $googleAuthUrl]);
     }
+
     public function register()
     {
-        return view('App\Modules\login\student\Views\register');
+        // Return register page for students
+        return view('App\Modules\login\nguoidung\Views\register');
     }
-    public function create_student()
+
+    public function create_nguoidung()
     {
         $email = $this->request->getPost('email');
         $password = $this->request->getPost('password');    
         $remember_me = (bool) $this->request->getPost('remember_me');
 
-        $authStudent = service('authstudent');
+        $authnguoidung = service('authnguoidung');
 
-        if ($authStudent->login($email, $password, $remember_me)) {
+        if ($authnguoidung->login($email, $password, $remember_me)) {
+            // Cập nhật thời gian đăng nhập cuối cùng
+            $nguoi_dung = $authnguoidung->getCurrentNguoiDung();
+            
             $redirect_url = session('redirect_url') ?? '/';
             unset($_SESSION['redirect_url']);
 
             return redirect()->to($redirect_url)
-                             ->with('info', 'Bạn đã login thành công!')
+                             ->with('success', 'Đăng nhập thành công!')
                              ->withCookies();
         }
 
         return redirect()->back()
                          ->withInput()
-                         ->with('warning', 'Login đã xảy ra lỗi!');
+                         ->with('warning', 'Đăng nhập không thành công! Vui lòng kiểm tra email và mật khẩu.');
     }
 
     /**
      * Xử lý đăng ký tài khoản sinh viên mới
      * @return \CodeIgniter\HTTP\RedirectResponse
      */
-    public function create_student_account()
+    public function create_nguoidung_account()
     {
         $rules = [
             'fullname' => [
@@ -125,34 +131,37 @@ class LoginController extends BaseController
         // Tạo AccountId từ email sinh viên
         $accountId = explode('@', $email)[0]; // Lấy phần trước @ làm tên đăng nhập
 
+        // Phân tách họ tên thành các thành phần
+        $nameParts = explode(' ', $fullname);
+        $firstName = array_pop($nameParts); // Phần tử cuối cùng là tên
+        $lastName = array_shift($nameParts) ?? ''; // Phần tử đầu tiên là họ
+        $middleName = implode(' ', $nameParts); // Phần còn lại là tên đệm
+
         // Kiểm tra xem AccountId đã tồn tại chưa
-        $studentModel = new StudentModel();
-        $existingAccount = $studentModel->where('AccountId', $accountId)->first();
-        
-        // Nếu đã tồn tại, thêm số ngẫu nhiên vào cuối
-        if ($existingAccount) {
+        $nguoiDungModel = new \App\Modules\quanlynguoidung\Models\NguoiDungModel();
+        if ($nguoiDungModel->isAccountIdExists($accountId)) {
             $accountId = $accountId . rand(100, 999);
         }
         
         // Tạo dữ liệu người dùng mới
-        $studentData = [
+        $nguoiDungData = [
             'AccountId' => $accountId,
-            'FirstName' => $username,
+            'FirstName' => $firstName,
+            'MiddleName' => $middleName,
+            'LastName' => $lastName,
             'FullName' => $fullname,
             'Email' => $email,
             'MobilePhone' => $mobile,
-            'PW' => password_hash($password, PASSWORD_DEFAULT),
             'mat_khau_local' => password_hash($password, PASSWORD_DEFAULT),
             'loai_nguoi_dung_id' => 2, // ID cho loại người dùng sinh viên
-            'status' => 1,
-            'created_at' => date('Y-m-d H:i:s')
+            'status' => 1
         ];
         
         try {
-            if ($studentModel->insert($studentData)) {
+            if ($nguoiDungModel->insert($nguoiDungData)) {
                 // Đăng nhập tự động sau khi đăng ký
-                $authStudent = service('authstudent');
-                if ($authStudent->login($email, $password, false)) {
+                $authnguoidung = service('authnguoidung');
+                if ($authnguoidung->login($email, $password, false)) {
                     return redirect()->to('/')
                                     ->with('success', 'Đăng ký tài khoản thành công và đã đăng nhập!')
                                     ->withCookies();
@@ -162,7 +171,7 @@ class LoginController extends BaseController
                 return redirect()->to('login/nguoi-dung')
                                 ->with('success', 'Đăng ký tài khoản thành công! Vui lòng đăng nhập.');
             } else {
-                $errors = $studentModel->errors();
+                $errors = $nguoiDungModel->errors();
                 if (empty($errors)) {
                     $errors = ['database' => 'Không thể tạo tài khoản. Vui lòng thử lại sau.'];
                 }
@@ -235,23 +244,33 @@ class LoginController extends BaseController
         }
     }
 
-    public function deleteStudent()
+    public function deletenguoidung()
     {
-        service('authStudent')->logout();
-        return redirect()->to('login/showlogoutmessagestudent')
+        $nguoi_dung = service('authnguoidung')->getCurrentNguoiDung();
+        $name = $nguoi_dung ? $nguoi_dung->getFullName() : 'Người dùng';
+        
+        service('authnguoidung')->logout();
+        
+        return redirect()->to('login/nguoi-dung')
+                         ->with('success', 'Đăng xuất thành công! Hẹn gặp lại ' . $name)
                          ->withCookies();
     }
 
-    public function logoutStudent()
+    public function logoutnguoidung()
     {
-        service('authStudent')->logout();
-        return redirect()->to('login/showlogoutmessagestudent')
+        $nguoi_dung = service('authnguoidung')->getCurrentNguoiDung();
+        $name = $nguoi_dung ? $nguoi_dung->getFullName() : 'Người dùng';
+        
+        service('authnguoidung')->logout();
+        
+        return redirect()->to('login/nguoi-dung')
+                         ->with('success', 'Đăng xuất thành công! Hẹn gặp lại ' . $name)
                          ->withCookies();
     }
 
     public function showLogoutMessageStudent()
     {
-        return redirect()->to('login')
+        return redirect()->to('login/nguoi-dung')
                          ->with('info', 'Bạn đã đăng xuất thành công!');
     }
 } 

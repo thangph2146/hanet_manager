@@ -144,7 +144,7 @@ $status = old('status', $status);
                 <!-- AccountId -->
                 <div class="col-md-6">
                     <label for="AccountId" class="form-label fw-semibold">
-                        Tài khoản <span class="text-danger">*</span>
+                        Tài khoản
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
@@ -152,7 +152,7 @@ $status = old('status', $status);
                             id="AccountId" name="AccountId" 
                             value="<?= esc($AccountId) ?>" 
                             placeholder="Nhập tài khoản"
-                            required maxlength="50"
+                            maxlength="50"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
                             title="Tài khoản đăng nhập vào hệ thống">
@@ -198,7 +198,7 @@ $status = old('status', $status);
                 <!-- MiddleName -->
                 <div class="col-md-4">
                     <label for="MiddleName" class="form-label fw-semibold">
-                        Tên đệm
+                        Tên đệm <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
@@ -206,7 +206,7 @@ $status = old('status', $status);
                             id="MiddleName" name="MiddleName" 
                             value="<?= esc($MiddleName) ?>" 
                             placeholder="Nhập tên đệm"
-                            maxlength="100"
+                            required maxlength="100"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
                             title="Tên đệm của người dùng">
@@ -214,6 +214,8 @@ $status = old('status', $status);
                             <div class="invalid-feedback">
                                 <?= $validation->getError('MiddleName') ?>
                             </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng nhập tên đệm</div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -325,27 +327,25 @@ $status = old('status', $status);
                 <!-- MobilePhone -->
                 <div class="col-md-6">
                     <label for="MobilePhone" class="form-label fw-semibold">
-                        Số điện thoại
+                        Số điện thoại di động <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-phone'></i></span>
                         <input type="text" class="form-control <?= isset($validation) && $validation->hasError('MobilePhone') ? 'is-invalid' : '' ?>" 
                             id="MobilePhone" name="MobilePhone" 
                             value="<?= esc($MobilePhone) ?>" 
-                            placeholder="Nhập số điện thoại"
-                            maxlength="20"
+                            placeholder="Nhập số điện thoại di động"
+                            required maxlength="20"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
-                            title="Số điện thoại di động">
+                            title="Số điện thoại di động của người dùng">
                         <?php if (isset($validation) && $validation->hasError('MobilePhone')): ?>
                             <div class="invalid-feedback">
                                 <?= $validation->getError('MobilePhone') ?>
                             </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng nhập số điện thoại di động</div>
                         <?php endif; ?>
-                    </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Số điện thoại tối đa 20 ký tự
                     </div>
                 </div>
 
@@ -719,12 +719,12 @@ $status = old('status', $status);
                 <!-- Status -->
                 <div class="col-md-6">
                     <label for="status" class="form-label fw-semibold">
-                        Trạng thái <span class="text-danger">*</span>
+                        Trạng thái
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class='bx bx-toggle-left'></i></span>
                         <select class="form-select <?= isset($validation) && $validation->hasError('status') ? 'is-invalid' : '' ?>" 
-                               id="status" name="status" required
+                               id="status" name="status"
                                data-bs-toggle="tooltip"
                                data-bs-placement="top"
                                title="Trạng thái hoạt động của tài khoản">

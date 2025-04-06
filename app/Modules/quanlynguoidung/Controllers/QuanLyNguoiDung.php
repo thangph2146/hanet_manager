@@ -130,6 +130,15 @@ class QuanLyNguoiDung extends BaseController
         // Log dữ liệu submit
         log_message('debug', 'Create user - Submit data: ' . json_encode($data));
         
+        // Xử lý các trường số nguyên
+        $integerFields = ['u_id', 'loai_nguoi_dung_id', 'nam_hoc_id', 'bac_hoc_id', 'he_dao_tao_id', 'nganh_id', 'phong_khoa_id', 'bin'];
+        foreach ($integerFields as $field) {
+            if (isset($data[$field]) && $data[$field] !== '') {
+                // Chuyển đổi sang số nguyên
+                $data[$field] = (int)$data[$field];
+            }
+        }
+        
         $this->model->prepareValidationRules('insert');
         
         // Kiểm tra dữ liệu
@@ -140,7 +149,7 @@ class QuanLyNguoiDung extends BaseController
 
         try {
             // Kiểm tra tài khoản tồn tại
-            if ($this->model->isAccountIdExists($data['AccountId'])) {
+            if (!empty($data['AccountId']) && $this->model->isAccountIdExists($data['AccountId'])) {
                 log_message('error', 'Create user - AccountId already exists: ' . $data['AccountId']);
                 return redirect()->back()
                     ->withInput()
@@ -173,7 +182,7 @@ class QuanLyNguoiDung extends BaseController
                 }
                 
                 // Tạo tên file ngẫu nhiên với mã người dùng
-                $newName = $data['AccountId'] . '_' . uniqid() . '.' . $avatarFile->getExtension();
+                $newName = (!empty($data['AccountId']) ? $data['AccountId'] : 'user') . '_' . uniqid() . '.' . $avatarFile->getExtension();
                 
                 // Di chuyển file đến thư mục đích
                 $avatarFile->move($uploadPath, $newName);
@@ -182,12 +191,18 @@ class QuanLyNguoiDung extends BaseController
                 $data['avatar'] = $uploadPath . '/' . $newName;
             }
 
-            // Log dữ liệu trước khi lưu
-            log_message('debug', 'Create user - Data before save: ' . json_encode($data));
+            // Log dữ liệu trước khi lọc
+            log_message('debug', 'Create user - Data before filtering: ' . json_encode($data));
+            
+            // Lọc dữ liệu trước khi lưu
+            $filteredData = $this->model->filterData($data);
+            
+            // Log dữ liệu sau khi lọc
+            log_message('debug', 'Create user - Data after filtering: ' . json_encode($filteredData));
 
             // Lưu dữ liệu
-            if ($this->model->insert($data)) {
-                log_message('info', 'Create user - Success: ' . json_encode($data));
+            if ($this->model->insert($filteredData)) {
+                log_message('info', 'Create user - Success: ' . json_encode($filteredData));
                 $this->alert->set('success', 'Thêm mới ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
@@ -273,25 +288,39 @@ class QuanLyNguoiDung extends BaseController
     public function update($id = null)
     {
         if (empty($id)) {
-            $this->alert->set('danger', 'ID khóa học không hợp lệ', true);
+            $this->alert->set('danger', 'ID người dùng không hợp lệ', true);
             return redirect()->to($this->moduleUrl);
         }
         
-        // Lấy thông tin tham gia sự kiện với relationship
+        // Lấy thông tin người dùng với relationship
         $existingRecord = $this->model->findWithRelations($id);
         
         if (empty($existingRecord)) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu khóa học', true);
+            $this->alert->set('danger', 'Không tìm thấy dữ liệu người dùng', true);
             return redirect()->to($this->moduleUrl);
         }
         
         // Xác thực dữ liệu gửi lên
         $data = $this->request->getPost();
+        
+        // Log dữ liệu submit
+        log_message('debug', 'Update user - Submit data: ' . json_encode($data));
+        
+        // Xử lý các trường số nguyên
+        $integerFields = ['u_id', 'loai_nguoi_dung_id', 'nam_hoc_id', 'bac_hoc_id', 'he_dao_tao_id', 'nganh_id', 'phong_khoa_id', 'bin'];
+        foreach ($integerFields as $field) {
+            if (isset($data[$field]) && $data[$field] !== '') {
+                // Chuyển đổi sang số nguyên
+                $data[$field] = (int)$data[$field];
+            }
+        }
+        
         // Chuẩn bị quy tắc validation cho cập nhật
         $this->model->prepareValidationRules('update', ['nguoi_dung_id' => $id]);
         
         // Kiểm tra dữ liệu
         if (!$this->validate($this->model->validationRules, $this->model->validationMessages)) {
+            log_message('error', 'Update user - Validation failed: ' . json_encode($this->validator->getErrors()));
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         
@@ -314,7 +343,7 @@ class QuanLyNguoiDung extends BaseController
                 }
                 
                 // Tạo tên file ngẫu nhiên với mã người dùng
-                $newName = $data['AccountId'] . '_' . uniqid() . '.' . $avatarFile->getExtension();
+                $newName = (!empty($data['AccountId']) ? $data['AccountId'] : 'user') . '_' . uniqid() . '.' . $avatarFile->getExtension();
                 
                 // Di chuyển file đến thư mục đích
                 $avatarFile->move($uploadPath, $newName);
@@ -328,11 +357,22 @@ class QuanLyNguoiDung extends BaseController
                 }
             }
 
+            // Log dữ liệu trước khi lọc
+            log_message('debug', 'Update user - Data before filtering: ' . json_encode($data));
+            
+            // Lọc dữ liệu trước khi cập nhật
+            $filteredData = $this->model->filterData($data);
+            
+            // Log dữ liệu sau khi lọc
+            log_message('debug', 'Update user - Data after filtering: ' . json_encode($filteredData));
+
             // Lưu dữ liệu trực tiếp
-            if ($this->model->update($id, $data)) {
+            if ($this->model->update($id, $filteredData)) {
+                log_message('info', 'Update user - Success: ' . json_encode($filteredData));
                 $this->alert->set('success', 'Cập nhật ' . $this->title . ' thành công', true);
                 return redirect()->to($this->moduleUrl);
             } else {
+                log_message('error', 'Update user - Update failed: ' . json_encode($this->model->errors()));
                 throw new \RuntimeException('Không thể cập nhật ' . $this->title);
             }
         } catch (\Exception $e) {

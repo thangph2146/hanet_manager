@@ -1,6 +1,6 @@
 <?php
 /**
- * User dropdown component
+ * Nguoi Dung dropdown component
  * Hiển thị dropdown menu cho người dùng đã đăng nhập
  */
 
@@ -43,7 +43,6 @@
 .user-dropdown {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
     text-decoration: none;
     padding: 0.25rem;
     transition: all 0.2s ease;
@@ -80,7 +79,6 @@
     font-weight: 500;
     font-size: 0.9rem;
     color: #333;
-    margin-left: 0.5rem;
     white-space: nowrap;
 }
 
@@ -165,10 +163,39 @@
 <div class="dropdown user-dropdown-container">
     <a href="#" class="user-dropdown" id="user-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
         <div class="user-avatar me-2">
-            <img src="<?= $avatar ?>" alt="User Avatar">
+            <?php 
+            try {
+                // Lấy đường dẫn avatar từ người dùng hiện tại
+                $authnguoidung = service('authnguoidung');
+                $nguoi_dung = $authnguoidung->getCurrentNguoiDung();
+                $avatarUrl = $nguoi_dung && method_exists($nguoi_dung, 'getAvatarUrl') 
+                    ? $nguoi_dung->getAvatarUrl() 
+                    : ($avatar ?? base_url('public/data/images/default-avatar.png'));
+            } catch (Exception $e) {
+                log_message('error', 'Lỗi lấy avatar: ' . $e->getMessage());
+                $avatarUrl = $avatar ?? base_url('public/data/images/default-avatar.png');
+            }
+            ?>
+            <img src="<?= $avatarUrl ?>" alt="Avatar" onerror="this.src='<?= base_url('public/data/images/default-avatar.png') ?>'">
             <span class="user-status"></span>
         </div>
-        <div class="user-name"><?= $username ?></div>
+        <div class="user-name">
+            <?php
+            // Sử dụng service authnguoidung để lấy tên người dùng
+            try {
+                $authnguoidung = service('authnguoidung');
+                if ($authnguoidung->isLoggedInStudent()) {
+                    $nguoi_dung = $authnguoidung->getCurrentNguoiDung();
+                    echo esc($nguoi_dung->getFullName());
+                } else {
+                    echo $username ?? 'Người dùng';
+                }
+            } catch (Exception $e) {
+                log_message('error', 'Lỗi hiển thị tên người dùng: ' . $e->getMessage());
+                echo $username ?? 'Người dùng';
+            }
+            ?>
+        </div>
     </a>
     
     <div class="dropdown-menu user-menu" aria-labelledby="user-dropdown">
@@ -179,10 +206,13 @@
         <?php else: ?>
             <?php foreach($menu_groups as $group): ?>   
                 <div class="user-menu-section">
+                    <?php if (isset($group['title'])): ?>
+                        <small class="dropdown-header-text"><?= $group['title'] ?></small>
+                    <?php endif; ?>
                     <?php if (isset($group['actions']) && is_array($group['actions'])): ?>
                         <?php foreach($group['actions'] as $action): ?>
                             <a class="dropdown-item <?= isset($action['type']) && $action['type'] == 'danger' ? 'text-danger' : '' ?>" 
-                               href="<?= $action['url'] ?? '#' ?>">
+                               href="<?= base_url($action['url'] ?? '#') ?>">
                                 <i class="fas fa-<?= $action['icon'] ?? 'circle' ?>"></i>
                                 <span><?= $action['title'] ?? 'Menu Item' ?></span>
                             </a>

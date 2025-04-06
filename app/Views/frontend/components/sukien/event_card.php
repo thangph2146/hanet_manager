@@ -64,8 +64,8 @@ if ($registrationCount === 0 && isset($event['su_kien_id'])) {
 }
 
 // Kiểm tra người dùng đã đăng nhập chưa và đã đăng ký sự kiện này chưa
-$isLoggedIn = service('authstudent')->isLoggedInStudent();
-$userData = $isLoggedIn ? service('authstudent')->getUserData() : null;
+$isLoggedIn = service('authnguoidung')->isLoggedInStudent();
+$userData = $isLoggedIn ? service('authnguoidung')->getUserData() : null;
 $isRegistered = false;
 
 // Nếu đã đăng nhập và có dữ liệu sự kiện, kiểm tra đã đăng ký chưa

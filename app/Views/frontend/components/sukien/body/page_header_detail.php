@@ -5,7 +5,7 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="<?= site_url('su-kien') ?>">Trang chủ</a></li>
-                            <li class="breadcrumb-item"><a href="<?= site_url('su-kien/list') ?>">Danh sách sự kiện</a></li>
+                            <li class="breadcrumb-item"><a href="<?= site_url('su-kien') ?>">Danh sách sự kiện</a></li>
                             <?php if (isset($event['loai_su_kien'])): ?>
                             <li class="breadcrumb-item">
                                 <?php 

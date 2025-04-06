@@ -44,6 +44,7 @@ class NguoiDungModel extends BaseModel
         'nganh_id',
         'phong_khoa_id',
         'status',
+        'bin',
         'last_login',
         'created_at',
         'updated_at',
@@ -443,6 +444,13 @@ class NguoiDungModel extends BaseModel
         unset($this->validationRules['last_login']);
         // Loại bỏ validation cho nguoi_dung_id trong mọi trường hợp
         unset($this->validationRules['nguoi_dung_id']);
+        unset($this->validationRules['bin']);
+        unset($this->validationRules['u_id']);
+        unset($this->validationRules['nam_hoc_id']);
+        unset($this->validationRules['bac_hoc_id']);
+        unset($this->validationRules['he_dao_tao_id']);
+        unset($this->validationRules['nganh_id']);
+        unset($this->validationRules['phong_khoa_id']);
         
         if ($scenario === 'update' && isset($data['nguoi_dung_id'])) {
             foreach ($this->validationRules as $field => &$rules) {
@@ -547,6 +555,10 @@ class NguoiDungModel extends BaseModel
      */
     public function isAccountIdExists(string $accountId, ?int $excludeId = null): bool
     {
+        if (empty($accountId)) {
+            return false;
+        }
+        
         $builder = $this->builder();
         $builder->where('AccountId', $accountId);
         $builder->where('deleted_at IS NULL');
@@ -657,4 +669,88 @@ class NguoiDungModel extends BaseModel
         ]);
     }
     
+    /**
+     * Lọc dữ liệu trước khi chèn hoặc cập nhật
+     * Xóa các trường trống không bắt buộc
+     * 
+     * @param array $data Dữ liệu cần lọc
+     * @return array Dữ liệu đã lọc
+     */
+    public function filterData(array $data): array
+    {
+        // Các trường bắt buộc không được unset
+        $requiredFields = ['Email', 'FullName', 'LastName', 'MiddleName', 'FirstName', 'MobilePhone'];
+        
+        // Các trường số nguyên cần được chuyển thành null khi rỗng
+        $integerFields = ['u_id', 'loai_nguoi_dung_id', 'nam_hoc_id', 'bac_hoc_id', 'he_dao_tao_id', 'nganh_id', 'phong_khoa_id', 'bin', 'status'];
+        
+        // Các trường datetime cần được xử lý đặc biệt
+        $datetimeFields = ['last_login', 'created_at', 'updated_at', 'deleted_at'];
+        
+        $removedFields = [];
+        
+        // Lọc ra các trường trống không bắt buộc
+        foreach ($data as $key => $value) {
+            // Nếu là trường số nguyên và giá trị rỗng, đặt thành null
+            if (in_array($key, $integerFields) && $value === '') {
+                $data[$key] = null;
+            }
+            // Xử lý các trường datetime
+            elseif (in_array($key, $datetimeFields) && empty($value)) {
+                unset($data[$key]);
+                $removedFields[] = $key;
+            }
+            // Nếu trường không phải là bắt buộc và giá trị rỗng, unset nó
+            elseif (!in_array($key, $requiredFields) && (empty($value) && $value !== '0' && $value !== 0)) {
+                unset($data[$key]);
+                $removedFields[] = $key;
+            }
+        }
+        
+        // Đảm bảo các trường bắt buộc luôn tồn tại
+        foreach ($requiredFields as $field) {
+            if (!isset($data[$field])) {
+                log_message('error', 'Required field missing: ' . $field);
+                // Không thêm trường trống vào data, chỉ log lỗi
+            }
+        }
+        
+        if (!empty($removedFields)) {
+            log_message('debug', 'Removed empty fields from data: ' . implode(', ', $removedFields));
+        }
+        
+        return $data;
+    }
+    
+    /**
+     * Ghi đè phương thức insert để lọc dữ liệu trước khi chèn
+     * 
+     * @param array $data Dữ liệu cần chèn
+     * @param bool $returnID Có trả về ID của bản ghi mới hay không
+     * @return int|string|bool ID của bản ghi mới hoặc kết quả thành công/thất bại
+     */
+    public function insert($data = null, bool $returnID = true)
+    {
+        if (is_array($data)) {
+            $data = $this->filterData($data);
+        }
+        
+        return parent::insert($data, $returnID);
+    }
+    
+    /**
+     * Ghi đè phương thức update để lọc dữ liệu trước khi cập nhật
+     * 
+     * @param int|array|string $id ID của bản ghi cần cập nhật hoặc mảng điều kiện
+     * @param array $data Dữ liệu cập nhật
+     * @return bool Kết quả thành công/thất bại
+     */
+    public function update($id = null, $data = null): bool
+    {
+        if (is_array($data)) {
+            $data = $this->filterData($data);
+        }
+        
+        return parent::update($id, $data);
+    }
 } 

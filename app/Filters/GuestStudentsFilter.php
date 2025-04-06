@@ -9,7 +9,7 @@ class GuestStudentsFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        if (service('authstudent')->isLoggedInStudent()) {
+        if (service('authnguoidung')->isLoggedInStudent()) {
             // Lấy đường dẫn hiện tại
             $currentURI = uri_string();
 

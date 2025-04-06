@@ -52,13 +52,13 @@
     <section class="container py-5">
         <div class="row mb-4">
             <div class="col-md-8">
-                <form action="<?= site_url('su-kien/list') ?>" method="get" class="d-flex">
+                <form action="<?= site_url('su-kien') ?>" method="get" class="d-flex">
                     <input type="text" name="search" class="form-control me-2" placeholder="Tìm kiếm sự kiện..." value="<?= isset($search) ? esc($search) : '' ?>">
                     <button type="submit" class="btn btn-primary">Tìm kiếm</button>
                 </form>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <a href="<?= site_url('su-kien/list') ?>" class="btn <?= !isset($category) ? 'btn-primary' : 'btn-outline-primary' ?> ms-2">Tất cả</a>
+                <a href="<?= site_url('su-kien') ?>" class="btn <?= !isset($category) ? 'btn-primary' : 'btn-outline-primary' ?> ms-2">Tất cả</a>
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     Lọc theo loại
                 </button>
@@ -78,7 +78,7 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="filter-buttons text-center d-none d-md-block">
-                    <a href="<?= site_url('su-kien/list') ?>" class="btn btn-outline-primary me-2 mb-2 <?= !isset($category) ? 'active' : '' ?>">Tất cả</a>
+                    <a href="<?= site_url('su-kien') ?>" class="btn btn-outline-primary me-2 mb-2 <?= !isset($category) ? 'active' : '' ?>">Tất cả</a>
                     <?php foreach ($event_types as $type): ?>
                     <a href="<?= site_url('su-kien/loai/' . $type['slug']) ?>" 
                        class="btn btn-outline-primary me-2 mb-2 <?= (isset($category) && $category === $type['loai_su_kien']) ? 'active' : '' ?>">

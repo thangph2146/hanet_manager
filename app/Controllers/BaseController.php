@@ -44,7 +44,7 @@ abstract class BaseController extends Controller
         'url', 
         'auth', 
         'setting', 
-        'authstudent', 
+        'authnguoidung', 
         'file',
         'pagination'
     ];
