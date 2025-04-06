@@ -17,12 +17,6 @@
     <!-- Event Description -->
     <?= $this->include('frontend\components\sukien\detail\tabs\detail\event_description') ?>
 
-    <!-- Event Objectives -->
-    <?= $this->include('frontend\components\sukien\detail\tabs\detail\event_objectives') ?>
-
-    <!-- Event Topics -->
-    <?= $this->include('frontend\components\sukien\detail\tabs\detail\event_topics') ?>
-
     <!-- Event Schedule -->
     <?= $this->include('frontend\components\sukien\detail\tabs\detail\event_schedule') ?>
 

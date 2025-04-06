@@ -634,6 +634,13 @@ class DangKySuKienModel extends BaseModel
     {
         $data = ['status' => $status];
         
+        // Lấy thông tin đăng ký hiện tại để biết sự kiện ID
+        $registration = $this->find($id);
+        if (!$registration) {
+            return false;
+        }
+        $suKienId = $registration->su_kien_id;
+        
         if ($status == 1) {
             $data['thoi_gian_duyet'] = Time::now()->toDateTimeString();
         } elseif ($status == -1) {
@@ -645,7 +652,15 @@ class DangKySuKienModel extends BaseModel
         
         $data['updated_at'] = Time::now()->toDateTimeString();
         
-        return $this->update($id, $data);
+        $result = $this->update($id, $data);
+        
+        // Cập nhật thống kê sự kiện
+        if ($result) {
+            $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
+            $suKienModel->updateEventStats($suKienId);
+        }
+        
+        return $result;
     }
     
     /**
@@ -664,6 +679,8 @@ class DangKySuKienModel extends BaseModel
         if (!$registration) {
             return false;
         }
+        
+        $suKienId = $registration->su_kien_id;
         
         $data = [
             'da_check_in' => $value,
@@ -701,7 +718,15 @@ class DangKySuKienModel extends BaseModel
             }
         }
         
-        return $this->update($id, $data);
+        $result = $this->update($id, $data);
+        
+        // Cập nhật thống kê sự kiện
+        if ($result) {
+            $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
+            $suKienModel->updateEventStats($suKienId);
+        }
+        
+        return $result;
     }
     
     /**
@@ -720,6 +745,8 @@ class DangKySuKienModel extends BaseModel
         if (!$registration) {
             return false;
         }
+        
+        $suKienId = $registration->su_kien_id;
         
         // Không cho phép check-out nếu chưa check-in
         if ($value && !$registration->isDaCheckIn()) {
@@ -769,7 +796,15 @@ class DangKySuKienModel extends BaseModel
             $data['checkout_time'] = null;
         }
         
-        return $this->update($id, $data);
+        $result = $this->update($id, $data);
+        
+        // Cập nhật thống kê sự kiện
+        if ($result) {
+            $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
+            $suKienModel->updateEventStats($suKienId);
+        }
+        
+        return $result;
     }
     
     /**
@@ -1235,7 +1270,7 @@ class DangKySuKienModel extends BaseModel
     }
 
     /**
-     * Override phương thức insert để xử lý upload ảnh
+     * Override phương thức insert để xử lý upload ảnh và cập nhật thống kê
      */
     public function insert($data = null, bool $returnID = true)
     {
@@ -1246,12 +1281,20 @@ class DangKySuKienModel extends BaseModel
                 $data['face_image_path'] = $imagePath;
             }
         }
-
-        return parent::insert($data, $returnID);
+        
+        $result = parent::insert($data, $returnID);
+        
+        // Cập nhật thống kê sự kiện nếu có trường su_kien_id trong dữ liệu
+        if ($result && isset($data['su_kien_id'])) {
+            $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
+            $suKienModel->updateEventStats($data['su_kien_id']);
+        }
+        
+        return $result;
     }
 
     /**
-     * Override phương thức update để xử lý upload ảnh
+     * Override phương thức update để xử lý upload ảnh và cập nhật thống kê
      */
     public function update($id = null, $data = null): bool
     {
@@ -1271,8 +1314,33 @@ class DangKySuKienModel extends BaseModel
                 $data['face_image_path'] = $imagePath;
             }
         }
-
-        return parent::update($id, $data);
+        
+        $result = parent::update($id, $data);
+        
+        // Nếu cập nhật thành công và không được gọi từ phương thức khác đã cập nhật thống kê
+        if ($result && $id !== null && !is_array($id)) {
+            // Lấy đối tượng đăng ký sau khi cập nhật
+            $registration = $this->find($id);
+            if ($registration && !empty($registration->su_kien_id)) {
+                // Kiểm tra xem đã có backtrace của updateEventStats chưa để tránh đệ quy vô hạn
+                $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+                $skipUpdate = false;
+                
+                foreach ($backtrace as $trace) {
+                    if (isset($trace['function']) && $trace['function'] === 'updateEventStats') {
+                        $skipUpdate = true;
+                        break;
+                    }
+                }
+                
+                if (!$skipUpdate) {
+                    $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
+                    $suKienModel->updateEventStats($registration->su_kien_id);
+                }
+            }
+        }
+        
+        return $result;
     }
 
     /**

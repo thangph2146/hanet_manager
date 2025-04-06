@@ -52,22 +52,29 @@
                 <div>
                     <h6 class="mb-1 fw-bold">Số lượng</h6>
                     <div class="d-flex align-items-center">
-                        <span class="me-2"><?= $event['so_luong_tham_gia'] ?> người</span>
-                        <?php if (!empty($event['tong_dang_ky']) && $event['so_luong_tham_gia'] > 0): ?>
+                        <span class="me-2"><?= $event['so_luong_tham_gia'] > 0 ? $event['so_luong_tham_gia'] : 'Không giới hạn' ?><?= $event['so_luong_tham_gia'] > 0 ? ' người' : '' ?></span>
+                        <?php 
+                        // Tính tỷ lệ đăng ký
+                        $registrationPercent = 0;
+                        if (!empty($event['tong_dang_ky']) && $event['so_luong_tham_gia'] > 0) {
+                            $registrationPercent = min(100, round(($event['tong_dang_ky'] / $event['so_luong_tham_gia']) * 100));
+                        ?>
                         <div class="progress flex-grow-1" style="height: 6px;">
                             <div class="progress-bar bg-success" role="progressbar" 
-                                style="width: <?= min(100, round(($event['tong_dang_ky'] / $event['so_luong_tham_gia']) * 100)) ?>%;" 
+                                style="width: <?= $registrationPercent ?>%;" 
                                 aria-valuenow="<?= $event['tong_dang_ky'] ?>" 
                                 aria-valuemin="0" 
                                 aria-valuemax="<?= $event['so_luong_tham_gia'] ?>">
                             </div>
                         </div>
-                        <?php endif; ?>
+                        <?php } ?>
                     </div>
                     <?php if (!empty($event['tong_dang_ky'])): ?>
                     <div class="small text-muted mt-1">
                         Đã đăng ký: <span class="text-success fw-bold"><?= $event['tong_dang_ky'] ?></span> người 
-                        (<?= $event['so_luong_tham_gia'] > 0 ? round(($event['tong_dang_ky'] / $event['so_luong_tham_gia']) * 100) : 0 ?>%)
+                        <?php if ($event['so_luong_tham_gia'] > 0): ?>
+                        (<?= $registrationPercent ?>%)
+                        <?php endif; ?>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -83,12 +90,27 @@
                 </div>
                 <div>
                     <h6 class="mb-1 fw-bold">Thống kê tham gia</h6>
+                    <?php 
+                    // Tính % check-in so với tổng đăng ký
+                    $checkInPercent = 0;
+                    if (!empty($event['tong_check_in']) && !empty($event['tong_dang_ky'])) {
+                        $checkInPercent = min(100, round(($event['tong_check_in'] / $event['tong_dang_ky']) * 100));
+                    }
+                    
+                    // Tính % check-out so với đã check-in
+                    $checkOutPercent = 0;
+                    $checkOutBaseNumber = !empty($event['tong_check_in']) ? $event['tong_check_in'] : $event['tong_dang_ky'];
+                    if (!empty($event['tong_check_out']) && $checkOutBaseNumber > 0) {
+                        $checkOutPercent = min(100, round(($event['tong_check_out'] / $checkOutBaseNumber) * 100));
+                    }
+                    ?>
+                    
                     <?php if (!empty($event['tong_check_in'])): ?>
                     <div class="d-flex align-items-center">
                         <div class="small me-2">Check-in:</div>
                         <div class="progress flex-grow-1 me-2" style="height: 6px;">
                             <div class="progress-bar bg-success" role="progressbar" 
-                                style="width: <?= min(100, $event['tong_dang_ky'] > 0 ? round(($event['tong_check_in'] / $event['tong_dang_ky']) * 100) : 0) ?>%;" 
+                                style="width: <?= $checkInPercent ?>%;" 
                                 aria-valuenow="<?= $event['tong_check_in'] ?>" 
                                 aria-valuemin="0" 
                                 aria-valuemax="<?= $event['tong_dang_ky'] ?>">
@@ -103,10 +125,10 @@
                         <div class="small me-2">Check-out:</div>
                         <div class="progress flex-grow-1 me-2" style="height: 6px;">
                             <div class="progress-bar bg-info" role="progressbar" 
-                                style="width: <?= min(100, $event['tong_dang_ky'] > 0 ? round(($event['tong_check_out'] / $event['tong_dang_ky']) * 100) : 0) ?>%;" 
+                                style="width: <?= $checkOutPercent ?>%;" 
                                 aria-valuenow="<?= $event['tong_check_out'] ?>" 
                                 aria-valuemin="0" 
-                                aria-valuemax="<?= $event['tong_dang_ky'] ?>">
+                                aria-valuemax="<?= $checkOutBaseNumber ?>">
                             </div>
                         </div>
                         <span class="small text-info fw-bold"><?= $event['tong_check_out'] ?></span>

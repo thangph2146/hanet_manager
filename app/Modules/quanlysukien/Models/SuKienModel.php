@@ -1230,4 +1230,43 @@ class SuKienModel extends BaseModel
         $query = $builder->get();
         return $query->getResult();
     }
+
+    /**
+     * Cập nhật thống kê sự kiện từ dữ liệu đăng ký
+     *
+     * @param int $eventId ID của sự kiện
+     * @return bool
+     */
+    public function updateEventStats(int $eventId): bool
+    {
+        // Lấy thông tin sự kiện
+        $event = $this->find($eventId);
+        if (!$event) {
+            return false;
+        }
+        
+        // Tạo instance của DangKySuKienModel
+        $dangKySuKienModel = new \App\Modules\quanlydangkysukien\Models\DangKySuKienModel();
+        
+        // Đếm tổng số đăng ký
+        $totalRegistrations = $dangKySuKienModel->countRegistrationsByEvent($eventId);
+        
+        // Đếm số lượng check-in
+        $totalCheckIns = $dangKySuKienModel->countRegistrationsByEvent($eventId, [
+            'da_check_in' => 1
+        ]);
+        
+        // Đếm số lượng check-out
+        $totalCheckOuts = $dangKySuKienModel->countRegistrationsByEvent($eventId, [
+            'da_check_out' => 1
+        ]);
+        
+        // Cập nhật thông tin thống kê
+        return $this->update($eventId, [
+            'tong_dang_ky' => $totalRegistrations,
+            'tong_check_in' => $totalCheckIns,
+            'tong_check_out' => $totalCheckOuts,
+            'updated_at' => Time::now()->toDateTimeString()
+        ]);
+    }
 }   

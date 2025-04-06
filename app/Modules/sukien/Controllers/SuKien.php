@@ -284,6 +284,22 @@ class SuKien extends BaseController
         // Lấy danh sách sự kiện liên quan
         $relatedEvents = $sukienModel->getRelatedEvents($event['su_kien_id'], $event['loai_su_kien'], 3);
         
+        // Lấy thống kê tham gia chính xác từ DangKySuKienModel
+        $dangKySuKienModel = new \App\Modules\quanlydangkysukien\Models\DangKySuKienModel();
+        
+        // Tổng số đăng ký
+        $event['tong_dang_ky'] = $dangKySuKienModel->countRegistrationsByEvent($event['su_kien_id']);
+        
+        // Tổng số check-in
+        $event['tong_check_in'] = $dangKySuKienModel->countRegistrationsByEvent($event['su_kien_id'], [
+            'da_check_in' => 1
+        ]);
+        
+        // Tổng số check-out
+        $event['tong_check_out'] = $dangKySuKienModel->countRegistrationsByEvent($event['su_kien_id'], [
+            'da_check_out' => 1
+        ]);
+        
         // Chuẩn bị dữ liệu cho view
         $data = [
             'event' => $event,
