@@ -15,7 +15,7 @@
                 <div class="profile-header">
                     <div class="row align-items-center">
                         <div class="col-lg-3 col-md-4 col-sm-12 text-center text-md-start mb-3 mb-md-0">
-                            <img src="<?= !empty($profile->avatar) ? base_url('uploads/avatars/' . $profile->avatar) : base_url('assets/images/avatars/default.jpg') ?>" alt="Avatar" class="profile-avatar" data-bs-toggle="tooltip" title="Ảnh đại diện">
+                            <img src="<?= !empty($profile->avatar) ? base_url($profile->avatar) : base_url('assets/images/avatars/default.jpg') ?>" alt="Avatar" class="profile-avatar" data-bs-toggle="tooltip" title="Ảnh đại diện">
                         </div>
                         <div class="col-lg-7 col-md-6 col-sm-12">
                             <div class="profile-info-header">
@@ -92,6 +92,7 @@
             <div class="modal-body">
                 <form id="edit-profile-form" data-ajax="true" action="<?= base_url('nguoi-dung/profile/update') ?>" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="nguoi_dung_id" value="<?= $profile->nguoi_dung_id ?>">
+                    <input type="hidden" name="avatar_folder" value="uploads/avatars/">
                     <div class="row">
                         <div class="col-md-6 col-sm-12 mb-3">
                             <label for="fullname" class="form-label">Họ và tên <span class="text-danger">*</span></label>
@@ -108,7 +109,7 @@
                         </div>
                         <div class="col-12 mb-3 text-center">
                             <div class="avatar-preview">
-                                <img src="<?= !empty($profile->avatar) ? base_url('uploads/avatars/' . $profile->avatar) : base_url('assets/images/avatars/default.jpg') ?>" alt="Avatar Preview" class="img-thumbnail" id="avatar-preview">
+                                <img src="<?= !empty($profile->avatar) ? base_url($profile->avatar) : base_url('assets/images/avatars/default.jpg') ?>" alt="Avatar Preview" id="avatar-preview">
                             </div>
                         </div>
                     </div>

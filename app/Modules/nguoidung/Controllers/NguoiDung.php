@@ -157,7 +157,7 @@ class NguoiDung extends BaseController
                 $avatar->move($uploadPath, $newName);
                 
                 // Thêm tên tệp tin avatar vào dữ liệu cập nhật
-                $updateData['avatar'] = $newName;
+                $updateData['avatar'] = 'public/uploads/avatars/' . $newName;
                 
                 // Xóa avatar cũ nếu có
                 if (!empty($profile->avatar) && file_exists(ROOTPATH . 'public/uploads/avatars/' . $profile->avatar)) {

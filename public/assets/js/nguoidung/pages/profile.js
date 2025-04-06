@@ -293,12 +293,14 @@ class ProfilePage {
             this.saveProfileBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...';
             this.saveProfileBtn.disabled = true;
             
+            // Thêm CSRF token nếu cần
+            formData.append('<?= csrf_token() ?>', '<?= csrf_hash() ?>');
+            
             fetch(API_CONFIG.profileUpdate, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': API_CONFIG.csrfToken
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             })
             .then(response => response.json())
