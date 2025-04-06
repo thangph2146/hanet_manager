@@ -205,6 +205,68 @@ class AuthenticationStudent
 			return '';
 		}
 		
+		// Kiểm tra nếu $student là một mảng
+		if (is_array($student)) {
+			// Nếu là mảng, xử lý tương tự như trường hợp đối tượng
+			if (!empty($student)) {
+				// Cố gắng lấy ra phần tử đầu tiên của mảng
+				$firstStudent = $student[0] ?? null;
+				
+				if (isset($firstStudent) && is_object($firstStudent)) {
+					// Nếu phần tử đầu tiên là đối tượng
+					$nameParts = [];
+					
+					if (!empty($firstStudent->LastName)) {
+						$nameParts[] = $firstStudent->LastName;
+					}
+					
+					if (!empty($firstStudent->MiddleName)) {
+						$nameParts[] = $firstStudent->MiddleName;
+					}
+					
+					if (!empty($firstStudent->FirstName)) {
+						$nameParts[] = $firstStudent->FirstName;
+					}
+					
+					if (!empty($nameParts)) {
+						return implode(' ', $nameParts);
+					}
+					
+					// Thử lấy FullName nếu không có các trường tên
+					return $firstStudent->FullName ?? '';
+				} else if (is_array($firstStudent)) {
+					// Nếu phần tử đầu tiên là mảng
+					$nameParts = [];
+					
+					if (!empty($firstStudent['LastName'])) {
+						$nameParts[] = $firstStudent['LastName'];
+					}
+					
+					if (!empty($firstStudent['MiddleName'])) {
+						$nameParts[] = $firstStudent['MiddleName'];
+					}
+					
+					if (!empty($firstStudent['FirstName'])) {
+						$nameParts[] = $firstStudent['FirstName'];
+					}
+					
+					if (!empty($nameParts)) {
+						return implode(' ', $nameParts);
+					}
+					
+					// Thử lấy FullName nếu không có các trường tên
+					return $firstStudent['FullName'] ?? '';
+				} else {
+					// Trường hợp đặc biệt khi $firstStudent là string
+					// Có thể xảy ra khi phần tử đầu tiên trong mảng là một chuỗi
+					return $firstStudent ?? '';
+				}
+			}
+			
+			return '';
+		}
+		
+		// Nếu $student là một đối tượng, xử lý bình thường
 		// Ưu tiên sử dụng các trường LastName, MiddleName và FirstName nếu có
 		if (property_exists($student, 'LastName') || property_exists($student, 'MiddleName') || property_exists($student, 'FirstName')) {
 			$nameParts = [];
@@ -246,6 +308,25 @@ class AuthenticationStudent
 			return '';
 		}
 		
+		// Kiểm tra nếu $student là một mảng
+		if (is_array($student)) {
+			if (!empty($student)) {
+				$firstStudent = $student[0] ?? null;
+				
+				// Nếu phần tử đầu tiên là đối tượng
+				if (isset($firstStudent) && is_object($firstStudent)) {
+					return $firstStudent->LastName ?? '';
+				}
+				
+				// Nếu phần tử đầu tiên là mảng
+				if (is_array($firstStudent)) {
+					return $firstStudent['LastName'] ?? '';
+				}
+			}
+			return '';
+		}
+		
+		// Nếu $student là một đối tượng
 		return $student->LastName ?? '';
 	}
 
@@ -261,6 +342,25 @@ class AuthenticationStudent
 			return '';
 		}
 		
+		// Kiểm tra nếu $student là một mảng
+		if (is_array($student)) {
+			if (!empty($student)) {
+				$firstStudent = $student[0] ?? null;
+				
+				// Nếu phần tử đầu tiên là đối tượng
+				if (isset($firstStudent) && is_object($firstStudent)) {
+					return $firstStudent->MiddleName ?? '';
+				}
+				
+				// Nếu phần tử đầu tiên là mảng
+				if (is_array($firstStudent)) {
+					return $firstStudent['MiddleName'] ?? '';
+				}
+			}
+			return '';
+		}
+		
+		// Nếu $student là một đối tượng
 		return $student->MiddleName ?? '';
 	}
 
@@ -276,6 +376,25 @@ class AuthenticationStudent
 			return '';
 		}
 		
+		// Kiểm tra nếu $student là một mảng
+		if (is_array($student)) {
+			if (!empty($student)) {
+				$firstStudent = $student[0] ?? null;
+				
+				// Nếu phần tử đầu tiên là đối tượng
+				if (isset($firstStudent) && is_object($firstStudent)) {
+					return $firstStudent->FirstName ?? '';
+				}
+				
+				// Nếu phần tử đầu tiên là mảng
+				if (is_array($firstStudent)) {
+					return $firstStudent['FirstName'] ?? '';
+				}
+			}
+			return '';
+		}
+		
+		// Nếu $student là một đối tượng
 		return $student->FirstName ?? '';
 	}
 

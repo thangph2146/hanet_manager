@@ -95,33 +95,110 @@ class Authentication {
 			return '';
 		}
 		
-		// Ưu tiên sử dụng các trường LastName, MiddleName và FirstName nếu có
-		if (property_exists($user, 'LastName') || property_exists($user, 'MiddleName') || property_exists($user, 'FirstName')) {
-			$nameParts = [];
-			
-			if (!empty($user->LastName)) {
-				$nameParts[] = $user->LastName;
+		// Kiểm tra nếu $user là một mảng
+		if (is_array($user)) {
+			// Nếu là mảng, tìm kết quả đầu tiên
+			if (!empty($user)) {
+				$firstUser = $user[0] ?? null;
+				
+				// Kiểm tra nếu các trường LastName, MiddleName, FirstName trong mảng
+				if (isset($firstUser) && is_object($firstUser)) {
+					$nameParts = [];
+					
+					if (!empty($firstUser->LastName)) {
+						$nameParts[] = $firstUser->LastName;
+					}
+					
+					if (!empty($firstUser->MiddleName)) {
+						$nameParts[] = $firstUser->MiddleName;
+					}
+					
+					if (!empty($firstUser->FirstName)) {
+						$nameParts[] = $firstUser->FirstName;
+					}
+					
+					if (!empty($nameParts)) {
+						return implode(' ', $nameParts);
+					}
+					
+					// Nếu không có các trường tên, thử dùng FullName
+					if (!empty($firstUser->FullName)) {
+						return $firstUser->FullName;
+					}
+					
+					return $firstUser->name ?? '';
+				}
+				
+				// Nếu không thể lấy thông tin từ đối tượng, thử tìm trong mảng
+				// Kiểm tra nếu có các key tương ứng trong mảng
+				if (isset($firstUser['LastName']) || isset($firstUser['MiddleName']) || isset($firstUser['FirstName'])) {
+					$nameParts = [];
+					
+					if (!empty($firstUser['LastName'])) {
+						$nameParts[] = $firstUser['LastName'];
+					}
+					
+					if (!empty($firstUser['MiddleName'])) {
+						$nameParts[] = $firstUser['MiddleName'];
+					}
+					
+					if (!empty($firstUser['FirstName'])) {
+						$nameParts[] = $firstUser['FirstName'];
+					}
+					
+					if (!empty($nameParts)) {
+						return implode(' ', $nameParts);
+					}
+				}
+				
+				// Nếu không có các trường tên, thử dùng FullName hoặc u_FullName
+				if (!empty($firstUser['FullName'])) {
+					return $firstUser['FullName'];
+				}
+				
+				if (!empty($firstUser['u_FullName'])) {
+					return $firstUser['u_FullName'];
+				}
+				
+				return $firstUser['name'] ?? $firstUser['u_name'] ?? '';
 			}
 			
-			if (!empty($user->MiddleName)) {
-				$nameParts[] = $user->MiddleName;
-			}
-			
-			if (!empty($user->FirstName)) {
-				$nameParts[] = $user->FirstName;
-			}
-			
-			if (!empty($nameParts)) {
-				return implode(' ', $nameParts);
-			}
+			return '';
 		}
 		
-		// Nếu không có các trường mới hoặc chúng đều trống, sử dụng FullName
-		if (property_exists($user, 'FullName') && !empty($user->FullName)) {
-			return $user->FullName;
+		// Xử lý khi $user là một đối tượng
+		if (is_object($user)) {
+			// Ưu tiên sử dụng các trường LastName, MiddleName và FirstName nếu có
+			if (property_exists($user, 'LastName') || property_exists($user, 'MiddleName') || property_exists($user, 'FirstName')) {
+				$nameParts = [];
+				
+				if (!empty($user->LastName)) {
+					$nameParts[] = $user->LastName;
+				}
+				
+				if (!empty($user->MiddleName)) {
+					$nameParts[] = $user->MiddleName;
+				}
+				
+				if (!empty($user->FirstName)) {
+					$nameParts[] = $user->FirstName;
+				}
+				
+				if (!empty($nameParts)) {
+					return implode(' ', $nameParts);
+				}
+			}
+			
+			// Nếu không có các trường mới hoặc chúng đều trống, sử dụng FullName
+			if (property_exists($user, 'FullName') && !empty($user->FullName)) {
+				return $user->FullName;
+			}
+			
+			return $user->name ?? '';
 		}
 		
-		return $user->name ?? '';
+		// Trường hợp không phải mảng cũng không phải đối tượng
+		return '';
 	}
 
 	public function getLastName()
@@ -131,7 +208,28 @@ class Authentication {
 			return '';
 		}
 		
-		return $user->LastName ?? '';
+		// Kiểm tra nếu $user là một mảng
+		if (is_array($user)) {
+			if (!empty($user)) {
+				$firstUser = $user[0] ?? null;
+				
+				// Kiểm tra nếu $firstUser là đối tượng
+				if (isset($firstUser) && is_object($firstUser)) {
+					return $firstUser->LastName ?? '';
+				}
+				
+				// Nếu $firstUser là mảng
+				return $firstUser['LastName'] ?? '';
+			}
+			return '';
+		}
+		
+		// Trường hợp $user là đối tượng
+		if (is_object($user)) {
+			return $user->LastName ?? '';
+		}
+		
+		return '';
 	}
 
 	public function getMiddleName()
@@ -141,7 +239,28 @@ class Authentication {
 			return '';
 		}
 		
-		return $user->MiddleName ?? '';
+		// Kiểm tra nếu $user là một mảng
+		if (is_array($user)) {
+			if (!empty($user)) {
+				$firstUser = $user[0] ?? null;
+				
+				// Kiểm tra nếu $firstUser là đối tượng
+				if (isset($firstUser) && is_object($firstUser)) {
+					return $firstUser->MiddleName ?? '';
+				}
+				
+				// Nếu $firstUser là mảng
+				return $firstUser['MiddleName'] ?? '';
+			}
+			return '';
+		}
+		
+		// Trường hợp $user là đối tượng
+		if (is_object($user)) {
+			return $user->MiddleName ?? '';
+		}
+		
+		return '';
 	}
 
 	public function getFirstName()
@@ -151,7 +270,28 @@ class Authentication {
 			return '';
 		}
 		
-		return $user->FirstName ?? '';
+		// Kiểm tra nếu $user là một mảng
+		if (is_array($user)) {
+			if (!empty($user)) {
+				$firstUser = $user[0] ?? null;
+				
+				// Kiểm tra nếu $firstUser là đối tượng
+				if (isset($firstUser) && is_object($firstUser)) {
+					return $firstUser->FirstName ?? '';
+				}
+				
+				// Nếu $firstUser là mảng
+				return $firstUser['FirstName'] ?? '';
+			}
+			return '';
+		}
+		
+		// Trường hợp $user là đối tượng
+		if (is_object($user)) {
+			return $user->FirstName ?? '';
+		}
+		
+		return '';
 	}
 
 	public function getFullRole()
