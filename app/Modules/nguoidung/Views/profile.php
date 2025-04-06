@@ -14,22 +14,28 @@
                 <!-- Profile Header -->
                 <div class="profile-header">
                     <div class="row align-items-center">
-                        <div class="col-md-3 text-center text-md-start mb-3 mb-md-0">
+                        <div class="col-lg-3 col-md-4 col-sm-12 text-center text-md-start mb-3 mb-md-0">
                             <img src="<?= !empty($profile->avatar) ? base_url('uploads/avatars/' . $profile->avatar) : base_url('assets/images/avatars/default.jpg') ?>" alt="Avatar" class="profile-avatar" data-bs-toggle="tooltip" title="Ảnh đại diện">
                         </div>
-                        <div class="col-md-7">
-                            <p class="mb-2 text-white"><?= $profile->AccountType ?></p> 
-                            <h4 class="mb-1"><?= $profile->FullName ?></h4>
-                            <p class="mb-2 text-white"><?= $profile->Email ?></p>
-
-                            <p class="mb-0">
-                                <span class="badge bg-info" style="top: 1rem; right: 5rem;">Đăng nhập gần đây: <?= date('d/m/Y H:i', strtotime($profile->last_login)) ?></span>
-                            </p>
+                        <div class="col-lg-7 col-md-6 col-sm-12">
+                            <div class="profile-info-header">
+                                <p class="mb-2 text-white profile-type"><?= $profile->AccountType ?></p> 
+                                <h4 class="mb-1 profile-name"><?= $profile->FullName ?></h4>
+                                <p class="mb-2 text-white profile-email"><?= $profile->Email ?></p>
+                                <p class="mb-0 d-none d-md-block">
+                                    <span class="badge bg-info">Đăng nhập gần đây: <?= date('d/m/Y H:i', strtotime($profile->last_login)) ?></span>
+                                </p>
+                            </div>
                         </div>
-                        <div class="col-md-2 text-center text-md-end mt-3 mt-md-0">
-                            <button class="btn btn-outline-primary" id="edit-profile-btn" data-bs-toggle="tooltip" title="Chỉnh sửa thông tin cá nhân">
-                                <i class="fas fa-edit me-1"></i> Sửa thông tin
+                        <div class="col-lg-2 col-md-2 col-sm-12 text-center text-md-end mt-3 mt-md-0">
+                            <button class="btn btn-outline-primary btn-edit-profile" id="edit-profile-btn" data-bs-toggle="tooltip" title="Chỉnh sửa thông tin cá nhân">
+                                <i class="fas fa-edit me-1"></i> <span class="d-none d-md-inline">Sửa thông tin</span>
                             </button>
+                        </div>
+                    </div>
+                    <div class="row d-md-none mt-2">
+                        <div class="col-12 text-center">
+                            <span class="badge bg-info">Đăng nhập gần đây: <?= date('d/m/Y H:i', strtotime($profile->last_login)) ?></span>
                         </div>
                     </div>
                 </div>
@@ -77,7 +83,7 @@
 
 <!-- Modal chỉnh sửa thông tin -->
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editProfileModalLabel">Chỉnh sửa thông tin cá nhân</h5>
@@ -87,11 +93,11 @@
                 <form id="edit-profile-form" data-ajax="true" action="<?= base_url('nguoi-dung/profile/update') ?>" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="nguoi_dung_id" value="<?= $profile->nguoi_dung_id ?>">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6 col-sm-12 mb-3">
                             <label for="fullname" class="form-label">Họ và tên <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="fullname" name="FullName" value="<?= $profile->FullName ?>" required>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6 col-sm-12 mb-3">
                             <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="phone" name="MobilePhone" value="<?= $profile->MobilePhone ?>" required>
                         </div>
@@ -100,7 +106,7 @@
                             <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
                             <small class="text-muted">Định dạng: JPG, PNG. Tối đa 2MB</small>
                         </div>
-                        <div class="col-12 mb-3">
+                        <div class="col-12 mb-3 text-center">
                             <div class="avatar-preview">
                                 <img src="<?= !empty($profile->avatar) ? base_url('uploads/avatars/' . $profile->avatar) : base_url('assets/images/avatars/default.jpg') ?>" alt="Avatar Preview" class="img-thumbnail" id="avatar-preview">
                             </div>
