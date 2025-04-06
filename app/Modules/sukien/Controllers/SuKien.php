@@ -199,7 +199,7 @@ class SuKien extends BaseController
         
         // Lấy thông tin sự kiện từ slug
         $event = $sukienModel->getEventBySlug($slug);
-        
+       
         // Xử lý trường hợp redirect nếu có slug chính xác trong session
         if (session()->has('correct_event_slug') && session()->get('correct_event_slug') !== $slug) {
             $correctSlug = session()->get('correct_event_slug');

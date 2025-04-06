@@ -204,7 +204,7 @@ class LoaiSuKienModel extends BaseModel
         
         return $this->findAll();
     }
-    
+  
     /**
      * Đếm tổng số bản ghi đang hoạt động
      *

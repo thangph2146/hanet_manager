@@ -223,6 +223,27 @@ class LoaiSuKien extends BaseEntity
     }
     
     /**
+     * Lấy thời gian bắt đầu dưới dạng định dạng chuỗi
+     *
+     * @param string $format Định dạng ngày
+     * @return string
+     */ 
+    public function getThoiGianBatDauFormatted($format = 'd/m/Y')
+    {
+        return $this->attributes['thoi_gian_bat_dau']->format($format);
+    }
+
+    /**
+     * Lấy thời gian kết thúc dưới dạng định dạng chuỗi
+     *
+     * @param string $format Định dạng ngày
+     * @return string
+     */ 
+    public function getThoiGianKetThucFormatted($format = 'd/m/Y')
+    {
+        return $this->attributes['thoi_gian_ket_thuc']->format($format);
+    }
+    /**
      * Lấy ngày tạo dưới dạng định dạng chuỗi
      *
      * @param string $format Định dạng ngày
