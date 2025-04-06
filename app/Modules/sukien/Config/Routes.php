@@ -32,4 +32,10 @@ $routes->group($module_name, ['namespace' => 'App\Modules\sukien\Controllers'], 
     $routes->get('checkin-display', $controller_name . '::displayCheckin'); // Route mặc định
     $routes->get('api/checkin-display', $controller_name . '::getCheckinDisplay');
     
+    // Route cho đăng ký ngay sự kiện - Phải đặt dạng match để chấp nhận cả GET và POST
+    $routes->match(['get', 'post'], 'register-now', $controller_name . '::registerNow');
+    
+    // Route debug đăng ký sự kiện
+    $routes->get('debug-register/(:num)', $controller_name . '::debugRegisterNow/$1');
+    $routes->get('debug-register', $controller_name . '::debugRegisterNow');
 });

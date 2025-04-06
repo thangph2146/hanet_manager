@@ -431,7 +431,7 @@ class SuKien extends BaseController
                 'su_kien_id' => 'required|numeric',
                 'ho_ten' => 'required|min_length[3]|max_length[255]',
                 'email' => 'required|valid_email',
-                'so_dien_thoai' => 'required|numeric|min_length[10]|max_length[15]',
+                'so_dien_thoai' => 'required|regex_match[/^[0-9]{10,15}$/]',
                 'ma_sinh_vien' => 'permit_empty|alpha_numeric|min_length[5]|max_length[20]',
             ];
             
@@ -452,9 +452,7 @@ class SuKien extends BaseController
                 ],
                 'so_dien_thoai' => [
                     'required' => 'Vui lòng nhập số điện thoại',
-                    'numeric' => 'Số điện thoại chỉ được chứa số',
-                    'min_length' => 'Số điện thoại phải có ít nhất 10 số',
-                    'max_length' => 'Số điện thoại không được vượt quá 15 số'
+                    'regex_match' => 'Số điện thoại chỉ được chứa số và có độ dài từ 10-15 số'
                 ],
                 'ma_sinh_vien' => [
                     'alpha_numeric' => 'Mã sinh viên chỉ được chứa chữ cái và số',
@@ -474,17 +472,40 @@ class SuKien extends BaseController
                     'thoi_gian_dang_ky' => date('Y-m-d H:i:s')
                 ];
                 
-                // Mô phỏng đăng ký thành công
-                // Trong thực tế sẽ lưu vào database
-                $event = $this->sukienModel->getEvent($data['su_kien_id']);
+                // Thêm nguoi_dung_id nếu có trong form hoặc từ session
+                if ($this->request->getPost('nguoi_dung_id')) {
+                    $data['nguoi_dung_id'] = $this->request->getPost('nguoi_dung_id');
+                } elseif (service('authstudent')->isLoggedInStudent()) {
+                    $data['nguoi_dung_id'] = service('authstudent')->getStudentData()->nguoi_dung_id;
+                }
                 
-                // Chuyển hướng với thông báo thành công
-                $success_message = 'Bạn đã đăng ký thành công sự kiện: ' . $event['ten_su_kien'];
-                return redirect()->to('/su-kien/chi-tiet/' . $event['slug'])->with('success', $success_message);
+                // Kiểm tra xem đã đăng ký trước đó chưa
+                $existingRegistration = $this->dangKySukienModel->where('su_kien_id', $data['su_kien_id'])
+                    ->where('email', $data['email'])
+                    ->first();
+                    
+                if ($existingRegistration) {
+                    return redirect()->to('/su-kien/chi-tiet/' . $this->sukienModel->getEventById($data['su_kien_id'])['slug'])
+                        ->with('warning', 'Bạn đã đăng ký sự kiện này rồi!');
+                }
+                
+                // Lưu thông tin đăng ký
+                $saved = $this->dangKySukienModel->insert($data);
+                
+                if ($saved) {
+                    // Lấy thông tin sự kiện
+                    $event = $this->sukienModel->getEventById($data['su_kien_id']);
+                    
+                    // Chuyển hướng với thông báo thành công
+                    $success_message = 'Bạn đã đăng ký thành công sự kiện: ' . $event['ten_su_kien'];
+                    return redirect()->to('/su-kien/chi-tiet/' . $event['slug'])->with('success', $success_message);
+                } else {
+                    return redirect()->back()->with('error', 'Có lỗi xảy ra khi đăng ký sự kiện. Vui lòng thử lại sau.');
+                }
             } else {
                 // Dữ liệu không hợp lệ, quay lại với thông báo lỗi
                 $event_id = $this->request->getPost('su_kien_id');
-                $event = $this->sukienModel->getEvent($event_id);
+                $event = $this->sukienModel->getEventById($event_id);
                 
                 if (!$event) {
                     return redirect()->to('/su-kien')->with('error', 'Không tìm thấy sự kiện');
@@ -775,12 +796,12 @@ class SuKien extends BaseController
             }
             
             // Đảm bảo các trường thời gian luôn tồn tại
-            if (empty($event['thoi_gian_bat_dau']) && !empty($event['ngay_to_chuc']) && !empty($event['gio_bat_dau'])) {
-                $event['thoi_gian_bat_dau'] = $event['ngay_to_chuc'] . ' ' . $event['gio_bat_dau'];
+            if (empty($suKien['thoi_gian_bat_dau']) && !empty($suKien['ngay_to_chuc']) && !empty($suKien['gio_bat_dau'])) {
+                $suKien['thoi_gian_bat_dau'] = $suKien['ngay_to_chuc'] . ' ' . $suKien['gio_bat_dau'];
             }
             
-            if (empty($event['thoi_gian_ket_thuc']) && !empty($event['ngay_to_chuc']) && !empty($event['gio_ket_thuc'])) {
-                $event['thoi_gian_ket_thuc'] = $event['ngay_to_chuc'] . ' ' . $event['gio_ket_thuc'];
+            if (empty($suKien['thoi_gian_ket_thuc']) && !empty($suKien['ngay_to_chuc']) && !empty($suKien['gio_ket_thuc'])) {
+                $suKien['thoi_gian_ket_thuc'] = $suKien['ngay_to_chuc'] . ' ' . $suKien['gio_ket_thuc'];
             }
         } catch (\Exception $e) {
             log_message('error', 'Error saving Hanet check-in data: ' . $e->getMessage());
@@ -810,5 +831,211 @@ class SuKien extends BaseController
     protected function render($view, $data = [])
     {
         return view('App\Modules\sukien\Views\\' . $view, $data);
+    }
+
+    /**
+     * Xử lý đăng ký ngay sự kiện cho người dùng đã đăng nhập
+     *
+     * @return \CodeIgniter\HTTP\RedirectResponse
+     */
+    public function registerNow()
+    {
+        $method = $this->request->getMethod();
+        log_message('debug', 'Registration method: ' . $method);
+        log_message('debug', 'POST data: ' . json_encode($this->request->getPost()));
+        log_message('debug', 'URI: ' . $this->request->getUri());
+
+        if ($method !== 'POST') {
+            log_message('error', 'Method not allowed: ' . $method);
+            return redirect()->back()->with('error', 'Method not allowed');
+        }
+
+        $isLoggedIn = service('authstudent')->isLoggedInStudent();
+        $userData = $isLoggedIn ? service('authstudent')->getUserData() : null;
+        $userId = $userData ? $userData->nguoi_dung_id ?? null : null;
+
+        log_message('debug', 'User info: ' . json_encode([
+            'isLoggedIn' => $isLoggedIn,
+            'userId' => $userId,
+            'userData' => $userData ? get_object_vars($userData) : null
+        ]));
+
+        $sukienId = $this->request->getPost('su_kien_id');
+        if (!$sukienId) {
+            log_message('error', 'Event ID not provided');
+            return redirect()->back()->with('error', 'Event ID not provided');
+        }
+
+        $sukienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
+        $sukien = $sukienModel->find($sukienId);
+        
+        if (!$sukien) {
+            log_message('error', 'Event not found: ' . $sukienId);
+            return redirect()->back()->with('error', 'Event not found');
+        }
+
+        // Kiểm tra bảng dangky_sukien có column nguoi_dung_id không
+        $dangKySuKienModel = new \App\Modules\quanlydangkysukien\Models\DangKySuKienModel();
+        $db = \Config\Database::connect();
+        
+        $checkColumnQuery = "SHOW COLUMNS FROM " . $dangKySuKienModel->table . " LIKE 'nguoi_dung_id'";
+        $columnExists = $db->query($checkColumnQuery)->getNumRows() > 0;
+        log_message('debug', 'Column nguoi_dung_id exists: ' . ($columnExists ? 'Yes' : 'No'));
+
+        // Kiểm tra đã đăng ký chưa (dựa trên email)
+        $email = $this->request->getPost('email');
+        $checkRegistration = $dangKySuKienModel->where('su_kien_id', $sukienId)
+                                               ->where('email', $email)
+                                               ->first();
+        
+        // Ghi log SQL truy vấn kiểm tra đăng ký
+        log_message('debug', 'Check registration SQL: ' . $dangKySuKienModel->getLastQuery());
+        
+        if ($checkRegistration) {
+            log_message('notice', 'User already registered: ' . $email . ' for event: ' . $sukienId);
+            return redirect()->back()->with('warning', 'Bạn đã đăng ký tham gia sự kiện này rồi!');
+        }
+
+        // Chuẩn bị dữ liệu đăng ký
+        $registrationData = [
+            'su_kien_id' => $sukienId,
+            'ho_ten' => $this->request->getPost('ho_ten'),
+            'email' => $email,
+        ];
+
+        // Kiểm tra và sử dụng trường điện thoại phù hợp
+        if ($this->request->getPost('so_dien_thoai')) {
+            $registrationData['so_dien_thoai'] = $this->request->getPost('so_dien_thoai');
+        } elseif ($this->request->getPost('dien_thoai')) {
+            $registrationData['dien_thoai'] = $this->request->getPost('dien_thoai');
+        }
+
+        // Thêm trường nguoi_dung_id nếu người dùng đã đăng nhập
+        if ($userId && $columnExists) {
+            $registrationData['nguoi_dung_id'] = $userId;
+        }
+
+        // Thêm trường mã sinh viên nếu có
+        if ($userData && isset($userData->ma_sinh_vien)) {
+            $registrationData['ma_sinh_vien'] = $userData->ma_sinh_vien;
+        } else if ($userData && isset($userData->AccountId)) {
+            $registrationData['ma_sinh_vien'] = $userData->AccountId;
+        }
+
+        // Ghi log dữ liệu đăng ký
+        log_message('debug', 'Registration data: ' . json_encode($registrationData));
+
+        // Thêm dữ liệu vào bảng đăng ký sự kiện
+        try {
+            if ($dangKySuKienModel->insert($registrationData)) {
+                log_message('info', 'Registration successful: ' . $email . ' for event: ' . $sukienId);
+                return redirect()->to('/su-kien/detail/' . $sukienId)->with('success', 'Đăng ký tham gia sự kiện thành công!');
+            } else {
+                $validationErrors = $dangKySuKienModel->errors();
+                log_message('error', 'Registration failed: ' . json_encode($validationErrors) . ' - SQL: ' . $dangKySuKienModel->getLastQuery());
+                return redirect()->back()->withInput()->with('errors', $validationErrors);
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Registration exception: ' . $e->getMessage() . ' - SQL: ' . $dangKySuKienModel->getLastQuery());
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Tạo mã xác nhận ngẫu nhiên
+     * 
+     * @param int $length Độ dài mã xác nhận
+     * @return string Mã xác nhận
+     */
+    private function generateConfirmationCode($length = 8) 
+    {
+        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $code = '';
+        
+        for ($i = 0; $i < $length; $i++) {
+            $code .= $characters[rand(0, strlen($characters) - 1)];
+        }
+        
+        return $code;
+    }
+
+    /**
+     * Debug đăng ký sự kiện - có thể gọi trực tiếp qua URL
+     */
+    public function debugRegisterNow($sukienId = null)
+    {
+        // Hiển thị thông tin debug
+        echo '<h2>Debug Đăng Ký Sự Kiện</h2>';
+        
+        echo '<h3>Thông tin Request:</h3>';
+        echo '<pre>';
+        echo 'Method (getMethod): ' . $this->request->getMethod() . "\n";
+        echo 'Method (SERVER): ' . ($_SERVER['REQUEST_METHOD'] ?? 'N/A') . "\n";
+        echo 'URI: ' . current_url() . "\n";
+        echo '</pre>';
+        
+        echo '<h3>Thông tin POST:</h3>';
+        echo '<pre>';
+        print_r($this->request->getPost());
+        echo '</pre>';
+        
+        echo '<h3>Thông tin GET:</h3>';
+        echo '<pre>';
+        print_r($this->request->getGet());
+        echo '</pre>';
+        
+        // Kiểm tra người dùng
+        echo '<h3>Thông tin người dùng:</h3>';
+        echo '<pre>';
+        $isLoggedIn = service('authstudent')->isLoggedInStudent();
+        echo 'Đã đăng nhập: ' . ($isLoggedIn ? 'Có' : 'Không') . "\n";
+        
+        if ($isLoggedIn) {
+            $userData = service('authstudent')->getUserData();
+            if ($userData) {
+                echo "ID: " . ($userData->nguoi_dung_id ?? 'N/A') . "\n";
+                echo "Tên: " . ($userData->FullName ?? 'N/A') . "\n";
+                echo "Email: " . ($userData->Email ?? 'N/A') . "\n";
+            } else {
+                echo "Không thể lấy thông tin người dùng\n";
+            }
+        }
+        echo '</pre>';
+        
+        // Kiểm tra sự kiện
+        if ($sukienId) {
+            echo '<h3>Thông tin sự kiện (ID: ' . $sukienId . '):</h3>';
+            echo '<pre>';
+            $event = $this->sukienModel->find($sukienId);
+            if (!$event) {
+                echo "Không tìm thấy sự kiện bằng find()\n";
+                $event = $this->sukienModel->getEventById($sukienId);
+            }
+            
+            if ($event) {
+                if (is_object($event)) {
+                    echo "ID: " . ($event->su_kien_id ?? 'N/A') . "\n";
+                    echo "Tên: " . ($event->ten_su_kien ?? 'N/A') . "\n";
+                    echo "Slug: " . ($event->slug ?? 'N/A') . "\n";
+                } else {
+                    echo "ID: " . ($event['su_kien_id'] ?? 'N/A') . "\n";
+                    echo "Tên: " . ($event['ten_su_kien'] ?? 'N/A') . "\n";
+                    echo "Slug: " . ($event['slug'] ?? 'N/A') . "\n";
+                }
+            } else {
+                echo "Không tìm thấy sự kiện\n";
+            }
+            echo '</pre>';
+        }
+        
+        // Form test
+        echo '<h3>Form Test:</h3>';
+        echo '<form method="post" action="' . base_url('/su-kien/register-now') . '">';
+        echo csrf_field();
+        echo '<input type="hidden" name="su_kien_id" value="' . ($sukienId ?? '') . '">';
+        echo '<button type="submit">Test Đăng Ký</button>';
+        echo '</form>';
+        
+        exit;
     }
 }

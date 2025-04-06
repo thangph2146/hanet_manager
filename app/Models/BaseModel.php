@@ -667,4 +667,15 @@ class BaseModel extends Model
     {
         return $this->created_at->format('d/m/Y H:i:s');
     }
+
+    /**
+     * Lấy câu lệnh SQL cuối cùng được thực thi
+     * 
+     * @return string|null Câu lệnh SQL hoặc null nếu không có
+     */
+    public function getLastQuery()
+    {
+        $query = $this->db->getLastQuery();
+        return $query ? $query->getQuery() : null;
+    }
 }

@@ -208,6 +208,15 @@ class AuthenticationStudent
 		return $fullName[0] ?? '';
 	}
 
-	
+	/**
+	 * Lấy thông tin người dùng đã đăng nhập
+	 * 
+	 * @return object|null Thông tin người dùng hoặc null nếu không tìm thấy
+	 */
+	public function getUserData()
+	{
+		return $this->getCurrentStudent();
+	}
+
 }
 
