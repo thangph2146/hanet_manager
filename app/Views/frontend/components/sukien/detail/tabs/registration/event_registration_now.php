@@ -288,9 +288,6 @@ if ($isLoggedIn): ?>
                 <!-- Người dùng chưa đăng nhập - Hiển thị nút đăng nhập -->
                 <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeIn">
                     <div class="card-body p-5 text-center">
-                        <div class="mb-4">
-                            <img src="<?= base_url('assets/images/login-illustration.svg') ?>" alt="Đăng nhập" class="img-fluid" style="max-height: 200px;">
-                        </div>
                         <h4 class="mb-3">Đăng nhập để tiếp tục</h4>
                         <p class="mb-4 text-muted">Đăng nhập tài khoản để đăng ký tham gia sự kiện một cách nhanh chóng và thuận tiện hơn</p>
                         <div class="d-grid gap-2 col-md-8 mx-auto">
