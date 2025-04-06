@@ -62,6 +62,30 @@ if ($registrationCount === 0 && isset($event['su_kien_id'])) {
     $registrations = $sukienModel->getRegistrations($event['su_kien_id']);
     $registrationCount = count($registrations);
 }
+
+// Kiểm tra người dùng đã đăng nhập chưa và đã đăng ký sự kiện này chưa
+$isLoggedIn = service('authstudent')->isLoggedInStudent();
+$userData = $isLoggedIn ? service('authstudent')->getUserData() : null;
+$isRegistered = false;
+
+// Nếu đã đăng nhập và có dữ liệu sự kiện, kiểm tra đã đăng ký chưa
+if ($isLoggedIn && $userData && isset($event['su_kien_id'])) {
+    // Lấy email của người dùng
+    $userEmail = $userData->Email ?? '';
+    
+    // Khởi tạo model đăng ký sự kiện
+    $dangKySuKienModel = new \App\Modules\quanlydangkysukien\Models\DangKySuKienModel();
+    
+    // Kiểm tra đã đăng ký chưa dựa trên email
+    $checkRegistration = $dangKySuKienModel->where('su_kien_id', $event['su_kien_id'])
+                                         ->where('email', $userEmail)
+                                         ->first();
+    
+    // Nếu đã đăng ký
+    if ($checkRegistration) {
+        $isRegistered = true;
+    }
+}
 ?>
 <div class="event-card h-100  <?= $featured ? 'featured' : '' ?>">
     <div class="event-category" style="background-color: <?= $randomColor ?>;">
@@ -108,7 +132,27 @@ if ($registrationCount === 0 && isset($event['su_kien_id'])) {
         <a href="<?= site_url('su-kien/chi-tiet/' . $event['slug']) ?>" class="btn-link">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
         
         <?php if (strtotime($event['ngay_to_chuc']) > time()): ?>
-        <a href="<?= site_url('su-kien/register?event=' . $event['su_kien_id']) ?>" class="btn btn-sm btn-outline-primary">Đăng ký</a>
+            <?php if ($isRegistered): ?>
+                <!-- Người dùng đã đăng ký -->
+                <span class="badge bg-success"><i class="fas fa-check"></i> Đã đăng ký</span>
+            <?php elseif ($isLoggedIn): ?>
+                <!-- Đã đăng nhập, hiển thị form đăng ký ngay -->
+                <form method="post" action="<?= base_url('/su-kien/register-now') ?>" class="d-inline">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="su_kien_id" value="<?= $event['su_kien_id'] ?>">
+                    <input type="hidden" name="ho_ten" value="<?= $userData->FullName ?? '' ?>">
+                    <input type="hidden" name="email" value="<?= $userData->Email ?? '' ?>">
+                    <input type="hidden" name="so_dien_thoai" value="<?= $userData->MobilePhone ?? '' ?>">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-check-circle"></i> Đăng ký ngay
+                    </button>
+                </form>
+            <?php else: ?>
+                <!-- Chưa đăng nhập, hiển thị link đăng nhập -->
+                <a href="<?= site_url('login/nguoi-dung?redirect=' . current_url()) ?>" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập để đăng ký
+                </a>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 </div> 
