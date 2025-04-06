@@ -8,11 +8,6 @@
     <!-- Social Share -->
     <?= $this->include('frontend\components\sukien\detail\sidebar\social_share') ?>
     
-    <?php if (service('authstudent')->isLoggedInStudent()) : ?>
-    <!-- Event Registration -->
-    <?= $this->include('frontend\components\sukien\detail\sidebar\event_registration') ?>
-    <?php endif; ?>
-
     <!-- Event Stats -->
     <?= $this->include('frontend\components\sukien\detail\sidebar\event_stats') ?>
 

@@ -26,6 +26,8 @@ if (is_object($data)) {
     $cho_phep_checkin_thu_cong = $data->isAllowManualCheckin() ?? true;
     $bat_dau_dang_ky = $data->getBatDauDangKy() ?? '';
     $ket_thuc_dang_ky = $data->getKetThucDangKy() ?? '';
+    $thoi_gian_bat_dau_dang_ky = $data->getThoiGianBatDauDangKy() ?? '';
+    $thoi_gian_ket_thuc_dang_ky = $data->getThoiGianKetThucDangKy() ?? '';
     $han_huy_dang_ky = $data->getHanHuyDangKy() ?? '';
     $so_luong_tham_gia = $data->getSoLuongThamGia() ?? 0;
     $so_luong_dien_gia = $data->getSoLuongDienGia() ?? 0;
@@ -60,6 +62,8 @@ if (is_object($data)) {
     $cho_phep_checkin_thu_cong = true;
     $bat_dau_dang_ky = '';
     $ket_thuc_dang_ky = '';
+    $thoi_gian_bat_dau_dang_ky = '';
+    $thoi_gian_ket_thuc_dang_ky = '';
     $han_huy_dang_ky = '';
     $so_luong_tham_gia = 0;
     $so_luong_dien_gia = 0;
@@ -410,100 +414,43 @@ if (is_object($data)) {
         </div>
     </div>
 
-    <!-- Thông tin đăng ký -->
-    <div class="col-12">
-        <div class="card mb-4 shadow-sm form-card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0 text-white">
-                    <i class="fas fa-calendar-check me-2"></i> Thông tin đăng ký
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="bat_dau_dang_ky" class="form-label fw-bold">
-                            <i class="fas fa-calendar-plus text-primary me-1"></i> Thời gian bắt đầu đăng ký
-                        </label>
-                        <input type="datetime-local" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('bat_dau_dang_ky') ? 'is-invalid' : '' ?>" 
-                               id="bat_dau_dang_ky" name="bat_dau_dang_ky" 
-                               value="<?= $bat_dau_dang_ky ?>">
-                        <?php if (isset($validation) && $validation->hasError('bat_dau_dang_ky')) : ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('bat_dau_dang_ky') ?>
-                            </div>
-                        <?php endif ?>
-                    </div>
+    <!-- Thêm thời gian đăng ký -->
+    <div class="card mb-4 shadow-sm form-card" id="registration-times-section">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0 text-white">
+                <i class="fas fa-clock me-2"></i> Thời gian đăng ký
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="bat_dau_dang_ky" class="form-label fw-bold">
+                        <i class="fas fa-calendar-plus text-primary me-1"></i> Thời gian bắt đầu đăng ký
+                    </label>
+                    <input type="datetime-local" class="form-control form-control-lg" 
+                           id="bat_dau_dang_ky" name="bat_dau_dang_ky" 
+                           value="<?= $bat_dau_dang_ky ?>">
+                    <div class="form-text">Thời điểm cho phép bắt đầu đăng ký tham gia sự kiện</div>
+                </div>
 
-                    <div class="col-md-4">
-                        <label for="ket_thuc_dang_ky" class="form-label fw-bold">
-                            <i class="fas fa-calendar-times text-primary me-1"></i> Thời gian kết thúc đăng ký
-                        </label>
-                        <input type="datetime-local" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('ket_thuc_dang_ky') ? 'is-invalid' : '' ?>" 
-                               id="ket_thuc_dang_ky" name="ket_thuc_dang_ky" 
-                               value="<?= $ket_thuc_dang_ky ?>">
-                        <?php if (isset($validation) && $validation->hasError('ket_thuc_dang_ky')) : ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('ket_thuc_dang_ky') ?>
-                            </div>
-                        <?php endif ?>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label for="han_huy_dang_ky" class="form-label fw-bold">
-                            <i class="fas fa-calendar-minus text-primary me-1"></i> Hạn hủy đăng ký
-                        </label>
-                        <input type="datetime-local" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('han_huy_dang_ky') ? 'is-invalid' : '' ?>" 
-                               id="han_huy_dang_ky" name="han_huy_dang_ky" 
-                               value="<?= $han_huy_dang_ky ?>">
-                        <?php if (isset($validation) && $validation->hasError('han_huy_dang_ky')) : ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('han_huy_dang_ky') ?>
-                            </div>
-                        <?php endif ?>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label for="so_luong_tham_gia" class="form-label fw-bold">
-                            <i class="fas fa-users text-primary me-1"></i> Số lượng người tham gia tối đa
-                        </label>
-                        <input type="number" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('so_luong_tham_gia') ? 'is-invalid' : '' ?>" 
-                               id="so_luong_tham_gia" name="so_luong_tham_gia" 
-                               value="<?= $so_luong_tham_gia ?>" min="0">
-                        <?php if (isset($validation) && $validation->hasError('so_luong_tham_gia')) : ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('so_luong_tham_gia') ?>
-                            </div>
-                        <?php endif ?>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label for="so_luong_dien_gia" class="form-label fw-bold">
-                            <i class="fas fa-user-tie text-primary me-1"></i> Số lượng diễn giả
-                        </label>
-                        <input type="number" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('so_luong_dien_gia') ? 'is-invalid' : '' ?>" 
-                               id="so_luong_dien_gia" name="so_luong_dien_gia" 
-                               value="<?= $so_luong_dien_gia ?>" min="0">
-                        <?php if (isset($validation) && $validation->hasError('so_luong_dien_gia')) : ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('so_luong_dien_gia') ?>
-                            </div>
-                        <?php endif ?>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label for="gioi_han_loai_nguoi_dung" class="form-label fw-bold">
-                            <i class="fas fa-user-shield text-primary me-1"></i> Giới hạn loại người dùng
-                        </label>
-                        <input type="text" class="form-control form-control-lg <?= isset($validation) && $validation->hasError('gioi_han_loai_nguoi_dung') ? 'is-invalid' : '' ?>" 
-                               id="gioi_han_loai_nguoi_dung" name="gioi_han_loai_nguoi_dung" 
-                               value="<?= $gioi_han_loai_nguoi_dung ?>" 
-                               placeholder="VD: all hoặc member,vip">
-                        <?php if (isset($validation) && $validation->hasError('gioi_han_loai_nguoi_dung')) : ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('gioi_han_loai_nguoi_dung') ?>
-                            </div>
-                        <?php endif ?>
-                    </div>
+                <div class="col-md-4">
+                    <label for="ket_thuc_dang_ky" class="form-label fw-bold">
+                        <i class="fas fa-calendar-minus text-primary me-1"></i> Thời gian kết thúc đăng ký
+                    </label>
+                    <input type="datetime-local" class="form-control form-control-lg" 
+                           id="ket_thuc_dang_ky" name="ket_thuc_dang_ky" 
+                           value="<?= $ket_thuc_dang_ky ?>">
+                    <div class="form-text">Thời điểm đóng đăng ký tham gia sự kiện</div>
+                </div>
+                
+                <div class="col-md-4">
+                    <label for="han_huy_dang_ky" class="form-label fw-bold">
+                        <i class="fas fa-calendar-times text-warning me-1"></i> Hạn chót hủy đăng ký
+                    </label>
+                    <input type="datetime-local" class="form-control form-control-lg" 
+                           id="han_huy_dang_ky" name="han_huy_dang_ky" 
+                           value="<?= $han_huy_dang_ky ?>">
+                    <div class="form-text">Thời điểm chốt danh sách, sau đó không thể hủy đăng ký</div>
                 </div>
             </div>
         </div>
@@ -809,6 +756,7 @@ if (is_object($data)) {
         </div>
     </div>
 
+    <!-- Thêm thời gian đăng ký -->
     <!-- Buttons -->
     <div class="col-12 mt-3">
         <div class="d-flex justify-content-between">

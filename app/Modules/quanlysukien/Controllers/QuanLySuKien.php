@@ -1119,4 +1119,59 @@ class QuanLySuKien extends BaseController
         return $headers;
     }
 
+    /**
+     * Xử lý việc lưu dữ liệu sự kiện từ form
+     */
+    private function processSaveData($data, $id = null)
+    {
+        helper(['form', 'filesystem']);
+        
+        // Chuẩn bị dữ liệu
+        $saveData = [
+            'ten_su_kien' => $data['ten_su_kien'] ?? '',
+            'mo_ta' => $data['mo_ta'] ?? '',
+            'chi_tiet_su_kien' => $data['chi_tiet_su_kien'] ?? '',
+            'thoi_gian_bat_dau' => $data['thoi_gian_bat_dau'] ?? null,
+            'thoi_gian_ket_thuc' => $data['thoi_gian_ket_thuc'] ?? null,
+            'don_vi_to_chuc' => $data['don_vi_to_chuc'] ?? '',
+            'don_vi_phoi_hop' => $data['don_vi_phoi_hop'] ?? '',
+            'doi_tuong_tham_gia' => $data['doi_tuong_tham_gia'] ?? '',
+            'dia_diem' => $data['dia_diem'] ?? '',
+            'dia_chi_cu_the' => $data['dia_chi_cu_the'] ?? '',
+            'loai_su_kien_id' => $data['loai_su_kien_id'] ?? 0,
+            'status' => isset($data['status']) ? (int)$data['status'] : 0,
+            'hinh_thuc' => $data['hinh_thuc'] ?? 'offline',
+            'so_luong_tham_gia' => $data['so_luong_tham_gia'] ?? 0,
+            'toa_do_gps' => $data['toa_do_gps'] ?? '',
+            'tu_khoa_su_kien' => $data['tu_khoa_su_kien'] ?? '',
+            'hashtag' => $data['hashtag'] ?? '',
+            'thoi_gian_checkin_bat_dau' => $data['thoi_gian_checkin_bat_dau'] ?? null,
+            'thoi_gian_checkin_ket_thuc' => $data['thoi_gian_checkin_ket_thuc'] ?? null,
+            'gio_bat_dau' => $data['gio_bat_dau'] ?? null,
+            'gio_ket_thuc' => $data['gio_ket_thuc'] ?? null,
+            'bat_dau_dang_ky' => $data['bat_dau_dang_ky'] ?? null,
+            'ket_thuc_dang_ky' => $data['ket_thuc_dang_ky'] ?? null,
+            'han_huy_dang_ky' => $data['han_huy_dang_ky'] ?? null,
+            'link_online' => $data['link_online'] ?? '',
+            'mat_khau_online' => $data['mat_khau_online'] ?? ''
+        ];
+
+        // Lưu dữ liệu vào model
+        if ($id) {
+            $updated = $this->model->update($id, $saveData);
+            if ($updated) {
+                $this->alert->set('success', 'Cập nhật sự kiện thành công', true);
+            } else {
+                $this->alert->set('danger', 'Có lỗi xảy ra khi cập nhật sự kiện', true);
+            }
+        } else {
+            $insertId = $this->model->insert($saveData);
+            if ($insertId) {
+                $this->alert->set('success', 'Thêm mới sự kiện thành công', true);
+            } else {
+                $this->alert->set('danger', 'Có lỗi xảy ra khi thêm mới sự kiện', true);
+            }
+        }
+    }
+
 }

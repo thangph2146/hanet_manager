@@ -1133,7 +1133,8 @@ class SuKienModel extends BaseModel
             'tu_khoa_su_kien', 'hashtag', 'don_vi_to_chuc', 'don_vi_phoi_hop',
             'doi_tuong_tham_gia', 'created_at', 'updated_at', 'deleted_at',
             'bat_dau_dang_ky', 'ket_thuc_dang_ky', 'han_huy_dang_ky', 'link_online',
-            'mat_khau_online', 'thoi_gian_checkin_bat_dau', 'thoi_gian_checkin_ket_thuc'
+            'mat_khau_online', 'thoi_gian_checkin_bat_dau', 'thoi_gian_checkin_ket_thuc',
+            'thoi_gian_bat_dau_dang_ky', 'thoi_gian_ket_thuc_dang_ky'
         ];
 
         // Loại bỏ các trường không tồn tại trong bảng
