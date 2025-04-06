@@ -11,6 +11,12 @@ class LoginController extends BaseController
 {
     public function index()
     {
+        // Lấy tham số redirect từ URL nếu có
+        $redirect = $this->request->getGet('redirect');
+        if (!empty($redirect)) {
+            session()->set('redirect_url', urldecode($redirect));
+        }
+        
         $googleAuth = service('googleAuth');
         $googleAuthUrl = $googleAuth->getAuthUrl('nguoidung');    
         return view('App\Modules\login\nguoidung\Views\login', ['googleAuthUrl' => $googleAuthUrl]);
