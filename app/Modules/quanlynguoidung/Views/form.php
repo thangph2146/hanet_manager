@@ -10,9 +10,11 @@
 // Set default values if editing
 $AccountId = isset($data) ? $data->getField('AccountId') : '';
 $FullName = isset($data) ? $data->getField('FullName') : '';
+$LastName = isset($data) ? $data->getField('LastName') : '';
+$MiddleName = isset($data) ? $data->getField('MiddleName') : '';
+$FirstName = isset($data) ? $data->getField('FirstName') : '';
 $Email = isset($data) ? $data->getField('Email') : '';
 $MobilePhone = isset($data) ? $data->getField('MobilePhone') : '';
-$FirstName = isset($data) ? $data->getField('FirstName') : '';
 $AccountType = isset($data) ? $data->getField('AccountType') : '';
 $HomePhone1 = isset($data) ? $data->getField('HomePhone1') : '';
 $HomePhone = isset($data) ? $data->getField('HomePhone') : '';
@@ -39,9 +41,11 @@ $isUpdate = isset($data) && $data->getId() > 0;
 // Lấy dữ liệu từ old() nếu có
 $AccountId = old('AccountId', $AccountId);
 $FullName = old('FullName', $FullName);
+$LastName = old('LastName', $LastName);
+$MiddleName = old('MiddleName', $MiddleName);
+$FirstName = old('FirstName', $FirstName);
 $Email = old('Email', $Email);
 $MobilePhone = old('MobilePhone', $MobilePhone);
-$FirstName = old('FirstName', $FirstName);
 $AccountType = old('AccountType', $AccountType);
 $HomePhone1 = old('HomePhone1', $HomePhone1);
 $HomePhone = old('HomePhone', $HomePhone);
@@ -166,34 +170,128 @@ $status = old('status', $status);
                     </div>
                 </div>
 
-                <!-- FullName -->
-                <div class="col-md-6">
-                    <label for="FullName" class="form-label fw-semibold">
-                        Họ và tên <span class="text-danger">*</span>
+                <!-- LastName -->
+                <div class="col-md-4">
+                    <label for="LastName" class="form-label fw-semibold">
+                        Họ <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-user-pin'></i></span>
-                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('FullName') ? 'is-invalid' : '' ?>" 
-                            id="FullName" name="FullName" 
-                            value="<?= esc($FullName) ?>" 
-                            placeholder="Nhập họ và tên"
+                        <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
+                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('LastName') ? 'is-invalid' : '' ?>" 
+                            id="LastName" name="LastName" 
+                            value="<?= esc($LastName) ?>" 
+                            placeholder="Nhập họ"
                             required maxlength="100"
                             data-bs-toggle="tooltip"
                             data-bs-placement="top"
-                            title="Họ và tên đầy đủ của người dùng">
-                        <?php if (isset($validation) && $validation->hasError('FullName')): ?>
+                            title="Họ của người dùng">
+                        <?php if (isset($validation) && $validation->hasError('LastName')): ?>
                             <div class="invalid-feedback">
-                                <?= $validation->getError('FullName') ?>
+                                <?= $validation->getError('LastName') ?>
                             </div>
                         <?php else: ?>
-                            <div class="invalid-feedback">Vui lòng nhập họ và tên</div>
+                            <div class="invalid-feedback">Vui lòng nhập họ</div>
                         <?php endif; ?>
                     </div>
-                    <div class="form-text text-muted">
-                        <i class='bx bx-info-circle me-1'></i>
-                        Họ và tên tối đa 100 ký tự
+                </div>
+                
+                <!-- MiddleName -->
+                <div class="col-md-4">
+                    <label for="MiddleName" class="form-label fw-semibold">
+                        Tên đệm
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
+                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('MiddleName') ? 'is-invalid' : '' ?>" 
+                            id="MiddleName" name="MiddleName" 
+                            value="<?= esc($MiddleName) ?>" 
+                            placeholder="Nhập tên đệm"
+                            maxlength="100"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Tên đệm của người dùng">
+                        <?php if (isset($validation) && $validation->hasError('MiddleName')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('MiddleName') ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
+                
+                <!-- FirstName -->
+                <div class="col-md-4">
+                    <label for="FirstName" class="form-label fw-semibold">
+                        Tên <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
+                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('FirstName') ? 'is-invalid' : '' ?>" 
+                            id="FirstName" name="FirstName" 
+                            value="<?= esc($FirstName) ?>" 
+                            placeholder="Nhập tên"
+                            required maxlength="100"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            title="Tên của người dùng">
+                        <?php if (isset($validation) && $validation->hasError('FirstName')): ?>
+                            <div class="invalid-feedback">
+                                <?= $validation->getError('FirstName') ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="invalid-feedback">Vui lòng nhập tên</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                
+                <!-- Hidden FullName field to maintain compatibility -->
+                <input type="hidden" name="FullName" id="FullName" value="<?= esc($FullName) ?>">
+                
+                <script>
+                // Update FullName field when LastName, MiddleName or FirstName changes
+                document.addEventListener('DOMContentLoaded', function() {
+                    const lastNameInput = document.getElementById('LastName');
+                    const middleNameInput = document.getElementById('MiddleName');
+                    const firstNameInput = document.getElementById('FirstName');
+                    const fullNameInput = document.getElementById('FullName');
+                    
+                    const updateFullName = function() {
+                        const lastName = lastNameInput.value.trim();
+                        const middleName = middleNameInput.value.trim();
+                        const firstName = firstNameInput.value.trim();
+                        
+                        const nameParts = [];
+                        if (lastName) nameParts.push(lastName);
+                        if (middleName) nameParts.push(middleName);
+                        if (firstName) nameParts.push(firstName);
+                        
+                        fullNameInput.value = nameParts.join(' ');
+                    };
+                    
+                    // Listen for changes in any name field
+                    lastNameInput.addEventListener('input', updateFullName);
+                    middleNameInput.addEventListener('input', updateFullName);
+                    firstNameInput.addEventListener('input', updateFullName);
+                    
+                    // Initialize on page load if name fields are empty but FullName has a value
+                    if ((!lastNameInput.value && !firstNameInput.value) && fullNameInput.value) {
+                        // Try to split FullName into name parts
+                        const fullNameParts = fullNameInput.value.trim().split(' ');
+                        if (fullNameParts.length === 1) {
+                            // Only one word, use as FirstName
+                            firstNameInput.value = fullNameParts[0];
+                        } else if (fullNameParts.length === 2) {
+                            // Two words, use as LastName and FirstName
+                            lastNameInput.value = fullNameParts[0];
+                            firstNameInput.value = fullNameParts[1];
+                        } else {
+                            // More than two words
+                            lastNameInput.value = fullNameParts[0];
+                            firstNameInput.value = fullNameParts[fullNameParts.length - 1];
+                            middleNameInput.value = fullNameParts.slice(1, fullNameParts.length - 1).join(' ');
+                        }
+                    }
+                });
+                </script>
 
                 <!-- Email -->
                 <div class="col-md-6">
@@ -248,29 +346,6 @@ $status = old('status', $status);
                     <div class="form-text text-muted">
                         <i class='bx bx-info-circle me-1'></i>
                         Số điện thoại tối đa 20 ký tự
-                    </div>
-                </div>
-
-                <!-- FirstName -->
-                <div class="col-md-6">
-                    <label for="FirstName" class="form-label fw-semibold">
-                        Tên
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class='bx bx-user'></i></span>
-                        <input type="text" class="form-control <?= isset($validation) && $validation->hasError('FirstName') ? 'is-invalid' : '' ?>" 
-                            id="FirstName" name="FirstName" 
-                            value="<?= esc($FirstName) ?>" 
-                            placeholder="Nhập tên"
-                            maxlength="100"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="Tên riêng của người dùng">
-                        <?php if (isset($validation) && $validation->hasError('FirstName')): ?>
-                            <div class="invalid-feedback">
-                                <?= $validation->getError('FirstName') ?>
-                            </div>
-                        <?php endif; ?>
                     </div>
                 </div>
 

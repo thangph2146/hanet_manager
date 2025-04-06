@@ -94,8 +94,64 @@ class Authentication {
 		if ($user === null) {
 			return '';
 		}
-		$fullName = array_column($user, 'u_FullName');
-		return $fullName[0] ?? '';
+		
+		// Ưu tiên sử dụng các trường LastName, MiddleName và FirstName nếu có
+		if (property_exists($user, 'LastName') || property_exists($user, 'MiddleName') || property_exists($user, 'FirstName')) {
+			$nameParts = [];
+			
+			if (!empty($user->LastName)) {
+				$nameParts[] = $user->LastName;
+			}
+			
+			if (!empty($user->MiddleName)) {
+				$nameParts[] = $user->MiddleName;
+			}
+			
+			if (!empty($user->FirstName)) {
+				$nameParts[] = $user->FirstName;
+			}
+			
+			if (!empty($nameParts)) {
+				return implode(' ', $nameParts);
+			}
+		}
+		
+		// Nếu không có các trường mới hoặc chúng đều trống, sử dụng FullName
+		if (property_exists($user, 'FullName') && !empty($user->FullName)) {
+			return $user->FullName;
+		}
+		
+		return $user->name ?? '';
+	}
+
+	public function getLastName()
+	{
+		$user = $this->getCurrentUser();
+		if ($user === null) {
+			return '';
+		}
+		
+		return $user->LastName ?? '';
+	}
+
+	public function getMiddleName()
+	{
+		$user = $this->getCurrentUser();
+		if ($user === null) {
+			return '';
+		}
+		
+		return $user->MiddleName ?? '';
+	}
+
+	public function getFirstName()
+	{
+		$user = $this->getCurrentUser();
+		if ($user === null) {
+			return '';
+		}
+		
+		return $user->FirstName ?? '';
 	}
 
 	public function getFullRole()

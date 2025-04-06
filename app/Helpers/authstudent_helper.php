@@ -53,13 +53,7 @@ if ( ! function_exists('getFullNameStudent')) {
 			// Debug thông tin
 			log_message('info', 'Student data: ' . json_encode($student));
 			
-			// Kiểm tra và lấy FullName
-			$fullName = $student->FullName;
-			if (empty($fullName)) {
-				log_message('error', 'FullName is empty');
-				return 'N/A';
-			}
-			return $fullName;
+			return $auth->getFullName();
 			
 		} catch (\Exception $e) {
 			log_message('error', 'Error in getFullName: ' . $e->getMessage());

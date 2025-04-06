@@ -204,8 +204,79 @@ class AuthenticationStudent
 		if ($student === null) {
 			return '';
 		}
-		$fullName = array_column($student, 'FullName');
-		return $fullName[0] ?? '';
+		
+		// Ưu tiên sử dụng các trường LastName, MiddleName và FirstName nếu có
+		if (property_exists($student, 'LastName') || property_exists($student, 'MiddleName') || property_exists($student, 'FirstName')) {
+			$nameParts = [];
+			
+			if (!empty($student->LastName)) {
+				$nameParts[] = $student->LastName;
+			}
+			
+			if (!empty($student->MiddleName)) {
+				$nameParts[] = $student->MiddleName;
+			}
+			
+			if (!empty($student->FirstName)) {
+				$nameParts[] = $student->FirstName;
+			}
+			
+			if (!empty($nameParts)) {
+				return implode(' ', $nameParts);
+			}
+		}
+		
+		// Nếu không có các trường mới hoặc chúng đều trống, sử dụng FullName
+		if (property_exists($student, 'FullName') && !empty($student->FullName)) {
+			return $student->FullName;
+		}
+		
+		return '';
+	}
+
+	/**
+	 * Lấy họ của người dùng đã đăng nhập
+	 * 
+	 * @return string Họ của người dùng
+	 */
+	public function getLastName()
+	{
+		$student = $this->getCurrentStudent();
+		if ($student === null) {
+			return '';
+		}
+		
+		return $student->LastName ?? '';
+	}
+
+	/**
+	 * Lấy tên đệm của người dùng đã đăng nhập
+	 * 
+	 * @return string Tên đệm của người dùng
+	 */
+	public function getMiddleName()
+	{
+		$student = $this->getCurrentStudent();
+		if ($student === null) {
+			return '';
+		}
+		
+		return $student->MiddleName ?? '';
+	}
+
+	/**
+	 * Lấy tên của người dùng đã đăng nhập
+	 * 
+	 * @return string Tên của người dùng
+	 */
+	public function getFirstName()
+	{
+		$student = $this->getCurrentStudent();
+		if ($student === null) {
+			return '';
+		}
+		
+		return $student->FirstName ?? '';
 	}
 
 	/**

@@ -137,7 +137,9 @@
                             </th>
                             <th width="5%" class="align-middle">ID</th>
                             <th width="15%" class="align-middle">Tài khoản</th>
-                            <th width="15%" class="align-middle">Họ và tên</th>
+                            <th width="15%" class="align-middle">Họ</th>
+                            <th width="15%" class="align-middle">Tên đệm</th>
+                            <th width="15%" class="align-middle">Tên</th>
                             <th width="10%" class="align-middle">Email</th>
                             <th width="10%" class="align-middle">Số điện thoại</th>
                             <th width="10%" class="align-middle">Loại người dùng</th>
@@ -159,7 +161,9 @@
                                     </td>
                                     <td><?= esc($item->nguoi_dung_id) ?></td>
                                     <td><?= esc($item->AccountId) ?></td>
-                                    <td><?= esc($item->FullName) ?></td>
+                                    <td><?= esc($item->getLastName()) ?></td>
+                                    <td><?= esc($item->getMiddleName()) ?></td>
+                                    <td><?= esc($item->getFirstName()) ?></td>
                                     <td><?= esc($item->Email) ?></td>
                                     <td><?= esc($item->MobilePhone) ?></td>
                                     <td>

@@ -287,9 +287,6 @@ if ($isLoggedIn): ?>
             <?php else: ?>
                 <!-- Người dùng chưa đăng nhập - Hiển thị nút đăng nhập -->
                 <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeIn">
-                    <div class="card-header bg-danger bg-gradient text-white py-3">
-                        <h5 class="card-title mb-0 text-white"><i class="bi bi-person-plus-fill me-2"></i>Thông tin đăng ký</h5>
-                    </div>
                     <div class="card-body p-5 text-center">
                         <div class="mb-4">
                             <img src="<?= base_url('assets/images/login-illustration.svg') ?>" alt="Đăng nhập" class="img-fluid" style="max-height: 200px;">

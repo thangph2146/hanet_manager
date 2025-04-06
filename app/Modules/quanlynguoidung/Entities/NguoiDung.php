@@ -59,16 +59,24 @@ class NguoiDung extends BaseEntity
             'label' => 'Email'
         ],
         'FullName' => [
+            'rules' => 'permit_empty|max_length[100]',
+            'label' => 'Họ và tên đầy đủ'
+        ],
+        'LastName' => [
             'rules' => 'required|max_length[100]',
-            'label' => 'Họ và tên'
+            'label' => 'Họ'
+        ],
+        'MiddleName' => [
+            'rules' => 'permit_empty|max_length[100]',
+            'label' => 'Tên đệm'
+        ],
+        'FirstName' => [
+            'rules' => 'required|max_length[100]',
+            'label' => 'Tên'
         ],
         'MobilePhone' => [
             'rules' => 'permit_empty|max_length[20]',
             'label' => 'Số điện thoại di động'
-        ],
-        'FirstName' => [
-            'rules' => 'permit_empty|max_length[100]',
-            'label' => 'Tên'
         ],
         'AccountType' => [
             'rules' => 'permit_empty|max_length[20]',
@@ -121,14 +129,21 @@ class NguoiDung extends BaseEntity
             'is_unique' => '{field} đã tồn tại trong hệ thống'
         ],
         'FullName' => [
+            'max_length' => '{field} không được vượt quá 100 ký tự'
+        ],
+        'LastName' => [
+            'required' => '{field} là bắt buộc',
+            'max_length' => '{field} không được vượt quá 100 ký tự'
+        ],
+        'MiddleName' => [
+            'max_length' => '{field} không được vượt quá 100 ký tự'
+        ],
+        'FirstName' => [
             'required' => '{field} là bắt buộc',
             'max_length' => '{field} không được vượt quá 100 ký tự'
         ],
         'MobilePhone' => [
             'max_length' => '{field} không được vượt quá 20 ký tự'
-        ],
-        'FirstName' => [
-            'max_length' => '{field} không được vượt quá 100 ký tự'
         ],
         'AccountType' => [
             'max_length' => '{field} không được vượt quá 20 ký tự'
@@ -189,7 +204,12 @@ class NguoiDung extends BaseEntity
      */
     public function getFullName(): string
     {
-        return $this->attributes['FullName'] ?? '';
+        if (!empty($this->attributes['FullName'])) {
+            return $this->attributes['FullName'] ?? '';
+        }
+        
+        // Nếu FullName trống, tạo từ LastName, MiddleName và FirstName
+        return $this->getDisplayName();
     }
     
     /**
@@ -648,5 +668,63 @@ class NguoiDung extends BaseEntity
         
         // Nếu không tồn tại, trả về giá trị mặc định
         return $default;
+    }
+
+    /**
+     * Lấy họ
+     *
+     * @return string
+     */
+    public function getLastName(): string
+    {
+        return $this->attributes['LastName'] ?? '';
+    }
+    
+    /**
+     * Lấy tên đệm
+     *
+     * @return string
+     */
+    public function getMiddleName(): string
+    {
+        return $this->attributes['MiddleName'] ?? '';
+    }
+    
+    /**
+     * Lấy tên
+     *
+     * @return string
+     */
+    public function getFirstName(): string
+    {
+        return $this->attributes['FirstName'] ?? '';
+    }
+    
+    /**
+     * Lấy tên hiển thị từ các thành phần LastName, MiddleName và FirstName
+     *
+     * @return string
+     */
+    public function getDisplayName(): string
+    {
+        $nameParts = [];
+        
+        if (!empty($this->getLastName())) {
+            $nameParts[] = $this->getLastName();
+        }
+        
+        if (!empty($this->getMiddleName())) {
+            $nameParts[] = $this->getMiddleName();
+        }
+        
+        if (!empty($this->getFirstName())) {
+            $nameParts[] = $this->getFirstName();
+        }
+        
+        if (empty($nameParts)) {
+            return $this->attributes['FullName'] ?? '';
+        }
+        
+        return implode(' ', $nameParts);
     }
 } 

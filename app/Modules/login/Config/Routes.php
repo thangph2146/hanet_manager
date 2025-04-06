@@ -13,7 +13,7 @@ $routes->setDefaultNamespace('App\Modules\login\Controllers');
 $routes->get('login', function() {
     return redirect()->to('login/nguoi-dung');
 });
-$routes->get('login/dang-ky', 'LoginController::register');
+$routes->get('dang-ky', 'LoginController::register');
 $routes->get('@login.php', 'LoginController::index');
 $routes->get('login/nguoi-dung', 'LoginController::index');
 $routes->post('login/create_student', 'LoginController::create_student');

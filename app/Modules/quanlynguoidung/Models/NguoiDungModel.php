@@ -26,6 +26,8 @@ class NguoiDungModel extends BaseModel
         'AccountId',
         'u_id',
         'FirstName',
+        'MiddleName',
+        'LastName',
         'AccountType',
         'FullName',
         'MobilePhone',
@@ -54,6 +56,9 @@ class NguoiDungModel extends BaseModel
     protected $searchableFields = [
         'AccountId',
         'FullName',
+        'LastName',
+        'MiddleName',
+        'FirstName',
         'Email',
         'MobilePhone'
     ];
