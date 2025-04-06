@@ -922,6 +922,21 @@ class SuKien extends BaseController
             $registrationData['ma_sinh_vien'] = $userData->AccountId;
         }
 
+        // Lấy avatar của người dùng và ánh xạ tới face_image_path
+        if ($userData && !empty($userData->avatar)) {
+            $registrationData['face_image_path'] = $userData->avatar;
+            log_message('info', 'Mapping user avatar to face_image_path: ' . $userData->avatar);
+        } else if ($userData && !empty($userData->profile_image)) {
+            $registrationData['face_image_path'] = $userData->profile_image;
+            log_message('info', 'Mapping user profile_image to face_image_path: ' . $userData->profile_image);
+        } else if ($userData && !empty($userData->Avatar)) {
+            $registrationData['face_image_path'] = $userData->Avatar;
+            log_message('info', 'Mapping user Avatar to face_image_path: ' . $userData->Avatar);
+        } else if ($userData && !empty($userData->AvatarUrl)) {
+            $registrationData['face_image_path'] = $userData->AvatarUrl;
+            log_message('info', 'Mapping user AvatarUrl to face_image_path: ' . $userData->AvatarUrl);
+        }
+
         // Ghi log dữ liệu đăng ký
         log_message('debug', 'Registration data: ' . json_encode($registrationData));
 

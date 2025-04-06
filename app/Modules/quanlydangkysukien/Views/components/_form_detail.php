@@ -447,12 +447,6 @@ if (is_object($data)) {
                                          class="img-fluid rounded profile-img shadow"
                                          style="max-height: 200px; cursor: pointer;"
                                          title="Click để xem ảnh lớn hơn">
-                                    <div class="position-absolute top-0 end-0 m-2">
-                                        <a href="<?= base_url(esc($face_image_path)) ?>" class="btn btn-sm btn-primary rounded-circle" 
-                                           title="Tải xuống ảnh" download>
-                                            <i class="fas fa-download"></i>
-                                        </a>
-                                    </div>
                                 </div>
                                 <div class="mt-2">
                                     <code class="text-muted small"><?= esc($face_image_path) ?></code>
