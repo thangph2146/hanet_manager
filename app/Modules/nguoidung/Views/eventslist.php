@@ -261,32 +261,7 @@
                                 <a href="<?= base_url('/su-kien/chi-tiet/' . ($event->slug ?? 0)) ?>" class="btn btn-details">
                                     <i class="fas fa-info-circle"></i> Chi tiết
                                 </a>
-                                
-                                <?php if($isUpcoming || $isOngoing): ?>
-                                    <?php if($registrationStatus == 'registered'): ?>
-                                        <a href="<?= base_url('nguoidung/sukien/huy-dang-ky/' . ($event->ma_su_kien ?? 0)) ?>" class="btn btn-cancel" data-event-id="<?= $event->ma_su_kien ?? 0 ?>">
-                                            <i class="fas fa-times-circle"></i> Hủy đăng ký
-                                        </a>
-                                    <?php elseif($registrationStatus == 'attended'): ?>
-                                        <div class="btn btn-attended disabled">
-                                            <i class="fas fa-calendar-check"></i> Đã tham gia
-                                        </div>
-                                    <?php else: ?>
-                                        <?php if(!isset($event->so_luong_toi_da) || !isset($event->so_luong_dang_ky) || $event->so_luong_dang_ky < $event->so_luong_toi_da): ?>
-                                            <a href="<?= base_url('/su-kien/chi-tiet/' . ($event->slug ?? 0)) ?>" class="btn btn-register" data-event-id="<?= $event->ma_su_kien ?? 0 ?>">
-                                                <i class="fas fa-calendar-plus"></i> Đăng ký
-                                            </a>
-                                        <?php else: ?>
-                                            <div class="btn btn-full disabled">
-                                                <i class="fas fa-users-slash"></i> Đã đủ số lượng
-                                            </div>
-                                        <?php endif; ?>
-                                    <?php endif; ?>
-                                <?php else: ?>
-                                    <span class="btn btn-disabled">
-                                        <i class="fas fa-calendar-times"></i> Đã kết thúc
-                                    </span>
-                                <?php endif; ?>
+                               
                             </div>
                         </div>
                     </div>

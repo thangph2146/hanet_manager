@@ -305,8 +305,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 /* Danh sách sự kiện đăng ký */
 .register-history-list {
     padding: 2rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
     gap: 1.5rem;
 }
 

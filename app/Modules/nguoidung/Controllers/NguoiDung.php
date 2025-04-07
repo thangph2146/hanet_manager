@@ -368,14 +368,27 @@ class NguoiDung extends BaseController
             ]
         ]);
         
+        // Xử lý dữ liệu và đảm bảo các trường cần thiết
+        foreach ($registeredEvents as $key => $event) {
+            // Chuẩn hóa trường ngày tổ chức
+            if (!isset($event->ngay_to_chuc) && isset($event->thoi_gian_bat_dau)) {
+                $registeredEvents[$key]->ngay_to_chuc = $event->thoi_gian_bat_dau;
+            }
+            
+            // Chuẩn hóa trường trạng thái đăng ký
+            if (!isset($event->status) && isset($event->trang_thai_dang_ky)) {
+                $registeredEvents[$key]->status = $event->trang_thai_dang_ky;
+            }
+        }
+        
         // Áp dụng bộ lọc tìm kiếm theo từ khóa
         if (!empty($search)) {
             $search = strtolower($search);
             $registeredEvents = array_filter($registeredEvents, function($event) use ($search) {
                 return (
-                    stripos(strtolower($event->ten_sukien ?? ''), $search) !== false ||
-                    stripos(strtolower($event->dia_diem ?? ''), $search) !== false ||
-                    stripos(strtolower($event->to_chuc ?? ''), $search) !== false
+                    stripos(strtolower($event->ten_sukien ?? ($event->tieu_de ?? '')), $search) !== false ||
+                    stripos(strtolower($event->dia_diem ?? ($event->venue ?? '')), $search) !== false ||
+                    stripos(strtolower($event->to_chuc ?? ($event->ban_to_chuc ?? '')), $search) !== false
                 );
             });
         }
@@ -383,11 +396,13 @@ class NguoiDung extends BaseController
         // Áp dụng bộ lọc thời gian nếu có trong eventsHistoryRegister
         if (!empty($startDate) || !empty($endDate)) {
             $registeredEvents = array_filter($registeredEvents, function($event) use ($startDate, $endDate) {
-                $eventDate = isset($event->ngay_to_chuc) ? new DateTime($event->ngay_to_chuc) : null;
-                
-                if (!$eventDate) {
+                // Kiểm tra các trường ngày có thể có
+                $eventDateStr = $event->ngay_to_chuc ?? ($event->thoi_gian_bat_dau ?? null);
+                if (!$eventDateStr) {
                     return true; // Giữ lại sự kiện nếu không có ngày
                 }
+                
+                $eventDate = new DateTime($eventDateStr);
                 
                 // Lọc theo ngày giờ bắt đầu
                 if (!empty($startDate)) {
@@ -415,9 +430,9 @@ class NguoiDung extends BaseController
         $cancelledEvents = 0;
         
         foreach ($registeredEvents as $event) {
-            if ($event->trang_thai_dang_ky == 0) {
+            if (isset($event->status) && $event->status == 0) {
                 $cancelledEvents++;
-            } else if ($event->da_check_in == 1) {
+            } else if (isset($event->da_check_in) && $event->da_check_in == 1) {
                 $attendedEvents++;
             } else {
                 $pendingEvents++;
