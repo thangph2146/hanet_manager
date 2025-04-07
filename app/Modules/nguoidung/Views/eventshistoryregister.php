@@ -10,6 +10,87 @@
     padding: 0 15px;
 }
 
+/* Debug Log Styles */
+.debug-section {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    padding: 15px;
+    font-family: monospace;
+    overflow-x: auto;
+}
+
+.debug-section h4 {
+    color: #343a40;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ced4da;
+    padding-bottom: 8px;
+}
+
+.debug-section pre {
+    background-color: #e9ecef;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #212529;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.debug-section .btn-toggle {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+    color: #fff;
+    background-color: #6c757d;
+    border: 1px solid #6c757d;
+    cursor: pointer;
+}
+
+.debug-section .copy-btn {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.4rem;
+    margin-bottom: 5px;
+    background-color: #17a2b8;
+    border: 1px solid #17a2b8;
+}
+
+.debug-section .copy-btn:hover {
+    background-color: #138496;
+    border-color: #117a8b;
+}
+
+.debug-section .copy-all-btn {
+    background-color: #007bff;
+    border: 1px solid #007bff;
+}
+
+.debug-section .copy-all-btn:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.copy-tooltip {
+    animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.debug-section .collapsible {
+    display: none;
+}
+
 .statistics-card {
     transition: all 0.3s ease;
     margin-bottom: 20px;
@@ -287,14 +368,472 @@
     border-radius: 10px;
     margin-top: 20px;
 }
+
+.debug-section .export-btn {
+    background-color: #28a745;
+    border: 1px solid #28a745;
+}
+
+.debug-section .export-btn:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+.debug-section .copy-status-alert {
+    margin: 5px 0 15px 0;
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    opacity: 0;
+}
+
+.debug-section .copy-status-alert.show {
+    opacity: 1;
+}
+
+.debug-section pre.debug-pre {
+    position: relative;
+    counter-reset: line;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #212529;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.debug-section pre.debug-pre.with-line-numbers {
+    padding-left: 50px;
+}
+
+.debug-section pre.debug-pre.with-line-numbers span.line {
+    counter-increment: line;
+    display: inline-block;
+    width: calc(100% - 5px);
+    position: relative;
+}
+
+.debug-section pre.debug-pre.with-line-numbers span.line:before {
+    content: counter(line);
+    position: absolute;
+    left: -45px;
+    color: #6c757d;
+    text-align: right;
+    width: 35px;
+    font-size: 0.8rem;
+    border-right: 1px solid #dee2e6;
+    padding-right: 5px;
+    user-select: none;
+}
+
+.debug-section pre.debug-pre.with-line-numbers span.line:hover {
+    background-color: #f8f9fa;
+}
+
+.debug-section pre.debug-pre.with-line-numbers span.line:hover:after {
+    content: "Copy";
+    position: absolute;
+    right: 5px;
+    font-size: 0.7rem;
+    background: #17a2b8;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    cursor: pointer;
+}
 </style>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="container py-5">
-    <div class="page-header bg-primary bg-gradient text-white rounded-3 mb-4 p-4">
-        <h2 class="page-title fw-bold"><i class="far fa-calendar-alt me-2"></i>Lịch sử đăng ký sự kiện</h2>
-        <p class="page-description mb-0">Theo dõi tất cả các sự kiện bạn đã đăng ký tham gia</p>
+<div class="container py-4">
+    <?php if (ENVIRONMENT === 'development'): ?>
+    <!-- DEBUG LOG SECTION - CHỈ HIỂN THỊ TRONG MÔI TRƯỜNG DEVELOPMENT -->
+    <div class="debug-section">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <button class="btn-toggle" onclick="toggleDebug()">Hiển thị/Ẩn Debug Log</button>
+            <div>
+                <button class="btn-toggle export-btn me-2" onclick="exportDebugLog()">
+                    <i class="fas fa-file-download me-1"></i> Xuất file
+                </button>
+                <button class="btn-toggle copy-all-btn" onclick="copyAllDebugInfo()">
+                    <i class="fas fa-copy me-1"></i> Copy tất cả
+                </button>
+            </div>
+        </div>
+        
+        <!-- Hiển thị trạng thái copy -->
+        <div id="copyStatus" class="copy-status-alert alert alert-success">
+            <i class="fas fa-check-circle me-2"></i>
+            <span id="copyStatusText">Đã copy thành công!</span>
+        </div>
+        
+        <h4>Debug Information <span class="badge bg-warning">Development Only</span></h4>
+        <div class="collapsible" id="debugContent">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>Registered Events Data:</h5>
+                <div>
+                    <button class="btn-toggle copy-btn me-1" onclick="copyDebugSection('registeredEventsData')">
+                        <i class="fas fa-copy me-1"></i> Copy tất cả
+                    </button>
+                    <button class="btn-toggle copy-btn" onclick="toggleLineNumbers('registeredEventsData')">
+                        <i class="fas fa-list-ol me-1"></i> Dòng
+                    </button>
+                </div>
+            </div>
+            <pre id="registeredEventsData" class="debug-pre"><?php 
+                if (isset($registeredEvents)) {
+                    echo "Số lượng sự kiện: " . count($registeredEvents) . "\n\n";
+                    
+                    if (!empty($registeredEvents)) {
+                        echo "Thông tin sự kiện đầu tiên:\n";
+                        echo "-------------------------\n";
+                        $firstEvent = reset($registeredEvents);
+                        foreach ($firstEvent as $key => $value) {
+                            if (is_object($value) || is_array($value)) {
+                                echo "$key: " . json_encode($value, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";
+                            } else {
+                                echo "$key: $value\n";
+                            }
+                        }
+                    }
+                } else {
+                    echo "Không có dữ liệu registeredEvents";
+                }
+            ?></pre>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>Current Filter Data:</h5>
+                <div>
+                    <button class="btn-toggle copy-btn me-1" onclick="copyDebugSection('currentFilterData')">
+                        <i class="fas fa-copy me-1"></i> Copy tất cả
+                    </button>
+                    <button class="btn-toggle copy-btn" onclick="toggleLineNumbers('currentFilterData')">
+                        <i class="fas fa-list-ol me-1"></i> Dòng
+                    </button>
+                </div>
+            </div>
+            <pre id="currentFilterData" class="debug-pre"><?php 
+                if (isset($current_filter)) {
+                    echo json_encode($current_filter, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                } else {
+                    echo "Không có dữ liệu current_filter";
+                }
+            ?></pre>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>All View Data:</h5>
+                <div>
+                    <button class="btn-toggle copy-btn me-1" onclick="copyDebugSection('allViewData')">
+                        <i class="fas fa-copy me-1"></i> Copy tất cả
+                    </button>
+                    <button class="btn-toggle copy-btn" onclick="toggleLineNumbers('allViewData')">
+                        <i class="fas fa-list-ol me-1"></i> Dòng
+                    </button>
+                </div>
+            </div>
+            <pre id="allViewData" class="debug-pre"><?php 
+                $data = get_defined_vars();
+                unset($data['registeredEvents']); // Đã hiển thị ở trên
+                echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            ?></pre>
+            
+            <div class="mt-3">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Lưu ý:</strong> Thông tin debug này chỉ hiển thị ở môi trường phát triển. Vui lòng không hiển thị trong môi trường sản phẩm.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleDebug() {
+            var content = document.getElementById('debugContent');
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+            } else {
+                content.style.display = 'block';
+            }
+        }
+        
+        // Ẩn debug log và thông báo trạng thái khi load trang
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('debugContent').style.display = 'none';
+            document.getElementById('copyStatus').style.opacity = '0';
+        });
+        
+        function copyDebugSection(elementId) {
+            var contentElement = document.getElementById(elementId);
+            var content = contentElement.textContent;
+            
+            navigator.clipboard.writeText(content)
+                .then(() => {
+                    // Hiển thị thông báo đã copy
+                    showCopyStatus("Đã copy " + getSectionName(elementId) + " thành công!");
+                })
+                .catch(err => {
+                    console.error('Không thể copy: ', err);
+                    // Phương pháp dự phòng
+                    fallbackCopyTextToClipboard(content, elementId);
+                });
+        }
+        
+        function getSectionName(elementId) {
+            switch(elementId) {
+                case 'registeredEventsData':
+                    return 'dữ liệu sự kiện';
+                case 'currentFilterData':
+                    return 'dữ liệu bộ lọc';
+                case 'allViewData':
+                    return 'tất cả dữ liệu view';
+                default:
+                    return 'dữ liệu';
+            }
+        }
+        
+        function fallbackCopyTextToClipboard(text, elementId) {
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Làm cho textarea không hiển thị
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                var successful = document.execCommand('copy');
+                if (successful) {
+                    showCopyStatus("Đã copy " + getSectionName(elementId) + " thành công!");
+                }
+            } catch (err) {
+                console.error('Fallback: Không thể copy', err);
+                showCopyStatus("Không thể copy: " + err, "danger");
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        function showCopyStatus(message, type = "success") {
+            var statusElement = document.getElementById('copyStatus');
+            var statusTextElement = document.getElementById('copyStatusText');
+            
+            // Cập nhật nội dung và loại thông báo
+            statusTextElement.textContent = message;
+            statusElement.className = 'copy-status-alert alert alert-' + type;
+            
+            // Hiển thị thông báo với hiệu ứng fade in
+            statusElement.style.opacity = '1';
+            
+            // Tự động ẩn sau 3 giây
+            setTimeout(function() {
+                statusElement.style.opacity = '0';
+            }, 3000);
+        }
+        
+        function showCopyTooltip(elementId) {
+            // Tạo tooltip
+            var tooltip = document.createElement('div');
+            tooltip.textContent = 'Đã copy!';
+            tooltip.className = 'copy-tooltip';
+            tooltip.style.position = 'fixed';
+            tooltip.style.padding = '5px 10px';
+            tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            tooltip.style.color = 'white';
+            tooltip.style.borderRadius = '3px';
+            tooltip.style.zIndex = '1000';
+            
+            // Lấy vị trí nút được nhấp
+            var button = event.target.closest('button');
+            var rect = button.getBoundingClientRect();
+            
+            // Đặt tooltip phía trên nút
+            tooltip.style.left = (rect.left + rect.width/2 - 30) + 'px';
+            tooltip.style.top = (rect.top - 30) + 'px';
+            
+            document.body.appendChild(tooltip);
+            
+            // Xóa tooltip sau 2 giây
+            setTimeout(function() {
+                document.body.removeChild(tooltip);
+            }, 2000);
+        }
+        
+        function copyAllDebugInfo() {
+            var allContent = 
+                document.getElementById('registeredEventsData').textContent + '\n\n' +
+                document.getElementById('currentFilterData').textContent + '\n\n' +
+                document.getElementById('allViewData').textContent;
+            
+            navigator.clipboard.writeText(allContent)
+                .then(() => {
+                    showCopyStatus("Đã copy tất cả thông tin debug thành công!");
+                    showCopyTooltip('copy-all-btn');
+                })
+                .catch(err => {
+                    fallbackCopyTextToClipboard(allContent, 'copy-all-btn');
+                });
+        }
+        
+        function toggleLineNumbers(elementId) {
+            var preElement = document.getElementById(elementId);
+            
+            if (preElement.classList.contains('with-line-numbers')) {
+                // Đã hiển thị số dòng, ẩn đi
+                preElement.classList.remove('with-line-numbers');
+                preElement.innerHTML = preElement.getAttribute('data-original-content');
+                showCopyStatus("Đã ẩn số dòng", "info");
+            } else {
+                // Chưa hiển thị số dòng, hiển thị
+                if (!preElement.hasAttribute('data-original-content')) {
+                    preElement.setAttribute('data-original-content', preElement.innerHTML);
+                }
+                
+                var content = preElement.innerHTML;
+                var lines = content.split('\n');
+                var newContent = '';
+                
+                for (var i = 0; i < lines.length; i++) {
+                    if (lines[i].trim() !== '') {
+                        newContent += '<span class="line" onclick="copyLine(this)">' + lines[i] + '</span>\n';
+                    } else {
+                        newContent += '<span class="line">&nbsp;</span>\n';
+                    }
+                }
+                
+                preElement.innerHTML = newContent;
+                preElement.classList.add('with-line-numbers');
+                showCopyStatus("Đã hiển thị số dòng. Nhấp vào dòng bất kỳ để copy nội dung dòng đó.", "info");
+            }
+        }
+        
+        function copyLine(lineElement) {
+            var content = lineElement.textContent;
+            
+            navigator.clipboard.writeText(content)
+                .then(() => {
+                    showCopyStatus("Đã copy dòng: \"" + (content.length > 30 ? content.substring(0, 30) + '...' : content) + "\"");
+                })
+                .catch(err => {
+                    console.error('Không thể copy dòng: ', err);
+                    // Phương pháp dự phòng
+                    var textArea = document.createElement("textarea");
+                    textArea.value = content;
+                    
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    try {
+                        var successful = document.execCommand('copy');
+                        if (successful) {
+                            showCopyStatus("Đã copy dòng: \"" + (content.length > 30 ? content.substring(0, 30) + '...' : content) + "\"");
+                        }
+                    } catch (err) {
+                        showCopyStatus("Không thể copy dòng", "danger");
+                    }
+                    
+                    document.body.removeChild(textArea);
+                });
+        }
+
+        function exportDebugLog() {
+            // Lấy tất cả nội dung debug
+            var allContent = 
+                "====== THÔNG TIN DEBUG EVENTSHISTORYREGISTER ======\n" +
+                "Thời gian xuất: " + new Date().toLocaleString() + "\n\n" +
+                "====== REGISTERED EVENTS DATA ======\n" +
+                document.getElementById('registeredEventsData').textContent + '\n\n' +
+                "====== CURRENT FILTER DATA ======\n" +
+                document.getElementById('currentFilterData').textContent + '\n\n' +
+                "====== ALL VIEW DATA ======\n" +
+                document.getElementById('allViewData').textContent;
+            
+            // Tạo file text để download
+            var blob = new Blob([allContent], { type: 'text/plain;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            
+            // Tạo link download và click
+            var downloadLink = document.createElement('a');
+            var date = new Date();
+            var fileName = 'debug_log_' + 
+                date.getFullYear() + '-' + 
+                ('0' + (date.getMonth() + 1)).slice(-2) + '-' + 
+                ('0' + date.getDate()).slice(-2) + '_' + 
+                ('0' + date.getHours()).slice(-2) + '-' + 
+                ('0' + date.getMinutes()).slice(-2) + '.txt';
+                
+            downloadLink.href = url;
+            downloadLink.download = fileName;
+            
+            // Thêm link vào document, click và xóa
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            
+            // Cleanup
+            setTimeout(function() {
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(url);
+                
+                // Hiển thị thông báo thành công
+                showCopyStatus("Đã xuất file debug thành công!");
+            }, 100);
+        }
+    </script>
+    <!-- END DEBUG LOG SECTION -->
+    <?php else: ?>
+    <!-- Debug log chỉ hiển thị trong môi trường development -->
+    <?php endif; ?>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header bg-primary bg-gradient text-white rounded-3 mb-4 p-4">
+                <h2 class="page-title fw-bold"><i class="far fa-calendar-alt me-2"></i>Lịch sử đăng ký sự kiện</h2>
+                <p class="page-description mb-0">Theo dõi tất cả các sự kiện bạn đã đăng ký tham gia</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bộ lọc -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label for="statusFilter" class="form-label">Trạng thái</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="all">Tất cả</option>
+                                <option value="3">Đã tham gia</option>
+                                <option value="1">Đang chờ</option>
+                                <option value="2">Đã hủy</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label for="timeFilter" class="form-label">Thời gian</label>
+                            <select class="form-select" id="timeFilter">
+                                <option value="all">Tất cả</option>
+                                <option value="upcoming">Sắp diễn ra</option>
+                                <option value="past">Đã diễn ra</option>
+                                <option value="month">Tháng này</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label for="searchEvents" class="form-label">Tìm kiếm</label>
+                            <input type="text" class="form-control" id="searchEvents" placeholder="Nhập tên sự kiện...">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" id="applyFilter">
+                                <i class="fas fa-filter me-1"></i> Lọc
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <?php
@@ -581,7 +1120,7 @@
                                                 </a>
                                                 <?php endif; ?>
                                                 
-                                                <a href="<?= site_url('sukien/detail/' . ($event->id_sukien ?? ($event->su_kien_id ?? 0)) . '/' . ($event->slug ?? '')) ?>" 
+                                                <a href="<?= site_url('su-kien/detail/' . ($event->slug ?? '')) ?>" 
                                                    class="btn btn-primary" 
                                                    data-toggle="tooltip" 
                                                    title="Xem chi tiết sự kiện">
@@ -615,293 +1154,26 @@
 
 <?= $this->section('scripts') ?>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Kiểm tra và hiển thị danh sách sự kiện
-    function validateEventDisplay() {
-        const eventCards = document.querySelectorAll('.event-card-container');
-        const emptyStateElement = document.querySelector('.empty-state-filtered');
-        const statsNumberElement = document.querySelector('.stats-number');
-        
-        // Nếu có số liệu thống kê nhưng không thấy danh sách
-        if (statsNumberElement && parseInt(statsNumberElement.textContent) > 0 && eventCards.length === 0) {
-            // Tự động reload trang để lấy lại dữ liệu
-            if (!window.location.search.includes('reload=true')) {
-                window.location.href = window.location.pathname + 
-                    (window.location.search ? window.location.search + '&reload=true' : '?reload=true');
-            }
-        }
-        
-        // Nếu có danh sách sự kiện
-        if (eventCards.length > 0) {
-            // Ẩn thông báo trống nếu có
-            if (emptyStateElement) {
-                emptyStateElement.style.display = 'none';
-            }
-            
-            // Đếm thẻ sự kiện hiển thị
-            let visibleCount = 0;
-            eventCards.forEach(card => {
-                if (card.style.display !== 'none') {
-                    visibleCount++;
-                }
-            });
-            
-            // Hiển thị thông báo trống nếu không có sự kiện nào hiển thị sau khi lọc
-            if (visibleCount === 0 && emptyStateElement) {
-                emptyStateElement.style.display = 'block';
-            }
-        }
-    }
-    
-    // Chạy kiểm tra ngay khi trang tải xong
-    validateEventDisplay();
-    
-    // Khởi tạo tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'));
-    tooltipTriggerList.forEach(function(tooltipTriggerEl) {
-        new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Filter events by status
-    const filterButtons = document.querySelectorAll('.event-filter button');
-    const eventCards = document.querySelectorAll('.event-card-container');
-    const emptyState = document.querySelector('.empty-state-filtered');
-    
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // Remove active class from all buttons
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            // Add active class to clicked button
-            this.classList.add('active');
-            
-            const filterValue = this.getAttribute('data-filter');
-            let visibleCount = 0;
-            
-            eventCards.forEach(card => {
-                if (filterValue === 'all') {
-                    card.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    const cardStatus = card.getAttribute('data-event-status');
-                    if (cardStatus === filterValue) {
-                        card.style.display = 'block';
-                        visibleCount++;
-                    } else {
-                        card.style.display = 'none';
-                    }
-                }
-            });
-            
-            // Show empty state if no cards are visible
-            if (emptyState) {
-                if (visibleCount === 0) {
-                    emptyState.style.display = 'block';
-                } else {
-                    emptyState.style.display = 'none';
-                }
-            }
-        });
-    });
-    
-    // Sort events
-    const sortButtons = document.querySelectorAll('.event-sort button');
-    const eventCardsList = document.querySelector('.event-cards');
-    
-    if (eventCards.length > 0 && eventCardsList) {
-        sortButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Remove active class from all buttons
-                sortButtons.forEach(btn => btn.classList.remove('active'));
-                // Add active class to clicked button
-                this.classList.add('active');
-                
-                const sortValue = this.getAttribute('data-sort');
-                const cards = Array.from(eventCards);
-                
-                cards.sort((a, b) => {
-                    const dateA = new Date(a.getAttribute('data-event-date') || '2000-01-01');
-                    const dateB = new Date(b.getAttribute('data-event-date') || '2000-01-01');
-                    
-                    if (sortValue === 'newest') {
-                        return dateB - dateA;
-                    } else {
-                        return dateA - dateB;
-                    }
-                });
-                
-                // Remove all cards
-                cards.forEach(card => card.remove());
-                
-                // Append sorted cards
-                cards.forEach(card => eventCardsList.appendChild(card));
-            });
-        });
-    }
-    
-    // Xử lý form lọc
-    const filterForm = document.getElementById('filter-form');
-    if (filterForm) {
-        filterForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            applyFilters();
-        });
-    }
-    
-    // Thiết lập ban đầu cho các trường datetime-local
-    initDateTimeFields();
-    
-    // Hàm định dạng ngày giờ theo dd/mm/yyyy h:i:s
-    function formatDateTimeVN(date) {
-        if (!date || isNaN(date.getTime())) return '';
-        
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        
-        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-    }
-    
-    // Hàm khởi tạo các trường thời gian
-    function initDateTimeFields() {
-        const startDateInput = document.getElementById('start_date');
-        const endDateInput = document.getElementById('end_date');
-        
-        if (!startDateInput || !endDateInput) return;
-        
-        // Lấy tham số từ URL hiện tại
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        // Định dạng lại giá trị start_date nếu có
-        if(urlParams.has('start_date')) {
-            const startDateValue = urlParams.get('start_date');
-            try {
-                const date = new Date(startDateValue);
-                if(!isNaN(date.getTime())) {
-                    // Định dạng để phù hợp với trường datetime-local (YYYY-MM-DDThh:mm)
-                    const formattedDate = date.toISOString().slice(0, 16);
-                    startDateInput.value = formattedDate;
-                }
-            } catch(e) {
-                console.error('Lỗi khi xử lý ngày bắt đầu:', e);
-            }
-        }
-        
-        // Định dạng lại giá trị end_date nếu có
-        if(urlParams.has('end_date')) {
-            const endDateValue = urlParams.get('end_date');
-            try {
-                const date = new Date(endDateValue);
-                if(!isNaN(date.getTime())) {
-                    // Định dạng để phù hợp với trường datetime-local (YYYY-MM-DDThh:mm)
-                    const formattedDate = date.toISOString().slice(0, 16);
-                    endDateInput.value = formattedDate;
-                }
-            } catch(e) {
-                console.error('Lỗi khi xử lý ngày kết thúc:', e);
-            }
-        }
-        
-        // Thêm sự kiện change cho các trường ngày để cập nhật hiển thị ngay lập tức
-        startDateInput.addEventListener('change', function() {
-            updateDateDisplay(this, 'start_date');
-        });
-        
-        endDateInput.addEventListener('change', function() {
-            updateDateDisplay(this, 'end_date');
-        });
-    }
-    
-    // Hàm cập nhật hiển thị ngày giờ khi người dùng thay đổi
-    function updateDateDisplay(inputElement, fieldId) {
-        try {
-            const date = new Date(inputElement.value);
-            if(!isNaN(date.getTime())) {
-                const formattedDisplayDate = formatDateTimeVN(date);
-                
-                const infoElement = document.querySelector(`label[for="${fieldId}"]`).closest('.col-md-3').querySelector('.small.text-muted');
-                if (infoElement) {
-                    infoElement.innerHTML = `<i class="fas fa-info-circle me-1"></i>${formattedDisplayDate}`;
-                }
-            }
-        } catch(e) {
-            console.error('Lỗi khi cập nhật hiển thị ngày:', e);
-        }
-    }
-    
-    // Hàm áp dụng các bộ lọc
-    function applyFilters() {
-        const searchInput = document.getElementById('search');
-        const startDateInput = document.getElementById('start_date');
-        const endDateInput = document.getElementById('end_date');
-        
-        if (!searchInput || !startDateInput || !endDateInput) return;
-        
-        let url = new URL(window.location.href);
-        let searchParams = new URLSearchParams(url.search);
-        
-        // Lấy giá trị từ các trường
-        const search = searchInput.value;
-        const startDate = startDateInput.value;
-        const endDate = endDateInput.value;
-        
-        // Cập nhật tham số URL
-        if (search) {
-            searchParams.set('search', search);
-        } else {
-            searchParams.delete('search');
-        }
-        
-        // Xử lý và cập nhật tham số ngày giờ
-        if(startDate) {
-            searchParams.set('start_date', new Date(startDate).toISOString());
-        } else {
-            searchParams.delete('start_date');
-        }
-        
-        if(endDate) {
-            searchParams.set('end_date', new Date(endDate).toISOString());
-        } else {
-            searchParams.delete('end_date');
-        }
-        
-        // Chuyển hướng đến URL mới
-        url.search = searchParams.toString();
-        window.location.href = url.toString();
-    }
-});
-</script>
-<?= $this->endSection() ?>
-
-<?= $this->section('script_ext') ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Dữ liệu cho biểu đồ
-    const eventData = {
-        attended: <?= $attendedEvents ?>,
-        pending: <?= $pendingEvents ?>,
-        cancelled: <?= $cancelledEvents ?>
-    };
-    
-    // Nếu không có dữ liệu, không vẽ biểu đồ
-    if (eventData.attended + eventData.pending + eventData.cancelled === 0) {
-        return;
-    }
-    
-    // Vẽ biểu đồ tròn
+$(document).ready(function() {
+    // Khởi tạo Chart.js
     const ctx = document.getElementById('eventStatusChart').getContext('2d');
     const eventStatusChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Đã tham gia', 'Đang chờ', 'Đã hủy'],
             datasets: [{
-                data: [eventData.attended, eventData.pending, eventData.cancelled],
-                backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
-                borderColor: ['#ffffff', '#ffffff', '#ffffff'],
-                borderWidth: 2
+                data: [<?= $attendedEvents ?>, <?= $pendingEvents ?>, <?= $cancelledEvents ?>],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(220, 53, 69, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(220, 53, 69, 1)'
+                ],
+                borderWidth: 1
             }]
         },
         options: {
@@ -910,15 +1182,19 @@ document.addEventListener('DOMContentLoaded', function() {
             cutout: '70%',
             plugins: {
                 legend: {
-                    display: false
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 15
+                    }
                 },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
                             const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
+                            const value = context.formattedValue || '';
+                            const total = context.dataset.data.reduce((acc, data) => acc + data, 0);
+                            const percentage = Math.round((context.raw / total) * 100);
                             return `${label}: ${value} (${percentage}%)`;
                         }
                     }
@@ -927,219 +1203,88 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Xử lý bộ lọc sự kiện
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const eventCards = document.querySelectorAll('.event-card-container');
-    
-    // Lọc theo trạng thái
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // Loại bỏ active class từ tất cả các nút
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // Thêm active class cho nút được chọn
-            this.classList.add('active');
-            
-            // Lấy giá trị bộ lọc
-            const filter = this.getAttribute('data-filter');
-            
-            // Lọc thẻ sự kiện
-            eventCards.forEach(card => {
-                if (filter === 'all' || card.getAttribute('data-event-status') === filter) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-            
-            // Kiểm tra nếu không có sự kiện nào hiển thị
-            checkEmptyResults();
-        });
+    // Xử lý lọc sự kiện
+    $('#applyFilter').on('click', function() {
+        filterEvents();
     });
     
-    // Lọc theo ngày
-    const dateFilter = document.querySelector('.date-filter');
-    if (dateFilter) {
-        dateFilter.addEventListener('change', function() {
-            const filter = this.value;
-            const today = new Date();
-            const currentMonth = today.getMonth();
-            const currentYear = today.getFullYear();
-            
-            eventCards.forEach(card => {
-                const eventDate = new Date(card.getAttribute('data-event-date'));
-                
-                let show = true;
-                
-                if (filter === 'this-month') {
-                    // Lọc trong tháng này
-                    show = eventDate.getMonth() === currentMonth && eventDate.getFullYear() === currentYear;
-                } else if (filter === 'this-year') {
-                    // Lọc trong năm nay
-                    show = eventDate.getFullYear() === currentYear;
-                } else if (filter === 'past') {
-                    // Lọc sự kiện đã diễn ra
-                    show = eventDate < today;
-                } else if (filter === 'future') {
-                    // Lọc sự kiện sắp diễn ra
-                    show = eventDate > today;
-                }
-                
-                if (show) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-            
-            // Kiểm tra nếu không có sự kiện nào hiển thị
-            checkEmptyResults();
-        });
-    }
+    $('#searchEvents').on('keyup', function(e) {
+        if (e.key === 'Enter') {
+            filterEvents();
+        }
+    });
     
-    // Tìm kiếm sự kiện
-    const searchInput = document.getElementById('searchEvent');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
+    function filterEvents() {
+        const statusFilter = $('#statusFilter').val();
+        const timeFilter = $('#timeFilter').val();
+        const searchText = $('#searchEvents').val().toLowerCase();
+        
+        $('.event-card-container').each(function() {
+            let showCard = true;
             
-            if (searchTerm === '') {
-                // Nếu không có từ khóa tìm kiếm, hiển thị tất cả
-                eventCards.forEach(card => {
-                    card.style.display = 'block';
-                });
-            } else {
-                // Lọc theo từ khóa
-                eventCards.forEach(card => {
-                    const cardText = card.textContent.toLowerCase();
-                    if (cardText.includes(searchTerm)) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
+            // Lọc theo trạng thái
+            if (statusFilter !== 'all') {
+                const cardStatus = $(this).data('event-status');
+                if (cardStatus != statusFilter) {
+                    showCard = false;
+                }
             }
             
-            // Kiểm tra nếu không có sự kiện nào hiển thị
-            checkEmptyResults();
-        });
-    }
-    
-    // Kiểm tra nếu không có sự kiện nào được hiển thị
-    function checkEmptyResults() {
-        let visibleCount = 0;
-        eventCards.forEach(card => {
-            if (card.style.display !== 'none') {
-                visibleCount++;
+            // Lọc theo thời gian
+            if (timeFilter !== 'all' && showCard) {
+                const eventDate = new Date($(this).data('event-date'));
+                const today = new Date();
+                
+                if (timeFilter === 'upcoming' && eventDate < today) {
+                    showCard = false;
+                } else if (timeFilter === 'past' && eventDate > today) {
+                    showCard = false;
+                } else if (timeFilter === 'month') {
+                    const currentMonth = today.getMonth();
+                    const currentYear = today.getFullYear();
+                    if (eventDate.getMonth() !== currentMonth || eventDate.getFullYear() !== currentYear) {
+                        showCard = false;
+                    }
+                }
+            }
+            
+            // Lọc theo tìm kiếm
+            if (searchText && showCard) {
+                const eventTitle = $(this).find('.card-title').text().toLowerCase();
+                if (!eventTitle.includes(searchText)) {
+                    showCard = false;
+                }
+            }
+            
+            // Hiển thị hoặc ẩn thẻ
+            if (showCard) {
+                $(this).show();
+            } else {
+                $(this).hide();
             }
         });
         
         // Hiển thị thông báo nếu không có kết quả
-        const eventCardContainer = document.querySelector('.event-cards');
-        let emptyMessage = eventCardContainer.querySelector('.empty-filter-results');
+        checkEmptyResults();
+    }
+    
+    function checkEmptyResults() {
+        const visibleCards = $('.event-card-container:visible').length;
         
-        if (visibleCount === 0) {
-            if (!emptyMessage) {
-                emptyMessage = document.createElement('div');
-                emptyMessage.className = 'empty-filter-results empty-state';
-                emptyMessage.innerHTML = `
-                    <div class="empty-icon">
-                        <i class="fas fa-filter"></i>
+        if (visibleCards === 0) {
+            // Nếu không có thẻ nào hiển thị, hiển thị thông báo "không có kết quả"
+            if ($('.empty-results-message').length === 0) {
+                $('.event-cards').append(`
+                    <div class="empty-results-message alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Không tìm thấy sự kiện nào phù hợp với bộ lọc. Vui lòng thử lại với các tiêu chí khác.
                     </div>
-                    <h3>Không tìm thấy sự kiện</h3>
-                    <p>Không có sự kiện nào phù hợp với bộ lọc hiện tại. Hãy thử các bộ lọc khác.</p>
-                    <button class="btn btn-outline-primary reset-filters">
-                        <i class="fas fa-undo me-2"></i>Đặt lại bộ lọc
-                    </button>
-                `;
-                eventCardContainer.appendChild(emptyMessage);
-                
-                // Thêm sự kiện click cho nút đặt lại bộ lọc
-                const resetButton = emptyMessage.querySelector('.reset-filters');
-                resetButton.addEventListener('click', resetAllFilters);
+                `);
             }
-        } else if (emptyMessage) {
-            emptyMessage.remove();
+        } else {
+            // Nếu có thẻ hiển thị, ẩn thông báo
+            $('.empty-results-message').remove();
         }
-    }
-    
-    // Đặt lại tất cả các bộ lọc
-    function resetAllFilters() {
-        // Đặt lại bộ lọc trạng thái
-        filterButtons.forEach(btn => btn.classList.remove('active'));
-        filterButtons[0].classList.add('active');
-        
-        // Đặt lại bộ lọc ngày
-        if (dateFilter) {
-            dateFilter.value = 'all';
-        }
-        
-        // Đặt lại ô tìm kiếm
-        if (searchInput) {
-            searchInput.value = '';
-        }
-        
-        // Hiển thị lại tất cả thẻ sự kiện
-        eventCards.forEach(card => {
-            card.style.display = 'block';
-        });
-        
-        // Xóa thông báo trống nếu có
-        const emptyMessage = document.querySelector('.empty-filter-results');
-        if (emptyMessage) {
-            emptyMessage.remove();
-        }
-    }
-    
-    // Áp dụng bộ lọc
-    const applyFiltersButton = document.getElementById('applyFilters');
-    if (applyFiltersButton) {
-        applyFiltersButton.addEventListener('click', function() {
-            // Áp dụng cả bộ lọc trạng thái và ngày
-            const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
-            const dateFilterValue = dateFilter ? dateFilter.value : 'all';
-            const searchTermValue = searchInput ? searchInput.value.toLowerCase().trim() : '';
-            
-            eventCards.forEach(card => {
-                const cardStatus = card.getAttribute('data-event-status');
-                const cardDate = new Date(card.getAttribute('data-event-date'));
-                const cardText = card.textContent.toLowerCase();
-                
-                // Kiểm tra điều kiện trạng thái
-                const statusMatch = activeFilter === 'all' || cardStatus === activeFilter;
-                
-                // Kiểm tra điều kiện ngày
-                let dateMatch = true;
-                if (dateFilterValue !== 'all') {
-                    const today = new Date();
-                    const currentMonth = today.getMonth();
-                    const currentYear = today.getFullYear();
-                    
-                    if (dateFilterValue === 'this-month') {
-                        dateMatch = cardDate.getMonth() === currentMonth && cardDate.getFullYear() === currentYear;
-                    } else if (dateFilterValue === 'this-year') {
-                        dateMatch = cardDate.getFullYear() === currentYear;
-                    } else if (dateFilterValue === 'past') {
-                        dateMatch = cardDate < today;
-                    } else if (dateFilterValue === 'future') {
-                        dateMatch = cardDate > today;
-                    }
-                }
-                
-                // Kiểm tra điều kiện tìm kiếm
-                const searchMatch = searchTermValue === '' || cardText.includes(searchTermValue);
-                
-                // Hiển thị hoặc ẩn thẻ sự kiện
-                if (statusMatch && dateMatch && searchMatch) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-            
-            // Kiểm tra nếu không có sự kiện nào hiển thị
-            checkEmptyResults();
-        });
     }
 });
 </script>

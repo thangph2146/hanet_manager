@@ -109,17 +109,22 @@
                                         <div class="event-year"><?= $eventDate->format('Y') ?></div>
                                     </div>
                                     
-                                    <?php if($event->trang_thai == 1): ?>
+                                    <?php 
+                                    // Kiểm tra sự tồn tại của thuộc tính trang_thai
+                                    $trangThai = isset($event->trang_thai) ? $event->trang_thai : (isset($event->status) ? $event->status : -1);
+                                    
+                                    if($trangThai == 1): 
+                                    ?>
                                         <div class="event-registered-badge">
                                             <i class="fas fa-check-circle"></i> Đã xác nhận
                                         </div>
-                                    <?php elseif($event->trang_thai == 0): ?>
+                                    <?php elseif($trangThai == 0): ?>
                                         <div class="event-registered-badge pending">
                                             <i class="fas fa-clock"></i> Chờ xác nhận
                                         </div>
                                     <?php endif; ?>
                                     
-                                    <?php if($event->da_check_in == 1): ?>
+                                    <?php if(isset($event->da_check_in) && $event->da_check_in == 1): ?>
                                         <div class="event-registered-badge attended">
                                             <i class="fas fa-user-check"></i> Đã tham gia
                                         </div>
@@ -132,7 +137,7 @@
                                         <span class="event-views"><i class="far fa-eye"></i> <?= $event->luot_xem ?? 0 ?></span>
                                     </div>
                                     
-                                    <h3 class="event-title"><?= $event->ten_su_kien ?></h3>
+                                    <h3 class="event-title"><?= esc($event->ten_su_kien ?? $event->ten_sukien ?? 'Sự kiện không xác định') ?></h3>
                                     
                                     <div class="event-details">
                                         <div class="event-time">
@@ -142,13 +147,13 @@
                                         
                                         <div class="event-location">
                                             <i class="fas fa-map-marker-alt"></i>
-                                            <?= $event->dia_diem ?>
+                                            <?= esc($event->dia_diem ?? 'Không có địa điểm') ?>
                                         </div>
                                         
                                         <?php if(!empty($event->don_vi_to_chuc)): ?>
                                         <div class="event-organizer">
                                             <i class="fas fa-users"></i>
-                                            <?= $event->don_vi_to_chuc ?>
+                                            <?= esc($event->don_vi_to_chuc) ?>
                                         </div>
                                         <?php endif; ?>
                                     </div>
@@ -225,7 +230,7 @@
                                         <span class="event-views"><i class="far fa-eye"></i> <?= $event->luot_xem ?? 0 ?></span>
                                     </div>
                                     
-                                    <h3 class="event-title"><?= $event->ten_su_kien ?></h3>
+                                    <h3 class="event-title"><?= esc($event->ten_su_kien ?? $event->ten_sukien ?? 'Sự kiện không xác định') ?></h3>
                                     
                                     <div class="event-details">
                                         <div class="event-time">
@@ -235,13 +240,13 @@
                                         
                                         <div class="event-location">
                                             <i class="fas fa-map-marker-alt"></i>
-                                            <?= $event->dia_diem ?>
+                                            <?= esc($event->dia_diem ?? 'Không có địa điểm') ?>
                                         </div>
                                         
                                         <?php if(!empty($event->don_vi_to_chuc)): ?>
                                         <div class="event-organizer">
                                             <i class="fas fa-users"></i>
-                                            <?= $event->don_vi_to_chuc ?>
+                                            <?= esc($event->don_vi_to_chuc) ?>
                                         </div>
                                         <?php endif; ?>
                                     </div>
@@ -331,7 +336,7 @@
                                         <span class="event-views"><i class="far fa-eye"></i> <?= $event->luot_xem ?? 0 ?></span>
                                     </div>
                                     
-                                    <h3 class="event-title"><?= $event->ten_su_kien ?></h3>
+                                    <h3 class="event-title"><?= esc($event->ten_su_kien ?? $event->ten_sukien ?? 'Sự kiện không xác định') ?></h3>
                                     
                                     <div class="event-details">
                                         <div class="event-time">
@@ -341,13 +346,13 @@
                                         
                                         <div class="event-location">
                                             <i class="fas fa-map-marker-alt"></i>
-                                            <?= $event->dia_diem ?>
+                                            <?= esc($event->dia_diem ?? 'Không có địa điểm') ?>
                                         </div>
                                         
                                         <?php if(!empty($event->don_vi_to_chuc)): ?>
                                         <div class="event-organizer">
                                             <i class="fas fa-users"></i>
-                                            <?= $event->don_vi_to_chuc ?>
+                                            <?= esc($event->don_vi_to_chuc) ?>
                                         </div>
                                         <?php endif; ?>
                                     </div>
