@@ -1216,7 +1216,7 @@
                                                 <?php endif; ?>
                                                 
                                                 <?php if ($status == 1): ?>
-                                                <a href="<?= site_url('nguoidung/huy-dang-ky-su-kien/' . ($event->id_dangky ?? ($event->dang_ky_id ?? 0))) ?>" 
+                                                <a href="<?= site_url('nguoi-dung/huy-dang-ky-su-kien/' . $event->su_kien_id) ?>" 
                                                    class="btn btn-outline-danger me-2" 
                                                    data-toggle="tooltip" 
                                                    title="Hủy đăng ký tham gia"

@@ -1411,4 +1411,12 @@ class DangKySuKienModel extends BaseModel
         
         return $builder->countAllResults();
     }
+    
+    public function huyDangKySuKien($su_kien_id, $email)
+    {
+        $builder = $this->builder();
+        $builder->where('su_kien_id', $su_kien_id);
+        $builder->where('email', $email);
+        return $builder->delete();
+    }
 } 

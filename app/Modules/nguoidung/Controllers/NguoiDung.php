@@ -562,4 +562,22 @@ class NguoiDung extends BaseController
         return view('App\Modules\nguoidung\Views\eventslist', $data);
     }
    
+    public function huyDangKySuKien($su_kien_id)
+    {
+        // Load text helper
+        helper('text');
+        
+        // Lấy thông tin người dùng hiện tại
+        $profile = getInfoNguoiDung();
+        $email = $profile->Email;
+
+        // Gọi model để hủy đăng ký sự kiện
+        $result = $this->dangkysukienModel->huyDangKySuKien($su_kien_id, $email);   
+        
+        if ($result) {
+            return redirect()->to(site_url('nguoi-dung/su-kien-da-dang-ky'))->with('success', 'Đã hủy đăng ký sự kiện thành công.');
+        } else {
+            return redirect()->to(site_url('nguoi-dung/su-kien-da-dang-ky'))->with('error', 'Không thể hủy đăng ký sự kiện.');
+        }
+    }
 }

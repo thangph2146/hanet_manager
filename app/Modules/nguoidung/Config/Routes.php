@@ -19,6 +19,7 @@ function ($routes) use ($controller_name) {
     $routes->get('su-kien-da-tham-gia', $controller_name . '::eventsHistoryRegister');
     $routes->get('danh-sach-su-kien', $controller_name . '::eventsList');
     $routes->get('su-kien-da-dang-ky', $controller_name . '::eventsCheckin');
+    $routes->get('huy-dang-ky-su-kien/(:num)', $controller_name . '::huyDangKySuKien/$1');
 });
 
 // API Routes
