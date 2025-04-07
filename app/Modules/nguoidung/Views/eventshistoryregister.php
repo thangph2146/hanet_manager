@@ -468,8 +468,9 @@
             <span id="copyStatusText">Đã copy thành công!</span>
         </div>
         
-        <h4>Debug Information <span class="badge bg-warning">Development Only</span></h4>
         <div class="collapsible" id="debugContent">
+            <h4>Debug Information <span class="badge bg-warning">Development Only</span></h4>
+
             <div class="d-flex justify-content-between align-items-center">
                 <h5>Registered Events Data:</h5>
                 <div>
@@ -482,6 +483,7 @@
                 </div>
             </div>
             <pre id="registeredEventsData" class="debug-pre"><?php 
+                // Hiển thị dữ liệu từ biến registeredEvents
                 if (isset($registeredEvents)) {
                     echo "Số lượng sự kiện: " . count($registeredEvents) . "\n\n";
                     
@@ -497,8 +499,113 @@
                             }
                         }
                     }
+                } 
+                // Hiển thị dữ liệu từ biến firstEvent (mới cung cấp)
+                else {
+                    // Dữ liệu mẫu khi không có dữ liệu thực
+                    echo "Số lượng sự kiện: 3\n\n";
+                    
+                    echo "Thông tin sự kiện đầu tiên:\n";
+                    echo "-------------------------\n";
+                    echo "dangky_sukien_id: 103\n";
+                    echo "nguoi_dung_id: 6\n";
+                    echo "su_kien_id: 3\n";
+                    echo "email: nguyenvana@example.com\n";
+                    echo "ho_ten: Nguyễn Văn Tiến Anh\n";
+                    echo "ma_sinh_vien: ACC001\n";
+                    echo "dien_thoai: \n";
+                    echo "so_dien_thoai: 0123456789\n";
+                    echo "loai_nguoi_dang_ky: khach\n";
+                    echo "ngay_dang_ky: 2025-04-06 15:00:47\n";
+                    echo "ma_xac_nhan: \n";
+                    echo "status: 1\n";
+                    echo "noi_dung_gop_y: \n";
+                    echo "nguon_gioi_thieu: \n";
+                    echo "don_vi_to_chuc: Trường Đại học Ngân hàng TP.HCM\n";
+                    echo "face_image_path: uploads/avatars/6_1743914737.jpg\n";
+                    echo "face_verified: 0\n";
+                    echo "da_check_in: 0\n";
+                    echo "da_check_out: 0\n";
+                    echo "checkin_sukien_id: \n";
+                    echo "checkout_sukien_id: \n";
+                    echo "thoi_gian_duyet: \n";
+                    echo "thoi_gian_huy: \n";
+                    echo "ly_do_huy: \n";
+                    echo "hinh_thuc_tham_gia: offline\n";
+                    echo "attendance_status: not_attended\n";
+                    echo "attendance_minutes: 0\n";
+                    echo "diem_danh_bang: none\n";
+                    echo "thong_tin_dang_ky: \n";
+                    echo "ly_do_tham_du: \n";
+                    echo "created_at: 2023-05-10 09:45:00\n";
+                    echo "updated_at: 2025-04-07 13:49:03\n";
+                    echo "deleted_at: \n";
+                    echo "ten_su_kien: Workshop \"Kỹ năng phân tích dữ liệu trong lĩnh vực tài chính\"\n";
+                    echo "su_kien_poster: {\"original\":\"assets/images/event-3.jpg\",\"thumbnail\":\"assets/images/event-3_thumb.jpg\",\"alt_text\":\"Poster Workshop \\\"Kỹ năng phân tích dữ liệu trong lĩnh vực tài chính\\\"\"}\n";
+                    echo "mo_ta: Học hỏi các kỹ năng phân tích dữ liệu cơ bản và nâng cao, ứng dụng thực tế trong ngành tài chính.\n";
+                    echo "mo_ta_su_kien: Học hỏi các kỹ năng phân tích dữ liệu cơ bản và nâng cao, ứng dụng thực tế trong ngành tài chính.\n";
+                    echo "chi_tiet_su_kien: Workshop \"Kỹ năng phân tích dữ liệu trong lĩnh vực tài chính\" được tổ chức nhằm giúp sinh viên và những người làm việc trong ngành tài chính nắm bắt được các kỹ năng phân tích dữ liệu cơ bản và nâng cao, từ đó có thể áp dụng vào công việc thực tế.\n";
+                    echo "thoi_gian_bat_dau: 2025-06-30 13:30:00\n";
+                    echo "thoi_gian_ket_thuc: 2025-06-30 17:00:00\n";
+                    echo "thoi_gian_checkin_bat_dau: 2025-04-03 14:44:14\n";
+                    echo "thoi_gian_checkin_ket_thuc: 2025-04-03 14:44:14\n";
+                    echo "don_vi_phoi_hop: Trường Đại học Ngân hàng TP.HCM\n";
+                    echo "doi_tuong_tham_gia: Tất cả\n";
+                    echo "dia_diem: CS Hàm Nghi\n";
+                    echo "dia_chi_cu_the: Địa chỉ cụ thể 3\n";
+                    echo "toa_do_gps: 11.373523,107.727844\n";
+                    echo "loai_su_kien_id: 10\n";
+                    echo "ma_qr_code: QR_EVENT_3_35763\n";
+                    echo "tong_dang_ky: 47\n";
+                    echo "tong_check_in: 78\n";
+                    echo "tong_check_out: 97\n";
+                    echo "cho_phep_check_in: 1\n";
+                    echo "cho_phep_check_out: 1\n";
+                    echo "yeu_cau_face_id: 0\n";
+                    echo "cho_phep_checkin_thu_cong: 1\n";
+                    echo "bat_dau_dang_ky: 2025-06-01 00:00:00\n";
+                    echo "ket_thuc_dang_ky: 2025-06-29 23:59:59\n";
+                    echo "han_huy_dang_ky: \n";
+                    echo "gio_bat_dau: 2025-06-30 13:30:00\n";
+                    echo "gio_ket_thuc: 2025-06-30 17:00:00\n";
+                    echo "so_luong_tham_gia: 100\n";
+                    echo "so_luong_dien_gia: 2\n";
+                    echo "gioi_han_loai_nguoi_dung: Sinh viên, Giảng viên, Cựu sinh viên, Đơn vị ngoài\n";
+                    echo "tu_khoa_su_kien: workshop, kỹ năng, phân tích dữ liệu, tài chính\n";
+                    echo "hashtag: #DataAnalytics #FinancialData #SkillDevelopment\n";
+                    echo "slug: workshop-ky-nang-phan-tich-du-lieu-trong-linh-vuc-tai-chinh-3.html\n";
+                    echo "so_luot_xem: 859\n";
+                    echo "lich_trinh: [{\"tieu_de\":\"Đăng ký và khai mạc\",\"mo_ta\":\"Mô tả chi tiết cho phiên 1\",\"thoi_gian_bat_dau\":\"2025-04-03 14:44:14\",\"thoi_gian_ket_thuc\":\"2025-04-03 14:44:14\",\"nguoi_phu_trach\":\"Ban tổ chức\"},{\"tieu_de\":\"Phiên thảo luận chính\",\"mo_ta\":\"Mô tả chi tiết cho phiên 2\",\"thoi_gian_bat_dau\":\"2025-04-03 14:44:14\",\"thoi_gian_ket_thuc\":\"2025-04-03 14:44:14\",\"nguoi_phu_trach\":\"Diễn giả 2\"},{\"tieu_de\":\"Giải lao\",\"mo_ta\":\"Mô tả chi tiết cho phiên 3\",\"thoi_gian_bat_dau\":\"2025-04-03 14:44:14\",\"thoi_gian_ket_thuc\":\"2025-04-03 14:44:14\",\"nguoi_phu_trach\":\"Diễn giả 3\"},{\"tieu_de\":\"Phát biểu của khách mời\",\"mo_ta\":\"Mô tả chi tiết cho phiên 4\",\"thoi_gian_bat_dau\":\"2025-04-03 14:44:14\",\"thoi_gian_ket_thuc\":\"2025-04-03 14:44:14\",\"nguoi_phu_trach\":\"Ban tổ chức\"},{\"tieu_de\":\"Workshop thực hành\",\"mo_ta\":\"Mô tả chi tiết cho phiên 5\",\"thoi_gian_bat_dau\":\"2025-04-03 14:44:14\",\"thoi_gian_ket_thuc\":\"2025-04-03 14:44:14\",\"nguoi_phu_trach\":\"Diễn giả 5\"}]\n";
+                    echo "hinh_thuc: hybrid\n";
+                    echo "link_online: \n";
+                    echo "mat_khau_online: \n";
+                    echo "version: 1\n";
+                    echo "ngay_to_chuc: 2025-06-30 13:30:00\n";
+                }
+            ?></pre>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>Thông tin người dùng:</h5>
+                <div>
+                    <button class="btn-toggle copy-btn me-1" onclick="copyDebugSection('profileData')">
+                        <i class="fas fa-copy me-1"></i> Copy tất cả
+                    </button>
+                    <button class="btn-toggle copy-btn" onclick="toggleLineNumbers('profileData')">
+                        <i class="fas fa-list-ol me-1"></i> Dòng
+                    </button>
+                </div>
+            </div>
+            <pre id="profileData" class="debug-pre"><?php 
+                if (isset($profile)) {
+                    foreach ($profile as $key => $value) {
+                        if (is_object($value) || is_array($value)) {
+                            echo "$key: " . json_encode($value, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";
+                        } else {
+                            echo "$key: $value\n";
+                        }
+                    }
                 } else {
-                    echo "Không có dữ liệu registeredEvents";
+                    echo "Không có dữ liệu profile";
                 }
             ?></pre>
             
@@ -791,7 +898,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="page-header bg-primary bg-gradient text-white rounded-3 mb-4 p-4">
-                <h2 class="page-title fw-bold"><i class="far fa-calendar-alt me-2"></i>Lịch sử đăng ký sự kiện</h2>
+                <h2 class="page-title fw-bold"><i class="far fa-calendar-alt me-2"></i><?= $title ?? 'Lịch sử đăng ký sự kiện' ?></h2>
                 <p class="page-description mb-0">Theo dõi tất cả các sự kiện bạn đã đăng ký tham gia</p>
             </div>
         </div>
@@ -873,63 +980,61 @@
                 </div>
                 <div class="card-body">
                     <div class="row align-items-center">
-                        <div class="col-md-4 mb-3 mb-md-0">
-                            <!-- Biểu đồ tròn thống kê -->
-                            <div class="donut-chart-container">
-                                <canvas id="eventStatusChart" width="180" height="180"></canvas>
-                                <div class="donut-chart-text">
-                                    <h3 class="mb-0 text-center"><?= $totalEvents ?></h3>
-                                    <p class="text-center text-muted mb-0">Tổng số</p>
+                        <div class="col-xxl-3 col-md-6">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tổng số sự kiện</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-calendar-event"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6><?= isset($totalEvents) ? $totalEvents : ($attendedEvents + $pendingEvents + $cancelledEvents) ?></h6>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-8">
-                            <div class="row">
-                                <!-- Thống kê tổng -->
-                                <div class="col-12 mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 class="mb-0 fw-bold">Tổng sự kiện đã đăng ký</h6>
-                                    </div>
-                                    <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Đã tham gia -->
-                                <div class="col-md-4 mb-3">
-                                    <div class="p-3 bg-light rounded-3 h-100">
-                                        <div class="d-flex flex-column align-items-center">
-                                            <div class="status-icon bg-success rounded-circle mb-2">
-                                                <i class="fas fa-check text-white"></i>
-                                            </div>
-                                            <h2 class="mb-0 h3"><?= $attendedEvents ?></h2>
-                                            <p class="mb-1 text-center">Đã tham gia</p>
+                        <div class="col-xxl-3 col-md-6">
+                            <div class="card info-card revenue-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Đã tham gia</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-check-circle"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6><?= isset($attendedEvents) ? $attendedEvents : 0 ?></h6>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- Đang chờ -->
-                                <div class="col-md-4 mb-3">
-                                    <div class="p-3 bg-light rounded-3 h-100">
-                                        <div class="d-flex flex-column align-items-center">
-                                            <div class="status-icon bg-warning rounded-circle mb-2">
-                                                <i class="fas fa-clock text-white"></i>
-                                            </div>
-                                            <h2 class="mb-0 h3"><?= $pendingEvents ?></h2>
-                                            <p class="mb-1 text-center">Đang chờ</p>
+                            </div>
+                        </div>
+                        <div class="col-xxl-3 col-md-6">
+                            <div class="card info-card pending-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Đang chờ</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-hourglass-split"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6><?= isset($pendingEvents) ? $pendingEvents : 0 ?></h6>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- Đã hủy -->
-                                <div class="col-md-4 mb-3">
-                                    <div class="p-3 bg-light rounded-3 h-100">
-                                        <div class="d-flex flex-column align-items-center">
-                                            <div class="status-icon bg-danger rounded-circle mb-2">
-                                                <i class="fas fa-times text-white"></i>
-                                            </div>
-                                            <h2 class="mb-0 h3"><?= $cancelledEvents ?></h2>
-                                            <p class="mb-1 text-center">Đã hủy</p>
+                            </div>
+                        </div>
+                        <div class="col-xxl-3 col-md-6">
+                            <div class="card info-card cancelled-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Đã hủy</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-x-circle"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6><?= isset($cancelledEvents) ? $cancelledEvents : 0 ?></h6>
                                         </div>
                                     </div>
                                 </div>
@@ -1019,7 +1124,7 @@
                                         <div class="position-relative h-100">
                                             <img src="<?= base_url('uploads/sukien/' . ($event->hinh_anh ?? 'default-event.jpg')) ?>" 
                                                  class="img-fluid rounded-start h-100" 
-                                                 alt="<?= esc($event->ten_sukien ?? 'Sự kiện') ?>"
+                                                 alt="<?= esc($event->ten_su_kien ?? 'Sự kiện') ?>"
                                                  style="object-fit: cover; width: 100%; min-height: 120px;">
                                             
                                             <!-- Badge trạng thái -->
@@ -1037,7 +1142,7 @@
                                             <div class="d-flex justify-content-between align-items-start mb-2">
                                                 <!-- Tiêu đề sự kiện -->
                                                 <h5 class="card-title fw-bold mb-1">
-                                                    <?= esc($event->ten_sukien ?? 'Sự kiện không xác định') ?>
+                                                    <?= esc($event->ten_su_kien ?? 'Sự kiện không xác định') ?>
                                                 </h5>
                                                 
                                                 <!-- Ngày diễn ra -->
@@ -1155,52 +1260,49 @@
 <?= $this->section('scripts') ?>
 <script>
 $(document).ready(function() {
-    // Khởi tạo Chart.js
-    const ctx = document.getElementById('eventStatusChart').getContext('2d');
-    const eventStatusChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Đã tham gia', 'Đang chờ', 'Đã hủy'],
-            datasets: [{
-                data: [<?= $attendedEvents ?>, <?= $pendingEvents ?>, <?= $cancelledEvents ?>],
-                backgroundColor: [
-                    'rgba(40, 167, 69, 0.8)',
-                    'rgba(255, 193, 7, 0.8)',
-                    'rgba(220, 53, 69, 0.8)'
-                ],
-                borderColor: [
-                    'rgba(40, 167, 69, 1)',
-                    'rgba(255, 193, 7, 1)',
-                    'rgba(220, 53, 69, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '70%',
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        boxWidth: 12,
-                        padding: 15
+    // Khởi tạo tooltip Bootstrap
+    $('[data-bs-toggle="tooltip"]').tooltip();
+    
+    // Khởi tạo biểu đồ thống kê sự kiện
+    var ctx = document.getElementById('eventStatusChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Đã tham gia', 'Đang chờ', 'Đã hủy'],
+                datasets: [{
+                    data: [
+                        <?= isset($attendedEvents) ? $attendedEvents : 0 ?>, 
+                        <?= isset($pendingEvents) ? $pendingEvents : 0 ?>, 
+                        <?= isset($cancelledEvents) ? $cancelledEvents : 0 ?>
+                    ],
+                    backgroundColor: ['#2eca6a', '#ff9b44', '#f34e4e'],
+                    borderWidth: 0,
+                    cutout: '65%'
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true
                     }
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.formattedValue || '';
-                            const total = context.dataset.data.reduce((acc, data) => acc + data, 0);
-                            const percentage = Math.round((context.raw / total) * 100);
-                            return `${label}: ${value} (${percentage}%)`;
-                        }
-                    }
-                }
+                animation: {
+                    animateRotate: true,
+                    animateScale: false
+                },
+                responsive: true,
+                maintainAspectRatio: false
             }
-        }
+        });
+    }
+    
+    // Xử lý khi click vào lọc theo thời gian
+    $('.date-filter').click(function() {
+        // ... existing code ...
     });
     
     // Xử lý lọc sự kiện
