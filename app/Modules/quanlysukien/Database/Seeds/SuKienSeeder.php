@@ -52,6 +52,19 @@ class SuKienSeeder extends Seeder
             $registerEnd = clone $startDate;
             $registerEnd->subDays(rand(1, 5));
             
+            // Thời gian check-in và check-out
+            $checkinStart = clone $startDate;
+            $checkinStart->subHours(1);
+            
+            $checkinEnd = clone $startDate;
+            $checkinEnd->addHours(2);
+            
+            $checkoutStart = clone $endDate;
+            $checkoutStart->subHours(1);
+            
+            $checkoutEnd = clone $endDate;
+            $checkoutEnd->addMinutes(30);
+            
             // Tạo lịch trình từ mockEvents nếu có
             $lichTrinh = !empty($event['lich_trinh']) ? $event['lich_trinh'] : $this->generateSchedule($startDate);
             
@@ -69,10 +82,14 @@ class SuKienSeeder extends Seeder
                 'mo_ta' => $event['mo_ta_su_kien'] ?? 'Mô tả ngắn gọn về sự kiện mẫu số ' . ($index + 1),
                 'mo_ta_su_kien' => $event['mo_ta_su_kien'] ?? 'Mô tả chi tiết về sự kiện mẫu số ' . ($index + 1),
                 'chi_tiet_su_kien' => $event['chi_tiet_su_kien'] ?? '<p>Chi tiết về sự kiện mẫu số ' . ($index + 1) . '</p>',
-                'thoi_gian_bat_dau' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_bat_dau'] ?? '08:00:00') : $startDate->toDateTimeString(),
-                'thoi_gian_ket_thuc' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_ket_thuc'] ?? '17:00:00') : $endDate->toDateTimeString(),
-                'thoi_gian_checkin_bat_dau' => $event['thoi_gian_checkin_bat_dau'] ?? $startDate->toDateTimeString(),
-                'thoi_gian_checkin_ket_thuc' => $event['thoi_gian_checkin_ket_thuc'] ?? $endDate->toDateTimeString(),
+                'thoi_gian_bat_dau_su_kien' => !empty($event['thoi_gian_bat_dau_su_kien']) ? $event['thoi_gian_bat_dau_su_kien'] : (!empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_bat_dau'] ?? '08:00:00') : $startDate->toDateTimeString()),
+                'thoi_gian_ket_thuc_su_kien' => !empty($event['thoi_gian_ket_thuc_su_kien']) ? $event['thoi_gian_ket_thuc_su_kien'] : (!empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_ket_thuc'] ?? '17:00:00') : $endDate->toDateTimeString()),
+                'thoi_gian_bat_dau_dang_ky' => !empty($event['thoi_gian_bat_dau_dang_ky']) ? $event['thoi_gian_bat_dau_dang_ky'] : $registerStart->toDateTimeString(),
+                'thoi_gian_ket_thuc_dang_ky' => !empty($event['thoi_gian_ket_thuc_dang_ky']) ? $event['thoi_gian_ket_thuc_dang_ky'] : $registerEnd->toDateTimeString(),
+                'thoi_gian_checkin_bat_dau' => !empty($event['thoi_gian_checkin_bat_dau']) ? $event['thoi_gian_checkin_bat_dau'] : $checkinStart->toDateTimeString(),
+                'thoi_gian_checkin_ket_thuc' => !empty($event['thoi_gian_checkin_ket_thuc']) ? $event['thoi_gian_checkin_ket_thuc'] : $checkinEnd->toDateTimeString(),
+                'thoi_gian_checkout_bat_dau' => !empty($event['thoi_gian_checkout_bat_dau']) ? $event['thoi_gian_checkout_bat_dau'] : $checkoutStart->toDateTimeString(),
+                'thoi_gian_checkout_ket_thuc' => !empty($event['thoi_gian_checkout_ket_thuc']) ? $event['thoi_gian_checkout_ket_thuc'] : $checkoutEnd->toDateTimeString(),
                 'don_vi_to_chuc' => $event['don_vi_to_chuc'] ?? 'Trường Đại học Ngân hàng TP.HCM',
                 'don_vi_phoi_hop' => $event['don_vi_phoi_hop'] ?? 'Trường Đại học Ngân hàng TP.HCM',
                 'doi_tuong_tham_gia' => $event['doi_tuong_tham_gia'] ?? 'Tất cả',
@@ -85,14 +102,11 @@ class SuKienSeeder extends Seeder
                 'tong_dang_ky' => $event['tong_dang_ky'] ?? rand(10, 200),
                 'tong_check_in' => $event['tong_check_in'] ?? rand(5, 150),
                 'tong_check_out' => $event['tong_check_out'] ?? rand(0, 100),
-                'cho_phep_check_in' => 1,
-                'cho_phep_check_out' => 1,
-                'yeu_cau_face_id' => rand(0, 1),
-                'cho_phep_checkin_thu_cong' => 1,
-                'bat_dau_dang_ky' => !empty($event['bat_dau_dang_ky']) ? $event['bat_dau_dang_ky'] : $registerStart->toDateTimeString(),
-                'ket_thuc_dang_ky' => !empty($event['ket_thuc_dang_ky']) ? $event['ket_thuc_dang_ky'] : $registerEnd->toDateTimeString(),
-                'gio_bat_dau' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_bat_dau'] ?? '08:00:00') : $startDate->toDateTimeString(),
-                'gio_ket_thuc' => !empty($event['ngay_to_chuc']) ? $event['ngay_to_chuc'] . ' ' . ($event['gio_ket_thuc'] ?? '17:00:00') : $endDate->toDateTimeString(),
+                'cho_phep_check_in' => $event['cho_phep_check_in'] ?? 1,
+                'cho_phep_check_out' => $event['cho_phep_check_out'] ?? 1,
+                'yeu_cau_face_id' => $event['yeu_cau_face_id'] ?? rand(0, 1),
+                'cho_phep_checkin_thu_cong' => $event['cho_phep_checkin_thu_cong'] ?? 1,
+                'han_huy_dang_ky' => !empty($event['han_huy_dang_ky']) ? $event['han_huy_dang_ky'] : $registerEnd->subDays(1)->toDateTimeString(),
                 'so_luong_tham_gia' => $event['so_luong_tham_gia'] ?? rand(50, 500),
                 'so_luong_dien_gia' => $event['so_luong_dien_gia'] ?? rand(1, 10),
                 'gioi_han_loai_nguoi_dung' => $event['gioi_han_loai_nguoi_dung'] ?? 'all',
@@ -129,8 +143,15 @@ class SuKienSeeder extends Seeder
                 'ten_su_kien' => 'Hội thảo khoa học "Tài chính và Ngân hàng trong kỷ nguyên số"',
                 'loai_su_kien_id' => 1, // Hội thảo
                 'chi_tiet_su_kien' => '<p>Hội thảo khoa học "Tài chính và Ngân hàng trong kỷ nguyên số" là sự kiện thường niên của Trường Đại học Ngân hàng TP.HCM, nhằm tạo diễn đàn trao đổi học thuật và chia sẻ kinh nghiệm giữa các chuyên gia, nhà nghiên cứu và sinh viên trong lĩnh vực tài chính - ngân hàng.</p>',
-                'bat_dau_dang_ky' => '2025-05-15 00:00:00',
-                'ket_thuc_dang_ky' => '2025-06-14 23:59:59',
+                'thoi_gian_bat_dau_dang_ky' => '2025-05-15 00:00:00', 
+                'thoi_gian_ket_thuc_dang_ky' => '2025-06-14 23:59:59',
+                'thoi_gian_bat_dau_su_kien' => '2025-06-15 08:00:00',
+                'thoi_gian_ket_thuc_su_kien' => '2025-06-15 17:00:00',
+                'thoi_gian_checkin_bat_dau' => '2025-06-15 07:00:00',
+                'thoi_gian_checkin_ket_thuc' => '2025-06-15 10:00:00',
+                'thoi_gian_checkout_bat_dau' => '2025-06-15 16:00:00',
+                'thoi_gian_checkout_ket_thuc' => '2025-06-15 17:30:00',
+                'han_huy_dang_ky' => '2025-06-13 23:59:59',
                 'so_luong_tham_gia' => 200,
                 'gioi_han_loai_nguoi_dung' => 'Sinh viên, Giảng viên, Cựu sinh viên',
                 'tu_khoa_su_kien' => 'hội thảo, tài chính, ngân hàng, kỷ nguyên số, công nghệ',
@@ -192,8 +213,15 @@ class SuKienSeeder extends Seeder
                 'ten_su_kien' => 'Ngày hội việc làm HUB lần thứ 13 - Năm 2023',
                 'loai_su_kien_id' => 2, // Nghề nghiệp
                 'chi_tiet_su_kien' => '<p>Ngày hội việc làm HUB là cầu nối quan trọng giữa sinh viên và doanh nghiệp, tạo cơ hội để sinh viên tiếp cận với các nhà tuyển dụng hàng đầu trong lĩnh vực tài chính, ngân hàng và công nghệ.</p>',
-                'bat_dau_dang_ky' => '2025-05-22 00:00:00',
-                'ket_thuc_dang_ky' => '2025-06-21 23:59:59',
+                'thoi_gian_bat_dau_dang_ky' => '2025-05-22 00:00:00',
+                'thoi_gian_ket_thuc_dang_ky' => '2025-06-21 23:59:59',
+                'thoi_gian_bat_dau_su_kien' => '2025-06-22 08:30:00',
+                'thoi_gian_ket_thuc_su_kien' => '2025-06-22 16:30:00',
+                'thoi_gian_checkin_bat_dau' => '2025-06-22 07:30:00',
+                'thoi_gian_checkin_ket_thuc' => '2025-06-22 11:00:00',
+                'thoi_gian_checkout_bat_dau' => '2025-06-22 15:30:00',
+                'thoi_gian_checkout_ket_thuc' => '2025-06-22 17:00:00',
+                'han_huy_dang_ky' => '2025-06-20 23:59:59',
                 'so_luong_tham_gia' => 1000,
                 'gioi_han_loai_nguoi_dung' => 'Sinh viên, Cựu sinh viên',
                 'tu_khoa_su_kien' => 'việc làm, tuyển dụng, nghề nghiệp, sinh viên',
@@ -219,8 +247,15 @@ class SuKienSeeder extends Seeder
                 'ten_su_kien' => 'Workshop "Kỹ năng phân tích dữ liệu trong lĩnh vực tài chính"',
                 'loai_su_kien_id' => 3, // Workshop
                 'chi_tiet_su_kien' => '<p>Workshop "Kỹ năng phân tích dữ liệu trong lĩnh vực tài chính" được tổ chức nhằm giúp sinh viên và những người làm việc trong ngành tài chính nắm bắt được các kỹ năng phân tích dữ liệu cơ bản và nâng cao, từ đó có thể áp dụng vào công việc thực tế.</p>',
-                'bat_dau_dang_ky' => '2025-06-01 00:00:00',
-                'ket_thuc_dang_ky' => '2025-06-29 23:59:59',
+                'thoi_gian_bat_dau_dang_ky' => '2025-06-01 00:00:00',
+                'thoi_gian_ket_thuc_dang_ky' => '2025-06-29 23:59:59',
+                'thoi_gian_bat_dau_su_kien' => '2025-06-30 13:30:00',
+                'thoi_gian_ket_thuc_su_kien' => '2025-06-30 17:00:00',
+                'thoi_gian_checkin_bat_dau' => '2025-06-30 12:30:00',
+                'thoi_gian_checkin_ket_thuc' => '2025-06-30 14:30:00',
+                'thoi_gian_checkout_bat_dau' => '2025-06-30 16:30:00',
+                'thoi_gian_checkout_ket_thuc' => '2025-06-30 17:30:00',
+                'han_huy_dang_ky' => '2025-06-28 23:59:59',
                 'so_luong_tham_gia' => 100,
                 'gioi_han_loai_nguoi_dung' => 'Sinh viên, Giảng viên, Cựu sinh viên, Đơn vị ngoài',
                 'tu_khoa_su_kien' => 'workshop, kỹ năng, phân tích dữ liệu, tài chính',
@@ -246,8 +281,15 @@ class SuKienSeeder extends Seeder
                 'ten_su_kien' => 'Cuộc thi "Sinh viên với ý tưởng khởi nghiệp" 2023',
                 'loai_su_kien_id' => 4, // Hoạt động sinh viên
                 'chi_tiet_su_kien' => '<p>Cuộc thi "Sinh viên với ý tưởng khởi nghiệp" là sân chơi bổ ích dành cho sinh viên có đam mê khởi nghiệp, mong muốn thử sức với những ý tưởng kinh doanh sáng tạo và khả thi.</p>',
-                'bat_dau_dang_ky' => '2025-06-05 00:00:00',
-                'ket_thuc_dang_ky' => '2025-07-04 23:59:59',
+                'thoi_gian_bat_dau_dang_ky' => '2025-06-05 00:00:00',
+                'thoi_gian_ket_thuc_dang_ky' => '2025-07-04 23:59:59',
+                'thoi_gian_bat_dau_su_kien' => '2025-07-05 08:00:00',
+                'thoi_gian_ket_thuc_su_kien' => '2025-07-05 17:00:00',
+                'thoi_gian_checkin_bat_dau' => '2025-07-05 07:00:00',
+                'thoi_gian_checkin_ket_thuc' => '2025-07-05 10:00:00',
+                'thoi_gian_checkout_bat_dau' => '2025-07-05 16:00:00',
+                'thoi_gian_checkout_ket_thuc' => '2025-07-05 17:30:00',
+                'han_huy_dang_ky' => '2025-07-03 23:59:59',
                 'so_luong_tham_gia' => 300,
                 'gioi_han_loai_nguoi_dung' => 'Sinh viên',
                 'tu_khoa_su_kien' => 'cuộc thi, khởi nghiệp, ý tưởng, sinh viên',
@@ -273,8 +315,15 @@ class SuKienSeeder extends Seeder
                 'ten_su_kien' => 'Hội thảo "Xu hướng công nghệ tài chính 2023"',
                 'loai_su_kien_id' => 1, // Hội thảo
                 'chi_tiet_su_kien' => '<p>Hội thảo "Xu hướng công nghệ tài chính 2023" giúp người tham dự cập nhật những xu hướng mới nhất trong lĩnh vực công nghệ tài chính và blockchain, từ đó có cái nhìn tổng quan về sự phát triển của ngành trong thời gian tới.</p>',
-                'bat_dau_dang_ky' => '2025-06-12 00:00:00',
-                'ket_thuc_dang_ky' => '2025-07-11 23:59:59',
+                'thoi_gian_bat_dau_dang_ky' => '2025-06-12 00:00:00',
+                'thoi_gian_ket_thuc_dang_ky' => '2025-07-11 23:59:59',
+                'thoi_gian_bat_dau_su_kien' => '2025-07-12 09:00:00',
+                'thoi_gian_ket_thuc_su_kien' => '2025-07-12 16:00:00',
+                'thoi_gian_checkin_bat_dau' => '2025-07-12 08:00:00',
+                'thoi_gian_checkin_ket_thuc' => '2025-07-12 11:00:00',
+                'thoi_gian_checkout_bat_dau' => '2025-07-12 15:00:00',
+                'thoi_gian_checkout_ket_thuc' => '2025-07-12 16:30:00',
+                'han_huy_dang_ky' => '2025-07-10 23:59:59',
                 'so_luong_tham_gia' => 250,
                 'gioi_han_loai_nguoi_dung' => 'Sinh viên, Giảng viên, Cựu sinh viên, Đơn vị ngoài',
                 'tu_khoa_su_kien' => 'hội thảo, xu hướng, công nghệ tài chính, blockchain',
