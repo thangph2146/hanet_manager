@@ -151,6 +151,11 @@
 								<div class="d-grid">
 									<button type="submit" class="btn btn-primary"><i class="bx bxs-lock-open"></i>Đăng nhập</button>
 								</div>
+								<div class="col-md-12 text-end mt-3">
+									<a href="<?= site_url("dang-ky") ?>" class="forgot-password">Đăng ký tài khoản</a>
+								</div>
+										
+							</div>
 							</div>
 							<div class="col-12">
 								<div class="login-separator text-center"> 
@@ -162,6 +167,7 @@
 										<i class="bx bxl-google"></i> Đăng nhập bằng Google
 									</a>
 								</div>
+								
 							</div>
 						</form>
 					</div>
