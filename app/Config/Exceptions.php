@@ -128,7 +128,7 @@ class Exceptions extends BaseConfig
                                 ->setBody(json_encode([
                                     'success' => false,
                                     'message' => $exception->getMessage() ?: 'Bạn không có quyền truy cập vào tài nguyên này.',
-                                    'redirect' => site_url('dashboard')
+                                    'redirect' => site_url('users/dashboard')
                                 ]));
                     }
                 };

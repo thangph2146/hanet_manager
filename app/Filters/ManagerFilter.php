@@ -24,12 +24,12 @@ class ManagerFilter implements FilterInterface
 							   ->setJSON([
 								   'success' => false,
 								   'message' => 'Bạn không có quyền truy cập vào tài nguyên này.',
-								   'redirect' => site_url('dashboard')
+								   'redirect' => site_url('users/dashboard')
 							   ]);
 			}
 			
 			// Chuyển hướng người dùng về dashboard với thông báo lỗi
-			return redirect()->to('dashboard')->with('error', 'Bạn không có quyền truy cập vào tài nguyên này.');
+			return redirect()->to('users/dashboard')->with('error', 'Bạn không có quyền truy cập vào tài nguyên này.');
 		}
 	}
 

@@ -75,6 +75,7 @@ class Filters extends BaseConfig
     public $filters = [
 		'loginUser' => [
 			'before' => [
+                'admin*',
 				'users*',
 				'roles*',
 				'permissions*',
