@@ -49,12 +49,12 @@ $registrationStatus = 'open'; // Trạng thái: 'open', 'upcoming', 'closed'
 $timeRemaining = '';
 $currentTime = time();
 
-// Kiểm tra thời gian đăng ký từ các trường bat_dau_dang_ky và ket_thuc_dang_ky
-if (isset($event['bat_dau_dang_ky']) && isset($event['ket_thuc_dang_ky']) && 
-    !empty($event['bat_dau_dang_ky']) && !empty($event['ket_thuc_dang_ky'])) {
+// Kiểm tra thời gian đăng ký từ các trường thoi_gian_bat_dau_dang_ky và thoi_gian_ket_thuc_dang_ky
+if (isset($event['thoi_gian_bat_dau_dang_ky']) && isset($event['thoi_gian_ket_thuc_dang_ky']) && 
+    !empty($event['thoi_gian_bat_dau_dang_ky']) && !empty($event['thoi_gian_ket_thuc_dang_ky'])) {
     
-    $startTime = strtotime($event['bat_dau_dang_ky']);
-    $endTime = strtotime($event['ket_thuc_dang_ky']);
+    $startTime = strtotime($event['thoi_gian_bat_dau_dang_ky']);
+    $endTime = strtotime($event['thoi_gian_ket_thuc_dang_ky']);
     
     // Nếu chưa tới thời gian đăng ký
     if ($currentTime < $startTime) {
@@ -143,10 +143,10 @@ if ($slots_left <= 0) {
     $displayStartTime = null;
     $displayEndTime = null;
     
-    if (isset($event['bat_dau_dang_ky']) && isset($event['ket_thuc_dang_ky']) && 
-        !empty($event['bat_dau_dang_ky']) && !empty($event['ket_thuc_dang_ky'])) {
-        $displayStartTime = $event['bat_dau_dang_ky'];
-        $displayEndTime = $event['ket_thuc_dang_ky'];
+    if (isset($event['thoi_gian_bat_dau_dang_ky']) && isset($event['thoi_gian_ket_thuc_dang_ky']) && 
+        !empty($event['thoi_gian_bat_dau_dang_ky']) && !empty($event['thoi_gian_ket_thuc_dang_ky'])) {
+        $displayStartTime = $event['thoi_gian_bat_dau_dang_ky'];
+        $displayEndTime = $event['thoi_gian_ket_thuc_dang_ky'];
     }
     
     if ($displayStartTime && $displayEndTime): 

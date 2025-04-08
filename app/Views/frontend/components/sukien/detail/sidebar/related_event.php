@@ -14,7 +14,7 @@ if (!isset($related_events) && isset($event['su_kien_id']) && isset($event['loai
                 'su_kien_id' => $rel->su_kien_id,
                 'ten_su_kien' => $rel->ten_su_kien,
                 'dia_diem' => $rel->dia_diem,
-                'ngay_to_chuc' => $rel->thoi_gian_bat_dau ?? $rel->ngay_to_chuc,
+                'ngay_to_chuc' => $rel->thoi_gian_bat_dau_su_kien ?? $rel->ngay_to_chuc,
                 'slug' => $rel->slug
             ];
         }
@@ -37,9 +37,9 @@ if (!isset($related_events) && isset($event['su_kien_id']) && isset($event['loai
                             <div class="event-date text-center me-3">
                                 <?php 
                                 $eventDate = isset($related['ngay_to_chuc']) ? $related['ngay_to_chuc'] : 
-                                    (isset($related['thoi_gian_bat_dau']) ? $related['thoi_gian_bat_dau'] : date('Y-m-d'));
+                                    (isset($related['thoi_gian_bat_dau_su_kien']) ? $related['thoi_gian_bat_dau_su_kien'] : date('Y-m-d'));
                                 $eventTime = isset($related['gio_bat_dau']) ? $related['gio_bat_dau'] : 
-                                    (isset($related['thoi_gian_bat_dau']) ? date('H:i', strtotime($related['thoi_gian_bat_dau'])) : '08:00');
+                                    (isset($related['thoi_gian_bat_dau_su_kien']) ? date('H:i', strtotime($related['thoi_gian_bat_dau_su_kien'])) : '08:00');
                                 ?>
                                 <div class="date-day"><?= date('d', strtotime($eventDate)) ?></div>
                                 <div class="date-month"><?= date('m/Y', strtotime($eventDate)) ?></div>

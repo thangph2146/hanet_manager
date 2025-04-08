@@ -10,8 +10,8 @@
         $endTime = null;
         $eventStatus = 'upcoming'; // upcoming, ongoing, ended
         
-        if (!empty($event['thoi_gian_bat_dau'])) {
-            $startTime = strtotime($event['thoi_gian_bat_dau']);
+        if (!empty($event['thoi_gian_bat_dau_su_kien'])) {
+            $startTime = strtotime($event['thoi_gian_bat_dau_su_kien']);
             $eventDate = date('Y-m-d', $startTime);
         } elseif (!empty($event['ngay_to_chuc'])) {
             $eventDate = date('Y-m-d', strtotime($event['ngay_to_chuc']));
@@ -22,8 +22,8 @@
             }
         }
         
-        if (!empty($event['thoi_gian_ket_thuc'])) {
-            $endTime = strtotime($event['thoi_gian_ket_thuc']);
+        if (!empty($event['thoi_gian_ket_thuc_su_kien'])) {
+            $endTime = strtotime($event['thoi_gian_ket_thuc_su_kien']);
         } elseif (!empty($event['gio_ket_thuc'])) {
             $endTime = strtotime($eventDate . ' ' . $event['gio_ket_thuc']);
         } else {
@@ -49,9 +49,9 @@
         $registrationStatus = 'closed'; // not-started, open, closed, ended
         $registrationCountdown = null;
         
-        if (!empty($event['bat_dau_dang_ky']) && !empty($event['ket_thuc_dang_ky'])) {
-            $registrationStart = strtotime($event['bat_dau_dang_ky']);
-            $registrationEnd = strtotime($event['ket_thuc_dang_ky']);
+        if (!empty($event['thoi_gian_bat_dau_dang_ky']) && !empty($event['thoi_gian_ket_thuc_dang_ky'])) {
+            $registrationStart = strtotime($event['thoi_gian_bat_dau_dang_ky']);
+            $registrationEnd = strtotime($event['thoi_gian_ket_thuc_dang_ky']);
             
             if ($currentTime < $registrationStart) {
                 $registrationStatus = 'not-started';
@@ -127,8 +127,8 @@
                                             <i class="lni lni-user"></i>
                                         </div>
                                         <p>Đăng ký</p>
-                                        <?php if (!empty($event['bat_dau_dang_ky'])): ?>
-                                        <small class="text-muted"><?= date('d/m/Y', strtotime($event['bat_dau_dang_ky'])) ?></small>
+                                        <?php if (!empty($event['thoi_gian_bat_dau_dang_ky'])): ?>
+                                        <small class="text-muted"><?= date('d/m/Y', strtotime($event['thoi_gian_bat_dau_dang_ky'])) ?></small>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -165,7 +165,7 @@
                                     <i class="lni lni-alarm-clock fs-4 me-3"></i>
                                     <div>
                                         <h6 class="mb-1 fw-bold">Đăng ký chưa mở</h6>
-                                        <p class="mb-0">Đăng ký sẽ mở vào ngày <?= date('d/m/Y', strtotime($event['bat_dau_dang_ky'])) ?></p>
+                                        <p class="mb-0">Đăng ký sẽ mở vào ngày <?= date('d/m/Y', strtotime($event['thoi_gian_bat_dau_dang_ky'])) ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -175,7 +175,7 @@
                                     <i class="lni lni-checkmark-circle fs-4 me-3"></i>
                                     <div>
                                         <h6 class="mb-1 fw-bold">Đăng ký đang mở</h6>
-                                        <p class="mb-0">Hạn đăng ký: <?= date('d/m/Y', strtotime($event['ket_thuc_dang_ky'])) ?></p>
+                                        <p class="mb-0">Hạn đăng ký: <?= date('d/m/Y', strtotime($event['thoi_gian_ket_thuc_dang_ky'])) ?></p>
                                     </div>
                                 </div>
                             </div>

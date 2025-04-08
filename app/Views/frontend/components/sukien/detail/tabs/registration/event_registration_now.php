@@ -13,13 +13,13 @@ $registrationStatus = '';
 $currentTime = time();
 
 
-// Kiểm tra các trường bat_dau_dang_ky và ket_thuc_dang_ky
-if (isset($event['bat_dau_dang_ky']) && isset($event['ket_thuc_dang_ky']) && 
-         !empty($event['bat_dau_dang_ky']) && !empty($event['ket_thuc_dang_ky'])) {
+// Kiểm tra các trường thoi_gian_bat_dau_dang_ky và thoi_gian_ket_thuc_dang_ky
+if (isset($event['thoi_gian_bat_dau_dang_ky']) && isset($event['thoi_gian_ket_thuc_dang_ky']) && 
+         !empty($event['thoi_gian_bat_dau_dang_ky']) && !empty($event['thoi_gian_ket_thuc_dang_ky'])) {
     
-    $startTime = strtotime($event['bat_dau_dang_ky']);
-    $endTime = strtotime($event['ket_thuc_dang_ky']);
-    $registrationTimeSource = 'old'; // Đánh dấu đang sử dụng trường cũ
+    $startTime = strtotime($event['thoi_gian_bat_dau_dang_ky']);
+    $endTime = strtotime($event['thoi_gian_ket_thuc_dang_ky']);
+    $registrationTimeSource = 'new'; // Đánh dấu đang sử dụng trường mới
     
     // Nếu chưa tới thời gian đăng ký
     if ($currentTime < $startTime) {
@@ -135,7 +135,7 @@ if ($isLoggedIn): ?>
                                 </div>
                                 <div class="ps-4">
                                     <div class="mb-2"><strong>Sự kiện:</strong> <?= $event['ten_su_kien'] ?? 'Không xác định' ?></div>
-                                    <div class="mb-2"><strong>Thời gian:</strong> <?= isset($event['thoi_gian_bat_dau']) ? date('d/m/Y H:i', strtotime($event['thoi_gian_bat_dau'])) : 'Không xác định' ?></div>
+                                    <div class="mb-2"><strong>Thời gian:</strong> <?= isset($event['thoi_gian_bat_dau_su_kien']) ? date('d/m/Y H:i', strtotime($event['thoi_gian_bat_dau_su_kien'])) : 'Không xác định' ?></div>
                                     <div><strong>Địa điểm:</strong> <?= $event['dia_diem'] ?? 'Không xác định' ?></div>
                                 </div>
                             </div>

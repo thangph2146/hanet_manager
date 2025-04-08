@@ -7,7 +7,7 @@
                     </div>
                     <div>
                         <h6 class="mb-1 fw-bold">Ngày tổ chức</h6>
-                        <span><?= date('d/m/Y', strtotime(isset($event['thoi_gian_bat_dau']) ? $event['thoi_gian_bat_dau'] : $event['ngay_to_chuc'])) ?></span>
+                        <span><?= date('d/m/Y', strtotime(isset($event['thoi_gian_bat_dau_su_kien']) ? $event['thoi_gian_bat_dau_su_kien'] : $event['ngay_to_chuc'])) ?></span>
                     </div>
                 </div>
             </div>
@@ -18,7 +18,7 @@
                     </div>
                     <div>
                         <h6 class="mb-1 fw-bold">Thời gian</h6>
-                        <span><?= date('H:i', strtotime($event['gio_bat_dau'])) ?> - <?= date('H:i', strtotime($event['gio_ket_thuc'])) ?></span>
+                        <span><?= date('H:i', strtotime($event['thoi_gian_bat_dau_su_kien'])) ?> - <?= date('H:i', strtotime($event['thoi_gian_ket_thuc_su_kien'])) ?></span>
                     </div>
                 </div>
             </div>
@@ -62,7 +62,7 @@
             </div>
             
             <!-- Thời gian đăng ký -->
-            <?php if (!empty($event['bat_dau_dang_ky']) && !empty($event['ket_thuc_dang_ky'])): ?>
+            <?php if (!empty($event['thoi_gian_bat_dau_dang_ky']) && !empty($event['thoi_gian_ket_thuc_dang_ky'])): ?>
             <div class="col-md-6 mb-3">
                 <div class="meta-item d-flex align-items-center">
                     <div class="icon-container me-3">
@@ -70,8 +70,8 @@
                     </div>
                     <div>
                         <h6 class="mb-1 fw-bold">Thời gian đăng ký</h6>
-                        <span>Từ <?= date('d/m/Y', strtotime($event['bat_dau_dang_ky'])) ?></span>
-                        <div class="small text-muted mt-1">Đến <?= date('d/m/Y', strtotime($event['ket_thuc_dang_ky'])) ?></div>
+                        <span>Từ <?= date('d/m/Y', strtotime($event['thoi_gian_bat_dau_dang_ky'])) ?></span>
+                        <div class="small text-muted mt-1">Đến <?= date('d/m/Y', strtotime($event['thoi_gian_ket_thuc_dang_ky'])) ?></div>
                     </div>
                 </div>
             </div>

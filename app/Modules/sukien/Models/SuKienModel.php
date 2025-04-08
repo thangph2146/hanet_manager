@@ -38,10 +38,10 @@ class SukienModel extends BaseModel
         $this->builder->where($this->table . '.deleted_at IS NULL');
         
         // Thử lấy sự kiện sắp diễn ra trước
-        $this->builder->where($this->table . '.thoi_gian_bat_dau >=', $now);
+        $this->builder->where($this->table . '.thoi_gian_bat_dau_su_kien >=', $now);
         
         // Sắp xếp theo thời gian bắt đầu (để lấy sự kiện gần nhất)
-        $this->builder->orderBy($this->table . '.thoi_gian_bat_dau', 'ASC');
+        $this->builder->orderBy($this->table . '.thoi_gian_bat_dau_su_kien', 'ASC');
         
         // Giới hạn số lượng kết quả
         $this->builder->limit(3);
@@ -61,7 +61,7 @@ class SukienModel extends BaseModel
             $this->builder->where($this->table . '.deleted_at IS NULL');
             
             // Sắp xếp theo thời gian bắt đầu giảm dần (lấy sự kiện gần đây nhất)
-            $this->builder->orderBy($this->table . '.thoi_gian_bat_dau', 'DESC');
+            $this->builder->orderBy($this->table . '.thoi_gian_bat_dau_su_kien', 'DESC');
             
             $this->builder->limit(3);
             
@@ -78,15 +78,15 @@ class SukienModel extends BaseModel
                 'ten_su_kien' => $event->ten_su_kien,
                 'mo_ta_su_kien' => $event->mo_ta ?? $event->mo_ta_su_kien ?? '',
                 'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
-                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau_su_kien)),
                 'dia_diem' => $event->dia_diem,
                 'dia_chi_cu_the' => $event->dia_chi_cu_the ?? '',
                 'hinh_anh' => $event->su_kien_poster,
-                'gio_bat_dau' => $event->gio_bat_dau ?? date('H:i', strtotime($event->thoi_gian_bat_dau)),
-                'gio_ket_thuc' => $event->gio_ket_thuc ?? date('H:i', strtotime($event->thoi_gian_ket_thuc)),
-                'thoi_gian_bat_dau' => $event->thoi_gian_bat_dau,
-                'thoi_gian_ket_thuc' => $event->thoi_gian_ket_thuc,
-                'thoi_gian' => date('H:i', strtotime($event->thoi_gian_bat_dau)) . ' - ' . date('H:i', strtotime($event->thoi_gian_ket_thuc)),
+                'gio_bat_dau' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)),
+                'gio_ket_thuc' => date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
+                'thoi_gian_bat_dau_su_kien' => $event->thoi_gian_bat_dau_su_kien,
+                'thoi_gian_ket_thuc_su_kien' => $event->thoi_gian_ket_thuc_su_kien,
+                'thoi_gian' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)) . ' - ' . date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
                 'loai_su_kien_id' => $event->loai_su_kien_id,
                 'loai_su_kien' => $event->ten_loai_su_kien ?? '',
                 'slug' => $event->slug,
@@ -120,10 +120,10 @@ class SukienModel extends BaseModel
         $this->builder->where($this->table . '.deleted_at IS NULL');
         
         // Thử lấy sự kiện sắp diễn ra trước
-        $this->builder->where($this->table . '.thoi_gian_bat_dau >=', $now);
+        $this->builder->where($this->table . '.thoi_gian_bat_dau_su_kien >=', $now);
         
         // Sắp xếp theo thời gian bắt đầu (để lấy sự kiện gần nhất)
-        $this->builder->orderBy($this->table . '.thoi_gian_bat_dau', 'ASC');
+        $this->builder->orderBy($this->table . '.thoi_gian_bat_dau_su_kien', 'ASC');
         
         // Giới hạn số lượng kết quả
         $this->builder->limit($limit);
@@ -143,7 +143,7 @@ class SukienModel extends BaseModel
             $this->builder->where($this->table . '.deleted_at IS NULL');
             
             // Sắp xếp theo thời gian bắt đầu giảm dần (lấy sự kiện gần đây nhất)
-            $this->builder->orderBy($this->table . '.thoi_gian_bat_dau', 'DESC');
+            $this->builder->orderBy($this->table . '.thoi_gian_bat_dau_su_kien', 'DESC');
             
             $this->builder->limit($limit);
             
@@ -160,15 +160,15 @@ class SukienModel extends BaseModel
                 'ten_su_kien' => $event->ten_su_kien,
                 'mo_ta_su_kien' => $event->mo_ta ?? $event->mo_ta_su_kien ?? '',
                 'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
-                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau_su_kien)),
                 'dia_diem' => $event->dia_diem,
                 'dia_chi_cu_the' => $event->dia_chi_cu_the ?? '',
                 'hinh_anh' => $event->su_kien_poster,
-                'gio_bat_dau' => $event->gio_bat_dau ?? date('H:i', strtotime($event->thoi_gian_bat_dau)),
-                'gio_ket_thuc' => $event->gio_ket_thuc ?? date('H:i', strtotime($event->thoi_gian_ket_thuc)),
-                'thoi_gian_bat_dau' => $event->thoi_gian_bat_dau,
-                'thoi_gian_ket_thuc' => $event->thoi_gian_ket_thuc,
-                'thoi_gian' => date('H:i', strtotime($event->thoi_gian_bat_dau)) . ' - ' . date('H:i', strtotime($event->thoi_gian_ket_thuc)),
+                'gio_bat_dau' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)),
+                'gio_ket_thuc' => date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
+                'thoi_gian_bat_dau_su_kien' => $event->thoi_gian_bat_dau_su_kien,
+                'thoi_gian_ket_thuc_su_kien' => $event->thoi_gian_ket_thuc_su_kien,
+                'thoi_gian' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)) . ' - ' . date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
                 'loai_su_kien_id' => $event->loai_su_kien_id,
                 'loai_su_kien' => $event->ten_loai_su_kien ?? '',
                 'slug' => $event->slug,
@@ -182,27 +182,111 @@ class SukienModel extends BaseModel
     }
     
     /**
-     * Lấy tất cả sự kiện cho trang danh sách
+     * Lấy tất cả sự kiện với các tùy chọn lọc
      */
     public function getAllEvents(array $options = [])
     {
+        // Thiết lập các giá trị mặc định cho các tùy chọn
         $defaultOptions = [
-            'limit' => 0, // Lấy tất cả
-            'sort' => 'thoi_gian_bat_dau',
-            'order' => 'ASC',
-            'join_loai_su_kien' => true,
+            'category' => null,        // Loại sự kiện
+            'status' => 'all',         // Trạng thái: all, upcoming, ongoing, past
+            'limit' => 0,              // Giới hạn số lượng kết quả (0 = không giới hạn)
+            'offset' => 0,             // Vị trí bắt đầu
+            'sort' => 'thoi_gian_bat_dau_su_kien',  // Trường sắp xếp
+            'order' => 'DESC',         // Thứ tự sắp xếp
+            'keyword' => '',           // Từ khóa tìm kiếm
+            'fields' => '*',           // Các trường cần lấy
+            'random' => false,         // Lấy ngẫu nhiên
+            'year' => null,            // Năm tổ chức
+            'month' => null,           // Tháng tổ chức
         ];
         
-        // Kết hợp options mặc định với options được truyền vào
+        // Hợp nhất các tùy chọn người dùng cung cấp với các giá trị mặc định
         $options = array_merge($defaultOptions, $options);
         
         // Lấy thời gian hiện tại
         $now = date('Y-m-d H:i:s');
         
-        // Lấy các sự kiện có status = 1 và thời gian bắt đầu lớn hơn hoặc bằng thời gian hiện tại
-        $this->where('su_kien.status', 1)
-             ->where('su_kien.thoi_gian_bat_dau >=', $now);
-        $events = $this->search([], $options);
+        // Thiết lập builder
+        $this->builder = $this->db->table($this->table);
+        
+        // Lựa chọn các trường
+        if ($options['fields'] !== '*') {
+            $this->builder->select($options['fields']);
+        } else {
+            $this->builder->select($this->table . '.*, loai_su_kien.ten_loai_su_kien');
+        }
+        
+        // Join với bảng loại sự kiện
+        $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
+        
+        // Lọc theo loại sự kiện
+        if (!empty($options['category'])) {
+            if (is_numeric($options['category'])) {
+                $this->builder->where($this->table . '.loai_su_kien_id', $options['category']);
+            } else {
+                $this->builder->where('loai_su_kien.ten_loai_su_kien', $options['category']);
+            }
+        }
+        
+        // Lọc theo trạng thái
+        if ($options['status'] !== 'all') {
+            switch ($options['status']) {
+                case 'upcoming':
+                    $this->builder->where($this->table . '.thoi_gian_bat_dau_su_kien >', $now);
+                    break;
+                case 'ongoing':
+                    $this->builder->where($this->table . '.thoi_gian_bat_dau_su_kien <=', $now);
+                    $this->builder->where($this->table . '.thoi_gian_ket_thuc_su_kien >=', $now);
+                    break;
+                case 'past':
+                    $this->builder->where($this->table . '.thoi_gian_ket_thuc_su_kien <', $now);
+                    break;
+            }
+        }
+        
+        // Lọc theo năm
+        if (!empty($options['year'])) {
+            $this->builder->where('YEAR(' . $this->table . '.thoi_gian_bat_dau_su_kien)', $options['year']);
+        }
+        
+        // Lọc theo tháng
+        if (!empty($options['month'])) {
+            $this->builder->where('MONTH(' . $this->table . '.thoi_gian_bat_dau_su_kien)', $options['month']);
+        }
+        
+        // Tìm kiếm theo từ khóa
+        if (!empty($options['keyword'])) {
+            $this->builder->groupStart()
+                    ->like($this->table . '.ten_su_kien', $options['keyword'])
+                    ->orLike($this->table . '.mo_ta', $options['keyword'])
+                    ->orLike($this->table . '.mo_ta_su_kien', $options['keyword'])
+                    ->orLike($this->table . '.chi_tiet_su_kien', $options['keyword'])
+                    ->orLike($this->table . '.tu_khoa_su_kien', $options['keyword'])
+                    ->orLike($this->table . '.hashtag', $options['keyword'])
+                    ->orLike($this->table . '.dia_diem', $options['keyword'])
+                    ->orLike('loai_su_kien.ten_loai_su_kien', $options['keyword'])
+                    ->groupEnd();
+        }
+        
+        // Chỉ lấy sự kiện có trạng thái hoạt động
+        $this->builder->where($this->table . '.status', 1);
+        $this->builder->where($this->table . '.deleted_at IS NULL');
+        
+        // Sắp xếp kết quả
+        if ($options['random']) {
+            $this->builder->orderBy('RAND()');
+        } else {
+            $this->builder->orderBy($this->table . '.' . $options['sort'], $options['order']);
+        }
+        
+        // Giới hạn kết quả
+        if ($options['limit'] > 0) {
+            $this->builder->limit($options['limit'], $options['offset']);
+        }
+        
+        // Thực hiện truy vấn
+        $events = $this->builder->get()->getResult($this->returnType);
         
         // Chuyển đổi kết quả sang định dạng mảng tương thích với view hiện tại
         $result = [];
@@ -212,15 +296,15 @@ class SukienModel extends BaseModel
                 'ten_su_kien' => $event->ten_su_kien,
                 'mo_ta_su_kien' => $event->mo_ta ?? $event->mo_ta_su_kien ?? '',
                 'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
-                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau_su_kien)),
                 'dia_diem' => $event->dia_diem,
                 'dia_chi_cu_the' => $event->dia_chi_cu_the ?? '',
                 'hinh_anh' => $event->su_kien_poster,
-                'gio_bat_dau' => $event->gio_bat_dau,
-                'gio_ket_thuc' => $event->gio_ket_thuc,
-                'thoi_gian_bat_dau' => $event->thoi_gian_bat_dau,
-                'thoi_gian_ket_thuc' => $event->thoi_gian_ket_thuc,
-                'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
+                'gio_bat_dau' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)),
+                'gio_ket_thuc' => date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
+                'thoi_gian_bat_dau_su_kien' => $event->thoi_gian_bat_dau_su_kien,
+                'thoi_gian_ket_thuc_su_kien' => $event->thoi_gian_ket_thuc_su_kien,
+                'thoi_gian' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)) . ' - ' . date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
                 'loai_su_kien_id' => $event->loai_su_kien_id,
                 'loai_su_kien' => $event->ten_loai_su_kien ?? '',
                 'slug' => $event->slug,
@@ -250,31 +334,31 @@ class SukienModel extends BaseModel
             'ten_su_kien' => $event->ten_su_kien,
             'mo_ta_su_kien' => $event->mo_ta ?? $event->mo_ta_su_kien ?? '',
             'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
-            'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+            'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau_su_kien)),
             'dia_diem' => $event->dia_diem,
             'dia_chi_cu_the' => $event->dia_chi_cu_the ?? '',
             'hinh_anh' => $event->su_kien_poster,
-            'gio_bat_dau' => $event->gio_bat_dau,
-            'gio_ket_thuc' => $event->gio_ket_thuc,
-            'thoi_gian_bat_dau' => $event->thoi_gian_bat_dau,
-            'thoi_gian_ket_thuc' => $event->thoi_gian_ket_thuc,
-            'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
+            'gio_bat_dau' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)),
+            'gio_ket_thuc' => date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
+            'thoi_gian_bat_dau_su_kien' => $event->thoi_gian_bat_dau_su_kien,
+            'thoi_gian_ket_thuc_su_kien' => $event->thoi_gian_ket_thuc_su_kien,
+            'thoi_gian_bat_dau_dang_ky' => $event->thoi_gian_bat_dau_dang_ky,
+            'thoi_gian_ket_thuc_dang_ky' => $event->thoi_gian_ket_thuc_dang_ky,
+            'thoi_gian' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)) . ' - ' . date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
             'loai_su_kien_id' => $event->loai_su_kien_id,
+            'loai_su_kien' => $event->ten_loai_su_kien ?? '',
             'slug' => $event->slug,
             'so_luot_xem' => $event->so_luot_xem,
-            'lich_trinh' => $event->lich_trinh,
             'hinh_thuc' => $event->hinh_thuc ?? 'Offline',
             'link_online' => $event->link_online ?? '',
-            'mat_khau_online' => $event->mat_khau_online ?? '',
-            'so_luong_tham_gia' => $event->so_luong_tham_gia ?? 0,
             'tong_dang_ky' => $event->tong_dang_ky ?? 0,
             'tong_check_in' => $event->tong_check_in ?? 0,
-            'tong_check_out' => $event->tong_check_out ?? 0,
-            'tu_khoa_su_kien' => $event->tu_khoa_su_kien ?? '',
-            'hashtag' => $event->hashtag ?? '',
-            'bat_dau_dang_ky' => $event->bat_dau_dang_ky ?? null,
-            'ket_thuc_dang_ky' => $event->ket_thuc_dang_ky ?? null,
-            'han_huy_dang_ky' => $event->han_huy_dang_ky ?? null,
+            'thoi_gian_checkin_bat_dau' => $event->thoi_gian_checkin_bat_dau,
+            'thoi_gian_checkin_ket_thuc' => $event->thoi_gian_checkin_ket_thuc,
+            'thoi_gian_checkout_bat_dau' => $event->thoi_gian_checkout_bat_dau,
+            'thoi_gian_checkout_ket_thuc' => $event->thoi_gian_checkout_ket_thuc,
+            'created_at' => $event->created_at,
+            'updated_at' => $event->updated_at
         ];
     }
     
@@ -309,22 +393,34 @@ class SukienModel extends BaseModel
         // Lấy thời gian hiện tại
         $now = date('Y-m-d H:i:s');
         
-        $criteria = [
-            'keyword' => $keyword,
-            'status' => 1
-        ];
+        // Thiết lập builder
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select($this->table . '.*, loai_su_kien.ten_loai_su_kien');
+        $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
         
-        $options = [
-            'limit' => 0,
-            'sort' => 'thoi_gian_bat_dau',
-            'order' => 'DESC',
-            'join_loai_su_kien' => true
-        ];
+        // Chỉ lấy sự kiện có trạng thái hoạt động
+        $this->builder->where($this->table . '.status', 1);
+        $this->builder->where($this->table . '.deleted_at IS NULL');
         
-        // Thêm điều kiện thời gian bắt đầu lớn hơn hoặc bằng thời gian hiện tại
-        $this->where('su_kien.thoi_gian_bat_dau >=', $now);
+        // Tìm kiếm trong tên, mô tả, chi tiết, từ khóa
+        if ($keyword) {
+            $this->builder->groupStart()
+                    ->like($this->table . '.ten_su_kien', $keyword)
+                    ->orLike($this->table . '.mo_ta', $keyword)
+                    ->orLike($this->table . '.mo_ta_su_kien', $keyword)
+                    ->orLike($this->table . '.chi_tiet_su_kien', $keyword)
+                    ->orLike($this->table . '.tu_khoa_su_kien', $keyword)
+                    ->orLike($this->table . '.hashtag', $keyword)
+                    ->orLike($this->table . '.dia_diem', $keyword)
+                    ->orLike('loai_su_kien.ten_loai_su_kien', $keyword)
+                    ->groupEnd();
+        }
         
-        $events = $this->search($criteria, $options);
+        // Ưu tiên sự kiện sắp diễn ra
+        $this->builder->orderBy('ABS(TIMESTAMPDIFF(SECOND, ' . $this->table . '.thoi_gian_bat_dau_su_kien, "' . $now . '"))', 'ASC');
+        
+        // Thực hiện truy vấn
+        $events = $this->builder->get()->getResult($this->returnType);
         
         // Chuyển đổi kết quả sang định dạng mảng tương thích với view hiện tại
         $result = [];
@@ -334,15 +430,15 @@ class SukienModel extends BaseModel
                 'ten_su_kien' => $event->ten_su_kien,
                 'mo_ta_su_kien' => $event->mo_ta ?? $event->mo_ta_su_kien ?? '',
                 'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
-                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau_su_kien)),
                 'dia_diem' => $event->dia_diem,
                 'dia_chi_cu_the' => $event->dia_chi_cu_the ?? '',
                 'hinh_anh' => $event->su_kien_poster,
-                'gio_bat_dau' => $event->gio_bat_dau,
-                'gio_ket_thuc' => $event->gio_ket_thuc,
-                'thoi_gian_bat_dau' => $event->thoi_gian_bat_dau,
-                'thoi_gian_ket_thuc' => $event->thoi_gian_ket_thuc,
-                'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
+                'gio_bat_dau' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)),
+                'gio_ket_thuc' => date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
+                'thoi_gian_bat_dau_su_kien' => $event->thoi_gian_bat_dau_su_kien,
+                'thoi_gian_ket_thuc_su_kien' => $event->thoi_gian_ket_thuc_su_kien,
+                'thoi_gian' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)) . ' - ' . date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
                 'loai_su_kien_id' => $event->loai_su_kien_id,
                 'loai_su_kien' => $event->ten_loai_su_kien ?? '',
                 'slug' => $event->slug,
@@ -472,132 +568,114 @@ class SukienModel extends BaseModel
     }
     
     /**
-     * Lấy sự kiện liên quan (cùng loại)
-     * 
-     * @param int $eventId ID sự kiện cần loại trừ
-     * @param string $eventType Loại sự kiện
-     * @param int $limit Số lượng kết quả
-     * @return array
+     * Lấy các sự kiện liên quan
      */
     public function getRelatedEvents($eventId, $eventType, $limit = 3)
     {
-        $event = $this->find($eventId);
-        if (!$event) {
+        // Nếu không có eventId hoặc eventType, trả về rỗng
+        if (empty($eventId) || empty($eventType)) {
             return [];
         }
-        
-        // Lấy ID loại sự kiện từ tên loại (nếu cần)
-        $loaiSuKienId = $event->loai_su_kien_id;
-        
-        // Tìm các sự kiện cùng loại
-        $criteria = [
-            'status' => 1,
-            'loai_su_kien_id' => $loaiSuKienId
-        ];
-        
-        $options = [
-            'limit' => $limit + 1, // Lấy thêm 1 để loại trừ sự kiện hiện tại
-            'sort' => 'thoi_gian_bat_dau',
-            'order' => 'DESC',
-            'join_loai_su_kien' => true
-        ];
         
         // Lấy thời gian hiện tại
         $now = date('Y-m-d H:i:s');
         
-        // Thêm điều kiện thời gian bắt đầu lớn hơn hoặc bằng thời gian hiện tại
-        $this->where('su_kien.thoi_gian_bat_dau >=', $now);
+        // Thiết lập builder
+        $this->builder = $this->db->table($this->table);
+        $this->builder->select($this->table . '.*, loai_su_kien.ten_loai_su_kien');
+        $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
         
-        $events = $this->search($criteria, $options);
+        // Chỉ lấy sự kiện có trạng thái hoạt động và khác với sự kiện hiện tại
+        $this->builder->where($this->table . '.status', 1);
+        $this->builder->where($this->table . '.deleted_at IS NULL');
+        $this->builder->where($this->table . '.su_kien_id !=', $eventId);
         
-        // Loại bỏ sự kiện hiện tại và giới hạn số lượng
-        $result = [];
-        $count = 0;
-        
-        foreach ($events as $relatedEvent) {
-            if ($relatedEvent->su_kien_id != $eventId && $count < $limit) {
-                $result[] = [
-                    'su_kien_id' => $relatedEvent->su_kien_id,
-                    'ten_su_kien' => $relatedEvent->ten_su_kien,
-                    'mo_ta_su_kien' => $relatedEvent->mo_ta ?? $relatedEvent->mo_ta_su_kien ?? '',
-                    'chi_tiet_su_kien' => $relatedEvent->chi_tiet_su_kien,
-                    'ngay_to_chuc' => date('Y-m-d', strtotime($relatedEvent->thoi_gian_bat_dau)),
-                    'dia_diem' => $relatedEvent->dia_diem,
-                    'dia_chi_cu_the' => $relatedEvent->dia_chi_cu_the ?? '',
-                    'hinh_anh' => $relatedEvent->su_kien_poster,
-                    'gio_bat_dau' => $relatedEvent->gio_bat_dau,
-                    'gio_ket_thuc' => $relatedEvent->gio_ket_thuc,
-                    'thoi_gian_bat_dau' => $relatedEvent->thoi_gian_bat_dau,
-                    'thoi_gian_ket_thuc' => $relatedEvent->thoi_gian_ket_thuc,
-                    'thoi_gian' => date('H:i', strtotime($relatedEvent->gio_bat_dau)) . ' - ' . date('H:i', strtotime($relatedEvent->gio_ket_thuc)),
-                    'loai_su_kien_id' => $relatedEvent->loai_su_kien_id,
-                    'loai_su_kien' => $relatedEvent->ten_loai_su_kien ?? $eventType,
-                    'slug' => $relatedEvent->slug,
-                    'so_luot_xem' => $relatedEvent->so_luot_xem,
-                    'hinh_thuc' => $relatedEvent->hinh_thuc ?? 'Offline',
-                    'tong_dang_ky' => $relatedEvent->tong_dang_ky ?? 0,
-                ];
-                $count++;
-            }
+        // Lọc theo loại sự kiện
+        if (is_numeric($eventType)) {
+            $this->builder->where($this->table . '.loai_su_kien_id', $eventType);
+        } else {
+            $this->builder->where('loai_su_kien.ten_loai_su_kien', $eventType);
         }
         
-        // Nếu không đủ sự kiện cùng loại, lấy thêm các sự kiện khác
-        if ($count < $limit) {
-            $additionalCriteria = [
-                'status' => 1,
-                'not_in_ids' => [$eventId]
-            ];
+        // Ưu tiên sự kiện sắp diễn ra
+        $this->builder->where($this->table . '.thoi_gian_bat_dau_su_kien >=', $now);
+        $this->builder->orderBy($this->table . '.thoi_gian_bat_dau_su_kien', 'ASC');
+        
+        // Giới hạn số lượng kết quả
+        $this->builder->limit($limit);
+        
+        // Thực hiện truy vấn
+        $events = $this->builder->get()->getResult($this->returnType);
+        
+        // Nếu không có đủ sự kiện sắp diễn ra, lấy thêm cả sự kiện đã diễn ra
+        if (count($events) < $limit) {
+            $needed = $limit - count($events);
             
-            if (!empty($result)) {
-                $additionalCriteria['not_in_ids'] = array_merge(
-                    $additionalCriteria['not_in_ids'],
-                    array_column($result, 'su_kien_id')
-                );
+            // Lấy ID của các sự kiện đã có để loại trừ
+            $existingIds = array_map(function($event) {
+                return $event->su_kien_id;
+            }, $events);
+            $existingIds[] = $eventId; // Thêm ID sự kiện hiện tại để loại trừ
+            
+            $this->builder = $this->db->table($this->table);
+            $this->builder->select($this->table . '.*, loai_su_kien.ten_loai_su_kien');
+            $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
+            
+            $this->builder->where($this->table . '.status', 1);
+            $this->builder->where($this->table . '.deleted_at IS NULL');
+            $this->builder->whereNotIn($this->table . '.su_kien_id', $existingIds);
+            
+            // Lọc theo loại sự kiện
+            if (is_numeric($eventType)) {
+                $this->builder->where($this->table . '.loai_su_kien_id', $eventType);
+            } else {
+                $this->builder->where('loai_su_kien.ten_loai_su_kien', $eventType);
             }
             
-            $additionalOptions = [
-                'limit' => $limit - $count,
-                'sort' => 'thoi_gian_bat_dau',
-                'order' => 'DESC',
-                'join_loai_su_kien' => true
+            $this->builder->where($this->table . '.thoi_gian_bat_dau_su_kien <', $now);
+            $this->builder->orderBy($this->table . '.thoi_gian_bat_dau_su_kien', 'DESC');
+            $this->builder->limit($needed);
+            
+            $pastEvents = $this->builder->get()->getResult($this->returnType);
+            
+            // Kết hợp với những sự kiện sắp diễn ra
+            $events = array_merge($events, $pastEvents);
+        }
+        
+        // Chuyển đổi kết quả sang định dạng mảng tương thích với view hiện tại
+        $result = [];
+        foreach ($events as $event) {
+            $result[] = [
+                'su_kien_id' => $event->su_kien_id,
+                'ten_su_kien' => $event->ten_su_kien,
+                'mo_ta_su_kien' => $event->mo_ta ?? $event->mo_ta_su_kien ?? '',
+                'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau_su_kien)),
+                'dia_diem' => $event->dia_diem,
+                'dia_chi_cu_the' => $event->dia_chi_cu_the ?? '',
+                'hinh_anh' => $event->su_kien_poster,
+                'gio_bat_dau' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)),
+                'gio_ket_thuc' => date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
+                'thoi_gian_bat_dau_su_kien' => $event->thoi_gian_bat_dau_su_kien,
+                'thoi_gian_ket_thuc_su_kien' => $event->thoi_gian_ket_thuc_su_kien,
+                'thoi_gian' => date('H:i', strtotime($event->thoi_gian_bat_dau_su_kien)) . ' - ' . date('H:i', strtotime($event->thoi_gian_ket_thuc_su_kien)),
+                'loai_su_kien_id' => $event->loai_su_kien_id,
+                'loai_su_kien' => $event->ten_loai_su_kien ?? '',
+                'slug' => $event->slug,
+                'so_luot_xem' => $event->so_luot_xem,
+                'hinh_thuc' => $event->hinh_thuc ?? 'Offline',
+                'tong_dang_ky' => $event->tong_dang_ky ?? 0,
             ];
-            
-            $additionalEvents = $this->search($additionalCriteria, $additionalOptions);
-            
-            foreach ($additionalEvents as $additionalEvent) {
-                $result[] = [
-                    'su_kien_id' => $additionalEvent->su_kien_id,
-                    'ten_su_kien' => $additionalEvent->ten_su_kien,
-                    'mo_ta_su_kien' => $additionalEvent->mo_ta ?? $additionalEvent->mo_ta_su_kien ?? '',
-                    'chi_tiet_su_kien' => $additionalEvent->chi_tiet_su_kien,
-                    'ngay_to_chuc' => date('Y-m-d', strtotime($additionalEvent->thoi_gian_bat_dau)),
-                    'dia_diem' => $additionalEvent->dia_diem,
-                    'dia_chi_cu_the' => $additionalEvent->dia_chi_cu_the ?? '',
-                    'hinh_anh' => $additionalEvent->su_kien_poster,
-                    'gio_bat_dau' => $additionalEvent->gio_bat_dau,
-                    'gio_ket_thuc' => $additionalEvent->gio_ket_thuc,
-                    'thoi_gian_bat_dau' => $additionalEvent->thoi_gian_bat_dau,
-                    'thoi_gian_ket_thuc' => $additionalEvent->thoi_gian_ket_thuc,
-                    'thoi_gian' => date('H:i', strtotime($additionalEvent->gio_bat_dau)) . ' - ' . date('H:i', strtotime($additionalEvent->gio_ket_thuc)),
-                    'loai_su_kien_id' => $additionalEvent->loai_su_kien_id,
-                    'loai_su_kien' => $additionalEvent->ten_loai_su_kien ?? '',
-                    'slug' => $additionalEvent->slug,
-                    'so_luot_xem' => $additionalEvent->so_luot_xem,
-                    'hinh_thuc' => $additionalEvent->hinh_thuc ?? 'Offline',
-                    'tong_dang_ky' => $additionalEvent->tong_dang_ky ?? 0,
-                ];
-            }
         }
         
         return $result;
     }
     
     /**
-     * Phương thức đa năng để lấy sự kiện theo ID hoặc slug
+     * Lấy sự kiện theo slug hoặc ID
      */
     public function getEvent($identifier)
     {
-        // Kiểm tra xem identifier là ID hay slug
         if (is_numeric($identifier)) {
             return $this->getEventById($identifier);
         } else {
@@ -667,39 +745,36 @@ class SukienModel extends BaseModel
     }
     
     /**
-     * Lấy thời gian còn lại đến sự kiện
-     * 
-     * @param string $ngayToChuc Ngày tổ chức dạng Y-m-d H:i:s
-     * @return array Mảng chứa số ngày, giờ, phút, giây còn lại
+     * Lấy thời gian còn lại đến ngày tổ chức
      */
     public function getTimeRemaining($ngayToChuc)
     {
-        $eventTime = strtotime($ngayToChuc);
-        $currentTime = time();
-        $timeRemaining = $eventTime - $currentTime;
-        
-        if ($timeRemaining <= 0) {
-            return [
-                'days' => -1,
-                'hours' => 0,
-                'minutes' => 0,
-                'seconds' => 0,
-                'total' => 0
-            ];
+        if (!$ngayToChuc) {
+            return null;
         }
         
-        $days = floor($timeRemaining / 86400);
-        $hours = floor(($timeRemaining % 86400) / 3600);
-        $minutes = floor(($timeRemaining % 3600) / 60);
-        $seconds = $timeRemaining % 60;
+        if (is_string($ngayToChuc)) {
+            $ngayToChuc = strtotime($ngayToChuc);
+        }
         
-        return [
-            'days' => $days,
-            'hours' => $hours,
-            'minutes' => $minutes,
-            'seconds' => $seconds,
-            'total' => $timeRemaining
-        ];
+        $now = time();
+        $diff = $ngayToChuc - $now;
+        
+        if ($diff <= 0) {
+            return 'Đã diễn ra';
+        }
+        
+        $days = floor($diff / (60 * 60 * 24));
+        $hours = floor(($diff - $days * 60 * 60 * 24) / (60 * 60));
+        $minutes = floor(($diff - $days * 60 * 60 * 24 - $hours * 60 * 60) / 60);
+        
+        if ($days > 0) {
+            return $days . ' ngày ' . $hours . ' giờ';
+        } else if ($hours > 0) {
+            return $hours . ' giờ ' . $minutes . ' phút';
+        } else {
+            return $minutes . ' phút';
+        }
     }
     
     /**
@@ -713,5 +788,72 @@ class SukienModel extends BaseModel
     {
         $timestamp = strtotime($ngayToChuc);
         return date($format, $timestamp);
+    }
+
+    /**
+     * Kiểm tra xem hiện tại có đang trong thời gian đăng ký không
+     *
+     * @param int $eventId
+     * @return bool
+     */
+    public function isInRegistrationPeriod($eventId)
+    {
+        $event = $this->find($eventId);
+        
+        if (!$event) {
+            return false;
+        }
+        
+        $now = date('Y-m-d H:i:s');
+        
+        if (empty($event->thoi_gian_bat_dau_dang_ky) || empty($event->thoi_gian_ket_thuc_dang_ky)) {
+            return false;
+        }
+        
+        return ($now >= $event->thoi_gian_bat_dau_dang_ky && $now <= $event->thoi_gian_ket_thuc_dang_ky);
+    }
+
+    /**
+     * Lấy thời gian đếm ngược cho sự kiện
+     */
+    public function getCountdownTime($eventId)
+    {
+        $event = $this->find($eventId);
+        
+        if (!$event) {
+            return null;
+        }
+        
+        $now = time();
+        $startTime = strtotime($event->thoi_gian_bat_dau_su_kien);
+        
+        if ($startTime <= $now) {
+            // Sự kiện đã bắt đầu, kiểm tra xem đã kết thúc chưa
+            $endTime = strtotime($event->thoi_gian_ket_thuc_su_kien);
+            
+            if ($endTime <= $now) {
+                // Sự kiện đã kết thúc
+                return [
+                    'status' => 'finished',
+                    'message' => 'Sự kiện đã kết thúc'
+                ];
+            } else {
+                // Sự kiện đang diễn ra
+                $remainingTime = $endTime - $now;
+                return [
+                    'status' => 'ongoing',
+                    'message' => 'Sự kiện đang diễn ra',
+                    'remaining' => $this->formatRemainingTime($remainingTime)
+                ];
+            }
+        } else {
+            // Sự kiện chưa bắt đầu
+            $remainingTime = $startTime - $now;
+            return [
+                'status' => 'upcoming',
+                'message' => 'Sự kiện sẽ diễn ra trong',
+                'remaining' => $this->formatRemainingTime($remainingTime)
+            ];
+        }
     }
 } 
