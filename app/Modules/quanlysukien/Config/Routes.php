@@ -10,7 +10,7 @@ $module_name = 'quanlysukien';
 $controller_name = 'QuanLySuKien';
 
 // Định nghĩa routes cho module QuanLySuKien
-$routes->group("admin/su-kien", ['namespace' => 'App\Modules\\' . $module_name . '\Controllers'], 
+$routes->group($module_name, ['namespace' => 'App\Modules\\' . $module_name . '\Controllers'], 
 function ($routes) use ($controller_name) {
     // Route hiển thị danh sách sự kiện
     $routes->get('/', $controller_name . '::index');

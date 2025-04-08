@@ -19,6 +19,291 @@ $hinhThucOptions = [
 // Lấy danh sách loại sự kiện
 $loaiSuKienModel = model('App\Modules\quanlyloaisukien\Models\LoaiSuKienModel');
 $loaiSuKienList = $loaiSuKienModel->getForDropdown(true);
+
+// Debug Information - Chỉ hiển thị trong môi trường development
+if (ENVIRONMENT === 'development'):
+?>
+<style>
+.debug-section {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 15px 0;
+    font-family: monospace;
+}
+
+.debug-section pre {
+    margin: 0;
+    white-space: pre-wrap;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #f1f1f1;
+    padding: 10px;
+    border-radius: 4px;
+    position: relative;
+}
+
+.debug-title {
+    color: #dc3545;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    display: flex;
+    justify-content: space-between;
+}
+
+.debug-subtitle {
+    color: #0d6efd;
+    font-weight: bold;
+    margin: 10px 0;
+    font-size: 1em;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.debug-subtitle:after {
+    content: "▼";
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+.debug-subtitle.collapsed:after {
+    content: "►";
+}
+
+.debug-content {
+    margin-bottom: 15px;
+}
+
+.debug-data {
+    display: block;
+}
+
+.debug-data.collapsed {
+    display: none;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #198754;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.8em;
+    cursor: pointer;
+    z-index: 5;
+}
+
+.copy-btn:hover {
+    background: #157347;
+}
+
+.expand-all-btn {
+    background: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.8em;
+    cursor: pointer;
+}
+
+.expand-all-btn:hover {
+    background: #0a58ca;
+}
+</style>
+
+<div class="debug-section">
+    <div class="debug-title">
+        Debug Information
+        <button class="expand-all-btn" onclick="toggleAllDebugSections()">Expand All</button>
+    </div>
+    
+    <?php
+    // Hiển thị tất cả các biến lọc đang được sử dụng
+    $filterVariables = [
+        'keyword' => $keyword ?? null,
+        'loai_su_kien_id' => $loai_su_kien_id ?? null,
+        'status' => $status ?? null,
+        'hinh_thuc' => $hinh_thuc ?? null,
+        'start_date' => $start_date ?? null,
+        'end_date' => $end_date ?? null,
+        'don_vi_to_chuc' => $don_vi_to_chuc ?? null,
+        'perPage' => $perPage ?? 10,
+        'upcoming' => $upcoming ?? null,
+        'featured' => $featured ?? null,
+        'cho_phep_check_in' => $cho_phep_check_in ?? null,
+        'doi_tuong_tham_gia' => $doi_tuong_tham_gia ?? null,
+        'sort' => $sort ?? 'thoi_gian_bat_dau',
+        'order' => $order ?? 'asc',
+        'bat_dau_dang_ky' => $bat_dau_dang_ky ?? null,
+        'ket_thuc_dang_ky' => $ket_thuc_dang_ky ?? null
+    ];
+    ?>
+    
+    <div class="debug-content">
+        <div class="debug-subtitle" onclick="toggleDebugSection(this)">Applied Filters</div>
+        <div class="debug-data">
+            <pre id="applied-filters"><?php print_r($filterVariables); ?><button class="copy-btn" onclick="copyDebugData('applied-filters')">Copy</button></pre>
+        </div>
+    </div>
+    
+    <?php if (isset($filters)): ?>
+    <div class="debug-content">
+        <div class="debug-subtitle" onclick="toggleDebugSection(this)">Filter Data</div>
+        <div class="debug-data">
+            <pre id="filter-data"><?php print_r($filters); ?><button class="copy-btn" onclick="copyDebugData('filter-data')">Copy</button></pre>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($_GET)): ?>
+    <div class="debug-content">
+        <div class="debug-subtitle" onclick="toggleDebugSection(this)">GET Parameters</div>
+        <div class="debug-data">
+            <pre id="get-params"><?php print_r($_GET); ?><button class="copy-btn" onclick="copyDebugData('get-params')">Copy</button></pre>
+        </div>
+    </div>
+    <?php endif; ?>
+    
+    <?php if (isset($loaiSuKienList)): ?>
+    <div class="debug-content">
+        <div class="debug-subtitle collapsed" onclick="toggleDebugSection(this)">Loại Sự Kiện List</div>
+        <div class="debug-data collapsed">
+            <pre id="loai-sukien-list"><?php print_r($loaiSuKienList); ?><button class="copy-btn" onclick="copyDebugData('loai-sukien-list')">Copy</button></pre>
+        </div>
+    </div>
+    <?php endif; ?>
+    
+    <?php if (isset($module_name)): ?>
+    <div class="debug-content">
+        <div class="debug-subtitle" onclick="toggleDebugSection(this)">Module Information</div>
+        <div class="debug-data">
+            <pre id="module-info"><?php
+            echo "Module Name: " . $module_name . "\n";
+            echo "Current URL: " . current_url() . "\n"; 
+            echo "PHP Version: " . phpversion() . "\n";
+            echo "Environment: " . ENVIRONMENT . "\n";
+            ?><button class="copy-btn" onclick="copyDebugData('module-info')">Copy</button></pre>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+
+<script>
+function toggleDebugSection(element) {
+    // Tìm phần tử debug-data kế tiếp
+    var content = element.nextElementSibling;
+    // Toggle class collapsed
+    element.classList.toggle('collapsed');
+    content.classList.toggle('collapsed');
+}
+
+function toggleAllDebugSections() {
+    var btnText = document.querySelector('.expand-all-btn');
+    var allSubtitles = document.querySelectorAll('.debug-subtitle');
+    var allContents = document.querySelectorAll('.debug-data');
+    
+    if (btnText.textContent === 'Expand All') {
+        btnText.textContent = 'Collapse All';
+        allSubtitles.forEach(function(subtitle) {
+            subtitle.classList.remove('collapsed');
+        });
+        allContents.forEach(function(content) {
+            content.classList.remove('collapsed');
+        });
+    } else {
+        btnText.textContent = 'Expand All';
+        allSubtitles.forEach(function(subtitle) {
+            subtitle.classList.add('collapsed');
+        });
+        allContents.forEach(function(content) {
+            content.classList.add('collapsed');
+        });
+    }
+}
+
+function copyDebugData(id) {
+    var text = document.getElementById(id).innerText;
+    // Loại bỏ nút "Copy" khỏi nội dung copy
+    text = text.replace('Copy', '').trim();
+    
+    // Sử dụng tryắthẹn để tương thích với nhiều trình duyệt
+    try {
+        // Phương pháp hiện đại
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                showCopiedFeedback(id);
+            });
+        } else {
+            // Phương pháp thay thế cho các trình duyệt cũ hơn
+            fallbackCopyTextToClipboard(text, id);
+        }
+    } catch (err) {
+        console.error('Không thể copy: ', err);
+        alert('Không thể copy dữ liệu! Hãy thử phương pháp thủ công: Chọn văn bản và nhấn Ctrl+C.');
+    }
+}
+
+function fallbackCopyTextToClipboard(text, id) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Tránh cuộn
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+        var successful = document.execCommand('copy');
+        if (successful) {
+            showCopiedFeedback(id);
+        } else {
+            console.error('Fallback: Copy command was unsuccessful');
+        }
+    } catch (err) {
+        console.error('Fallback: Không thể thực hiện copy', err);
+    }
+
+    document.body.removeChild(textArea);
+}
+
+function showCopiedFeedback(id) {
+    var btn = document.querySelector('#' + id + ' .copy-btn');
+    if (btn) {
+        btn.textContent = 'Copied!';
+        setTimeout(function() {
+            btn.textContent = 'Copy';
+        }, 2000);
+    }
+}
+
+// Tự động mở rộng phần đầu tiên khi tải trang
+document.addEventListener('DOMContentLoaded', function() {
+    // Mở phần đầu tiên
+    var firstDebugContent = document.querySelector('.debug-content');
+    if (firstDebugContent) {
+        var subtitle = firstDebugContent.querySelector('.debug-subtitle');
+        var data = firstDebugContent.querySelector('.debug-data');
+        if (subtitle && data) {
+            subtitle.classList.remove('collapsed');
+            data.classList.remove('collapsed');
+        }
+    }
+});
+</script>
+<?php 
+endif; // End debug section 
 ?>
 
 <div class="card-header p-0 border-0">
