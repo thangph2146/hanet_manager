@@ -1117,4 +1117,26 @@ class SuKien extends BaseEntity
         
         return null;
     }
+
+    /**
+     * Alias cho getThoiGianBatDauSuKienFormatted
+     *
+     * @param string $format Định dạng ngày
+     * @return string
+     */
+    public function getThoiGianBatDauFormatted(string $format = 'd/m/Y H:i:s'): string
+    {
+        return $this->getThoiGianBatDauSuKienFormatted($format);
+    }
+    
+    /**
+     * Alias cho getThoiGianKetThucSuKienFormatted
+     *
+     * @param string $format Định dạng ngày
+     * @return string
+     */
+    public function getThoiGianKetThucFormatted(string $format = 'd/m/Y H:i:s'): string
+    {
+        return $this->getThoiGianKetThucSuKienFormatted($format);
+    }
 }

@@ -70,60 +70,57 @@ class QuanLySuKien extends BaseController
     }
     
     /**
-     * Hiển thị danh sách sự kiện với phân trang
+     * Hiển thị danh sách sự kiện
      */
     public function index()
     {
-        // Lấy các tham số từ URL
-        $params = $this->prepareSearchParams($this->request);
-        // Xử lý tham số tìm kiếm
-        $processedParams = $this->processSearchParams($params);
+        $show_debug = false;
         
-        // Xây dựng tiêu chí và tùy chọn tìm kiếm
-        $criteria = $this->buildSearchCriteria($processedParams);
-        $options = $this->buildSearchOptions($processedParams);
+        // Lấy các tham số tìm kiếm từ URL
+        $keyword = $this->request->getGet('keyword');
+        $start_date = $this->request->getGet('start_date');
+        $end_date = $this->request->getGet('end_date');
+        $page = $this->request->getGet('page') ?? 1;
+        $perPage = $this->request->getGet('perPage') ?? 20;
         
-        // Lấy dữ liệu sự kiện và thông tin phân trang
-        $pageData = $this->model->search($criteria, $options);
-        // Lấy tổng số kết quả
-        $pager = $this->model->getPager();
-        $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($criteria);
-        
-        // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
-        $pageCount = ceil($total / $params['perPage']);
-        if ($total > 0 && $params['page'] > $pageCount) {
-            // Tạo URL mới với trang cuối cùng
-            $redirectParams = $_GET;
-            $redirectParams['page'] = $pageCount;
-            $redirectUrl = site_url($this->module_name) . '?' . http_build_query($redirectParams);
-            
-            // Chuyển hướng đến trang cuối cùng
-            return redirect()->to($redirectUrl);
+        // Xây dựng điều kiện tìm kiếm
+        $search = [];
+        if (!empty($keyword)) {
+            $search['keyword'] = $keyword;
+        }
+        if (!empty($start_date)) {
+            $search['start_date'] = $start_date;
+        }
+        if (!empty($end_date)) {
+            $search['end_date'] = $end_date;
         }
         
-        // Lấy pager từ model và thiết lập các tham số
-        $pager = $this->model->getPager();
-        if ($pager !== null) {
-            $pager->setPath($this->module_name);
-            $pager->setRouteUrl($this->module_name);
-            // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'loai_su_kien_id', 'hinh_thuc', 'start_date', 'end_date']);
-            
-            // Đảm bảo perPage và currentPage được thiết lập đúng
-            $pager->setPerPage($params['perPage']);
-            $pager->setCurrentPage($params['page']);
-        }
+        // Tùy chọn tìm kiếm
+        $options = [
+            'limit' => (int)$perPage,
+            'offset' => ((int)$page - 1) * (int)$perPage,
+            'sort' => 'thoi_gian_bat_dau_su_kien',
+            'order' => 'DESC'
+        ];
         
-        // Chuẩn bị dữ liệu cho view
-        $viewData = $this->prepareViewData($this->module_name, $pageData, $pager, array_merge($params, ['total' => $total]));
-        // Thêm module_name và masterScript vào viewData để sử dụng trong view
-        $viewData['module_name'] = $this->module_name;
-        $viewData['masterScript'] = $this->masterScript;
-        $viewData['title_home'] = $this->title_home;
-        $viewData['title'] = $this->title;
-
-        // Hiển thị view
-        return view('App\Modules\\' . $this->module_name . '\Views\index', $viewData);
+        $data = [
+            'processedData' => $this->model->search($search, $options),
+            'pagination' => $this->model->getPager(),
+            'search' => $search,
+            'perPage' => $perPage,
+            'module_name' => 'quanlysukien',
+            'page_title' => 'Danh sách sự kiện',
+            'description' => 'Quản lý thông tin sự kiện',
+            'title' => 'Danh sách sự kiện',
+            'title_home' => $this->title_home,
+            'pager' => $this->model->getPager(),
+            'total' => $this->model->countSearchResults($search),
+            'keyword' => $keyword,
+            'start_date' => $start_date,
+            'end_date' => $end_date
+        ];
+        
+        return view('App\Modules\quanlysukien\Views\index', $data);
     }
     
     /**
@@ -365,107 +362,55 @@ class QuanLySuKien extends BaseController
     }
     
     /**
-     * Danh sách sự kiện đã xóa
+     * Hiển thị danh sách sự kiện đã xóa
      */
     public function listdeleted()
     {
-        // Cập nhật breadcrumb
-        $this->breadcrumb->add('Danh sách đã xóa', current_url());
+        // Lấy các tham số tìm kiếm từ URL
+        $keyword = $this->request->getGet('keyword');
+        $start_date = $this->request->getGet('start_date');
+        $end_date = $this->request->getGet('end_date');
+        $page = $this->request->getGet('page') ?? 1;
+        $perPage = $this->request->getGet('perPage') ?? 20;
         
-        // Lấy và xử lý tham số tìm kiếm
-        $params = $this->prepareSearchParams($this->request);
-        $params = $this->processSearchParams($params);
-        
-        // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
-        $this->model->setSurroundCount(3);
-        
-        // Xây dựng tiêu chí và tùy chọn tìm kiếm cho các bản ghi đã xóa
-        $criteria = $this->buildSearchCriteria($params);
-        $criteria['deleted'] = true; // Chỉ lấy các bản ghi đã xóa
-        $options = $this->buildSearchOptions($params);
-        
-        // Log thông tin về criteria và options
-        log_message('debug', '[QuanLySuKien::listdeleted] Search criteria: ' . json_encode($criteria));
-        log_message('debug', '[QuanLySuKien::listdeleted] Search options: ' . json_encode($options));
-        
-        // Lấy dữ liệu đã xóa và thông tin phân trang
-        $pageData = $this->model->searchDeleted($criteria, $options);
-        
-        // Kiểm tra và lọc dữ liệu để đảm bảo chỉ lấy bản ghi đã xóa
-        $filteredData = [];
-        foreach ($pageData as $item) {
-            if ($item->deleted_at !== null) {
-                $filteredData[] = $item;
-            } else {
-                log_message('warning', "[QuanLySuKien::listdeleted] Lọc bỏ bản ghi không hợp lệ (deleted_at = null): ID={$item->su_kien_id}");
-            }
+        // Xây dựng điều kiện tìm kiếm
+        $search = [];
+        if (!empty($keyword)) {
+            $search['keyword'] = $keyword;
+        }
+        if (!empty($start_date)) {
+            $search['start_date'] = $start_date;
+        }
+        if (!empty($end_date)) {
+            $search['end_date'] = $end_date;
         }
         
-        // Nếu có sự khác biệt giữa dữ liệu gốc và sau khi lọc
-        if (count($pageData) !== count($filteredData)) {
-            log_message('warning', "[QuanLySuKien::listdeleted] Đã lọc bỏ " . (count($pageData) - count($filteredData)) . " bản ghi không hợp lệ");
-            // Gán lại dữ liệu đã lọc
-            $pageData = $filteredData;
-        }
-        
-        // Log số lượng kết quả tìm được
-        log_message('debug', '[QuanLySuKien::listdeleted] Found ' . count($pageData) . ' deleted records');
-        
-        // Lấy tổng số kết quả
-        $pager = $this->model->getPager();
-        $total = $pager ? $pager->getTotal() : $this->model->countDeletedSearchResults($criteria);
-        
-        // Log tổng số kết quả
-        log_message('debug', '[QuanLySuKien::listdeleted] Total deleted records: ' . $total);
-        
-        // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
-        $pageCount = ceil($total / $params['perPage']);
-        if ($total > 0 && $params['page'] > $pageCount) {
-            // Tạo URL mới với trang cuối cùng
-            $redirectParams = $_GET;
-            $redirectParams['page'] = $pageCount;
-            $redirectUrl = site_url($this->module_name . '/listdeleted') . '?' . http_build_query($redirectParams);
-            
-            // Chuyển hướng đến trang cuối cùng
-            return redirect()->to($redirectUrl);
-        }
-        
-        // Lấy pager từ model và thiết lập các tham số
-        $pager = $this->model->getPager();
-        if ($pager !== null) {
-            $pager->setPath($this->module_name . '/listdeleted');
-            $pager->setRouteUrl($this->module_name . '/listdeleted');
-            // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'loai_su_kien_id', 'hinh_thuc', 'start_date', 'end_date']);
-            
-            // Đảm bảo perPage và currentPage được thiết lập đúng
-            $pager->setPerPage($params['perPage']);
-            $pager->setCurrentPage($params['page']);
-        }
-        
-        // Xử lý dữ liệu nếu cần
-        $processedData = $this->processData($pageData);
-        
-        // Chuẩn bị dữ liệu cho view
-        $viewData = [
-            'title_home' => $this->title_home,
-            'title' => 'Sự kiện đã xóa',
-            'processedData' => $processedData,
-            'pager' => $pager,
-            'total' => $total,
-            'perPage' => $params['perPage'],
-            'keyword' => $params['keyword'] ?? '',
-            'status' => $params['status'] ?? '',
-            'loai_su_kien_id' => $params['loai_su_kien_id'] ?? '',
-            'hinh_thuc' => $params['hinh_thuc'] ?? '',
-            'start_date' => $params['start_date'] ?? '',
-            'end_date' => $params['end_date'] ?? '',
-            'module_name' => $this->module_name,
-            'masterScript' => $this->masterScript
+        // Tùy chọn tìm kiếm
+        $options = [
+            'limit' => (int)$perPage,
+            'offset' => ((int)$page - 1) * (int)$perPage,
+            'sort' => 'deleted_at',
+            'order' => 'DESC'
         ];
         
-        // Hiển thị view
-        return view('App\Modules\\' . $this->module_name . '\Views\listdeleted', $viewData);
+        $data = [
+            'processedData' => $this->model->searchDeleted($search, $options),
+            'pagination' => $this->model->getPager(),
+            'search' => $search,
+            'perPage' => $perPage,
+            'module_name' => 'quanlysukien',
+            'page_title' => 'Danh sách sự kiện đã xóa',
+            'description' => 'Quản lý sự kiện đã xóa',
+            'title' => 'Danh sách sự kiện đã xóa',
+            'title_home' => $this->title_home,
+            'pager' => $this->model->getPager(),
+            'total' => $this->model->countDeletedSearchResults($search),
+            'keyword' => $keyword,
+            'start_date' => $start_date,
+            'end_date' => $end_date
+        ];
+        
+        return view('App\Modules\quanlysukien\Views\listdeleted', $data);
     }
     
     /**
@@ -683,44 +628,17 @@ class QuanLySuKien extends BaseController
     {
         $criteria = [];
         
-        // Tìm kiếm theo từ khóa
+        // Tìm kiếm theo từ khóa (tên sự kiện)
         if (!empty($params['keyword'])) {
-            // Tạo một mảng các điều kiện tìm kiếm OR
-            $orConditions = [];
-            
-            // Tìm kiếm theo tên sự kiện
-            $orConditions['ten_su_kien'] = $params['keyword'];
-            
-            // Tìm kiếm theo mô tả
-            $orConditions['mo_ta'] = $params['keyword'];
-            
-            // Tìm kiếm theo địa điểm
-            $orConditions['dia_diem'] = $params['keyword'];
-            
-            // Thêm điều kiện tìm kiếm OR vào criteria
-            $criteria['keyword'] = $orConditions;
+            $criteria['keyword'] = $params['keyword'];
         }
         
-        // Lọc theo trạng thái
-        if (isset($params['status']) && $params['status'] !== '') {
-            $criteria['status'] = $params['status'];
-        }
-        
-        // Lọc theo loại sự kiện
-        if (!empty($params['loai_su_kien_id'])) {
-            $criteria['loai_su_kien_id'] = $params['loai_su_kien_id'];
-        }
-        
-        // Lọc theo hình thức
-        if (!empty($params['hinh_thuc'])) {
-            $criteria['hinh_thuc'] = $params['hinh_thuc'];
-        }
-        
-        // Lọc theo thời gian
+        // Lọc theo thời gian bắt đầu sự kiện
         if (!empty($params['start_date'])) {
             $criteria['start_date'] = $params['start_date'];
         }
         
+        // Lọc theo thời gian kết thúc sự kiện
         if (!empty($params['end_date'])) {
             $criteria['end_date'] = $params['end_date'];
         }

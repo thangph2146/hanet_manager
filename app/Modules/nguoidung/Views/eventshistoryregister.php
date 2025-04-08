@@ -446,7 +446,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="container py-4">
+<div class="py-4">
     <?php if (ENVIRONMENT === 'development'): ?>
     <!-- DEBUG LOG SECTION - CHỈ HIỂN THỊ TRONG MÔI TRƯỜNG DEVELOPMENT -->
     <div class="debug-section">

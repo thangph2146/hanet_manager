@@ -6,7 +6,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="container py-4">
+<div class="py-4">
     <div class="row mb-4">
         <div class="col-12">
             <div class="welcome-banner">

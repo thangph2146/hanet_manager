@@ -217,123 +217,47 @@ class SuKienModel extends BaseModel
         return $builder->countAllResults();
     }
     
+    
+
     /**
-     * Áp dụng tiêu chí tìm kiếm lên builder
-     * 
-     * @param \CodeIgniter\Database\BaseBuilder $builder
-     * @param array $criteria
-     * @param bool $findDeleted Tìm các bản ghi đã bị xóa
-     * @return \CodeIgniter\Database\BaseBuilder
+     * Áp dụng các tiêu chí tìm kiếm vào query builder
+     *
+     * @param array $criteria Tiêu chí tìm kiếm
+     * @param bool $includeDeleted Có bao gồm bản ghi đã xóa không
+     * @return void
      */
-    protected function applySearchCriteria($builder, $criteria, $findDeleted = false)
+    private function applySearchCriteria($criteria, $includeDeleted = false)
     {
-        // Lọc theo từ khóa
-        if (isset($criteria['keyword']) && !empty($criteria['keyword'])) {
-            // Kiểm tra nếu keyword là số, thì có thể là đang tìm kiếm theo ID
-            if (is_numeric($criteria['keyword'])) {
-                $builder->groupStart()
-                    ->like($this->table . '.ten_su_kien', $criteria['keyword'])
-                    ->orLike($this->table . '.mo_ta', $criteria['keyword'])
-                    ->orLike($this->table . '.noi_dung', $criteria['keyword'])
-                    ->orLike($this->table . '.dia_diem', $criteria['keyword'])
-                    ->orWhere($this->table . '.su_kien_id', (int)$criteria['keyword'])
-                    ->groupEnd();
-            } else {
-                $builder->groupStart()
-                    ->like($this->table . '.ten_su_kien', $criteria['keyword'])
-                    ->orLike($this->table . '.mo_ta', $criteria['keyword'])
-                    ->orLike($this->table . '.noi_dung', $criteria['keyword'])
-                    ->orLike($this->table . '.dia_diem', $criteria['keyword'])
-                    ->groupEnd();
-            }
+        // Chọn các trường và join với bảng loại sự kiện
+        $this->builder->select($this->table . '.*, loai_su_kien.ten_loai_su_kien');
+        $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
+
+        // Tìm kiếm theo từ khóa (chỉ tìm trong tên sự kiện)
+        if (!empty($criteria['keyword'])) {
+            $this->builder->like($this->table . '.ten_su_kien', $criteria['keyword']);
         }
-        
-        // Lọc theo ID
-        if (isset($criteria['id']) && !empty($criteria['id'])) {
-            $builder->where($this->table . '.su_kien_id', $criteria['id']);
+
+        // Tìm kiếm theo thời gian bắt đầu sự kiện
+        if (!empty($criteria['start_date'])) {
+            $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['start_date'])));
+            $this->builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
         }
-        
-        // Lọc theo loại sự kiện
-        if (isset($criteria['loai_su_kien_id']) && !empty($criteria['loai_su_kien_id'])) {
-            $builder->where($this->table . '.loai_su_kien_id', $criteria['loai_su_kien_id']);
+
+        // Tìm kiếm theo thời gian kết thúc sự kiện
+        if (!empty($criteria['end_date'])) {
+            $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['end_date'])));
+            $this->builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
         }
-        
-        // Lọc theo người tạo
-        if (isset($criteria['nguoi_tao_id']) && !empty($criteria['nguoi_tao_id'])) {
-            $builder->where($this->table . '.nguoi_tao_id', $criteria['nguoi_tao_id']);
-        }
-        
-        // Lọc theo trạng thái
-        if (isset($criteria['status']) && $criteria['status'] !== '') {
-            $builder->where($this->table . '.status', $criteria['status']);
+
+        // Nếu không bao gồm bản ghi đã xóa, chỉ lấy các bản ghi chưa xóa
+        if (!$includeDeleted) {
+            $this->builder->where($this->table . '.deleted_at IS NULL');
         } else {
-            $builder->where($this->table . '.status !=', 2); // Mặc định không lấy sự kiện đã xóa
+            $this->builder->where($this->table . '.deleted_at IS NOT NULL');
         }
-        
-        // Loại trừ các ID được chỉ định
-        if (isset($criteria['not_in_ids']) && is_array($criteria['not_in_ids']) && !empty($criteria['not_in_ids'])) {
-            $builder->whereNotIn($this->table . '.su_kien_id', $criteria['not_in_ids']);
-        }
-        
-        // Lọc sự kiện sắp diễn ra
-        if (isset($criteria['upcoming']) && $criteria['upcoming']) {
-            $currentDate = date('Y-m-d H:i:s');
-            $builder->where($this->table . '.thoi_gian_bat_dau_su_kien >=', $currentDate);
-        }
-        
-        // Lọc sự kiện đã diễn ra
-        if (isset($criteria['past']) && $criteria['past']) {
-            $currentDate = date('Y-m-d H:i:s');
-            $builder->where($this->table . '.thoi_gian_ket_thuc_su_kien <', $currentDate);
-        }
-        
-        // Lọc sự kiện đang diễn ra
-        if (isset($criteria['ongoing']) && $criteria['ongoing']) {
-            $currentDate = date('Y-m-d H:i:s');
-            $builder->where($this->table . '.thoi_gian_bat_dau_su_kien <=', $currentDate)
-                   ->where($this->table . '.thoi_gian_ket_thuc_su_kien >=', $currentDate);
-        }
-        
-        // Lọc theo ngày tổ chức
-        if (isset($criteria['start_date']) && !empty($criteria['start_date'])) {
-            $startDate = date('Y-m-d H:i:s', strtotime($criteria['start_date']));
-            $builder->where($this->table . '.thoi_gian_bat_dau_su_kien >=', $startDate);
-        }
-        
-        if (isset($criteria['end_date']) && !empty($criteria['end_date'])) {
-            $endDate = date('Y-m-d H:i:s', strtotime($criteria['end_date']));
-            $builder->where($this->table . '.thoi_gian_bat_dau_su_kien <=', $endDate);
-        }
-        
-        // Lọc sự kiện nổi bật
-        if (isset($criteria['featured']) && $criteria['featured']) {
-            $builder->where($this->table . '.featured', 1);
-        }
-        
-        // Lọc theo đơn vị tổ chức
-        if (isset($criteria['don_vi_to_chuc']) && !empty($criteria['don_vi_to_chuc'])) {
-            $builder->where($this->table . '.don_vi_to_chuc', $criteria['don_vi_to_chuc']);
-        }
-        
-        // Lọc theo thời gian check-in
-        if (isset($criteria['thoi_gian_checkin_bat_dau']) && !empty($criteria['thoi_gian_checkin_bat_dau'])) {
-            $startDate = date('Y-m-d H:i:s', strtotime($criteria['thoi_gian_checkin_bat_dau']));
-            $builder->where($this->table . '.thoi_gian_checkin_bat_dau >=', $startDate);
-        }
-        
-        if (isset($criteria['thoi_gian_checkin_ket_thuc']) && !empty($criteria['thoi_gian_checkin_ket_thuc'])) {
-            $endDate = date('Y-m-d H:i:s', strtotime($criteria['thoi_gian_checkin_ket_thuc']));
-            $builder->where($this->table . '.thoi_gian_checkin_ket_thuc <=', $endDate);
-        }
-        
-        // Xác định lấy bản ghi đã xóa hay chưa xóa
-        if ($findDeleted) {
-            $builder->where($this->table . '.deleted_at IS NOT NULL');
-        } else {
-            $builder->where($this->table . '.deleted_at IS NULL');
-        }
-        
-        return $builder;
+
+        // Sắp xếp mặc định theo thời gian tạo giảm dần
+        $this->builder->orderBy($this->table . '.created_at', 'DESC');
     }
 
     /**
@@ -471,17 +395,35 @@ class SuKienModel extends BaseModel
         $sort = $options['sort'] ?? 'thoi_gian_bat_dau_su_kien';
         $order = $options['order'] ?? 'DESC';
         
+        // Tạo builder mới
         $this->builder = $this->builder();
+        
+        // Chỉ chọn các trường từ bảng sự kiện
         $this->builder->select($this->table . '.*');
         
-        // Thêm join với bảng loại sự kiện nếu cần
-        if (isset($options['join_loai_su_kien']) && $options['join_loai_su_kien']) {
-            $this->builder->select('loai_su_kien.ten_loai_su_kien, loai_su_kien.ma_loai_su_kien');
-            $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
+        // Join với bảng loại sự kiện
+        $this->builder->select('loai_su_kien.ten_loai_su_kien');
+        $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
+        
+        // Tìm kiếm theo từ khóa (chỉ tìm trong tên sự kiện)
+        if (!empty($criteria['keyword'])) {
+            $this->builder->like($this->table . '.ten_su_kien', $criteria['keyword']);
+        }
+
+        // Tìm kiếm theo thời gian bắt đầu sự kiện
+        if (!empty($criteria['start_date'])) {
+            $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['start_date'])));
+            $this->builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
+        }
+
+        // Tìm kiếm theo thời gian kết thúc sự kiện
+        if (!empty($criteria['end_date'])) {
+            $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['end_date'])));
+            $this->builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
         }
         
-        // Thêm điều kiện tìm kiếm
-        $this->applySearchCriteria($this->builder, $criteria);
+        // Chỉ lấy các bản ghi chưa xóa
+        $this->builder->where($this->table . '.deleted_at IS NULL');
         
         // Sắp xếp
         if (strpos($sort, '.') === false) {
@@ -510,7 +452,7 @@ class SuKienModel extends BaseModel
         }
         
         // Thực hiện truy vấn
-        $query = $this->builder -> where($this->table . '.deleted_at IS NULL') -> get();
+        $query = $this->builder->get();
         $result = $query->getResult($this->returnType);
         return $result;
     }
@@ -990,13 +932,37 @@ class SuKienModel extends BaseModel
      */
     public function countSearchResults(array $criteria = [])
     {
-        $builder = $this->builder();
+        // Tạo builder mới tránh xung đột với builder hiện tại
+        $builder = $this->db->table($this->table);
         
-        // Áp dụng các tiêu chí tìm kiếm
-        $this->applySearchCriteria($builder, $criteria);
+        // Thêm select count
+        $builder->select('COUNT(' . $this->table . '.' . $this->primaryKey . ') as total');
         
-        // Đếm tổng số kết quả
-        return $builder->countAllResults();
+        // Thêm join với bảng loại sự kiện
+        $builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
+        
+        // Tìm kiếm theo từ khóa (chỉ tìm trong tên sự kiện)
+        if (!empty($criteria['keyword'])) {
+            $builder->like($this->table . '.ten_su_kien', $criteria['keyword']);
+        }
+
+        // Tìm kiếm theo thời gian bắt đầu sự kiện
+        if (!empty($criteria['start_date'])) {
+            $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['start_date'])));
+            $builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
+        }
+
+        // Tìm kiếm theo thời gian kết thúc sự kiện
+        if (!empty($criteria['end_date'])) {
+            $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['end_date'])));
+            $builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
+        }
+        
+        // Chỉ đếm bản ghi chưa xóa
+        $builder->where($this->table . '.deleted_at IS NULL');
+        
+        $result = $builder->get()->getRow();
+        return $result ? (int)$result->total : 0;
     }
 
     /**
@@ -1014,16 +980,28 @@ class SuKienModel extends BaseModel
         $order = $options['order'] ?? 'DESC';
         
         $this->builder = $this->builder();
-        $this->builder->select($this->table . '.*');
+        $this->builder->select($this->table . '.*, loai_su_kien.ten_loai_su_kien');
+        $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
         
-        // Thêm join với bảng loại sự kiện nếu cần
-        if (isset($options['join_loai_su_kien']) && $options['join_loai_su_kien']) {
-            $this->builder->select('loai_su_kien.ten_loai_su_kien, loai_su_kien.ma_loai_su_kien');
-            $this->builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
+        // Tìm kiếm theo từ khóa (chỉ tìm trong tên sự kiện)
+        if (!empty($criteria['keyword'])) {
+            $this->builder->like($this->table . '.ten_su_kien', $criteria['keyword']);
+        }
+
+        // Tìm kiếm theo thời gian bắt đầu sự kiện
+        if (!empty($criteria['start_date'])) {
+            $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['start_date'])));
+            $this->builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
+        }
+
+        // Tìm kiếm theo thời gian kết thúc sự kiện
+        if (!empty($criteria['end_date'])) {
+            $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['end_date'])));
+            $this->builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
         }
         
-        // Thêm điều kiện tìm kiếm
-        $this->applySearchCriteria($this->builder, $criteria, true);
+        // Chỉ lấy các bản ghi đã xóa
+        $this->builder->where($this->table . '.deleted_at IS NOT NULL');
         
         // Sắp xếp
         if (strpos($sort, '.') === false) {
@@ -1065,13 +1043,37 @@ class SuKienModel extends BaseModel
      */
     public function countDeletedSearchResults(array $criteria = [])
     {
-        $builder = $this->builder();
+        // Tạo builder mới tránh xung đột với builder hiện tại
+        $builder = $this->db->table($this->table);
         
-        // Áp dụng các tiêu chí tìm kiếm
-        $this->applySearchCriteria($builder, $criteria, true);
+        // Thêm select count
+        $builder->select('COUNT(' . $this->table . '.' . $this->primaryKey . ') as total');
         
-        // Đếm tổng số kết quả
-        return $builder->countAllResults();
+        // Thêm join với bảng loại sự kiện
+        $builder->join('loai_su_kien', 'loai_su_kien.loai_su_kien_id = ' . $this->table . '.loai_su_kien_id', 'left');
+        
+        // Tìm kiếm theo từ khóa (chỉ tìm trong tên sự kiện)
+        if (!empty($criteria['keyword'])) {
+            $builder->like($this->table . '.ten_su_kien', $criteria['keyword']);
+        }
+
+        // Tìm kiếm theo thời gian bắt đầu sự kiện
+        if (!empty($criteria['start_date'])) {
+            $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['start_date'])));
+            $builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
+        }
+
+        // Tìm kiếm theo thời gian kết thúc sự kiện
+        if (!empty($criteria['end_date'])) {
+            $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['end_date'])));
+            $builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
+        }
+        
+        // Chỉ đếm bản ghi đã xóa
+        $builder->where($this->table . '.deleted_at IS NOT NULL');
+        
+        $result = $builder->get()->getRow();
+        return $result ? (int)$result->total : 0;
     }
 
     /**
