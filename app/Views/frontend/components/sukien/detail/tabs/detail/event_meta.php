@@ -14,7 +14,7 @@
                 </div>
                 <div>
                     <h6 class="mb-1 fw-bold">Ngày tổ chức</h6>
-                    <span><?= date('d/m/Y', strtotime($event['thoi_gian_bat_dau_su_kien'] ?? $event['ngay_to_chuc'])) ?></span>
+                    <span><?= date('d/m/Y', strtotime($event['thoi_gian_bat_dau_su_kien'])) ?></span>
                 </div>
             </div>
         </div>
@@ -200,7 +200,7 @@
                 <div>
                     <h6 class="mb-1 fw-bold">Liên kết tham gia</h6>
                     <a href="<?= $event['link_online'] ?>" target="_blank" class="btn btn-sm btn-outline-primary mt-1">
-                        <i class="lni lni-video"></i> Tham gia online
+                        </i> Tham gia online
                     </a>
                 </div>
             </div>

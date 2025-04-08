@@ -13,6 +13,10 @@ class SukienEntity extends Entity
         'gio_bat_dau', 
         'gio_ket_thuc',
         'han_huy_dang_ky',
+        'thoi_gian_bat_dau_dang_ky',
+        'thoi_gian_ket_thuc_dang_ky',
+        'thoi_gian_bat_dau_su_kien',
+        'thoi_gian_ket_thuc_su_kien',
         'created_at', 
         'updated_at', 
         'deleted_at'
@@ -349,6 +353,11 @@ class SukienEntity extends Entity
      */
     public function getGioBatDau()
     {
+        // Ưu tiên sử dụng trường mới
+        if (!empty($this->attributes['thoi_gian_bat_dau_su_kien'])) {
+            return date('H:i', strtotime($this->attributes['thoi_gian_bat_dau_su_kien']));
+        }
+        
         return $this->attributes['gio_bat_dau'] ?? null;
     }
     
@@ -359,6 +368,11 @@ class SukienEntity extends Entity
     {
         $this->attributes['gio_bat_dau'] = $gioBatDau;
         
+        // Nếu đã có ngày tổ chức, cập nhật luôn trường thoi_gian_bat_dau_su_kien
+        if (!empty($this->attributes['ngay_to_chuc']) && !empty($gioBatDau)) {
+            $this->attributes['thoi_gian_bat_dau_su_kien'] = date('Y-m-d H:i:s', strtotime($this->attributes['ngay_to_chuc'] . ' ' . $gioBatDau));
+        }
+        
         return $this;
     }
     
@@ -367,6 +381,11 @@ class SukienEntity extends Entity
      */
     public function getGioKetThuc()
     {
+        // Ưu tiên sử dụng trường mới
+        if (!empty($this->attributes['thoi_gian_ket_thuc_su_kien'])) {
+            return date('H:i', strtotime($this->attributes['thoi_gian_ket_thuc_su_kien']));
+        }
+        
         return $this->attributes['gio_ket_thuc'] ?? null;
     }
     
@@ -377,149 +396,140 @@ class SukienEntity extends Entity
     {
         $this->attributes['gio_ket_thuc'] = $gioKetThuc;
         
-        return $this;
-    }
-    
-    /**
-     * Lấy số lượng diễn giả
-     */
-    public function getSoLuongDienGia()
-    {
-        return $this->attributes['so_luong_dien_gia'] ?? 0;
-    }
-    
-    /**
-     * Đặt số lượng diễn giả
-     */
-    public function setSoLuongDienGia(int $soLuong)
-    {
-        $this->attributes['so_luong_dien_gia'] = $soLuong;
+        // Nếu đã có ngày tổ chức, cập nhật luôn trường thoi_gian_ket_thuc_su_kien
+        if (!empty($this->attributes['ngay_to_chuc']) && !empty($gioKetThuc)) {
+            $this->attributes['thoi_gian_ket_thuc_su_kien'] = date('Y-m-d H:i:s', strtotime($this->attributes['ngay_to_chuc'] . ' ' . $gioKetThuc));
+        }
         
         return $this;
     }
     
     /**
-     * Lấy giới hạn loại người dùng
+     * Lấy thời gian bắt đầu sự kiện (trường mới)
      */
-    public function getGioiHanLoaiNguoiDung()
+    public function getThoiGianBatDauSuKien()
     {
-        return $this->attributes['gioi_han_loai_nguoi_dung'] ?? '';
+        if (!empty($this->attributes['thoi_gian_bat_dau_su_kien'])) {
+            return $this->attributes['thoi_gian_bat_dau_su_kien'];
+        }
+        
+        // Nếu chưa có trường mới, tạo từ ngày tổ chức và giờ bắt đầu
+        if (!empty($this->attributes['ngay_to_chuc']) && !empty($this->attributes['gio_bat_dau'])) {
+            return date('Y-m-d H:i:s', strtotime($this->attributes['ngay_to_chuc'] . ' ' . $this->attributes['gio_bat_dau']));
+        }
+        
+        return null;
     }
     
     /**
-     * Đặt giới hạn loại người dùng
+     * Đặt thời gian bắt đầu sự kiện (trường mới)
      */
-    public function setGioiHanLoaiNguoiDung(string $gioiHan)
+    public function setThoiGianBatDauSuKien(string $thoiGianBatDauSuKien)
     {
-        $this->attributes['gioi_han_loai_nguoi_dung'] = $gioiHan;
+        $this->attributes['thoi_gian_bat_dau_su_kien'] = $thoiGianBatDauSuKien;
+        
+        // Cập nhật các trường cũ để tương thích
+        $date = date('Y-m-d', strtotime($thoiGianBatDauSuKien));
+        $time = date('H:i:s', strtotime($thoiGianBatDauSuKien));
+        
+        $this->attributes['ngay_to_chuc'] = $date;
+        $this->attributes['gio_bat_dau'] = $time;
         
         return $this;
     }
     
     /**
-     * Lấy từ khóa sự kiện
+     * Lấy thời gian kết thúc sự kiện (trường mới)
      */
-    public function getTuKhoaSuKien()
+    public function getThoiGianKetThucSuKien()
     {
-        return $this->attributes['tu_khoa_su_kien'] ?? '';
+        if (!empty($this->attributes['thoi_gian_ket_thuc_su_kien'])) {
+            return $this->attributes['thoi_gian_ket_thuc_su_kien'];
+        }
+        
+        // Nếu chưa có trường mới, tạo từ ngày tổ chức và giờ kết thúc
+        if (!empty($this->attributes['ngay_to_chuc']) && !empty($this->attributes['gio_ket_thuc'])) {
+            return date('Y-m-d H:i:s', strtotime($this->attributes['ngay_to_chuc'] . ' ' . $this->attributes['gio_ket_thuc']));
+        }
+        
+        return null;
     }
     
     /**
-     * Đặt từ khóa sự kiện
+     * Đặt thời gian kết thúc sự kiện (trường mới)
      */
-    public function setTuKhoaSuKien(string $tuKhoa)
+    public function setThoiGianKetThucSuKien(string $thoiGianKetThucSuKien)
     {
-        $this->attributes['tu_khoa_su_kien'] = $tuKhoa;
+        $this->attributes['thoi_gian_ket_thuc_su_kien'] = $thoiGianKetThucSuKien;
+        
+        // Cập nhật trường cũ để tương thích
+        $time = date('H:i:s', strtotime($thoiGianKetThucSuKien));
+        $this->attributes['gio_ket_thuc'] = $time;
         
         return $this;
     }
     
     /**
-     * Lấy hashtag
+     * Lấy thời gian bắt đầu đăng ký (trường mới)
      */
-    public function getHashtag()
+    public function getThoiGianBatDauDangKy()
     {
-        return $this->attributes['hashtag'] ?? '';
+        if (!empty($this->attributes['thoi_gian_bat_dau_dang_ky'])) {
+            return $this->attributes['thoi_gian_bat_dau_dang_ky'];
+        }
+        
+        return $this->attributes['bat_dau_dang_ky'] ?? null;
     }
     
     /**
-     * Đặt hashtag
+     * Đặt thời gian bắt đầu đăng ký (trường mới)
      */
-    public function setHashtag(string $hashtag)
+    public function setThoiGianBatDauDangKy(string $thoiGianBatDauDangKy)
     {
-        $this->attributes['hashtag'] = $hashtag;
+        $this->attributes['thoi_gian_bat_dau_dang_ky'] = $thoiGianBatDauDangKy;
+        $this->attributes['bat_dau_dang_ky'] = $thoiGianBatDauDangKy; // Đảm bảo tương thích
         
         return $this;
     }
     
     /**
-     * Lấy slug
+     * Lấy thời gian kết thúc đăng ký (trường mới)
      */
-    public function getSlug()
+    public function getThoiGianKetThucDangKy()
     {
-        return $this->attributes['slug'] ?? '';
+        if (!empty($this->attributes['thoi_gian_ket_thuc_dang_ky'])) {
+            return $this->attributes['thoi_gian_ket_thuc_dang_ky'];
+        }
+        
+        return $this->attributes['ket_thuc_dang_ky'] ?? null;
     }
     
     /**
-     * Đặt slug
+     * Đặt thời gian kết thúc đăng ký (trường mới)
      */
-    public function setSlug(string $slug)
+    public function setThoiGianKetThucDangKy(string $thoiGianKetThucDangKy)
     {
-        $this->attributes['slug'] = $slug;
+        $this->attributes['thoi_gian_ket_thuc_dang_ky'] = $thoiGianKetThucDangKy;
+        $this->attributes['ket_thuc_dang_ky'] = $thoiGianKetThucDangKy; // Đảm bảo tương thích
         
         return $this;
     }
     
     /**
-     * Tạo slug từ tên sự kiện
+     * Kiểm tra xem hiện tại có đang trong thời gian cho phép đăng ký không
      */
-    public function taoSlugTuTen()
+    public function isRegistrationTime(): bool
     {
-        $slug = $this->convertToSlug($this->getTenSuKien());
-        $this->setSlug($slug);
+        $now = date('Y-m-d H:i:s');
         
-        return $this;
-    }
-    
-    /**
-     * Chuyển đổi chuỗi thành slug
-     */
-    private function convertToSlug($string)
-    {
-        // Chuyển về chữ thường và loại bỏ khoảng trắng ở đầu và cuối
-        $string = mb_strtolower(trim($string));
+        if (empty($this->getThoiGianBatDauDangKy()) || empty($this->getThoiGianKetThucDangKy())) {
+            return false;
+        }
         
-        // Thay thế các ký tự tiếng Việt
-        $vietnamese = array(
-            'à', 'á', 'ạ', 'ả', 'ã', 'â', 'ầ', 'ấ', 'ậ', 'ẩ', 'ẫ', 'ă', 'ằ', 'ắ', 'ặ', 'ẳ', 'ẵ',
-            'è', 'é', 'ẹ', 'ẻ', 'ẽ', 'ê', 'ề', 'ế', 'ệ', 'ể', 'ễ',
-            'ì', 'í', 'ị', 'ỉ', 'ĩ',
-            'ò', 'ó', 'ọ', 'ỏ', 'õ', 'ô', 'ồ', 'ố', 'ộ', 'ổ', 'ỗ', 'ơ', 'ờ', 'ớ', 'ợ', 'ở', 'ỡ',
-            'ù', 'ú', 'ụ', 'ủ', 'ũ', 'ư', 'ừ', 'ứ', 'ự', 'ử', 'ữ',
-            'ỳ', 'ý', 'ỵ', 'ỷ', 'ỹ',
-            'đ',
+        return (
+            $now >= $this->getThoiGianBatDauDangKy() && 
+            $now <= $this->getThoiGianKetThucDangKy()
         );
-        $replacements = array(
-            'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a',
-            'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e',
-            'i', 'i', 'i', 'i', 'i',
-            'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',
-            'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u',
-            'y', 'y', 'y', 'y', 'y',
-            'd',
-        );
-        $string = str_replace($vietnamese, $replacements, $string);
-        
-        // Thay thế các ký tự không phải chữ cái và số bằng dấu gạch ngang
-        $string = preg_replace('/[^a-z0-9]/', '-', $string);
-        
-        // Thay thế nhiều dấu gạch ngang liên tiếp bằng một dấu gạch ngang
-        $string = preg_replace('/-+/', '-', $string);
-        
-        // Loại bỏ dấu gạch ngang ở đầu và cuối
-        $string = trim($string, '-');
-        
-        return $string;
     }
     
     /**

@@ -540,8 +540,13 @@ class SuKien extends BaseController
      */
     private function generateEventStructuredData($event)
     {
-        $startDate = date('c', strtotime($event['ngay_to_chuc'])); // Định dạng ISO 8601
-        $endDate = date('c', strtotime($event['ngay_to_chuc'] . ' +' . ($event['thoi_gian'] ?: 2) . ' hours'));
+        $startDate = isset($event['thoi_gian_bat_dau_su_kien']) 
+            ? date('c', strtotime($event['thoi_gian_bat_dau_su_kien'])) 
+            : date('c', time()); // Định dạng ISO 8601
+        
+        $endDate = isset($event['thoi_gian_ket_thuc_su_kien']) 
+            ? date('c', strtotime($event['thoi_gian_ket_thuc_su_kien'])) 
+            : date('c', strtotime($event['thoi_gian_bat_dau_su_kien'] . ' +2 hours'));
         
         $structured_data = [
             '@context' => 'https://schema.org',

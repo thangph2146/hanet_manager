@@ -69,8 +69,8 @@ $colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'];
             }
             
             // Nếu không có ngày, sử dụng ngày của sự kiện
-            if (empty($date) && isset($event['ngay_to_chuc'])) {
-                $date = date('d/m/Y', strtotime($event['ngay_to_chuc']));
+            if (empty($date) && isset($event['thoi_gian_bat_dau_su_kien'])) {
+                $date = date('d/m/Y', strtotime($event['thoi_gian_bat_dau_su_kien']));
             }
             ?>
             <div class="timeline-item mb-4">

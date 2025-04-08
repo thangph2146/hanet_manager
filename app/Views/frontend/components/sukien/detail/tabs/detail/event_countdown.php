@@ -13,19 +13,10 @@
         if (!empty($event['thoi_gian_bat_dau_su_kien'])) {
             $startTime = strtotime($event['thoi_gian_bat_dau_su_kien']);
             $eventDate = date('Y-m-d', $startTime);
-        } elseif (!empty($event['ngay_to_chuc'])) {
-            $eventDate = date('Y-m-d', strtotime($event['ngay_to_chuc']));
-            if (!empty($event['gio_bat_dau'])) {
-                $startTime = strtotime($eventDate . ' ' . $event['gio_bat_dau']);
-            } else {
-                $startTime = strtotime($eventDate . ' 00:00:00');
-            }
         }
         
         if (!empty($event['thoi_gian_ket_thuc_su_kien'])) {
             $endTime = strtotime($event['thoi_gian_ket_thuc_su_kien']);
-        } elseif (!empty($event['gio_ket_thuc'])) {
-            $endTime = strtotime($eventDate . ' ' . $event['gio_ket_thuc']);
         } else {
             $endTime = $startTime ? $startTime + 86400 : null; // Mặc định 1 ngày nếu không có thời gian kết thúc
         }
@@ -92,7 +83,7 @@
                     </div>
                     <?php elseif ($eventStatus == 'ongoing'): ?>
                     <div class="countdown-section bg-success text-white p-4 rounded-top d-flex flex-column align-items-center justify-content-center">
-                        <h4 class="mb-3 fw-bold">Sự kiện đang diễn ra</h4>
+                        <h4 class="mb-3 fw-bold text-white">Tổng thời gian sự kiện diễn ra</h4>
                         <?php if ($countdownTime): ?>
                         <div class="d-flex align-items-center">
                             <i class="lni lni-timer me-2 fs-4"></i>

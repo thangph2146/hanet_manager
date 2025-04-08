@@ -36,10 +36,8 @@ if (!isset($related_events) && isset($event['su_kien_id']) && isset($event['loai
                         <div class="d-flex align-items-center">
                             <div class="event-date text-center me-3">
                                 <?php 
-                                $eventDate = isset($related['ngay_to_chuc']) ? $related['ngay_to_chuc'] : 
-                                    (isset($related['thoi_gian_bat_dau_su_kien']) ? $related['thoi_gian_bat_dau_su_kien'] : date('Y-m-d'));
-                                $eventTime = isset($related['gio_bat_dau']) ? $related['gio_bat_dau'] : 
-                                    (isset($related['thoi_gian_bat_dau_su_kien']) ? date('H:i', strtotime($related['thoi_gian_bat_dau_su_kien'])) : '08:00');
+                                $eventDate = isset($related['thoi_gian_bat_dau_su_kien']) ? $related['thoi_gian_bat_dau_su_kien'] : date('Y-m-d');
+                                $eventTime = isset($related['thoi_gian_bat_dau_su_kien']) ? date('H:i', strtotime($related['thoi_gian_bat_dau_su_kien'])) : '08:00';
                                 ?>
                                 <div class="date-day"><?= date('d', strtotime($eventDate)) ?></div>
                                 <div class="date-month"><?= date('m/Y', strtotime($eventDate)) ?></div>

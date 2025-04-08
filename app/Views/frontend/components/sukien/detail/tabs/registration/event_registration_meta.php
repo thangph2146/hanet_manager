@@ -7,7 +7,7 @@
                     </div>
                     <div>
                         <h6 class="mb-1 fw-bold">Ngày tổ chức</h6>
-                        <span><?= date('d/m/Y', strtotime(isset($event['thoi_gian_bat_dau_su_kien']) ? $event['thoi_gian_bat_dau_su_kien'] : $event['ngay_to_chuc'])) ?></span>
+                        <span><?= date('d/m/Y', strtotime($event['thoi_gian_bat_dau_su_kien'])) ?></span>
                     </div>
                 </div>
             </div>

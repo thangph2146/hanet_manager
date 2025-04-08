@@ -8,6 +8,7 @@ class NguoiDung extends Migration
 {
     public function up()
     {
+        // Tạo bảng trước
         $this->forge->addField([
             'nguoi_dung_id' => [
                 'type' => 'INT',
@@ -116,7 +117,8 @@ class NguoiDung extends Migration
             ],
             'created_at' => [
                 'type' => 'DATETIME',
-                'null' => true
+                'null' => true,
+                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP'),
             ],
             'updated_at' => [
                 'type' => 'DATETIME',
@@ -137,18 +139,30 @@ class NguoiDung extends Migration
         $this->forge->addKey('Email', false, false, 'idx_Email');
         $this->forge->addKey('phong_khoa_id', false, false, 'idx_phong_khoa_id');
         $this->forge->addKey('nganh_id', false, false, 'idx_nganh_id');
+        $this->forge->addKey('loai_nguoi_dung_id', false, false, 'idx_loai_nguoi_dung_id');
+        $this->forge->addKey('bac_hoc_id', false, false, 'idx_bac_hoc_id');
+        $this->forge->addKey('he_dao_tao_id', false, false, 'idx_he_dao_tao_id');
+        $this->forge->addKey('nam_hoc_id', false, false, 'idx_nam_hoc_id');
         
         // Thêm ràng buộc unique
         $this->forge->addUniqueKey('AccountId', 'uk_AccountId');
         $this->forge->addUniqueKey('Email', 'uk_Email');
 
+        // Thiết lập bảng với các thuộc tính
+        $attributes = [
+            'ENGINE' => 'InnoDB',
+            'CHARACTER SET' => 'utf8mb4',
+            'COLLATE' => 'utf8mb4_unicode_ci',
+            'COMMENT' => 'Bảng lưu trữ thông tin người dùng trong hệ thống'
+        ];
+
         // Tạo bảng
-        $this->forge->createTable('nguoi_dung');
+        $this->forge->createTable('nguoi_dung', true, $attributes);
     }
 
     public function down()
     {
         // Xóa bảng
-        $this->forge->dropTable('nguoi_dung');
+        $this->forge->dropTable('nguoi_dung', true);
     }
 } 

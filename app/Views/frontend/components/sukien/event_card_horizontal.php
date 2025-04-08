@@ -56,7 +56,7 @@ $featured = isset($featured) ? $featured : false;
                 <h5 class="card-title"><?= $event['ten_su_kien'] ?></h5>
                 
                 <div class="event-meta">
-                    <span><i class="far fa-calendar-alt"></i> <?= date('d/m/Y', strtotime(isset($event['thoi_gian_bat_dau']) ? $event['thoi_gian_bat_dau'] : $event['ngay_to_chuc'])) ?></span>
+                    <span><i class="far fa-calendar-alt"></i> <?= date('d/m/Y', strtotime($event['thoi_gian_bat_dau_su_kien'])) ?></span>
                     <span><i class="fas fa-map-marker-alt"></i> <?= $event['dia_diem'] ?></span>
                     <span><i class="fas fa-users"></i> <?= isset($event['so_luong_tham_gia']) ? $event['so_luong_tham_gia'] : rand(50, 200) ?> người tham gia</span>
                     <?php if (isset($event['hinh_thuc'])): ?>
@@ -75,7 +75,7 @@ $featured = isset($featured) ? $featured : false;
                 <div class="d-flex justify-content-between align-items-center mt-auto">
                     <a href="<?= site_url('su-kien/chi-tiet/' . $event['slug']) ?>" class="btn-link">Xem chi tiết <i class="fas fa-arrow-right"></i></a>
                     
-                    <?php if (isset($event['thoi_gian_bat_dau']) ? strtotime($event['thoi_gian_bat_dau']) > time() : strtotime($event['ngay_to_chuc']) > time()): ?>
+                    <?php if (isset($event['thoi_gian_bat_dau_su_kien']) && strtotime($event['thoi_gian_bat_dau_su_kien']) > time()): ?>
                     <a href="<?= site_url('su-kien/register?event=' . $event['su_kien_id']) ?>" class="btn btn-sm btn-outline-primary">Đăng ký</a>
                     <?php endif; ?>
                 </div>
