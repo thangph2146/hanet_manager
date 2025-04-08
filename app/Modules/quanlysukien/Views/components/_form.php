@@ -7,8 +7,8 @@ if (is_object($data)) {
     $mo_ta = $data->getMoTa() ?? '';
     $mo_ta_su_kien = $data->getMoTaSuKien() ?? '';
     $chi_tiet_su_kien = $data->getChiTietSuKien() ?? '';
-    $thoi_gian_bat_dau = $data->getThoiGianBatDau() ?? '';
-    $thoi_gian_ket_thuc = $data->getThoiGianKetThuc() ?? '';
+    $thoi_gian_bat_dau = $data->getThoiGianBatDauSuKien() ?? '';
+    $thoi_gian_ket_thuc = $data->getThoiGianKetThucSuKien() ?? '';
     $dia_diem = $data->getDiaDiem() ?? '';
     $dia_chi_cu_the = $data->getDiaChiCuThe() ?? '';
     $toa_do_gps = $data->getToaDoGPS() ?? '';

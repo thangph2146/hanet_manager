@@ -312,9 +312,6 @@ class QuanLySuKien extends BaseController
    
     /**
      * Hiển thị chi tiết sự kiện
-     *
-     * @param int|null $id ID của sự kiện
-     * @return string|ResponseInterface
      */
     public function detail($id = null)
     {
@@ -325,21 +322,21 @@ class QuanLySuKien extends BaseController
         }
         
         // Tìm kiếm sự kiện
-        $data = $this->model->find($id);
-        if (!$data) {
+        $result = $this->model->find($id);
+        if (!$result) {
             $this->alert->set('error', 'Không tìm thấy sự kiện với ID: ' . $id, true);
             return redirect()->to($this->moduleUrl);
         }
-        
-        // Lấy thống kê sự kiện
+
+        // Lấy thông tin thống kê sự kiện
         $statistics = $this->model->getEventStatistics($id);
-        
-        // Lấy danh sách người tham gia (mặc định giới hạn 10 người)
+
+        // Lấy danh sách người tham gia (giới hạn 10 người)
         $participants = $this->model->getParticipantsByEvent($id, [], ['limit' => 10]);
         $totalParticipants = $this->model->countParticipantsByEvent($id);
-        
+
         // Lấy thông tin loại sự kiện
-        $loaiSuKien = $this->loaiSuKienModel->find($data->getLoaiSuKienId());
+        $loaiSuKien = $this->loaiSuKienModel->find($result->getLoaiSuKienId());
         
         // Cập nhật breadcrumb
         $this->breadcrumb->add('Chi tiết sự kiện', current_url());
@@ -348,15 +345,16 @@ class QuanLySuKien extends BaseController
         $viewData = [
             'breadcrumb' => $this->breadcrumb->render(),
             'title' => 'Chi tiết ' . $this->title,
-            'data' => $data,
+            'data' => $result,
             'loaiSuKien' => $loaiSuKien,
             'module_name' => $this->module_name,
             'title_home' => $this->title_home,
             'statistics' => $statistics,
             'participants' => $participants,
-            'totalParticipants' => $totalParticipants
+            'totalParticipants' => $totalParticipants,
+            'su_kien_id' => $id
         ];
-        
+
         // Hiển thị view
         return view('App\Modules\\' . $this->module_name . '\Views\detail', $viewData);
     }

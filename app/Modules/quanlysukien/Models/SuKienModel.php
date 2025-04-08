@@ -1405,37 +1405,26 @@ class SuKienModel extends BaseModel
         
         // Xây dựng query cơ bản
         $builder = $db->table('dangky_sukien')
-            ->select('dangky_sukien.*, nguoi_dung.ho_ten, nguoi_dung.email, nguoi_dung.so_dien_thoai, 
-                      checkin_sukien.check_in_time, checkin_sukien.check_out_time')
-            ->join('nguoi_dung', 'nguoi_dung.nguoi_dung_id = dangky_sukien.nguoi_dung_id', 'left')
-            ->join('checkin_sukien', 'checkin_sukien.dangky_sukien_id = dangky_sukien.dangky_sukien_id', 'left')
+            ->select('dangky_sukien.*')
             ->where('dangky_sukien.su_kien_id', $eventId)
             ->where('dangky_sukien.deleted_at IS NULL');
         
-        // Áp dụng các bộ lọc
-        if (isset($filters['da_check_in']) && $filters['da_check_in'] === true) {
-            $builder->where('checkin_sukien.check_in_time IS NOT NULL');
-        }
-        
-        if (isset($filters['da_check_out']) && $filters['da_check_out'] === true) {
-            $builder->where('checkin_sukien.check_out_time IS NOT NULL');
-        }
-        
-        if (isset($filters['chua_check_in']) && $filters['chua_check_in'] === true) {
-            $builder->where('checkin_sukien.check_in_time IS NULL');
-        }
-        
+        // Áp dụng các bộ lọc tìm kiếm
         if (isset($filters['search']) && !empty($filters['search'])) {
             $search = $filters['search'];
             $builder->groupStart()
-                ->like('nguoi_dung.ho_ten', $search)
-                ->orLike('nguoi_dung.email', $search)
-                ->orLike('nguoi_dung.so_dien_thoai', $search)
+                ->like('dangky_sukien.ho_ten', $search)
+                ->orLike('dangky_sukien.email', $search)
+                ->orLike('dangky_sukien.so_dien_thoai', $search)
                 ->groupEnd();
         }
         
         // Áp dụng sắp xếp
-        $builder->orderBy($sort, $order);
+        if (strpos($sort, '.') !== false) {
+            $builder->orderBy($sort, $order);
+        } else {
+            $builder->orderBy('dangky_sukien.' . $sort, $order);
+        }
         
         // Áp dụng phân trang
         if ($limit > 0) {
@@ -1461,31 +1450,16 @@ class SuKienModel extends BaseModel
         
         // Xây dựng query cơ bản
         $builder = $db->table('dangky_sukien')
-            ->select('dangky_sukien.dangky_sukien_id')
-            ->join('nguoi_dung', 'nguoi_dung.nguoi_dung_id = dangky_sukien.nguoi_dung_id', 'left')
-            ->join('checkin_sukien', 'checkin_sukien.dangky_sukien_id = dangky_sukien.dangky_sukien_id', 'left')
             ->where('dangky_sukien.su_kien_id', $eventId)
             ->where('dangky_sukien.deleted_at IS NULL');
         
-        // Áp dụng các bộ lọc
-        if (isset($filters['da_check_in']) && $filters['da_check_in'] === true) {
-            $builder->where('checkin_sukien.check_in_time IS NOT NULL');
-        }
-        
-        if (isset($filters['da_check_out']) && $filters['da_check_out'] === true) {
-            $builder->where('checkin_sukien.check_out_time IS NOT NULL');
-        }
-        
-        if (isset($filters['chua_check_in']) && $filters['chua_check_in'] === true) {
-            $builder->where('checkin_sukien.check_in_time IS NULL');
-        }
-        
+        // Áp dụng các bộ lọc tìm kiếm
         if (isset($filters['search']) && !empty($filters['search'])) {
             $search = $filters['search'];
             $builder->groupStart()
-                ->like('nguoi_dung.ho_ten', $search)
-                ->orLike('nguoi_dung.email', $search)
-                ->orLike('nguoi_dung.so_dien_thoai', $search)
+                ->like('dangky_sukien.ho_ten', $search)
+                ->orLike('dangky_sukien.email', $search)
+                ->orLike('dangky_sukien.so_dien_thoai', $search)
                 ->groupEnd();
         }
         

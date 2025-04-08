@@ -1139,4 +1139,24 @@ class SuKien extends BaseEntity
     {
         return $this->getThoiGianKetThucSuKienFormatted($format);
     }
+
+    /**
+     * Lấy thời gian bắt đầu sự kiện cho hiển thị
+     *
+     * @return string|null
+     */
+    public function getBatDauDangKy(): ?string
+    {
+        return $this->getThoiGianBatDauDangKyFormatted();
+    }
+    
+    /**
+     * Lấy thời gian kết thúc sự kiện cho hiển thị
+     *
+     * @return string|null
+     */
+    public function getKetThucDangKy(): ?string
+    {
+        return $this->getThoiGianKetThucDangKyFormatted();
+    }
 }

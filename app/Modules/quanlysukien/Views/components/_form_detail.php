@@ -28,8 +28,8 @@ $cho_phep_check_in = isset($data) ? $data->isAllowCheckIn() : 0;
 $cho_phep_check_out = isset($data) ? $data->isAllowCheckOut() : 0;
 $yeu_cau_face_id = isset($data) ? $data->isRequireFaceId() : 0;
 $cho_phep_checkin_thu_cong = isset($data) ? $data->isAllowManualCheckin() : 0;
-$bat_dau_dang_ky = isset($data) ? $data->getBatDauDangKy() : '';
-$ket_thuc_dang_ky = isset($data) ? $data->getKetThucDangKy() : '';
+$bat_dau_dang_ky = isset($data) ? $data->getThoiGianBatDauDangKyFormatted() : '';
+$ket_thuc_dang_ky = isset($data) ? $data->getThoiGianKetThucDangKyFormatted() : '';
 $so_luong_tham_gia = isset($data) ? $data->getSoLuongThamGia() : 0;
 $so_luong_dien_gia = isset($data) ? $data->getSoLuongDienGia() : 0;
 $gioi_han_loai_nguoi_dung = isset($data) ? $data->getGioiHanLoaiNguoiDung() : '';
@@ -518,6 +518,12 @@ $updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
                             <div class="h5 text-icon">
                                 <i class="fas fa-clipboard-list me-2 text-primary"></i>
                                 <span class="fw-bold"><?= $tong_dang_ky ?> người</span>
+                                <?php if (isset($statistics) && $statistics['tong_dang_ky'] > 0): ?>
+                                    <div class="progress mt-2" style="height: 5px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: <?= min(100, $tong_dang_ky / max(1, $so_luong_tham_gia) * 100) ?>%" aria-valuenow="<?= $tong_dang_ky ?>" aria-valuemin="0" aria-valuemax="<?= $so_luong_tham_gia ?>"></div>
+                                    </div>
+                                    <small class="text-muted"><?= round(min(100, $tong_dang_ky / max(1, $so_luong_tham_gia) * 100), 1) ?>% công suất</small>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -526,6 +532,12 @@ $updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
                             <div class="h5 text-icon">
                                 <i class="fas fa-sign-in-alt me-2 text-primary"></i>
                                 <span class="fw-bold"><?= $tong_check_in ?> người</span>
+                                <?php if (isset($statistics) && $statistics['tong_dang_ky'] > 0): ?>
+                                    <div class="progress mt-2" style="height: 5px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: <?= min(100, $tong_check_in / max(1, $tong_dang_ky) * 100) ?>%" aria-valuenow="<?= $tong_check_in ?>" aria-valuemin="0" aria-valuemax="<?= $tong_dang_ky ?>"></div>
+                                    </div>
+                                    <small class="text-muted"><?= isset($statistics['ty_le_check_in']) ? number_format($statistics['ty_le_check_in'], 1) : round(min(100, $tong_check_in / max(1, $tong_dang_ky) * 100), 1) ?>% tỷ lệ check-in</small>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -534,6 +546,12 @@ $updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
                             <div class="h5 text-icon">
                                 <i class="fas fa-sign-out-alt me-2 text-primary"></i>
                                 <span class="fw-bold"><?= $tong_check_out ?> người</span>
+                                <?php if (isset($statistics) && $statistics['tong_check_in'] > 0): ?>
+                                    <div class="progress mt-2" style="height: 5px;">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: <?= min(100, $tong_check_out / max(1, $tong_check_in) * 100) ?>%" aria-valuenow="<?= $tong_check_out ?>" aria-valuemin="0" aria-valuemax="<?= $tong_check_in ?>"></div>
+                                    </div>
+                                    <small class="text-muted"><?= isset($statistics['ty_le_check_out']) ? number_format($statistics['ty_le_check_out'], 1) : round(min(100, $tong_check_out / max(1, $tong_check_in) * 100), 1) ?>% tỷ lệ check-out</small>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -676,6 +694,92 @@ $updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
                 <?php endif; ?>
             </div>
         </div>
+
+        <!-- Thông tin người tham gia -->
+        <?php if (isset($participants) && is_array($participants) && count($participants) > 0): ?>
+        <div class="col-12 mt-4">
+            <div class="card shadow-sm detail-card info-section" style="--animation-order: 9">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-users me-2"></i> Danh sách người tham gia (<?= isset($totalParticipants) ? $totalParticipants : count($participants) ?>)
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>Loại</th>
+                                    <th>Trạng thái</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Ngày đăng ký</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($participants as $index => $participant): ?>
+                                <tr>
+                                    <td><?= $index + 1 ?></td>
+                                    <td><?= esc($participant['ho_ten']) ?></td>
+                                    <td><?= esc($participant['email']) ?></td>
+                                    <td>
+                                        <?php 
+                                        $loaiText = '';
+                                        switch ($participant['loai_nguoi_dang_ky']) {
+                                            case 'sinh_vien': $loaiText = '<span class="badge bg-info">Sinh viên</span>'; break;
+                                            case 'giang_vien': $loaiText = '<span class="badge bg-primary">Giảng viên</span>'; break;
+                                            case 'khach': $loaiText = '<span class="badge bg-secondary">Khách</span>'; break;
+                                            default: $loaiText = '<span class="badge bg-secondary">Khác</span>';
+                                        }
+                                        echo $loaiText;
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                        $statusText = '';
+                                        switch ($participant['status']) {
+                                            case 1: $statusText = '<span class="badge bg-success">Đã xác nhận</span>'; break;
+                                            case 0: $statusText = '<span class="badge bg-warning">Chờ xác nhận</span>'; break;
+                                            case -1: $statusText = '<span class="badge bg-danger">Đã hủy</span>'; break;
+                                            default: $statusText = '<span class="badge bg-secondary">Không xác định</span>';
+                                        }
+                                        echo $statusText;
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($participant['da_check_in']): ?>
+                                            <span class="badge bg-success"><i class="fas fa-check me-1"></i> Đã check-in</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">Chưa check-in</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($participant['da_check_out']): ?>
+                                            <span class="badge bg-success"><i class="fas fa-check me-1"></i> Đã check-out</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">Chưa check-out</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?= date('d/m/Y H:i', strtotime($participant['created_at'])) ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <?php if (isset($totalParticipants) && $totalParticipants > count($participants)): ?>
+                        <div class="text-center mt-3">
+                            <a href="<?= base_url('quanlydangkysukien/index?su_kien_id='.$su_kien_id) ?>" class="btn btn-primary">
+                                <i class="fas fa-list me-1"></i> Xem tất cả người tham gia
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
 
