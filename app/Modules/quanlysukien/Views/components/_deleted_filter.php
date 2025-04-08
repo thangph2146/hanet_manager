@@ -3,41 +3,63 @@
  * Component hiển thị form lọc dữ liệu sự kiện đã xóa
  */
 
-$perPageOptions = [10, 25, 50, 100];
+$options = [
+    'pagination' => [10, 25, 50, 100]
+];
+
+// Lấy giá trị hiện tại từ request
+$keyword = isset($_GET['keyword']) ? $_GET['keyword'] : '';
+$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : '';
+$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : '';
+$perPage = isset($_GET['perPage']) ? $_GET['perPage'] : 10;
 ?>
 
-<div class="card-header p-0 border-0">
-    <form action="<?= site_url($module_name . '/listdeleted') ?>" method="get" class="form-horizontal" id="filterForm">
-        <div class="p-0">
-            <div class="row mx-0 py-3">
-                <div class="col-md-10">
-                    <div class="row">
-                        <div class="col-md-4 mb-2">
-                            <div class="form-group mb-0">
-                                <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Tìm kiếm theo tên sự kiện..." value="<?= $keyword ?? '' ?>">
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4 mb-2">
-                            <div class="form-group mb-0">
-                                <input type="text" class="form-control datepicker" name="start_date" id="start_date" placeholder="Từ ngày" value="<?= $start_date ?? '' ?>">
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4 mb-2">
-                            <div class="form-group mb-0">
-                                <input type="text" class="form-control datepicker" name="end_date" id="end_date" placeholder="Đến ngày" value="<?= $end_date ?? '' ?>">
-                            </div>
-                        </div>
-                    </div>
+<div class="card-header bg-white">
+    <form action="<?= site_url($module_name . '/listdeleted') ?>" method="GET" class="form-horizontal">
+        <div class="row g-3 align-items-center">
+            <!-- Tìm kiếm theo tên sự kiện -->
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class='bx bx-search'></i></span>
+                    <input type="text" class="form-control" name="keyword" value="<?= $keyword ?>" placeholder="Tìm kiếm theo tên sự kiện...">
                 </div>
-                
-                <div class="col-md-2 text-right">
-                    <button type="submit" class="btn btn-primary btn-block mb-2">
-                        <i class="fas fa-search"></i> Tìm kiếm
+            </div>
+
+            <!-- Thời gian bắt đầu sự kiện -->
+            <div class="col-12 col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text">Từ ngày</span>
+                    <input type="datetime-local" class="form-control" name="start_date" value="<?= $start_date ?>">
+                </div>
+            </div>
+
+            <!-- Thời gian kết thúc sự kiện -->
+            <div class="col-12 col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text">Đến ngày</span>
+                    <input type="datetime-local" class="form-control" name="end_date" value="<?= $end_date ?>">
+                </div>
+            </div>
+
+            <!-- Số bản ghi mỗi trang -->
+            <div class="col-12 col-md-2">
+                <select name="perPage" class="form-select">
+                    <?php foreach ($options['pagination'] as $value): ?>
+                        <option value="<?= $value ?>" <?= ($perPage == $value) ? 'selected' : '' ?>>
+                            <?= $value ?> bản ghi
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- Các nút chức năng -->
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-filter-alt"></i> Lọc
                     </button>
-                    <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-secondary btn-block">
-                        <i class="fas fa-sync"></i> Làm mới
+                    <a href="<?= site_url($module_name . '/listdeleted') ?>" class="btn btn-danger">
+                        <i class="bx bx-reset"></i> Đặt lại
                     </a>
                 </div>
             </div>
@@ -45,25 +67,63 @@ $perPageOptions = [10, 25, 50, 100];
     </form>
 </div>
 
-<?php if (!empty($keyword) || 
-          (isset($start_date) && $start_date !== '') ||
-          (isset($end_date) && $end_date !== '')): ?>
+<?php if (!empty($keyword) || !empty($start_date) || !empty($end_date)): ?>
     <div class="alert alert-info m-3">
-        <h6 class="mb-1"><i class="bx bx-filter-alt me-1"></i> Kết quả tìm kiếm (đã xóa):</h6>
-        <div class="small">
+        <h6 class="alert-heading fw-bold mb-1">Kết quả tìm kiếm (đã xóa):</h6>
+        <div class="d-flex flex-wrap gap-2">
             <?php if (!empty($keyword)): ?>
-                <span class="badge bg-primary me-2">Tên sự kiện: <?= esc($keyword) ?></span>
+                <span class="badge bg-primary">Từ khóa: <?= esc($keyword) ?></span>
             <?php endif; ?>
             
-            <?php if (isset($start_date) && $start_date !== ''): ?>
-                <span class="badge bg-info me-2">Từ ngày: <?= esc($start_date) ?></span>
+            <?php if (!empty($start_date)): ?>
+                <span class="badge bg-primary">Từ ngày: <?= date('d/m/Y', strtotime($start_date)) ?></span>
             <?php endif; ?>
             
-            <?php if (isset($end_date) && $end_date !== ''): ?>
-                <span class="badge bg-warning me-2">Đến ngày: <?= esc($end_date) ?></span>
+            <?php if (!empty($end_date)): ?>
+                <span class="badge bg-primary">Đến ngày: <?= date('d/m/Y', strtotime($end_date)) ?></span>
             <?php endif; ?>
         </div>
     </div>
+<?php endif; ?>
+
+<?php
+// Hiển thị các filter đã chọn (chỉ trong môi trường development)
+if (ENVIRONMENT === 'development' && (!empty($keyword) || !empty($start_date) || !empty($end_date))):
+?>
+<div class="mt-2 p-2 border rounded bg-light">
+    <div class="small fw-bold mb-1">Đã lọc theo (đã xóa):</div>
+    <div class="d-flex flex-wrap gap-1">
+        <?php if (!empty($keyword)): ?>
+        <span class="badge bg-info">Tên: <?= esc($keyword) ?></span>
+        <?php endif; ?>
+        <?php if (!empty($start_date)): ?>
+        <span class="badge bg-info">Từ ngày: <?= esc($start_date) ?></span>
+        <?php endif; ?>
+        <?php if (!empty($end_date)): ?>
+        <span class="badge bg-info">Đến ngày: <?= esc($end_date) ?></span>
+        <?php endif; ?>
+    </div>
+    <div class="mt-2 small">
+        <a class="text-decoration-none" data-bs-toggle="collapse" href="#debug-params">
+            <i class="fas fa-bug"></i> Xem GET params
+        </a>
+        <div class="collapse mt-1" id="debug-params">
+            <pre class="small bg-dark text-white p-2 rounded"><?= print_r($_GET, true) ?></pre>
+            <button class="btn btn-sm btn-outline-secondary copy-btn" 
+                    onclick="navigator.clipboard.writeText('<?= http_build_query($_GET) ?>')">
+                Copy query
+            </button>
+        </div>
+        <div class="mt-1">
+            <a class="text-decoration-none" data-bs-toggle="collapse" href="#debug-module">
+                <i class="fas fa-info-circle"></i> Module info
+            </a>
+            <div class="collapse mt-1" id="debug-module">
+                <pre class="small bg-dark text-white p-2 rounded"><?= 'Module: ' . ($module_name ?? 'không xác định') ?></pre>
+            </div>
+        </div>
+    </div>
+</div>
 <?php endif; ?>
 
 <script>

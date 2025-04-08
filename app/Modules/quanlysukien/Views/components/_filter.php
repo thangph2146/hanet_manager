@@ -25,7 +25,7 @@ $perPage = isset($_GET['perPage']) ? $_GET['perPage'] : 10;
             <div class="col-12 col-md-3">
                 <div class="input-group">
                     <span class="input-group-text">Từ ngày</span>
-                    <input type="date" class="form-control" name="start_date" value="<?= $start_date ?>">
+                    <input type="datetime-local" class="form-control" name="start_date" value="<?= $start_date ?>">
                 </div>
             </div>
 
@@ -33,7 +33,7 @@ $perPage = isset($_GET['perPage']) ? $_GET['perPage'] : 10;
             <div class="col-12 col-md-3">
                 <div class="input-group">
                     <span class="input-group-text">Đến ngày</span>
-                    <input type="date" class="form-control" name="end_date" value="<?= $end_date ?>">
+                    <input type="datetime-local" class="form-control" name="end_date" value="<?= $end_date ?>">
                 </div>
             </div>
 
@@ -121,35 +121,3 @@ if (ENVIRONMENT === 'development' && (!empty($keyword) || !empty($start_date) ||
     </div>
 </div>
 <?php endif; ?>
-
-<!-- Script khởi tạo datepicker -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Kiểm tra nếu trình duyệt chưa hỗ trợ input type="date"
-        var dateInputs = document.querySelectorAll('input[type="date"]');
-        var needsDatepicker = false;
-        
-        dateInputs.forEach(function(input) {
-            var test = document.createElement('input');
-            test.type = 'date';
-            // Kiểm tra xem trình duyệt có hỗ trợ input type="date" không
-            if (test.type === 'text') {
-                needsDatepicker = true;
-            }
-        });
-        
-        // Nếu trình duyệt không hỗ trợ, thêm datepicker
-        if (needsDatepicker && typeof $.fn.datepicker === 'function') {
-            dateInputs.forEach(function(input) {
-                // Chuyển đổi thành input text và áp dụng datepicker
-                input.type = 'text';
-                $(input).datepicker({
-                    format: 'yyyy-mm-dd',
-                    autoclose: true,
-                    todayHighlight: true,
-                    language: 'vi'
-                });
-            });
-        }
-    });
-</script>
