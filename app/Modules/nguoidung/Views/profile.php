@@ -90,7 +90,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="edit-profile-form" data-ajax="true" action="<?= base_url('nguoi-dung/profile/update') ?>" method="post" enctype="multipart/form-data">
+                <form id="edit-profile-form" data-ajax="true" action="<?= base_url('nguoi-dung/thong-tin-ca-nhan/update') ?>" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="nguoi_dung_id" value="<?= $profile->nguoi_dung_id ?>">
                     <input type="hidden" name="avatar_folder" value="uploads/avatars/">
                     <div class="row">
@@ -130,7 +130,7 @@
 <script>
 // Cấu hình API endpoints và user ID
 const API_CONFIG = {
-    profileUpdate: '<?= base_url('api/nguoi-dung/profile/update') ?>',
+    profileUpdate: '<?= base_url('api/nguoi-dung/thong-tin-ca-nhan/update') ?>',
     userId: <?= $profile->nguoi_dung_id ?>,
     csrfToken: '<?= csrf_hash() ?>'
 };

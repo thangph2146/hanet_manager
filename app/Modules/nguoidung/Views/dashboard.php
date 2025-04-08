@@ -165,7 +165,7 @@
                     } catch (Exception $e) {} 
                     ?>
                     
-                    <a href="<?= base_url('nguoi-dung/profile') ?>" class="btn btn-outline-primary btn-sm mt-3 w-100">
+                    <a href="<?= base_url('nguoi-dung/thong-tin-ca-nhan') ?>" class="btn btn-outline-primary btn-sm mt-3 w-100">
                         <i class="fas fa-user-edit me-1"></i> Chỉnh sửa thông tin
                     </a>
                 </div>
