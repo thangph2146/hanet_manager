@@ -13,7 +13,7 @@ class AdminController extends BaseController
         $googleAuth = service('googleAuth');
         $googleAuthUrl = $googleAuth->getAuthUrl('admin');
         
-        return view('Modules/login/admin/Views/login', ['googleAuthUrl' => $googleAuthUrl]);
+        return view('App\Modules\login\admin\Views\login', ['googleAuthUrl' => $googleAuthUrl]);
     }
 
     public function create()

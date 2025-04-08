@@ -364,12 +364,10 @@
                                     <?php endif; ?>
                                     
                                     <div class="event-actions">
-                                        <a href="<?= base_url('su-kien/chi-tiet/'.$event->slug) ?>" class="btn btn-details">
+                                        <a href="<?= base_url('su-kien/chi-tiet/'.$event->slug) ?>" class="w-100 bg-primary text-white btn btn-details">
                                             <i class="fas fa-info-circle"></i> Chi tiết
                                         </a>
-                                        <a href="<?= base_url('nguoi-dung/sukien/dang-ky/' . $event->slug) ?>" class="btn btn-register">
-                                            <i class="fas fa-calendar-plus"></i> Đăng ký
-                                        </a>
+                                        
                                     </div>
                                 </div>
                             </div>
