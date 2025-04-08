@@ -1,7 +1,7 @@
 <?php
 /**
  * Layout chung cho module sukien
- * Trường Đại học Ngân hàng TP.HCM
+ * Truong Dai hoc Ngan hang TP.HCM
  */
 ?>
 <!DOCTYPE html>

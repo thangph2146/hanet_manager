@@ -2,6 +2,543 @@
 
 <?= $this->section('styles') ?>
 <link rel="stylesheet" href="<?= base_url('assets/css/nguoidung/pages/dashboard.css') ?>">
+<style>
+    /* Thẻ container chính */
+    .container {
+        max-width: 1280px;
+        margin: 0 auto;
+    }
+    
+    /* Banner chào mừng */
+    .welcome-banner {
+        background: linear-gradient(135deg, #4361ee, #3a56e4);
+        border-radius: 0.5rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
+        position: relative;
+        overflow: hidden;
+        color: #ffffff;
+    }
+    
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        right: -50px;
+        top: -50px;
+        width: 250px;
+        height: 250px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        z-index: 0;
+    }
+    
+    .welcome-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .welcome-text {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .last-login-info {
+        font-size: 0.85rem;
+        opacity: 0.8;
+        margin-bottom: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Thẻ thống kê */
+    .stat-card {
+        height: 100%;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
+    }
+    
+    .stat-card-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.2;
+        background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent);
+        background-size: 20px 20px;
+        z-index: 0;
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-right: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.2);
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stat-content {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.95rem;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+    
+    /* Panel thông tin */
+    .dashboard-section {
+        background-color: #ffffff;
+        border-radius: 0.5rem;
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    
+    .dashboard-section.loaded {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title i {
+        margin-right: 0.5rem;
+        color: #4361ee;
+    }
+    
+    /* Card thông tin người dùng */
+    .user-profile-card {
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .user-avatar {
+        margin-bottom: 1.25rem;
+    }
+    
+    .user-avatar img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border: 3px solid #e9ecef;
+        padding: 3px;
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+    }
+    
+    .user-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .user-email, .user-phone {
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .user-type, .user-department {
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+    
+    .user-type span, .user-department span {
+        font-weight: 600;
+        color: #343a40;
+    }
+    
+    .user-status {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin: 0.5rem 0;
+    }
+    
+    .user-status.active {
+        background-color: rgba(46, 204, 113, 0.1);
+        color: #2ecc71;
+    }
+    
+    .user-status.inactive {
+        background-color: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+    }
+    
+    /* Grid sự kiện */
+    .events-grid, .upcoming-events-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.25rem;
+        padding: 1.5rem;
+        flex: 1;
+    }
+    
+    /* Card sự kiện */
+    .event-card {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background-color: #ffffff;
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        border: 1px solid #e9ecef;
+    }
+    
+    .event-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
+    }
+    
+    .event-image {
+        position: relative;
+        height: 160px;
+        overflow: hidden;
+    }
+    
+    .event-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.3s ease;
+        background-color: #e9ecef;
+    }
+    
+    .event-card:hover .event-image img {
+        transform: scale(1.1);
+    }
+    
+    .event-date-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 0.4rem;
+        padding: 0.5rem;
+        text-align: center;
+        min-width: 60px;
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+    }
+    
+    .event-day {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #212529;
+    }
+    
+    .event-month, .event-year {
+        font-size: 0.8rem;
+        color: #495057;
+        line-height: 1.2;
+    }
+    
+    .event-registered-badge {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        background-color: #2ecc71;
+        color: #ffffff;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+    }
+    
+    .event-registered-badge i {
+        margin-right: 0.3rem;
+    }
+    
+    .event-registered-badge.pending {
+        background-color: #f39c12;
+    }
+    
+    .event-registered-badge.attended {
+        background-color: #3498db;
+    }
+    
+    .event-countdown {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: #ffffff;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+    
+    .event-countdown i {
+        margin-right: 0.3rem;
+    }
+    
+    .event-content {
+        padding: 1.25rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .event-meta {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+    
+    .event-category {
+        font-size: 0.8rem;
+        color: #4361ee;
+        background-color: rgba(67, 97, 238, 0.1);
+        padding: 0.2rem 0.6rem;
+        border-radius: 50px;
+    }
+    
+    .event-views {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .event-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #212529;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .event-details {
+        margin-bottom: 0.75rem;
+    }
+    
+    .event-time, .event-location, .event-organizer {
+        font-size: 0.85rem;
+        color: #495057;
+        margin-bottom: 0.4rem;
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .event-time i, .event-location i, .event-organizer i {
+        width: 18px;
+        margin-right: 0.5rem;
+        color: #6c757d;
+    }
+    
+    .event-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 0.75rem;
+        flex: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .event-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: auto;
+    }
+    
+    .btn-details, .btn-certificate {
+        flex: 1;
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        border: none;
+    }
+    
+    .btn-details {
+        background-color: rgba(67, 97, 238, 0.1);
+        color: #4361ee;
+    }
+    
+    .btn-details:hover {
+        background-color: #4361ee;
+        color: #ffffff;
+    }
+    
+    .btn-certificate {
+        background-color: rgba(243, 156, 18, 0.1);
+        color: #f39c12;
+    }
+    
+    .btn-certificate:hover {
+        background-color: #f39c12;
+        color: #ffffff;
+    }
+    
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        width: 100%;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #ced4da;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    
+    .empty-state-description {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Nút xem thêm */
+    .view-more-container {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: center;
+        padding-top: 0.5rem;
+    }
+    
+    .btn-view-more {
+        background-color: #f8f9fa;
+        color: #4361ee;
+        border: 1px dashed #4361ee;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-view-more:hover {
+        background-color: #4361ee;
+        color: #ffffff;
+        border-style: solid;
+    }
+    
+    .btn-view-more i {
+        margin-right: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    /* Hiệu ứng loading skeleton */
+    @keyframes skeleton-loading {
+        0% {
+            background-position: -200px 0;
+        }
+        100% {
+            background-position: calc(200px + 100%) 0;
+        }
+    }
+    
+    .skeleton {
+        background: linear-gradient(90deg, #e9ecef 25%, #dee2e6 37%, #e9ecef 63%);
+        background-size: 200px 100%;
+        animation: skeleton-loading 1.5s ease infinite;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .events-grid, .upcoming-events-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .welcome-banner {
+            padding: 1.5rem;
+        }
+        
+        .welcome-title {
+            font-size: 1.5rem;
+        }
+        
+        .stat-card {
+            margin-bottom: 1rem;
+        }
+        
+        .user-profile-card {
+            padding: 1rem;
+        }
+    }
+</style>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -20,7 +557,7 @@
                         <?php endif; ?>
                     </div>
                     <div class="col-md-4 text-md-end">
-                        <a href="<?= base_url('su-kien') ?>" class="btn btn-primary btn-lg">
+                        <a href="<?= base_url('su-kien') ?>" class="btn btn-light btn-lg">
                             <i class="fas fa-calendar-plus me-2"></i> Khám phá sự kiện
                         </a>
                     </div>
@@ -85,7 +622,7 @@
                         $avatarUrl = base_url('assets/images/avatars/default.jpg');
                     }
                     ?>
-                    <img src="<?= $avatarUrl ?>" alt="Avatar" class="img-fluid rounded-circle">
+                    <img src="<?= $avatarUrl ?>" alt="Avatar" class="img-fluid rounded-circle" loading="lazy">
                 </div>
                 <div class="user-info">
                     <?php 
@@ -182,7 +719,11 @@
                 </div>
                 <div class="events-grid">
                     <?php if(!empty($registeredEvents)): ?>
-                        <?php foreach($registeredEvents as $event): ?>
+                        <?php 
+                        // Giới hạn tối đa 3 sự kiện
+                        $limitedEvents = array_slice($registeredEvents, 0, 3);
+                        foreach($limitedEvents as $event): 
+                        ?>
                             <?php
                             try {
                                 // Đảm bảo event là object
@@ -285,7 +826,7 @@
                                     <?php 
                                         $imagePath = !empty($event->hinh_anh) ? base_url('uploads/events/' . $event->hinh_anh) : base_url('assets/images/events/default.jpg');
                                     ?>
-                                    <img src="<?= $imagePath ?>" alt="<?= esc($eventName) ?>">
+                                    <img src="<?= $imagePath ?>" alt="<?= esc($eventName) ?>" loading="lazy">
                                     
                                     <?php if($isUpcoming): ?>
                                         <?php 
@@ -394,6 +935,15 @@
                                 </div>
                             </div>
                         <?php endforeach; ?>
+                        
+                        <?php if (count($registeredEvents) > 3): 
+                        ?>
+                        <div class="view-more-container">
+                            <a href="<?= base_url('nguoi-dung/events-checkin') ?>" class="btn btn-outline-primary btn-view-more">
+                                <i class="fas fa-plus-circle me-1"></i> Xem thêm <?= count($registeredEvents) - 3 ?> sự kiện
+                            </a>
+                        </div>
+                        <?php endif; ?>
                     <?php else: ?>
                         <div class="empty-state">
                             <div class="empty-state-icon">
@@ -423,7 +973,11 @@
                 </div>
                 <div class="events-grid">
                     <?php if(!empty($attendedEvents)): ?>
-                        <?php foreach($attendedEvents as $event): ?>
+                        <?php 
+                        // Giới hạn tối đa 3 sự kiện
+                        $limitedAttendedEvents = array_slice($attendedEvents, 0, 3);
+                        foreach($limitedAttendedEvents as $event): 
+                        ?>
                             <div class="event-card">
                                 <div class="event-image">
                                     <?php 
@@ -444,7 +998,7 @@
                                         $eventDate = new DateTime($eventDateStr);
                                     ?>
                                     <img src="<?= !empty($event->hinh_anh) ? base_url('uploads/events/' . $event->hinh_anh) : base_url('assets/images/events/default.jpg') ?>" 
-                                        alt="<?= $event->ten_su_kien ?? $event->ten_sukien ?? 'Sự kiện không xác định' ?>">
+                                        alt="<?= $event->ten_su_kien ?? $event->ten_sukien ?? 'Sự kiện không xác định' ?>" loading="lazy">
                                     
                                     <div class="event-date-badge">
                                         <div class="event-day"><?= $eventDate->format('d') ?></div>
@@ -459,7 +1013,7 @@
                                     } catch (Exception $e) {
                                         // Xử lý lỗi một cách im lặng
                                     ?>
-                                    <img src="<?= base_url('assets/images/events/default.jpg') ?>" alt="Sự kiện">
+                                    <img src="<?= base_url('assets/images/events/default.jpg') ?>" alt="Sự kiện" loading="lazy">
                                     <div class="event-date-badge">
                                         <div class="event-day"><?= date('d') ?></div>
                                         <div class="event-month">Th<?= date('m') ?></div>
@@ -543,7 +1097,16 @@
                                     </div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php endforeach;
+                        
+                        if (count($attendedEvents) > 3): 
+                        ?>
+                        <div class="view-more-container">
+                            <a href="<?= base_url('nguoi-dung/events-history-register') ?>" class="btn btn-outline-primary btn-view-more">
+                                <i class="fas fa-plus-circle me-1"></i> Xem thêm <?= count($attendedEvents) - 3 ?> sự kiện
+                            </a>
+                        </div>
+                        <?php endif; ?>
                     <?php else: ?>
                         <div class="empty-state">
                             <div class="empty-state-icon">
@@ -571,7 +1134,11 @@
                 </div>
                 <div class="upcoming-events-grid">
                     <?php if(!empty($upcomingEvents)): ?>
-                        <?php foreach($upcomingEvents as $event): ?>
+                        <?php 
+                        // Giới hạn tối đa 3 sự kiện
+                        $limitedUpcomingEvents = array_slice($upcomingEvents, 0, 3);
+                        foreach($limitedUpcomingEvents as $event): 
+                        ?>
                             <div class="event-card">
                                 <div class="event-image">
                                     <?php 
@@ -602,7 +1169,7 @@
                                         }
                                     ?>
                                     <img src="<?= !empty($event->hinh_anh) ? base_url('uploads/events/'.$event->hinh_anh) : base_url('assets/images/events/default.jpg') ?>" 
-                                        alt="<?= $event->ten_su_kien ?? $event->ten_sukien ?? 'Sự kiện' ?>">
+                                        alt="<?= $event->ten_su_kien ?? $event->ten_sukien ?? 'Sự kiện' ?>" loading="lazy">
                                     
                                     <div class="event-countdown">
                                         <i class="far fa-clock"></i> <?= $remaining ?>
@@ -617,7 +1184,7 @@
                                     } catch (Exception $e) {
                                         // Xử lý lỗi một cách im lặng, hiển thị thông tin tối thiểu
                                     ?>
-                                    <img src="<?= base_url('assets/images/events/default.jpg') ?>" alt="Sự kiện">
+                                    <img src="<?= base_url('assets/images/events/default.jpg') ?>" alt="Sự kiện" loading="lazy">
                                     <div class="event-date-badge">
                                         <div class="event-day"><?= date('d') ?></div>
                                         <div class="event-month">Th<?= date('m') ?></div>
@@ -683,7 +1250,16 @@
                                     </div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php endforeach;
+                        
+                        if (count($upcomingEvents) > 3): 
+                        ?>
+                        <div class="view-more-container">
+                            <a href="<?= base_url('nguoi-dung/events/list') ?>" class="btn btn-outline-primary btn-view-more">
+                                <i class="fas fa-plus-circle me-1"></i> Xem thêm <?= count($upcomingEvents) - 3 ?> sự kiện
+                            </a>
+                        </div>
+                        <?php endif; ?>
                     <?php else: ?>
                         <div class="empty-state">
                             <div class="empty-state-icon">
@@ -702,5 +1278,56 @@
 
 <?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/js/nguoidung/pages/dashboard.js') ?>"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Hiệu ứng loading
+        const dashboardSections = document.querySelectorAll('.dashboard-section');
+        
+        // Hiệu ứng loading khi trang tải xong
+        setTimeout(() => {
+            dashboardSections.forEach((section, index) => {
+                setTimeout(() => {
+                    section.classList.add('loaded');
+                }, index * 150);
+            });
+        }, 300);
+        
+        // Hiệu ứng đếm cho các thẻ thống kê
+        const statValues = document.querySelectorAll('.stat-value');
+        statValues.forEach(value => {
+            const target = parseInt(value.getAttribute('data-value'), 10);
+            const duration = 1500;
+            const startTime = performance.now();
+            
+            // Sử dụng requestAnimationFrame để tối ưu hiệu suất
+            const animateCount = (timestamp) => {
+                const runtime = timestamp - startTime;
+                const progress = Math.min(runtime / duration, 1);
+                const currentCount = Math.floor(progress * target);
+                
+                value.textContent = currentCount;
+                
+                if (runtime < duration) {
+                    requestAnimationFrame(animateCount);
+                } else {
+                    value.textContent = target;
+                }
+            };
+            
+            requestAnimationFrame(animateCount);
+        });
+    });
+    
+    // Lazy loading cho hình ảnh
+    if ('loading' in HTMLImageElement.prototype) {
+        // Trình duyệt hỗ trợ lazy loading
+        const images = document.querySelectorAll('img[loading="lazy"]');
+    } else {
+        // Trình duyệt không hỗ trợ - tải thư viện thay thế
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js';
+        document.body.appendChild(script);
+    }
+</script>
 <?= $this->endSection() ?>
 
