@@ -17,7 +17,7 @@ class SuKien extends Migration
             'ten_su_kien' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,
-                'null' => false
+                'null' => true
             ],
             'su_kien_poster' => [
                 'type' => 'JSON',
@@ -39,13 +39,25 @@ class SuKien extends Migration
                 'null' => true,
                 'comment' => 'Thông tin chi tiết của sự kiện'
             ],
-            'thoi_gian_bat_dau' => [
+            'thoi_gian_bat_dau_su_kien' => [
                 'type' => 'DATETIME',
-                'null' => false
+                'null' => true,
+                'comment' => 'Giờ bắt đầu chính xác của sự kiện'
             ],
-            'thoi_gian_ket_thuc' => [
+            'thoi_gian_ket_thuc_su_kien' => [
                 'type' => 'DATETIME',
-                'null' => false
+                'null' => true,
+                'comment' => 'Giờ kết thúc chính xác của sự kiện'
+            ],
+            'thoi_gian_bat_dau_dang_ky' => [
+                'type' => 'DATETIME',
+                'null' => true,
+                'comment' => 'Giờ bắt đầu đăng ký của sự kiện'
+            ],
+            'thoi_gian_ket_thuc_dang_ky' => [
+                'type' => 'DATETIME',
+                'null' => true,
+                'comment' => 'Giờ bắt kết thúc đăng ký của sự kiện'
             ],
             'thoi_gian_checkin_bat_dau' => [
                 'type' => 'DATETIME',
@@ -56,6 +68,16 @@ class SuKien extends Migration
                 'type' => 'DATETIME',
                 'null' => true,
                 'comment' => 'Thời gian kết thúc cho phép check-in'
+            ],
+            'thoi_gian_checkout_bat_dau' => [
+                'type' => 'DATETIME',
+                'null' => true,
+                'comment' => 'Thời gian bắt đầu cho phép check-out'
+            ],
+            'thoi_gian_checkout_ket_thuc' => [
+                'type' => 'DATETIME',
+                'null' => true,
+                'comment' => 'Thời gian kết thúc cho phép check-out'
             ],
             'don_vi_to_chuc' => [
                 'type' => 'VARCHAR',
@@ -92,7 +114,7 @@ class SuKien extends Migration
             'loai_su_kien_id' => [
                 'type' => 'INT',
                 'constraint' => 11,
-                'null' => false
+                'null' => true
             ],
             'ma_qr_code' => [
                 'type' => 'VARCHAR',
@@ -104,74 +126,64 @@ class SuKien extends Migration
                 'type' => 'TINYINT',
                 'constraint' => 1,
                 'default' => 1,
+                'null' => true,
                 'comment' => '1: Hoạt động, 0: Không hoạt động'
             ],
             'tong_dang_ky' => [
                 'type' => 'INT',
                 'default' => 0,
+                'null' => true,
                 'comment' => 'Tổng số người đăng ký tham gia'
             ],
             'tong_check_in' => [
                 'type' => 'INT',
                 'default' => 0,
+                'null' => true,
                 'comment' => 'Tổng số người đã check-in'
             ],
             'tong_check_out' => [
                 'type' => 'INT',
                 'default' => 0,
+                'null' => true,
                 'comment' => 'Tổng số người đã check-out'
             ],
             'cho_phep_check_in' => [
                 'type' => 'BOOLEAN',
-                'default' => true
+                'default' => true,
+                'null' => true
             ],
             'cho_phep_check_out' => [
                 'type' => 'BOOLEAN',
-                'default' => true
+                'default' => true,
+                'null' => true
             ],
             'yeu_cau_face_id' => [
                 'type' => 'BOOLEAN',
                 'default' => false,
+                'null' => true,
                 'comment' => 'Yêu cầu xác thực khuôn mặt khi check-in/out'
             ],
             'cho_phep_checkin_thu_cong' => [
                 'type' => 'BOOLEAN',
                 'default' => true,
+                'null' => true,
                 'comment' => 'Cho phép admin check-in thủ công'
-            ],
-            'bat_dau_dang_ky' => [
-                'type' => 'DATETIME',
-                'null' => true,
-                'comment' => 'Thời gian bắt đầu đăng ký'
-            ],
-            'ket_thuc_dang_ky' => [
-                'type' => 'DATETIME',
-                'null' => true,
-                'comment' => 'Thời gian kết thúc đăng ký'
             ],
             'han_huy_dang_ky' => [
                 'type' => 'DATETIME',
                 'null' => true,
                 'comment' => 'Hạn chót hủy đăng ký'
             ],
-            'gio_bat_dau' => [
-                'type' => 'DATETIME',
-                'null' => true,
-                'comment' => 'Giờ bắt đầu chính xác của sự kiện'
-            ],
-            'gio_ket_thuc' => [
-                'type' => 'DATETIME',
-                'null' => true,
-                'comment' => 'Giờ kết thúc chính xác của sự kiện'
-            ],
             'so_luong_tham_gia' => [
                 'type' => 'INT',
                 'default' => 0,
+                'null' => true,
                 'comment' => 'Giới hạn số người tham gia'
             ],
             'so_luong_dien_gia' => [
                 'type' => 'INT',
                 'default' => 0,
+                'null' => true,
                 'comment' => 'Số lượng diễn giả'
             ],
             'gioi_han_loai_nguoi_dung' => [
@@ -199,7 +211,8 @@ class SuKien extends Migration
             ],
             'so_luot_xem' => [
                 'type' => 'INT',
-                'default' => 0
+                'default' => 0,
+                'null' => true
             ],
             'lich_trinh' => [
                 'type' => 'JSON',
@@ -210,6 +223,7 @@ class SuKien extends Migration
                 'type' => 'ENUM',
                 'constraint' => ['offline', 'online', 'hybrid'],
                 'default' => 'offline',
+                'null' => true,
                 'comment' => 'Hình thức tổ chức sự kiện'
             ],
             'link_online' => [
@@ -226,11 +240,13 @@ class SuKien extends Migration
             ],
             'version' => [
                 'type' => 'INT',
-                'default' => 1
+                'default' => 1,
+                'null' => true
             ],
             'created_at' => [
                 'type' => 'DATETIME',
-                'null' => true
+                'null' => true,
+                'default' => 'CURRENT_TIMESTAMP'
             ],
             'updated_at' => [
                 'type' => 'DATETIME',
@@ -250,11 +266,11 @@ class SuKien extends Migration
         
         // Thêm chỉ mục
         $this->forge->addKey('ten_su_kien', false, false, 'idx_ten_su_kien');
-        $this->forge->addKey('thoi_gian_bat_dau', false, false, 'idx_thoi_gian_bat_dau');
-        $this->forge->addKey('thoi_gian_ket_thuc', false, false, 'idx_thoi_gian_ket_thuc');
+        $this->forge->addKey('thoi_gian_bat_dau_su_kien', false, false, 'idx_thoi_gian_bat_dau');
+        $this->forge->addKey('thoi_gian_ket_thuc_su_kien', false, false, 'idx_thoi_gian_ket_thuc');
         $this->forge->addKey('loai_su_kien_id', false, false, 'idx_loai_su_kien_id');
         $this->forge->addKey('slug', false, false, 'idx_sukien_slug');
-        $this->forge->addKey('gio_bat_dau', false, false, 'idx_sukien_bat_dau');
+        $this->forge->addKey('thoi_gian_bat_dau_su_kien', false, false, 'idx_sukien_bat_dau');
         $this->forge->addKey('hinh_thuc', false, false, 'idx_hinh_thuc');
         $this->forge->addKey('don_vi_to_chuc', false, false, 'idx_don_vi_to_chuc');
         $this->forge->addKey(['thoi_gian_checkin_bat_dau', 'thoi_gian_checkin_ket_thuc'], false, false, 'idx_thoi_gian_checkin');
@@ -266,9 +282,6 @@ class SuKien extends Migration
             'COLLATE' => 'utf8mb4_unicode_ci',
             'COMMENT' => 'Bảng lưu trữ thông tin sự kiện'
         ]);
-        
-        // Thêm giá trị mặc định cho created_at bằng CURRENT_TIMESTAMP
-        $this->db->query('ALTER TABLE `su_kien` MODIFY `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP NULL');
     }
 
     public function down()
