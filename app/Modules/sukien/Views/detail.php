@@ -17,7 +17,7 @@
 <meta property="og:title" content="<?= $event['ten_su_kien'] ?>">
 <meta property="og:description" content="<?= isset($meta_description) ? $meta_description : $event['mo_ta_su_kien'] ?>">
 <meta property="og:image" content="<?= isset($og_image) ? $og_image : base_url($event['hinh_anh']) ?>">
-
+ 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="<?= current_url() ?>">
