@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\sukiendiengia\Database\Migrations;
+namespace App\Modules\quanlysukiendiengia\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
@@ -99,9 +99,11 @@ class SuKienDienGia extends Migration
         // Thêm khóa chính
         $this->forge->addKey('su_kien_dien_gia_id', true);
         
-        // Thêm khoá ngoại
-        $this->forge->addForeignKey('su_kien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
-        $this->forge->addForeignKey('dien_gia_id', 'dien_gia', 'dien_gia_id', 'CASCADE', 'CASCADE');
+        // Thêm khoá ngoại nếu các bảng liên quan đã tồn tại
+        if ($this->db->tableExists('su_kien') && $this->db->tableExists('dien_gia')) {
+            $this->forge->addForeignKey('su_kien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
+            $this->forge->addForeignKey('dien_gia_id', 'dien_gia', 'dien_gia_id', 'CASCADE', 'CASCADE');
+        }
         
         // Thêm chỉ mục
         $this->forge->addUniqueKey(['su_kien_id', 'dien_gia_id'], 'uk_sukien_diengia');

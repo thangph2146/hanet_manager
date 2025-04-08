@@ -149,18 +149,50 @@ class CheckOutSuKien extends Migration
         $this->forge->addKey('checkout_type', false, false, 'idx_checkout_type');
         $this->forge->addKey('hinh_thuc_tham_gia', false, false, 'idx_hinh_thuc_tham_gia');
         
-        // Thêm khóa ngoại
-        $this->forge->addForeignKey('su_kien_id', 'su_kien', 'su_kien_id', 'CASCADE', 'CASCADE');
-        $this->forge->addForeignKey('dangky_sukien_id', 'dangky_sukien', 'dangky_sukien_id', 'SET NULL', 'CASCADE');
-        $this->forge->addForeignKey('checkin_sukien_id', 'checkin_sukien', 'checkin_sukien_id', 'SET NULL', 'CASCADE');
-        
-        // Tạo bảng
+        // Tạo bảng trước
         $this->forge->createTable('checkout_sukien', true, [
             'ENGINE' => 'InnoDB',
             'CHARACTER SET' => 'utf8mb4',
             'COLLATE' => 'utf8mb4_unicode_ci',
             'COMMENT' => 'Bảng lưu trữ thông tin check-out sự kiện'
         ]);
+        
+        // Thiết lập khóa ngoại sau khi đã tạo bảng
+        $hasForeignKeys = true;
+        
+        // Thêm khóa ngoại nếu bảng su_kien tồn tại
+        if ($this->db->tableExists('su_kien')) {
+            $this->db->query('ALTER TABLE `checkout_sukien` ADD CONSTRAINT `checkout_sukien_su_kien_id_foreign` 
+                              FOREIGN KEY (`su_kien_id`) REFERENCES `su_kien`(`su_kien_id`) 
+                              ON DELETE CASCADE ON UPDATE CASCADE');
+        } else {
+            $hasForeignKeys = false;
+            log_message('warning', 'Bảng su_kien không tồn tại, không thể tạo khóa ngoại su_kien_id');
+        }
+        
+        // Thêm khóa ngoại nếu bảng dangky_sukien tồn tại
+        if ($this->db->tableExists('dangky_sukien')) {
+            $this->db->query('ALTER TABLE `checkout_sukien` ADD CONSTRAINT `checkout_sukien_dangky_sukien_id_foreign` 
+                              FOREIGN KEY (`dangky_sukien_id`) REFERENCES `dangky_sukien`(`dangky_sukien_id`) 
+                              ON DELETE SET NULL ON UPDATE CASCADE');
+        } else {
+            $hasForeignKeys = false;
+            log_message('warning', 'Bảng dangky_sukien không tồn tại, không thể tạo khóa ngoại dangky_sukien_id');
+        }
+        
+        // Thêm khóa ngoại nếu bảng checkin_sukien tồn tại
+        if ($this->db->tableExists('checkin_sukien')) {
+            $this->db->query('ALTER TABLE `checkout_sukien` ADD CONSTRAINT `checkout_sukien_checkin_sukien_id_foreign` 
+                              FOREIGN KEY (`checkin_sukien_id`) REFERENCES `checkin_sukien`(`checkin_sukien_id`) 
+                              ON DELETE SET NULL ON UPDATE CASCADE');
+        } else {
+            $hasForeignKeys = false;
+            log_message('warning', 'Bảng checkin_sukien không tồn tại, không thể tạo khóa ngoại checkin_sukien_id');
+        }
+        
+        if (!$hasForeignKeys) {
+            log_message('notice', 'Một số khóa ngoại không thể tạo do bảng tham chiếu chưa tồn tại. Vui lòng chạy migration các bảng liên quan trước.');
+        }
         
         // Thêm giá trị mặc định CURRENT_TIMESTAMP cho trường thoi_gian_check_out
         $this->db->query("ALTER TABLE `checkout_sukien` MODIFY `thoi_gian_check_out` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP");
@@ -169,7 +201,7 @@ class CheckOutSuKien extends Migration
         $this->db->query("ALTER TABLE `checkout_sukien` MODIFY `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP");
         
         // Thêm ràng buộc check cho đánh giá
-        $this->db->query("ALTER TABLE `checkout_sukien` ADD CONSTRAINT `check_danh_gia` CHECK (`danh_gia` BETWEEN 1 AND 5)");
+        $this->db->query("ALTER TABLE `checkout_sukien` ADD CONSTRAINT `check_danh_gia` CHECK (`danh_gia` BETWEEN 1 AND 5 OR `danh_gia` IS NULL)");
     }
 
     public function down()
