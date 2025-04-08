@@ -205,9 +205,9 @@
             
             <div class="profile">
                 <?php if(isset($avatar) && !empty($avatar)): ?>
-                <img src="<?= esc($avatar) ?>" class="profile-image" alt="Profile Image" onerror="this.src='/assets/images/default-avatar.jpg'">
+                <img src="<?= esc($avatar) ?>" class="profile-image" alt="Profile Image" onerror="this.src='/assets/images/avatars/default.jpg'">
                 <?php else: ?>
-                <img src="/assets/images/default-avatar.jpg" class="profile-image" alt="Default Profile">
+                <img src="/assets/images/avatars/default.jpg" class="profile-image" alt="Default Profile">
                 <?php endif; ?>
                 
                 <?php if (isset($title) && !empty($title)): ?>
@@ -372,7 +372,7 @@
             debugLog('Updating check-in display with data: ' + JSON.stringify(data));
             
             // Cập nhật thông tin người check-in
-            document.querySelector('.profile-image').src = data.avatar || '/assets/images/default-avatar.jpg';
+            document.querySelector('.profile-image').src = data.avatar || '/assets/images/avatars/default.jpg';
             
             // Cập nhật title nếu có
             const titleElement = document.querySelector('.title');
@@ -462,7 +462,7 @@
                     personId: 'test123',
                     title: 'Khách mời',
                     personName: 'Nguyễn Văn Test',
-                    avatar: '/assets/images/default-avatar.jpg',
+                    avatar: '/assets/images/avatars/default.jpg',
                     date: '<?= date('Y-m-d') ?>',
                     placeID: 'TEST',
                     place: 'Demo Location',

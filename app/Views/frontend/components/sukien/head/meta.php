@@ -5,7 +5,7 @@
  */
 ?>
 
-<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="<?= $this->renderSection('description') ?? 'Sự Kiện Đại Học Ngân Hàng TP.HCM - Thông tin về các sự kiện, hội thảo, workshop của Trường Đại học Ngân hàng TP.HCM' ?>">
 <meta name="keywords" content="<?= $this->renderSection('keywords') ?? 'đại học ngân hàng, sự kiện hub, hội thảo, workshop, nghề nghiệp, sinh viên' ?>">

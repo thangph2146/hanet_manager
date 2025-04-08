@@ -315,36 +315,53 @@ class QuanLySuKien extends BaseController
    
     /**
      * Hiển thị chi tiết sự kiện
+     *
+     * @param int|null $id ID của sự kiện
+     * @return string|ResponseInterface
      */
     public function detail($id = null)
     {
+        // Nếu không có ID, chuyển hướng về trang danh sách
         if (!$id) {
-            $this->alert->set('danger', 'ID sự kiện không hợp lệ', true);
+            $this->alert->set('error', 'Không tìm thấy ID sự kiện', true);
             return redirect()->to($this->moduleUrl);
         }
-
-        // Lấy thông tin sự kiện
+        
+        // Tìm kiếm sự kiện
         $data = $this->model->find($id);
         if (!$data) {
-            $this->alert->set('danger', 'Không tìm thấy dữ liệu sự kiện', true);
+            $this->alert->set('error', 'Không tìm thấy sự kiện với ID: ' . $id, true);
             return redirect()->to($this->moduleUrl);
         }
-
-        // Xử lý dữ liệu
-        $processedData = $this->processData([$data]);
-        $data = $processedData[0] ?? $data;
-
+        
+        // Lấy thống kê sự kiện
+        $statistics = $this->model->getEventStatistics($id);
+        
+        // Lấy danh sách người tham gia (mặc định giới hạn 10 người)
+        $participants = $this->model->getParticipantsByEvent($id, [], ['limit' => 10]);
+        $totalParticipants = $this->model->countParticipantsByEvent($id);
+        
+        // Lấy thông tin loại sự kiện
+        $loaiSuKien = $this->loaiSuKienModel->find($data->getLoaiSuKienId());
+        
         // Cập nhật breadcrumb
-        $this->breadcrumb->add('Chi tiết', current_url());
-
-        // Sửa đường dẫn view để phù hợp với cấu trúc module
-        return view('App\Modules\\' . $this->module_name . '\Views\detail', [
+        $this->breadcrumb->add('Chi tiết sự kiện', current_url());
+        
+        // Chuẩn bị dữ liệu cho view
+        $viewData = [
+            'breadcrumb' => $this->breadcrumb->render(),
+            'title' => 'Chi tiết ' . $this->title,
             'data' => $data,
+            'loaiSuKien' => $loaiSuKien,
             'module_name' => $this->module_name,
-            'title' => 'Chi tiết sự kiện',
             'title_home' => $this->title_home,
-            'breadcrumb' => $this->breadcrumb->render()
-        ]);
+            'statistics' => $statistics,
+            'participants' => $participants,
+            'totalParticipants' => $totalParticipants
+        ];
+        
+        // Hiển thị view
+        return view('App\Modules\\' . $this->module_name . '\Views\detail', $viewData);
     }
     
     /**
@@ -1172,6 +1189,247 @@ class QuanLySuKien extends BaseController
                 $this->alert->set('danger', 'Có lỗi xảy ra khi thêm mới sự kiện', true);
             }
         }
+    }
+
+    /**
+     * Hiển thị danh sách người tham gia sự kiện
+     *
+     * @param int|null $id ID của sự kiện
+     * @return string|ResponseInterface
+     */
+    public function participants($id = null)
+    {
+        if (!$id) {
+            $this->alert->set('error', 'Không tìm thấy ID sự kiện', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Tìm kiếm sự kiện
+        $event = $this->model->find($id);
+        if (!$event) {
+            $this->alert->set('error', 'Không tìm thấy sự kiện với ID: ' . $id, true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Lấy tham số từ URL
+        $params = [
+            'page' => (int)($this->request->getGet('page') ?? 1),
+            'perPage' => (int)($this->request->getGet('perPage') ?? 15),
+            'sort' => $this->request->getGet('sort') ?? 'dangky_sukien.created_at',
+            'order' => $this->request->getGet('order') ?? 'DESC',
+            'search' => $this->request->getGet('search') ?? '',
+            'filter' => $this->request->getGet('filter') ?? 'all'
+        ];
+        
+        // Xây dựng bộ lọc
+        $filters = [];
+        if (!empty($params['search'])) {
+            $filters['search'] = $params['search'];
+        }
+        
+        switch ($params['filter']) {
+            case 'checked_in':
+                $filters['da_check_in'] = true;
+                break;
+            case 'checked_out':
+                $filters['da_check_out'] = true;
+                break;
+            case 'not_checked_in':
+                $filters['chua_check_in'] = true;
+                break;
+        }
+        
+        // Tùy chọn phân trang và sắp xếp
+        $options = [
+            'limit' => $params['perPage'],
+            'offset' => ($params['page'] - 1) * $params['perPage'],
+            'sort' => $params['sort'],
+            'order' => $params['order']
+        ];
+        
+        // Lấy danh sách người tham gia
+        $participants = $this->model->getParticipantsByEvent($id, $filters, $options);
+        $totalParticipants = $this->model->countParticipantsByEvent($id, $filters);
+        
+        // Tính toán thông tin phân trang
+        $pager = service('pager');
+        $pager->setPath($this->module_name . '/participants/' . $id);
+        $pager->makeLinks($params['page'], $params['perPage'], $totalParticipants);
+        
+        // Cập nhật breadcrumb
+        $this->breadcrumb->add('Chi tiết sự kiện', site_url($this->module_name . '/detail/' . $id));
+        $this->breadcrumb->add('Danh sách người tham gia', current_url());
+        
+        // Chuẩn bị dữ liệu cho view
+        $viewData = [
+            'breadcrumb' => $this->breadcrumb->render(),
+            'title' => 'Danh sách người tham gia sự kiện: ' . $event->getTenSuKien(),
+            'event' => $event,
+            'participants' => $participants,
+            'totalParticipants' => $totalParticipants,
+            'module_name' => $this->module_name,
+            'title_home' => $this->title_home,
+            'params' => $params,
+            'pager' => $pager
+        ];
+        
+        // Hiển thị view
+        return view('App\Modules\\' . $this->module_name . '\Views\participants', $viewData);
+    }
+
+    /**
+     * Xuất danh sách người tham gia sự kiện ra file Excel
+     *
+     * @param int|null $id ID của sự kiện
+     * @return ResponseInterface
+     */
+    public function exportParticipants($id = null)
+    {
+        if (!$id) {
+            $this->alert->set('error', 'Không tìm thấy ID sự kiện', true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Tìm kiếm sự kiện
+        $event = $this->model->find($id);
+        if (!$event) {
+            $this->alert->set('error', 'Không tìm thấy sự kiện với ID: ' . $id, true);
+            return redirect()->to($this->moduleUrl);
+        }
+        
+        // Lấy tham số từ URL để áp dụng filter tương tự như trang danh sách
+        $params = [
+            'search' => $this->request->getGet('search') ?? '',
+            'filter' => $this->request->getGet('filter') ?? 'all'
+        ];
+        
+        // Xây dựng bộ lọc
+        $filters = [];
+        if (!empty($params['search'])) {
+            $filters['search'] = $params['search'];
+        }
+        
+        switch ($params['filter']) {
+            case 'checked_in':
+                $filters['da_check_in'] = true;
+                break;
+            case 'checked_out':
+                $filters['da_check_out'] = true;
+                break;
+            case 'not_checked_in':
+                $filters['chua_check_in'] = true;
+                break;
+        }
+        
+        // Lấy tất cả người tham gia (không giới hạn số lượng)
+        $participants = $this->model->getParticipantsByEvent($id, $filters, [
+            'sort' => 'dangky_sukien.created_at',
+            'order' => 'ASC'
+        ]);
+        
+        // Tạo đối tượng Spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // Thiết lập tiêu đề
+        $sheet->setCellValue('A1', 'DANH SÁCH NGƯỜI THAM GIA SỰ KIỆN: ' . $event->getTenSuKien());
+        $sheet->mergeCells('A1:H1');
+        
+        // Định dạng tiêu đề
+        $sheet->getStyle('A1:H1')->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'size' => 14
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER
+            ]
+        ]);
+        
+        // Thiết lập tiêu đề cột
+        $sheet->setCellValue('A2', 'STT');
+        $sheet->setCellValue('B2', 'Họ tên');
+        $sheet->setCellValue('C2', 'Email');
+        $sheet->setCellValue('D2', 'Số điện thoại');
+        $sheet->setCellValue('E2', 'Thời gian đăng ký');
+        $sheet->setCellValue('F2', 'Thời gian check-in');
+        $sheet->setCellValue('G2', 'Thời gian check-out');
+        $sheet->setCellValue('H2', 'Trạng thái');
+        
+        // Định dạng tiêu đề cột
+        $sheet->getStyle('A2:H2')->applyFromArray([
+            'font' => [
+                'bold' => true
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => [
+                    'rgb' => 'CCCCCC'
+                ]
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN
+                ]
+            ]
+        ]);
+        
+        // Điền dữ liệu vào các ô
+        $row = 3;
+        foreach ($participants as $i => $participant) {
+            $status = 'Đã đăng ký';
+            if (!empty($participant['check_in_time'])) {
+                $status = 'Đã check-in';
+                if (!empty($participant['check_out_time'])) {
+                    $status = 'Đã check-out';
+                }
+            }
+            
+            $sheet->setCellValue('A' . $row, $i + 1);
+            $sheet->setCellValue('B' . $row, $participant['ho_ten'] ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $participant['email'] ?? 'N/A');
+            $sheet->setCellValue('D' . $row, $participant['so_dien_thoai'] ?? 'N/A');
+            $sheet->setCellValue('E' . $row, !empty($participant['created_at']) ? date('d/m/Y H:i:s', strtotime($participant['created_at'])) : 'N/A');
+            $sheet->setCellValue('F' . $row, !empty($participant['check_in_time']) ? date('d/m/Y H:i:s', strtotime($participant['check_in_time'])) : 'N/A');
+            $sheet->setCellValue('G' . $row, !empty($participant['check_out_time']) ? date('d/m/Y H:i:s', strtotime($participant['check_out_time'])) : 'N/A');
+            $sheet->setCellValue('H' . $row, $status);
+            
+            $row++;
+        }
+        
+        // Định dạng dữ liệu
+        $sheet->getStyle('A3:H' . ($row - 1))->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN
+                ]
+            ]
+        ]);
+        
+        // Auto-size columns
+        foreach (range('A', 'H') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        
+        // Tạo writer để xuất file
+        $writer = new Xlsx($spreadsheet);
+        
+        // Tên file xuất
+        $filename = 'danh-sach-nguoi-tham-gia-' . url_title($event->getTenSuKien(), '-', true) . '-' . date('dmY') . '.xlsx';
+        
+        // Set header để force download
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        
+        // Xuất file
+        $writer->save('php://output');
+        exit;
     }
 
 }

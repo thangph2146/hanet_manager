@@ -26,7 +26,6 @@ class NguoiDung extends BaseEntity
         'he_dao_tao_id' => 'int',
         'nganh_id' => 'int',
         'phong_khoa_id' => 'int',
-        'bin' => 'int',
         'status' => 'int',
         'last_login' => 'datetime',
         'created_at' => 'datetime',
@@ -135,10 +134,6 @@ class NguoiDung extends BaseEntity
             'rules' => 'permit_empty|integer',
             'label' => 'Phòng/Khoa'
         ],
-        'bin' => [
-            'rules' => 'permit_empty|integer',
-            'label' => 'Bin'
-        ],
         'status' => [
             'rules' => 'permit_empty|in_list[0,1]',
             'label' => 'Trạng thái'
@@ -218,9 +213,6 @@ class NguoiDung extends BaseEntity
             'integer' => '{field} phải là số nguyên'
         ],
         'phong_khoa_id' => [
-            'integer' => '{field} phải là số nguyên'
-        ],
-        'bin' => [
             'integer' => '{field} phải là số nguyên'
         ],
         'status' => [
@@ -704,9 +696,6 @@ class NguoiDung extends BaseEntity
      */
     public function getAvatarUrl(): string
     {
-        if (empty($this->attributes['avatar'])) {
-            return base_url('public/data/images/default-avatar.png');
-        }
 
         // Kiểm tra xem avatar có phải là URL đầy đủ không
         if (strpos($this->attributes['avatar'], 'http://') === 0 || strpos($this->attributes['avatar'], 'https://') === 0) {

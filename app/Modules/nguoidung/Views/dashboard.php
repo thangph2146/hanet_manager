@@ -11,8 +11,13 @@
             <div class="welcome-banner">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h2 class="welcome-title">Xin chào, <?= $profile->FullName ?>!</h2>
+                        <h2 class="welcome-title">Xin chào, <?= esc(is_object($profile) && method_exists($profile, 'getFullName') ? $profile->getFullName() : ($profile->FullName ?? 'Người dùng')) ?>!</h2>
                         <p class="welcome-text">Chào mừng bạn quay trở lại với hệ thống quản lý sự kiện của chúng tôi.</p>
+                        <?php if(is_object($profile) && method_exists($profile, 'getLastLoginFormatted') && $profile->getLastLoginFormatted()): ?>
+                        <p class="last-login-info">Đăng nhập lần cuối: <?= $profile->getLastLoginFormatted() ?></p>
+                        <?php elseif(isset($profile->last_login) && $profile->last_login): ?>
+                        <p class="last-login-info">Đăng nhập lần cuối: <?= date('d/m/Y H:i:s', strtotime($profile->last_login)) ?></p>
+                        <?php endif; ?>
                     </div>
                     <div class="col-md-4 text-md-end">
                         <a href="<?= base_url('su-kien') ?>" class="btn btn-primary btn-lg">
@@ -65,29 +70,226 @@
     </div>
 
     <div class="row mb-4">
+        <!-- Thông tin người dùng -->
+        <div class="col-md-3 mb-4 mb-md-0">
+            <div class="dashboard-section user-profile-card">
+                <div class="user-avatar">
+                    <?php
+                    try {
+                        $avatarUrl = is_object($profile) && method_exists($profile, 'getAvatarUrl') 
+                            ? $profile->getAvatarUrl() 
+                            : (isset($profile->avatar) && !empty($profile->avatar) 
+                                ? base_url($profile->avatar) 
+                                : base_url('assets/images/avatars/default.jpg'));
+                    } catch (Exception $e) {
+                        $avatarUrl = base_url('assets/images/avatars/default.jpg');
+                    }
+                    ?>
+                    <img src="<?= $avatarUrl ?>" alt="Avatar" class="img-fluid rounded-circle">
+                </div>
+                <div class="user-info">
+                    <?php 
+                    $displayName = 'Người dùng';
+                    $email = '';
+                    $phone = '';
+                    
+                    try {
+                        if (is_object($profile)) {
+                            if (method_exists($profile, 'getDisplayName')) {
+                                $displayName = $profile->getDisplayName();
+                            } elseif (isset($profile->FullName)) {
+                                $displayName = $profile->FullName;
+                            }
+                            
+                            if (method_exists($profile, 'getEmail')) {
+                                $email = $profile->getEmail();
+                            } elseif (isset($profile->Email)) {
+                                $email = $profile->Email;
+                            }
+                            
+                            if (method_exists($profile, 'getMobilePhone')) {
+                                $phone = $profile->getMobilePhone();
+                            } elseif (isset($profile->MobilePhone)) {
+                                $phone = $profile->MobilePhone;
+                            }
+                        }
+                    } catch (Exception $e) {
+                        // Giữ nguyên giá trị mặc định
+                    }
+                    ?>
+                    <h4 class="user-name"><?= esc($displayName) ?></h4>
+                    <?php if ($email): ?>
+                    <p class="user-email"><?= esc($email) ?></p>
+                    <?php endif; ?>
+                    
+                    <?php if ($phone): ?>
+                    <p class="user-phone"><?= esc($phone) ?></p>
+                    <?php endif; ?>
+                    
+                    <?php 
+                    try {
+                        if (is_object($profile) && method_exists($profile, 'getLoaiNguoiDungDisplay') && $profile->getLoaiNguoiDungDisplay()): 
+                    ?>
+                    <p class="user-type"><span>Loại người dùng:</span> <?= esc($profile->getLoaiNguoiDungDisplay()) ?></p>
+                    <?php 
+                        endif;
+                    } catch (Exception $e) {} 
+                    ?>
+                    
+                    <?php 
+                    try {
+                        if (is_object($profile) && method_exists($profile, 'getPhongKhoaDisplay') && $profile->getPhongKhoaDisplay()): 
+                    ?>
+                    <p class="user-department"><span>Phòng/Khoa:</span> <?= esc($profile->getPhongKhoaDisplay()) ?></p>
+                    <?php 
+                        endif;
+                    } catch (Exception $e) {} 
+                    ?>
+                    
+                    <?php 
+                    try {
+                        if (is_object($profile) && method_exists($profile, 'isActive') && method_exists($profile, 'getStatusLabel')): 
+                    ?>
+                    <div class="user-status <?= $profile->isActive() ? 'active' : 'inactive' ?>">
+                        <?= $profile->getStatusLabel() ?>
+                    </div>
+                    <?php 
+                        elseif (isset($profile->status)): 
+                    ?>
+                    <div class="user-status <?= (int)$profile->status === 1 ? 'active' : 'inactive' ?>">
+                        <?= (int)$profile->status === 1 ? 'Đang hoạt động' : 'Không hoạt động' ?>
+                    </div>
+                    <?php 
+                        endif;
+                    } catch (Exception $e) {} 
+                    ?>
+                    
+                    <a href="<?= base_url('nguoi-dung/profile') ?>" class="btn btn-outline-primary btn-sm mt-3 w-100">
+                        <i class="fas fa-user-edit me-1"></i> Chỉnh sửa thông tin
+                    </a>
+                </div>
+            </div>
+        </div>
+        
         <!-- Sự kiện đã đăng ký gần đây -->
-        <div class="col-md-6 mb-4 mb-md-0">
+        <div class="col-md-9">
             <div class="dashboard-section">
                 <div class="section-header">
                     <h5 class="section-title">
                         <i class="fas fa-clipboard-list me-2"></i>Sự kiện đã đăng ký gần đây
                     </h5>
-                    <a href="<?= base_url('nguoi-dung/profile') ?>" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                    <a href="<?= base_url('nguoi-dung/events-checkin') ?>" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
                 </div>
                 <div class="events-grid">
                     <?php if(!empty($registeredEvents)): ?>
                         <?php foreach($registeredEvents as $event): ?>
+                            <?php
+                            try {
+                                // Đảm bảo event là object
+                                if (!is_object($event)) continue;
+                                
+                                // Lấy ngày sự kiện từ nhiều trường khả dĩ
+                                $eventDateStr = null;
+                                foreach (['thoi_gian_bat_dau', 'ngay_to_chuc', 'created_at'] as $dateField) {
+                                    if (isset($event->$dateField) && !empty($event->$dateField)) {
+                                        $eventDateStr = $event->$dateField;
+                                        break;
+                                    }
+                                }
+                                
+                                if (!$eventDateStr) continue; // Bỏ qua sự kiện không có thông tin ngày
+                                
+                                $eventDate = new DateTime($eventDateStr);
+                                $now = new DateTime();
+                                $isUpcoming = $eventDate > $now;
+                                
+                                // Xác định tên sự kiện từ các trường khả dĩ
+                                $eventName = '';
+                                foreach (['ten_su_kien', 'ten_sukien', 'tieu_de'] as $nameField) {
+                                    if (isset($event->$nameField) && !empty($event->$nameField)) {
+                                        $eventName = $event->$nameField;
+                                        break;
+                                    }
+                                }
+                                if (empty($eventName)) {
+                                    $eventName = 'Sự kiện không xác định';
+                                }
+                                
+                                // Xác định địa điểm
+                                $location = '';
+                                foreach (['dia_diem', 'venue', 'dia_chi'] as $locationField) {
+                                    if (isset($event->$locationField) && !empty($event->$locationField)) {
+                                        $location = $event->$locationField;
+                                        break;
+                                    }
+                                }
+                                if (empty($location)) {
+                                    $location = 'Không có địa điểm';
+                                }
+                                
+                                // Xác định đơn vị tổ chức
+                                $organizer = '';
+                                foreach (['don_vi_to_chuc', 'to_chuc', 'ban_to_chuc'] as $organizerField) {
+                                    if (isset($event->$organizerField) && !empty($event->$organizerField)) {
+                                        $organizer = $event->$organizerField;
+                                        break;
+                                    }
+                                }
+                                
+                                // Xác định URL sự kiện
+                                $eventSlug = null;
+                                foreach (['slug', 'su_kien_id', 'id'] as $slugField) {
+                                    if (isset($event->$slugField) && !empty($event->$slugField)) {
+                                        $eventSlug = $event->$slugField;
+                                        break;
+                                    }
+                                }
+                                
+                                // Xác định trạng thái
+                                $status = -1;
+                                foreach (['trang_thai', 'status', 'trang_thai_dang_ky'] as $statusField) {
+                                    if (isset($event->$statusField)) {
+                                        $status = (int)$event->$statusField;
+                                        break;
+                                    }
+                                }
+                                
+                                // Xác định trạng thái check-in
+                                $checkedIn = false;
+                                if (isset($event->da_check_in)) {
+                                    $checkedIn = (bool)$event->da_check_in;
+                                }
+                                
+                                // Xác định thời gian
+                                $startTime = '';
+                                $endTime = '';
+                                foreach (['gio_bat_dau', 'thoi_gian_bat_dau'] as $timeField) {
+                                    if (isset($event->$timeField) && !empty($event->$timeField)) {
+                                        $startTime = date('H:i', strtotime($event->$timeField));
+                                        break;
+                                    }
+                                }
+                                foreach (['gio_ket_thuc', 'thoi_gian_ket_thuc'] as $timeField) {
+                                    if (isset($event->$timeField) && !empty($event->$timeField)) {
+                                        $endTime = date('H:i', strtotime($event->$timeField));
+                                        break;
+                                    }
+                                }
+                            } catch (Exception $e) {
+                                log_message('error', 'Lỗi xử lý sự kiện: ' . $e->getMessage());
+                                continue; // Bỏ qua sự kiện này
+                            }
+                            ?>
                             <div class="event-card">
                                 <div class="event-image">
                                     <?php 
-                                        $eventDate = new DateTime($event->thoi_gian_bat_dau); 
-                                        $now = new DateTime();
-                                        $isUpcoming = $eventDate > $now;
+                                        $imagePath = !empty($event->hinh_anh) ? base_url('uploads/events/' . $event->hinh_anh) : base_url('assets/images/events/default.jpg');
                                     ?>
-                                    <img src="<?= !empty($event->hinh_anh) ? base_url('uploads/events/' . $event->hinh_anh) : base_url('assets/images/events/default.jpg') ?>" alt="<?= $event->ten_su_kien ?>">
+                                    <img src="<?= $imagePath ?>" alt="<?= esc($eventName) ?>">
                                     
                                     <?php if($isUpcoming): ?>
                                         <?php 
+                                        try {
                                             $interval = $now->diff($eventDate);
                                             $remaining = '';
                                             if($interval->days > 0) {
@@ -101,6 +303,9 @@
                                         <div class="event-countdown">
                                             <i class="far fa-clock"></i> <?= $remaining ?>
                                         </div>
+                                        <?php 
+                                        } catch (Exception $e) {} 
+                                        ?>
                                     <?php endif; ?>
                                     
                                     <div class="event-date-badge">
@@ -109,22 +314,17 @@
                                         <div class="event-year"><?= $eventDate->format('Y') ?></div>
                                     </div>
                                     
-                                    <?php 
-                                    // Kiểm tra sự tồn tại của thuộc tính trang_thai
-                                    $trangThai = isset($event->trang_thai) ? $event->trang_thai : (isset($event->status) ? $event->status : -1);
-                                    
-                                    if($trangThai == 1): 
-                                    ?>
+                                    <?php if($status == 1): ?>
                                         <div class="event-registered-badge">
                                             <i class="fas fa-check-circle"></i> Đã xác nhận
                                         </div>
-                                    <?php elseif($trangThai == 0): ?>
+                                    <?php elseif($status == 0): ?>
                                         <div class="event-registered-badge pending">
                                             <i class="fas fa-clock"></i> Chờ xác nhận
                                         </div>
                                     <?php endif; ?>
                                     
-                                    <?php if(isset($event->da_check_in) && $event->da_check_in == 1): ?>
+                                    <?php if($checkedIn): ?>
                                         <div class="event-registered-badge attended">
                                             <i class="fas fa-user-check"></i> Đã tham gia
                                         </div>
@@ -133,27 +333,27 @@
                                 
                                 <div class="event-content">
                                     <div class="event-meta">
-                                        <span class="event-category"><?= $event->phan_loai ?? 'Chưa phân loại' ?></span>
+                                        <span class="event-category"><?= isset($event->phan_loai) && !empty($event->phan_loai) ? esc($event->phan_loai) : 'Chưa phân loại' ?></span>
                                         <span class="event-views"><i class="far fa-eye"></i> <?= $event->luot_xem ?? 0 ?></span>
                                     </div>
                                     
-                                    <h3 class="event-title"><?= esc($event->ten_su_kien ?? $event->ten_sukien ?? 'Sự kiện không xác định') ?></h3>
+                                    <h3 class="event-title"><?= esc($eventName) ?></h3>
                                     
                                     <div class="event-details">
                                         <div class="event-time">
                                             <i class="far fa-clock"></i>
-                                            <?= isset($event->gio_bat_dau) ? date('H:i', strtotime($event->gio_bat_dau)) : '--:--' ?> - <?= isset($event->gio_ket_thuc) ? date('H:i', strtotime($event->gio_ket_thuc)) : '--:--' ?>
+                                            <?= $startTime ?: '--:--' ?> - <?= $endTime ?: '--:--' ?>
                                         </div>
                                         
                                         <div class="event-location">
                                             <i class="fas fa-map-marker-alt"></i>
-                                            <?= esc($event->dia_diem ?? 'Không có địa điểm') ?>
+                                            <?= esc($location) ?>
                                         </div>
                                         
-                                        <?php if(!empty($event->don_vi_to_chuc)): ?>
+                                        <?php if(!empty($organizer)): ?>
                                         <div class="event-organizer">
                                             <i class="fas fa-users"></i>
-                                            <?= esc($event->don_vi_to_chuc) ?>
+                                            <?= esc($organizer) ?>
                                         </div>
                                         <?php endif; ?>
                                     </div>
@@ -165,12 +365,28 @@
                                     <?php endif; ?>
                                     
                                     <div class="event-actions">
-                                        <a href="<?= base_url('su-kien/chi-tiet/'.$event->slug) ?>" class="btn btn-details">
+                                        <?php if($eventSlug): ?>
+                                        <a href="<?= base_url('su-kien/chi-tiet/'.$eventSlug) ?>" class="btn btn-details">
                                             <i class="fas fa-info-circle"></i> Chi tiết
                                         </a>
+                                        <?php endif; ?>
                                         
-                                        <?php if(!empty($event->chung_chi)): ?>
-                                        <a href="<?= base_url('nguoi-dung/certificate/download/'.$event->dangky_id) ?>" class="btn btn-certificate">
+                                        <?php 
+                                        // Xác định ID đăng ký an toàn
+                                        $registrationId = null;
+                                        // Kiểm tra xem registrationId đã được xác định chưa
+                                        if (!isset($registrationId) || empty($registrationId)) {
+                                            foreach (['dangky_id', 'dangky_sukien_id', 'id'] as $idField) {
+                                                if (isset($event->$idField) && !empty($event->$idField)) {
+                                                    $registrationId = $event->$idField;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        
+                                        if(!empty($event->chung_chi) && $registrationId): 
+                                        ?>
+                                        <a href="<?= base_url('nguoi-dung/certificate/download/'.$registrationId) ?>" class="btn btn-certificate">
                                             <i class="fas fa-certificate"></i> Chứng chỉ
                                         </a>
                                         <?php endif; ?>
@@ -193,15 +409,17 @@
                 </div>
             </div>
         </div>
+    </div>
 
+    <div class="row">
         <!-- Sự kiện đã tham gia gần đây -->
-        <div class="col-md-6">
+        <div class="col-md-6 mb-4">
             <div class="dashboard-section">
                 <div class="section-header">
                     <h5 class="section-title">
                         <i class="fas fa-check-circle me-2"></i>Sự kiện đã tham gia
                     </h5>
-                    <a href="<?= base_url('nguoi-dung/events-checkin') ?>" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                    <a href="<?= base_url('nguoi-dung/events-history-register') ?>" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
                 </div>
                 <div class="events-grid">
                     <?php if(!empty($attendedEvents)): ?>
@@ -209,9 +427,24 @@
                             <div class="event-card">
                                 <div class="event-image">
                                     <?php 
-                                        $eventDate = new DateTime($event->thoi_gian_bat_dau); 
+                                    try {
+                                        // Tìm trường thời gian từ nhiều trường khả dĩ
+                                        $eventDateStr = null;
+                                        foreach (['thoi_gian_bat_dau', 'ngay_to_chuc', 'created_at'] as $dateField) {
+                                            if (isset($event->$dateField) && !empty($event->$dateField)) {
+                                                $eventDateStr = $event->$dateField;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        if (!$eventDateStr) {
+                                            $eventDateStr = date('Y-m-d H:i:s'); // Giá trị mặc định
+                                        }
+                                        
+                                        $eventDate = new DateTime($eventDateStr);
                                     ?>
-                                    <img src="<?= !empty($event->hinh_anh) ? base_url('uploads/events/' . $event->hinh_anh) : base_url('assets/images/events/default.jpg') ?>" alt="<?= $event->ten_su_kien ?>">
+                                    <img src="<?= !empty($event->hinh_anh) ? base_url('uploads/events/' . $event->hinh_anh) : base_url('assets/images/events/default.jpg') ?>" 
+                                        alt="<?= $event->ten_su_kien ?? $event->ten_sukien ?? 'Sự kiện không xác định' ?>">
                                     
                                     <div class="event-date-badge">
                                         <div class="event-day"><?= $eventDate->format('d') ?></div>
@@ -222,6 +455,20 @@
                                     <div class="event-registered-badge attended">
                                         <i class="fas fa-user-check"></i> Đã tham gia
                                     </div>
+                                    <?php 
+                                    } catch (Exception $e) {
+                                        // Xử lý lỗi một cách im lặng
+                                    ?>
+                                    <img src="<?= base_url('assets/images/events/default.jpg') ?>" alt="Sự kiện">
+                                    <div class="event-date-badge">
+                                        <div class="event-day"><?= date('d') ?></div>
+                                        <div class="event-month">Th<?= date('m') ?></div>
+                                        <div class="event-year"><?= date('Y') ?></div>
+                                    </div>
+                                    <div class="event-registered-badge attended">
+                                        <i class="fas fa-user-check"></i> Đã tham gia
+                                    </div>
+                                    <?php } ?>
                                 </div>
                                 
                                 <div class="event-content">
@@ -235,7 +482,23 @@
                                     <div class="event-details">
                                         <div class="event-time">
                                             <i class="far fa-clock"></i>
-                                            <?= isset($event->gio_bat_dau) ? date('H:i', strtotime($event->gio_bat_dau)) : '--:--' ?> - <?= isset($event->gio_ket_thuc) ? date('H:i', strtotime($event->gio_ket_thuc)) : '--:--' ?>
+                                            <?php
+                                            $gioBatDau = '--:--';
+                                            $gioKetThuc = '--:--';
+                                            
+                                            if (isset($event->gio_bat_dau) && !empty($event->gio_bat_dau)) {
+                                                $gioBatDau = date('H:i', strtotime($event->gio_bat_dau));
+                                            } elseif (isset($event->thoi_gian_bat_dau) && !empty($event->thoi_gian_bat_dau)) {
+                                                $gioBatDau = date('H:i', strtotime($event->thoi_gian_bat_dau));
+                                            }
+                                            
+                                            if (isset($event->gio_ket_thuc) && !empty($event->gio_ket_thuc)) {
+                                                $gioKetThuc = date('H:i', strtotime($event->gio_ket_thuc));
+                                            } elseif (isset($event->thoi_gian_ket_thuc) && !empty($event->thoi_gian_ket_thuc)) {
+                                                $gioKetThuc = date('H:i', strtotime($event->thoi_gian_ket_thuc));
+                                            }
+                                            ?>
+                                            <?= $gioBatDau ?> - <?= $gioKetThuc ?>
                                         </div>
                                         
                                         <div class="event-location">
@@ -258,12 +521,22 @@
                                     <?php endif; ?>
                                     
                                     <div class="event-actions">
-                                        <a href="<?= base_url('su-kien/chi-tiet/'.$event->slug) ?>" class="btn btn-details">
+                                        <a href="<?= base_url('su-kien/chi-tiet/'.($event->slug ?? $event->su_kien_id ?? 0)) ?>" class="btn btn-details">
                                             <i class="fas fa-info-circle"></i> Chi tiết
                                         </a>
                                         
-                                        <?php if(!empty($event->chung_chi)): ?>
-                                            <a href="<?= base_url('nguoi-dung/certificate/download/'.$event->dangky_id) ?>" class="btn btn-certificate">
+                                        <?php 
+                                        $dangky_id = null;
+                                        foreach (['dangky_id', 'dangky_sukien_id', 'id'] as $idField) {
+                                            if (isset($event->$idField) && !empty($event->$idField)) {
+                                                $dangky_id = $event->$idField;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        if(!empty($event->chung_chi) && $dangky_id): 
+                                        ?>
+                                            <a href="<?= base_url('nguoi-dung/certificate/download/'.$dangky_id) ?>" class="btn btn-certificate">
                                                 <i class="fas fa-certificate"></i> Chứng chỉ
                                             </a>
                                         <?php endif; ?>
@@ -286,11 +559,9 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Sự kiện sắp diễn ra -->
-    <div class="row mb-4">
-        <div class="col-12">
+        <!-- Sự kiện sắp diễn ra -->
+        <div class="col-md-6 mb-4">
             <div class="dashboard-section">
                 <div class="section-header">
                     <h5 class="section-title">
@@ -304,7 +575,21 @@
                             <div class="event-card">
                                 <div class="event-image">
                                     <?php 
-                                        $eventDate = new DateTime($event->thoi_gian_bat_dau); 
+                                    try {
+                                        // Tìm trường thời gian từ nhiều trường khả dĩ
+                                        $eventDateStr = null;
+                                        foreach (['thoi_gian_bat_dau', 'ngay_to_chuc', 'created_at'] as $dateField) {
+                                            if (isset($event->$dateField) && !empty($event->$dateField)) {
+                                                $eventDateStr = $event->$dateField;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        if (!$eventDateStr) {
+                                            $eventDateStr = date('Y-m-d H:i:s'); // Giá trị mặc định
+                                        }
+                                        
+                                        $eventDate = new DateTime($eventDateStr);
                                         $now = new DateTime();
                                         $interval = $now->diff($eventDate);
                                         $remaining = '';
@@ -317,7 +602,7 @@
                                         }
                                     ?>
                                     <img src="<?= !empty($event->hinh_anh) ? base_url('uploads/events/'.$event->hinh_anh) : base_url('assets/images/events/default.jpg') ?>" 
-                                        alt="<?= $event->ten_su_kien ?>">
+                                        alt="<?= $event->ten_su_kien ?? $event->ten_sukien ?? 'Sự kiện' ?>">
                                     
                                     <div class="event-countdown">
                                         <i class="far fa-clock"></i> <?= $remaining ?>
@@ -328,6 +613,17 @@
                                         <div class="event-month">Th<?= $eventDate->format('m') ?></div>
                                         <div class="event-year"><?= $eventDate->format('Y') ?></div>
                                     </div>
+                                    <?php 
+                                    } catch (Exception $e) {
+                                        // Xử lý lỗi một cách im lặng, hiển thị thông tin tối thiểu
+                                    ?>
+                                    <img src="<?= base_url('assets/images/events/default.jpg') ?>" alt="Sự kiện">
+                                    <div class="event-date-badge">
+                                        <div class="event-day"><?= date('d') ?></div>
+                                        <div class="event-month">Th<?= date('m') ?></div>
+                                        <div class="event-year"><?= date('Y') ?></div>
+                                    </div>
+                                    <?php } ?>
                                 </div>
                                 
                                 <div class="event-content">
@@ -341,7 +637,23 @@
                                     <div class="event-details">
                                         <div class="event-time">
                                             <i class="far fa-clock"></i>
-                                            <?= isset($event->gio_bat_dau) ? date('H:i', strtotime($event->gio_bat_dau)) : '--:--' ?> - <?= isset($event->gio_ket_thuc) ? date('H:i', strtotime($event->gio_ket_thuc)) : '--:--' ?>
+                                            <?php
+                                            $gioBatDau = '--:--';
+                                            $gioKetThuc = '--:--';
+                                            
+                                            if (isset($event->gio_bat_dau) && !empty($event->gio_bat_dau)) {
+                                                $gioBatDau = date('H:i', strtotime($event->gio_bat_dau));
+                                            } elseif (isset($event->thoi_gian_bat_dau) && !empty($event->thoi_gian_bat_dau)) {
+                                                $gioBatDau = date('H:i', strtotime($event->thoi_gian_bat_dau));
+                                            }
+                                            
+                                            if (isset($event->gio_ket_thuc) && !empty($event->gio_ket_thuc)) {
+                                                $gioKetThuc = date('H:i', strtotime($event->gio_ket_thuc));
+                                            } elseif (isset($event->thoi_gian_ket_thuc) && !empty($event->thoi_gian_ket_thuc)) {
+                                                $gioKetThuc = date('H:i', strtotime($event->thoi_gian_ket_thuc));
+                                            }
+                                            ?>
+                                            <?= $gioBatDau ?> - <?= $gioKetThuc ?>
                                         </div>
                                         
                                         <div class="event-location">
@@ -364,7 +676,7 @@
                                     <?php endif; ?>
                                     
                                     <div class="event-actions">
-                                        <a href="<?= base_url('su-kien/chi-tiet/'.$event->slug) ?>" class="w-100 bg-primary text-white btn btn-details">
+                                        <a href="<?= base_url('su-kien/chi-tiet/'.($event->slug ?? $event->su_kien_id ?? 0)) ?>" class="w-100 bg-primary text-white btn btn-details">
                                             <i class="fas fa-info-circle"></i> Chi tiết
                                         </a>
                                         

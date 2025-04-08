@@ -39,7 +39,7 @@ class LoginController extends BaseController
         if ($authnguoidung->login($email, $password, $remember_me)) {
             // Cập nhật thời gian đăng nhập cuối cùng
             $nguoi_dung = $authnguoidung->getCurrentNguoiDung();
-            
+          
             $redirect_url = session('redirect_url') ?? '/';
             unset($_SESSION['redirect_url']);
 

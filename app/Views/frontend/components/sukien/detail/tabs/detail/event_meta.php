@@ -212,7 +212,7 @@
         <div class="col-md-12 mb-3">
             <div class="meta-item d-flex align-items-start">
                 <div class="icon-container me-3 mt-1">
-                    <i class="lni lni-keyword text-primary"></i>
+                    <i class="lni lni-tag-alt text-primary"></i>
                 </div>
                 <div>
                     <h6 class="mb-1 fw-bold">Từ khóa</h6>

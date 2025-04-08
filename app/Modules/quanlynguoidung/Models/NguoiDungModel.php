@@ -44,7 +44,6 @@ class NguoiDungModel extends BaseModel
         'nganh_id',
         'phong_khoa_id',
         'status',
-        'bin',
         'last_login',
         'created_at',
         'updated_at',
@@ -444,7 +443,6 @@ class NguoiDungModel extends BaseModel
         unset($this->validationRules['last_login']);
         // Loại bỏ validation cho nguoi_dung_id trong mọi trường hợp
         unset($this->validationRules['nguoi_dung_id']);
-        unset($this->validationRules['bin']);
         unset($this->validationRules['u_id']);
         unset($this->validationRules['nam_hoc_id']);
         unset($this->validationRules['bac_hoc_id']);
@@ -682,7 +680,7 @@ class NguoiDungModel extends BaseModel
         $requiredFields = ['Email', 'FullName', 'LastName', 'MiddleName', 'FirstName', 'MobilePhone'];
         
         // Các trường số nguyên cần được chuyển thành null khi rỗng
-        $integerFields = ['u_id', 'loai_nguoi_dung_id', 'nam_hoc_id', 'bac_hoc_id', 'he_dao_tao_id', 'nganh_id', 'phong_khoa_id', 'bin', 'status'];
+        $integerFields = ['u_id', 'loai_nguoi_dung_id', 'nam_hoc_id', 'bac_hoc_id', 'he_dao_tao_id', 'nganh_id', 'phong_khoa_id', 'status'];
         
         // Các trường datetime cần được xử lý đặc biệt
         $datetimeFields = ['last_login', 'created_at', 'updated_at', 'deleted_at'];
@@ -752,5 +750,22 @@ class NguoiDungModel extends BaseModel
         }
         
         return parent::update($id, $data);
+    }
+    
+    /**
+     * Lấy thông tin người dùng dựa vào địa chỉ email
+     *
+     * @param string|null $email Địa chỉ email cần tìm
+     * @return object|null Thông tin người dùng hoặc null nếu không tìm thấy
+     */
+    public function getUserByEmail(?string $email)
+    {
+        if (empty($email)) {
+            return null;
+        }
+        
+        return $this->where('Email', $email)
+                    ->where('deleted_at IS NULL')
+                    ->first();
     }
 } 

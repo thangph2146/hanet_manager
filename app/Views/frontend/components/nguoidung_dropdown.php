@@ -168,15 +168,13 @@
                 // Lấy đường dẫn avatar từ người dùng hiện tại
                 $authnguoidung = service('authnguoidung');
                 $nguoi_dung = $authnguoidung->getCurrentNguoiDung();
-                $avatarUrl = $nguoi_dung && method_exists($nguoi_dung, 'getAvatarUrl') 
-                    ? $nguoi_dung->getAvatarUrl() 
-                    : ($avatar ?? base_url('public/data/images/default-avatar.png'));
+                $avatarUrl = $nguoi_dung->getAvatarUrl();
             } catch (Exception $e) {
                 log_message('error', 'Lỗi lấy avatar: ' . $e->getMessage());
-                $avatarUrl = $avatar ?? base_url('public/data/images/default-avatar.png');
+                $avatarUrl = base_url('assets/images/avatars/default.jpg');
             }
             ?>
-            <img src="<?= $avatarUrl ?>" alt="Avatar" onerror="this.src='<?= base_url('public/data/images/default-avatar.png') ?>'">
+            <img src="<?= $avatarUrl ?>" alt="Avatar" onerror="this.src='<?= base_url('assets/images/avatars/default.jpg') ?>'">
             <span class="user-status"></span>
         </div>
         <div class="user-name">

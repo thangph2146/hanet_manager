@@ -122,12 +122,15 @@
             <div class="events-grid">
                 <?php foreach($events as $event): ?>
                     <?php 
-                        $eventDate = new DateTime($event->thoi_gian_bat_dau ?? date('Y-m-d H:i:s'));
+                        // Đảm bảo thời gian bắt đầu luôn tồn tại
+                        $startTimeStr = $event->thoi_gian_bat_dau ?? date('Y-m-d H:i:s');
+                        $eventDate = new DateTime($startTimeStr);
                         $now = new DateTime();
                         $isUpcoming = $eventDate > $now;
                         
                         // Kiểm tra sự kiện đang diễn ra
-                        $endDate = new DateTime($event->thoi_gian_ket_thuc ?? $event->thoi_gian_bat_dau ?? date('Y-m-d H:i:s'));
+                        $endTimeStr = $event->thoi_gian_ket_thuc ?? $startTimeStr;
+                        $endDate = new DateTime($endTimeStr);
                         $isOngoing = $now >= $eventDate && $now <= $endDate;
                         
                         $eventStatus = $isUpcoming ? 'upcoming' : ($isOngoing ? 'ongoing' : 'ended');
@@ -148,9 +151,9 @@
                             $remaining = 'Còn: ' . $interval->format('%h giờ %i phút');
                         }
                         
-                        // Kiểm tra người dùng đã đăng ký chưa
-                        $isRegistered = isset($userEvents) && in_array($event->ma_su_kien, $userEvents);
-                        $hasAttended = isset($attendedEvents) && in_array($event->ma_su_kien, $attendedEvents);
+                        // Kiểm tra người dùng đã đăng ký chưa - an toàn với mảng rỗng
+                        $isRegistered = !empty($userEvents) && in_array($event->su_kien_id, $userEvents);
+                        $hasAttended = !empty($attendedEvents) && in_array($event->su_kien_id, $attendedEvents);
                         
                         // Thiết lập trạng thái đăng ký
                         $registrationStatus = 'not_registered';
@@ -160,14 +163,14 @@
                             $registrationStatus = 'registered';
                         }
                         
-                        // Định dạng ảnh
+                        // Định dạng ảnh với kiểm tra tính tồn tại
                         $eventImage = !empty($event->hinh_anh) 
                             ? base_url('public/uploads/sukien/' . $event->hinh_anh)
                             : base_url('public/assets/images/events/default.jpg');
                     ?>
                     <div class="event-card" 
                          data-category="<?= $event->phan_loai ?? '' ?>"
-                         data-date="<?= $event->thoi_gian_bat_dau ?? '' ?>"
+                         data-date="<?= $startTimeStr ?>"
                          data-views="<?= $event->luot_xem ?? 0 ?>"
                          data-status="<?= $eventStatus ?>"
                          data-registration="<?= $registrationStatus ?>">
@@ -212,7 +215,8 @@
                             <div class="event-details">
                                 <div class="event-time">
                                     <i class="far fa-clock"></i>
-                                    <?= isset($event->gio_bat_dau) ? date('H:i', strtotime($event->gio_bat_dau)) : '--:--' ?> - <?= isset($event->gio_ket_thuc) ? date('H:i', strtotime($event->gio_ket_thuc)) : '--:--' ?>
+                                    <?= date('H:i', strtotime($startTimeStr)) ?> - 
+                                    <?= date('H:i', strtotime($endTimeStr)) ?>
                                 </div>
                                 
                                 <div class="event-location">
@@ -227,7 +231,11 @@
                             </div>
                             
                             <div class="event-description">
-                                <?= isset($event->mo_ta) ? character_limiter(strip_tags($event->mo_ta), 150) : 'Chưa có mô tả' ?>
+                                <?php if(function_exists('character_limiter') && !empty($event->mo_ta)): ?>
+                                    <?= character_limiter(strip_tags($event->mo_ta), 150) ?>
+                                <?php else: ?>
+                                    <?= !empty($event->mo_ta) ? substr(strip_tags($event->mo_ta), 0, 150) . '...' : 'Chưa có mô tả' ?>
+                                <?php endif; ?>
                             </div>
                             
                             <div class="event-stats">
@@ -237,7 +245,7 @@
                                 </div>
                                 <div class="event-stat">
                                     <i class="fas fa-calendar-check"></i>
-                                    <span><?= $event->so_luong_check_in ?? 0 ?> tham dự</span>
+                                    <span><?= $event->so_luong_tham_du ?? 0 ?> tham dự</span>
                                 </div>
                                 
                                 <?php if(isset($event->so_luong_toi_da) && $event->so_luong_toi_da > 0): ?>
@@ -258,10 +266,9 @@
                             </div>
                             
                             <div class="event-actions">
-                                <a href="<?= base_url('/su-kien/chi-tiet/' . ($event->slug ?? 0)) ?>" class="btn btn-details">
+                                <a href="<?= base_url('/su-kien/chi-tiet/' . ($event->slug ?? $event->su_kien_id)) ?>" class="btn btn-details">
                                     <i class="fas fa-info-circle"></i> Chi tiết
                                 </a>
-                               
                             </div>
                         </div>
                     </div>

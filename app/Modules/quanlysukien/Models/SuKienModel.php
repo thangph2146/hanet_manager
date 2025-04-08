@@ -791,21 +791,8 @@ class SuKienModel extends BaseModel
             return false;
         }
         
-        $now = Time::now();
-        
-        // Nếu có thời gian check-in cụ thể
-        if (!empty($suKien->thoi_gian_checkin_bat_dau) && !empty($suKien->thoi_gian_checkin_ket_thuc)) {
-            $startTime = new Time($suKien->thoi_gian_checkin_bat_dau);
-            $endTime = new Time($suKien->thoi_gian_checkin_ket_thuc);
-            
-            return $now >= $startTime && $now <= $endTime;
-        }
-        
-        // Nếu không có thời gian check-in cụ thể, sử dụng thời gian sự kiện
-        $startTime = new Time($suKien->thoi_gian_bat_dau_su_kien);
-        $endTime = new Time($suKien->thoi_gian_ket_thuc_su_kien);
-        
-        return $now >= $startTime && $now <= $endTime;
+        // Sử dụng phương thức isCheckinTime từ entity SuKien
+        return $suKien->isCheckinTime();
     }
 
     /**
@@ -1247,34 +1234,260 @@ class SuKienModel extends BaseModel
      */
     public function updateEventStats(int $eventId): bool
     {
-        // Lấy thông tin sự kiện
-        $event = $this->find($eventId);
-        if (!$event) {
+        $db = \Config\Database::connect();
+        
+        // Đếm số lượng đăng ký
+        $registerCount = $db->table('dangky_sukien')
+            ->where('su_kien_id', $eventId)
+            ->where('deleted_at IS NULL')
+            ->countAllResults();
+        
+        // Đếm số lượng check-in
+        $checkinCount = $db->table('checkin_sukien')
+            ->where('su_kien_id', $eventId)
+            ->where('deleted_at IS NULL')
+            ->countAllResults();
+        
+        // Đếm số lượng check-out
+        $checkoutCount = $db->table('checkin_sukien')
+            ->where('su_kien_id', $eventId)
+            ->where('deleted_at IS NULL')
+            ->where('check_out_time IS NOT NULL')
+            ->countAllResults();
+        
+        // Cập nhật thống kê cho sự kiện
+        $data = [
+            'tong_dang_ky' => $registerCount,
+            'tong_check_in' => $checkinCount,
+            'tong_check_out' => $checkoutCount
+        ];
+        
+        // Cập nhật vào database
+        return $this->update($eventId, $data);
+    }
+
+    /**
+     * Kiểm tra thời gian check-out hợp lệ
+     *
+     * @param int $eventId ID của sự kiện
+     * @return bool
+     */
+    public function isValidCheckoutTime(int $eventId): bool
+    {
+        $suKien = $this->find($eventId);
+        if (!$suKien) {
             return false;
         }
         
-        // Tạo instance của DangKySuKienModel
-        $dangKySuKienModel = new \App\Modules\quanlydangkysukien\Models\DangKySuKienModel();
+        // Sử dụng phương thức isCheckoutTime từ entity SuKien
+        return $suKien->isCheckoutTime();
+    }
+    
+    /**
+     * Cập nhật số lượng check-out cho sự kiện
+     *
+     * @param int $eventId ID của sự kiện
+     * @param int $increment Số lượng tăng thêm
+     * @return bool
+     */
+    public function updateCheckOutCount(int $eventId, int $increment = 1): bool
+    {
+        $suKien = $this->find($eventId);
+        if (!$suKien) {
+            return false;
+        }
         
-        // Đếm tổng số đăng ký
-        $totalRegistrations = $dangKySuKienModel->countRegistrationsByEvent($eventId);
+        $currentCount = (int)$suKien->tong_check_out;
+        $newCount = $currentCount + $increment;
         
-        // Đếm số lượng check-in
-        $totalCheckIns = $dangKySuKienModel->countRegistrationsByEvent($eventId, [
-            'da_check_in' => 1
-        ]);
-        
-        // Đếm số lượng check-out
-        $totalCheckOuts = $dangKySuKienModel->countRegistrationsByEvent($eventId, [
-            'da_check_out' => 1
-        ]);
-        
-        // Cập nhật thông tin thống kê
         return $this->update($eventId, [
-            'tong_dang_ky' => $totalRegistrations,
-            'tong_check_in' => $totalCheckIns,
-            'tong_check_out' => $totalCheckOuts,
-            'updated_at' => Time::now()->toDateTimeString()
+            'tong_check_out' => $newCount
         ]);
+    }
+
+    /**
+     * Kiểm tra sự kiện có đang trong thời gian đăng ký hay không
+     *
+     * @param int $eventId ID của sự kiện
+     * @return bool
+     */
+    public function isRegistrationAllowed(int $eventId): bool
+    {
+        $suKien = $this->find($eventId);
+        if (!$suKien) {
+            return false;
+        }
+        
+        // Sử dụng phương thức isRegistrationTime từ entity SuKien
+        return $suKien->isRegistrationTime();
+    }
+    
+    /**
+     * Cập nhật số lượng đăng ký cho sự kiện
+     *
+     * @param int $eventId ID của sự kiện
+     * @param int $increment Số lượng tăng thêm
+     * @return bool
+     */
+    public function updateRegistrationCount(int $eventId, int $increment = 1): bool
+    {
+        $suKien = $this->find($eventId);
+        if (!$suKien) {
+            return false;
+        }
+        
+        $currentCount = (int)$suKien->tong_dang_ky;
+        $newCount = $currentCount + $increment;
+        
+        return $this->update($eventId, [
+            'tong_dang_ky' => $newCount
+        ]);
+    }
+
+    /**
+     * Lấy các thống kê của sự kiện
+     *
+     * @param int $eventId ID của sự kiện
+     * @return array Mảng các thống kê của sự kiện
+     */
+    public function getEventStatistics(int $eventId): array
+    {
+        $suKien = $this->find($eventId);
+        if (!$suKien) {
+            return [
+                'tong_dang_ky' => 0,
+                'tong_check_in' => 0,
+                'tong_check_out' => 0,
+                'so_luot_xem' => 0,
+                'ty_le_check_in' => 0,
+                'ty_le_check_out' => 0
+            ];
+        }
+        
+        $tongDangKy = (int)$suKien->getTongDangKy();
+        $tongCheckIn = (int)$suKien->getTongCheckIn();
+        $tongCheckOut = (int)$suKien->getTongCheckOut();
+        $soLuotXem = (int)$suKien->getSoLuotXem();
+        
+        // Tính tỷ lệ check-in và check-out
+        $tyLeCheckIn = $tongDangKy > 0 ? round(($tongCheckIn / $tongDangKy) * 100, 2) : 0;
+        $tyLeCheckOut = $tongCheckIn > 0 ? round(($tongCheckOut / $tongCheckIn) * 100, 2) : 0;
+        
+        return [
+            'tong_dang_ky' => $tongDangKy,
+            'tong_check_in' => $tongCheckIn,
+            'tong_check_out' => $tongCheckOut,
+            'so_luot_xem' => $soLuotXem,
+            'ty_le_check_in' => $tyLeCheckIn,
+            'ty_le_check_out' => $tyLeCheckOut
+        ];
+    }
+
+    /**
+     * Lấy danh sách người tham gia sự kiện với tùy chọn lọc
+     *
+     * @param int $eventId ID của sự kiện
+     * @param array $filters Các tùy chọn lọc như: đã đăng ký, đã check-in, đã check-out
+     * @param array $options Tùy chọn phân trang và sắp xếp
+     * @return array Danh sách người tham gia
+     */
+    public function getParticipantsByEvent(int $eventId, array $filters = [], array $options = []): array
+    {
+        $db = \Config\Database::connect();
+        
+        // Lấy tùy chọn từ tham số
+        $limit = $options['limit'] ?? 0;
+        $offset = $options['offset'] ?? 0;
+        $sort = $options['sort'] ?? 'dangky_sukien.created_at';
+        $order = $options['order'] ?? 'DESC';
+        
+        // Xây dựng query cơ bản
+        $builder = $db->table('dangky_sukien')
+            ->select('dangky_sukien.*, nguoi_dung.ho_ten, nguoi_dung.email, nguoi_dung.so_dien_thoai, 
+                      checkin_sukien.check_in_time, checkin_sukien.check_out_time')
+            ->join('nguoi_dung', 'nguoi_dung.nguoi_dung_id = dangky_sukien.nguoi_dung_id', 'left')
+            ->join('checkin_sukien', 'checkin_sukien.dangky_sukien_id = dangky_sukien.dangky_sukien_id', 'left')
+            ->where('dangky_sukien.su_kien_id', $eventId)
+            ->where('dangky_sukien.deleted_at IS NULL');
+        
+        // Áp dụng các bộ lọc
+        if (isset($filters['da_check_in']) && $filters['da_check_in'] === true) {
+            $builder->where('checkin_sukien.check_in_time IS NOT NULL');
+        }
+        
+        if (isset($filters['da_check_out']) && $filters['da_check_out'] === true) {
+            $builder->where('checkin_sukien.check_out_time IS NOT NULL');
+        }
+        
+        if (isset($filters['chua_check_in']) && $filters['chua_check_in'] === true) {
+            $builder->where('checkin_sukien.check_in_time IS NULL');
+        }
+        
+        if (isset($filters['search']) && !empty($filters['search'])) {
+            $search = $filters['search'];
+            $builder->groupStart()
+                ->like('nguoi_dung.ho_ten', $search)
+                ->orLike('nguoi_dung.email', $search)
+                ->orLike('nguoi_dung.so_dien_thoai', $search)
+                ->groupEnd();
+        }
+        
+        // Áp dụng sắp xếp
+        $builder->orderBy($sort, $order);
+        
+        // Áp dụng phân trang
+        if ($limit > 0) {
+            $builder->limit($limit, $offset);
+        }
+        
+        // Thực hiện query
+        $result = $builder->get()->getResultArray();
+        
+        return $result;
+    }
+    
+    /**
+     * Đếm số lượng người tham gia sự kiện theo bộ lọc
+     *
+     * @param int $eventId ID của sự kiện
+     * @param array $filters Các bộ lọc
+     * @return int Số lượng người tham gia
+     */
+    public function countParticipantsByEvent(int $eventId, array $filters = []): int
+    {
+        $db = \Config\Database::connect();
+        
+        // Xây dựng query cơ bản
+        $builder = $db->table('dangky_sukien')
+            ->select('dangky_sukien.dangky_sukien_id')
+            ->join('nguoi_dung', 'nguoi_dung.nguoi_dung_id = dangky_sukien.nguoi_dung_id', 'left')
+            ->join('checkin_sukien', 'checkin_sukien.dangky_sukien_id = dangky_sukien.dangky_sukien_id', 'left')
+            ->where('dangky_sukien.su_kien_id', $eventId)
+            ->where('dangky_sukien.deleted_at IS NULL');
+        
+        // Áp dụng các bộ lọc
+        if (isset($filters['da_check_in']) && $filters['da_check_in'] === true) {
+            $builder->where('checkin_sukien.check_in_time IS NOT NULL');
+        }
+        
+        if (isset($filters['da_check_out']) && $filters['da_check_out'] === true) {
+            $builder->where('checkin_sukien.check_out_time IS NOT NULL');
+        }
+        
+        if (isset($filters['chua_check_in']) && $filters['chua_check_in'] === true) {
+            $builder->where('checkin_sukien.check_in_time IS NULL');
+        }
+        
+        if (isset($filters['search']) && !empty($filters['search'])) {
+            $search = $filters['search'];
+            $builder->groupStart()
+                ->like('nguoi_dung.ho_ten', $search)
+                ->orLike('nguoi_dung.email', $search)
+                ->orLike('nguoi_dung.so_dien_thoai', $search)
+                ->groupEnd();
+        }
+        
+        // Đếm kết quả
+        return $builder->countAllResults();
     }
 }   
