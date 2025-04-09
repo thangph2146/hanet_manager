@@ -113,6 +113,7 @@
                 <form id="edit-profile-form" data-ajax="true" action="<?= base_url('nguoi-dung/profile/update') ?>" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="nguoi_dung_id" value="<?= $profile->nguoi_dung_id ?>">
                     <input type="hidden" name="avatar_folder" value="uploads/avatars/">
+                    <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
                     <div class="row">
                         <div class="col-md-4 col-sm-12 mb-3">
                             <label for="lastname" class="form-label">Họ <span class="text-danger">*</span></label>
