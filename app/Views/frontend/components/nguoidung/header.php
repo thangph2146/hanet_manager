@@ -40,64 +40,10 @@ $userdropdown = [
         <i class="fas fa-bars"></i>
     </button>
     
-    <!-- Search Bar - Ẩn trên mobile -->
-    <div class="nav-search d-none d-lg-flex">
-        <input type="text" placeholder="Tìm kiếm (Ctrl + /)" aria-label="Search">
-        <i class="fas fa-search"></i>
-    </div>
-    
-    <!-- Mobile Search Button -->
-    <button class="nav-action-btn mobile-search-btn d-lg-none" aria-label="Mobile Search">
-        <i class="fas fa-search"></i>
-    </button>
     
     <!-- Action Buttons -->
     <div class="nav-actions">
-        
-        <!-- Notifications Dropdown -->
-        <div class="dropdown">
-            <button class="nav-action-btn" id="notifications-dropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
-                <i class="far fa-bell"></i>
-                <span class="badge pulse"><?= count($notifications) ?></span>
-            </button>
-            
-            <div class="dropdown-menu notification-dropdown" aria-labelledby="notifications-dropdown">
-                <div class="dropdown-header">
-                    <h6 class="mb-0">Thông báo</h6>
-                    <a href="#" class="text-muted text-decoration-none">
-                        <i class="fas fa-check-double"></i>
-                        Đánh dấu tất cả đã đọc
-                    </a>
-                </div>
-                
-                <div class="notification-list">
-                    <?php foreach($notifications as $notification): ?>
-                    <div class="notification-item">
-                        <div class="notification-icon bg-<?= $notification['bg'] ?>">
-                            <i class="fas fa-<?= $notification['icon'] ?>"></i>
-                        </div>
-                        <div class="notification-content">
-                            <div class="notification-title"><?= $notification['title'] ?></div>
-                            <div class="notification-text"><?= $notification['text'] ?></div>
-                            <div class="notification-time">
-                                <i class="far fa-clock"></i>
-                                <?= $notification['time'] ?>
-                            </div>
-                        </div>
-                        <button class="notification-close" aria-label="Close">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-                
-                <a href="<?= base_url('nguoi-dung/notifications') ?>" class="dropdown-item text-center view-all">
-                    Xem tất cả thông báo
-                    <i class="fas fa-chevron-right ms-1"></i>
-                </a>
-            </div>
-        </div>
-        
+     
         <?php if (!isLoggedInStudent()): ?>
 					<a href="<?= site_url('login') ?>" class="btn btn-light btn-sm px-3 me-2 btn-login">
 						<i class="fas fa-user-plus me-1"></i> Đăng nhập

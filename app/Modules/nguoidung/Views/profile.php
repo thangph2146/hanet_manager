@@ -23,7 +23,7 @@
                                 <h4 class="mb-1 profile-name"><?= $profile->FullName ?></h4>
                                 <p class="mb-2 text-white profile-email"><?= $profile->Email ?></p>
                                 <p class="mb-0 d-none d-md-block">
-                                    <span class="badge bg-info">Đăng nhập gần đây: <?= date('d/m/Y H:i', strtotime($profile->last_login)) ?></span>
+                                    <span class="badge bg-info" style="top: 15px; right: 75px">Đăng nhập gần đây: <?= date('d/m/Y H:i', strtotime($profile->last_login)) ?></span>
                                 </p>
                             </div>
                         </div>
