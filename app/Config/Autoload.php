@@ -124,5 +124,6 @@ class Autoload extends AutoloadConfig
         'security',
         'array',
         'my_string',
+        'locale',
     ];
 }

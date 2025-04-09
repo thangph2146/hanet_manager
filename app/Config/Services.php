@@ -59,4 +59,14 @@ class Services extends BaseService
 
 		return new \App\Libraries\GoogleAuthentication;
 	}
+	
+	public static function locale($getShared = true)
+	{
+		if ($getShared)
+		{
+			return static::getSharedInstance('locale');
+		}
+
+		return new \App\Config\Locale();
+	}
 }
