@@ -696,6 +696,10 @@ class NguoiDung extends BaseEntity
      */
     public function getAvatarUrl(): string
     {
+        // If avatar is null or empty, return the default avatar path
+        if (empty($this->attributes['avatar'])) {
+            return base_url('assets/images/avatars/user.png');
+        }
 
         // Kiểm tra xem avatar có phải là URL đầy đủ không
         if (strpos($this->attributes['avatar'], 'http://') === 0 || strpos($this->attributes['avatar'], 'https://') === 0) {

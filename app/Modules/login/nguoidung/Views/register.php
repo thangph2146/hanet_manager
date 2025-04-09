@@ -121,7 +121,7 @@
                         
                         <!-- Form Body -->
                         <div class="form-body">
-                            <?= form_open(base_url('login/student/create'), ['class' => 'row g-3']) ?>
+                            <?= form_open(base_url('login/nguoidung/create'), ['class' => 'row g-3']) ?>
                                 <div class="row">
                                     <div class="col-xl-12 mx-auto">
                                         <?php if (session()->getFlashdata('error')) : ?>
@@ -144,38 +144,43 @@
                                     </div>
                                 </div>
                                 <div class="col-12">
-                                    <label for="fullname" class="form-label">Họ và tên</label>
-                                    <input type="text" class="form-control" id="fullname" name="fullname" placeholder="Nhập họ và tên" value="<?= old('fullname') ?>">
+                                    <label for="LastName" class="form-label">Họ</label>
+                                    <input type="text" class="form-control" id="LastName" name="LastName" placeholder="Nhập họ và tên đệm" value="<?= old('LastName') ?>">
                                 </div>
                                 <div class="col-12">
-                                    <label for="email" class="form-label">Email sinh viên</label>
-                                    <input type="email" class="form-control" id="email" name="email" placeholder="Nhập email sinh viên" value="<?= old('email') ?>">
+                                    <label for="MiddleName" class="form-label">Tên đệm</label>
+                                    <input type="text" class="form-control" id="MiddleName" name="MiddleName" placeholder="Nhập tên đệm (nếu có)" value="<?= old('MiddleName') ?>">
                                 </div>
                                 <div class="col-12">
-                                    <label for="username" class="form-label">Tên của bạn</label>
-                                    <input type="text" class="form-control" id="username" name="username" placeholder="Nhập tên của bạn" value="<?= old('username') ?>">
-                                    <small class="text-muted">Tên của bạn phải có ít nhất 2 ký tự và không có khoảng trắng</small>
+                                    <label for="FirstName" class="form-label">Tên</label>
+                                    <input type="text" class="form-control" id="FirstName" name="FirstName" placeholder="Nhập tên" value="<?= old('FirstName') ?>">
                                 </div>
                                 <div class="col-12">
-                                    <label for="mobile" class="form-label">Số điện thoại</label>
-                                    <input type="text" class="form-control" id="mobile" name="mobile" placeholder="Nhập số điện thoại" value="<?= old('mobile') ?>">
+                                    <label for="Email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="Email" name="Email" placeholder="Nhập email" value="<?= old('Email') ?>">
                                 </div>
                                 <div class="col-12">
-                                    <label for="password" class="form-label">Mật khẩu</label>
+                                    <input type="hidden" id="AccountId" name="AccountId" value="<?= old('AccountId') ?>">
+                                    <label for="MobilePhone" class="form-label">Số điện thoại</label>
+                                    <input type="text" class="form-control" id="MobilePhone" name="MobilePhone" placeholder="Nhập số điện thoại" value="<?= old('MobilePhone') ?>">
+                                </div>
+                                <div class="col-12">
+                                    <label for="PW" class="form-label">Mật khẩu</label>
                                     <div class="input-group" id="show_hide_password">
-                                        <input type="password" class="form-control border-end-0" id="password" name="password" placeholder="Nhập mật khẩu">
+                                        <input type="password" class="form-control border-end-0" id="PW" name="PW" placeholder="Nhập mật khẩu">
                                         <a href="javascript:;" class="input-group-text bg-transparent"><i class='bx bx-hide'></i></a>
                                     </div>
                                     <small class="text-muted">Mật khẩu phải có ít nhất 6 ký tự</small>
                                 </div>
                                 <div class="col-12">
-                                    <label for="password_confirm" class="form-label">Xác nhận mật khẩu</label>
+                                    <label for="PW_confirm" class="form-label">Xác nhận mật khẩu</label>
                                     <div class="input-group" id="show_hide_password_confirm">
-                                        <input type="password" class="form-control border-end-0" id="password_confirm" name="password_confirm" placeholder="Nhập lại mật khẩu">
+                                        <input type="password" class="form-control border-end-0" id="PW_confirm" name="PW_confirm" placeholder="Nhập lại mật khẩu">
                                         <a href="javascript:;" class="input-group-text bg-transparent"><i class='bx bx-hide'></i></a>
                                     </div>
                                 </div>
                                 <div class="col-12">
+                                    <input type="hidden" id="FullName" name="FullName" value="<?= old('FullName') ?>">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="agree" name="agree" required>
                                         <label class="form-check-label" for="agree">Tôi đồng ý với <a href="#">Điều khoản sử dụng</a></label>
@@ -216,6 +221,7 @@
 
     <script>
         $(document).ready(function () {
+            // Show/hide password functionality
             $("#show_hide_password a").on('click', function (event) {
                 event.preventDefault();
                 if ($('#show_hide_password input').attr("type") == "text") {
@@ -241,6 +247,32 @@
                     $('#show_hide_password_confirm i').addClass("bx-show");
                 }
             });
+
+            // Auto-generate FullName from LastName, MiddleName, and FirstName
+            function updateFullName() {
+                var lastName = $('#LastName').val() || '';
+                var middleName = $('#MiddleName').val() || '';
+                var firstName = $('#FirstName').val() || '';
+                var fullName = (lastName + ' ' + middleName + ' ' + firstName).trim();
+                $('#FullName').val(fullName);
+            }
+
+            // Update FullName whenever name fields change
+            $('#LastName, #MiddleName, #FirstName').on('change keyup', updateFullName);
+
+            // Generate AccountId from Email
+            function updateAccountId() {
+                var email = $('#Email').val();
+                if (email) {
+                    var parts = email.split('@');
+                    if (parts.length > 1) {
+                        $('#AccountId').val(parts[0]);
+                    }
+                }
+            }
+
+            // Update AccountId when Email changes
+            $('#Email').on('change keyup', updateAccountId);
         });
     </script>
 </body>

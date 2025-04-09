@@ -16,7 +16,7 @@ $routes->get('login', function() {
 $routes->get('dang-ky', 'LoginController::register');
 $routes->get('@login.php', 'LoginController::index');
 $routes->get('login/nguoi-dung', 'LoginController::index');
-$routes->post('login/create_nguoidung', 'LoginController::create_nguoidung');
+$routes->post('login/login_nguoidung', 'LoginController::login_nguoidung');
 $routes->post('login/nguoidung/create', 'LoginController::create_nguoidung_account');
 
 // Routes cho logout student

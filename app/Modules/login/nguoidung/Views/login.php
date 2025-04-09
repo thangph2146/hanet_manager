@@ -121,7 +121,7 @@
 					
 					<!-- Form Body -->
 					<div class="form-body">
-						<?= form_open(site_url("login/create_nguoidung"), ['class' => 'row g-3']) ?>
+						<?= form_open(site_url("login/login_nguoidung"), ['class' => 'row g-3']) ?>
 							<div class="row">
 								<div class="col-xl-12 mx-auto">
 									<!--Error list -->
@@ -131,12 +131,12 @@
 							</div>
 							<div class="col-12">
 								<label for="email" class="form-label">Email sinh viên</label>
-								<input type="email" class="form-control" id="email" name="email" placeholder="Nhập email sinh viên">
+								<input type="email" class="form-control" id="email" name="Email" placeholder="Nhập email sinh viên">
 							</div>
 							<div class="col-12">
 								<label for="inputChoosePassword" class="form-label">Mật khẩu</label>
 								<div class="input-group" id="show_hide_password">
-									<input type="password" class="form-control border-end-0" id="inputChoosePassword" name="password" placeholder="Nhập mật khẩu"> 
+									<input type="password" class="form-control border-end-0" id="inputChoosePassword" name="PW" placeholder="Nhập mật khẩu"> 
 									<a href="javascript:;" class="input-group-text bg-transparent"><i class='bx bx-hide'></i></a>
 								</div>
 							</div>
@@ -156,8 +156,6 @@
 								<div class="col-md-12 text-end mt-3">
 									<a href="<?= site_url("dang-ky") ?>" class="forgot-password">Đăng ký tài khoản</a>
 								</div>
-										
-							</div>
 							</div>
 							<div class="col-12">
 								<div class="login-separator text-center"> 
@@ -169,9 +167,8 @@
 										<i class="bx bxl-google"></i> Đăng nhập bằng Google
 									</a>
 								</div>
-								
 							</div>
-						</form>
+						<?= form_close() ?>
 					</div>
 				</div>
 			</div>

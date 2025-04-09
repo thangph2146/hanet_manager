@@ -28,10 +28,10 @@ class LoginController extends BaseController
         return view('App\Modules\login\nguoidung\Views\register');
     }
 
-    public function create_nguoidung()
+    public function login_nguoidung()
     {
-        $email = $this->request->getPost('email');
-        $password = $this->request->getPost('password');    
+        $email = $this->request->getPost('Email');
+        $password = $this->request->getPost('PW');    
         $remember_me = (bool) $this->request->getPost('remember_me');
 
         $authnguoidung = service('authnguoidung');
@@ -60,63 +60,70 @@ class LoginController extends BaseController
     public function create_nguoidung_account()
     {
         $rules = [
-            'fullname' => [
-                'label' => 'Họ và tên',
-                'rules' => 'required|min_length[3]|max_length[100]',
+            'LastName' => [
+                'label' => 'Họ',
+                'rules' => 'required|min_length[2]|max_length[100]',
                 'errors' => [
-                    'required' => '{field} không được để trống',
-                    'min_length' => '{field} phải có ít nhất {param} ký tự',
-                    'max_length' => '{field} không được quá {param} ký tự'
+                    'required' => 'Họ không được để trống',
+                    'min_length' => 'Họ phải có ít nhất {param} ký tự',
+                    'max_length' => 'Họ không được quá {param} ký tự'
                 ]
             ],
-            'email' => [
-                'label' => 'Email sinh viên',
+            'MiddleName' => [
+                'label' => 'Tên đệm',
+                'rules' => 'permit_empty|max_length[100]',
+                'errors' => [
+                    'max_length' => 'Tên đệm không được quá {param} ký tự'
+                ]
+            ],
+            'FirstName' => [
+                'label' => 'Tên',
+                'rules' => 'required|min_length[2]|max_length[100]',
+                'errors' => [
+                    'required' => 'Tên không được để trống',
+                    'min_length' => 'Tên phải có ít nhất {param} ký tự',
+                    'max_length' => 'Tên không được quá {param} ký tự'
+                ]
+            ],      
+            'Email' => [
+                'label' => 'Email',
                 'rules' => 'required|valid_email|is_unique[nguoi_dung.Email]',
                 'errors' => [
-                    'required' => '{field} không được để trống',
-                    'valid_email' => '{field} phải đúng định dạng',
-                    'is_unique' => '{field} đã tồn tại trong hệ thống'
+                    'required' => 'Email không được để trống',
+                    'valid_email' => 'Email phải đúng định dạng',
+                    'is_unique' => 'Email đã tồn tại trong hệ thống'
                 ]
             ],
-            'username' => [
-                'label' => 'Tên của bạn',
-                'rules' => 'required|min_length[2]|max_length[50]',
-                'errors' => [
-                    'required' => '{field} không được để trống',
-                    'min_length' => '{field} phải có ít nhất {param} ký tự',
-                    'max_length' => '{field} không được quá {param} ký tự'
-                ]
-            ],
-            'password' => [
+            'PW' => [
                 'label' => 'Mật khẩu',
                 'rules' => 'required|min_length[6]|max_length[255]',
                 'errors' => [
-                    'required' => '{field} không được để trống',
-                    'min_length' => '{field} phải có ít nhất {param} ký tự',
-                    'max_length' => '{field} không được quá {param} ký tự'
+                    'required' => 'Mật khẩu không được để trống',
+                    'min_length' => 'Mật khẩu phải có ít nhất {param} ký tự',
+                    'max_length' => 'Mật khẩu không được quá {param} ký tự'
                 ]
             ],
-            'password_confirm' => [
+            'PW_confirm' => [
                 'label' => 'Xác nhận mật khẩu',
-                'rules' => 'required|matches[password]',
+                'rules' => 'required|matches[PW]',
                 'errors' => [
-                    'required' => '{field} không được để trống',
-                    'matches' => '{field} không khớp với mật khẩu'
+                    'required' => 'Xác nhận mật khẩu không được để trống',
+                    'matches' => 'Xác nhận mật khẩu không khớp với mật khẩu'
                 ]
             ],
-            'mobile' => [
+            'MobilePhone' => [
                 'label' => 'Số điện thoại',
                 'rules' => 'permit_empty|min_length[10]|max_length[20]',
                 'errors' => [
-                    'min_length' => '{field} phải có ít nhất {param} ký tự',
-                    'max_length' => '{field} không được quá {param} ký tự'
+                    'min_length' => 'Số điện thoại phải có ít nhất {param} ký tự',
+                    'max_length' => 'Số điện thoại không được quá {param} ký tự'
                 ]
             ],
             'agree' => [
                 'label' => 'Điều khoản sử dụng',
                 'rules' => 'required',
                 'errors' => [
-                    'required' => 'Bạn phải đồng ý với {field}'
+                    'required' => 'Bạn phải đồng ý với điều khoản sử dụng'
                 ]
             ]
         ];
@@ -128,20 +135,16 @@ class LoginController extends BaseController
         }
         
         // Lấy dữ liệu từ form
-        $username = $this->request->getPost('username');
-        $fullname = $this->request->getPost('fullname');
-        $email = $this->request->getPost('email');
-        $password = $this->request->getPost('password');
-        $mobile = $this->request->getPost('mobile');
+        $lastName = $this->request->getPost('LastName');
+        $middleName = $this->request->getPost('MiddleName') ?? '';
+        $firstName = $this->request->getPost('FirstName');
+        $email = $this->request->getPost('Email');
+        $password = $this->request->getPost('PW');
+        $mobilePhone = $this->request->getPost('MobilePhone') ?? '';
+        $fullName = trim("$lastName $middleName $firstName");
         
         // Tạo AccountId từ email sinh viên
         $accountId = explode('@', $email)[0]; // Lấy phần trước @ làm tên đăng nhập
-
-        // Phân tách họ tên thành các thành phần
-        $nameParts = explode(' ', $fullname);
-        $firstName = array_pop($nameParts); // Phần tử cuối cùng là tên
-        $lastName = array_shift($nameParts) ?? ''; // Phần tử đầu tiên là họ
-        $middleName = implode(' ', $nameParts); // Phần còn lại là tên đệm
 
         // Kiểm tra xem AccountId đã tồn tại chưa
         $nguoiDungModel = new \App\Modules\quanlynguoidung\Models\NguoiDungModel();
@@ -155,11 +158,13 @@ class LoginController extends BaseController
             'FirstName' => $firstName,
             'MiddleName' => $middleName,
             'LastName' => $lastName,
-            'FullName' => $fullname,
+            'FullName' => $fullName,
             'Email' => $email,
-            'MobilePhone' => $mobile,
+            'MobilePhone' => $mobilePhone,
+            'PW' => password_hash($password, PASSWORD_DEFAULT),
             'mat_khau_local' => password_hash($password, PASSWORD_DEFAULT),
-            'loai_nguoi_dung_id' => 2, // ID cho loại người dùng sinh viên
+            'AccountType' => 'student',
+            'loai_nguoi_dung_id' => NULL, // ID cho loại người dùng sinh viên
             'status' => 1
         ];
         
