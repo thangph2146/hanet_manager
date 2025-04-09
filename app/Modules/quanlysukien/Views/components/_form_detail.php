@@ -15,6 +15,16 @@ $mo_ta_su_kien = isset($data) ? $data->getMoTaSuKien() : '';
 $chi_tiet_su_kien = isset($data) ? $data->getChiTietSuKien() : '';
 $thoi_gian_bat_dau = isset($data) ? $data->getThoiGianBatDauFormatted() : '';
 $thoi_gian_ket_thuc = isset($data) ? $data->getThoiGianKetThucFormatted() : '';
+$thoi_gian_bat_dau_dang_ky = isset($data) ? $data->getThoiGianBatDauDangKyFormatted() : '';
+$thoi_gian_ket_thuc_dang_ky = isset($data) ? $data->getThoiGianKetThucDangKyFormatted() : '';
+$thoi_gian_checkin_bat_dau = isset($data) ? $data->getThoiGianCheckinBatDauFormatted() : '';
+$thoi_gian_checkin_ket_thuc = isset($data) ? $data->getThoiGianCheckinKetThucFormatted() : '';
+$thoi_gian_checkout_bat_dau = isset($data) ? $data->getThoiGianCheckoutBatDauFormatted() : '';
+$thoi_gian_checkout_ket_thuc = isset($data) ? $data->getThoiGianCheckoutKetThucFormatted() : '';
+$han_huy_dang_ky = isset($data) ? $data->getHanHuyDangKyFormatted() : '';
+$don_vi_to_chuc = isset($data) ? $data->getDonViToChuc() : '';
+$don_vi_phoi_hop = isset($data) ? $data->getDonViPhoiHop() : '';
+$doi_tuong_tham_gia = isset($data) ? $data->getDoiTuongThamGia() : '';
 $dia_diem = isset($data) ? $data->getDiaDiem() : '';
 $dia_chi_cu_the = isset($data) ? $data->getDiaChiCuThe() : '';
 $toa_do_gps = isset($data) ? $data->getToaDoGPS() : '';
@@ -28,8 +38,6 @@ $cho_phep_check_in = isset($data) ? $data->isAllowCheckIn() : 0;
 $cho_phep_check_out = isset($data) ? $data->isAllowCheckOut() : 0;
 $yeu_cau_face_id = isset($data) ? $data->isRequireFaceId() : 0;
 $cho_phep_checkin_thu_cong = isset($data) ? $data->isAllowManualCheckin() : 0;
-$bat_dau_dang_ky = isset($data) ? $data->getThoiGianBatDauDangKyFormatted() : '';
-$ket_thuc_dang_ky = isset($data) ? $data->getThoiGianKetThucDangKyFormatted() : '';
 $so_luong_tham_gia = isset($data) ? $data->getSoLuongThamGia() : 0;
 $so_luong_dien_gia = isset($data) ? $data->getSoLuongDienGia() : 0;
 $gioi_han_loai_nguoi_dung = isset($data) ? $data->getGioiHanLoaiNguoiDung() : '';
@@ -44,6 +52,8 @@ $so_luot_xem = isset($data) ? $data->getSoLuotXem() : 0;
 $ten_loai_su_kien = isset($data) ? $data->getTenLoaiSuKien() : '';
 $created_at = isset($data) ? $data->getCreatedAtFormatted() : '';
 $updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
+$version = isset($data) ? $data->getVersion() : 1;
+$su_kien_poster = isset($data) ? $data->getSuKienPoster() : null;
 ?>
 
 <style>
@@ -365,22 +375,72 @@ $updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
                             </div>
                         </div>
 
-                        <?php if (!empty($bat_dau_dang_ky)): ?>
+                        <?php if (!empty($thoi_gian_bat_dau_dang_ky)): ?>
                         <div class="mb-3 pb-3 border-bottom">
                             <label class="text-muted mb-1 fw-medium">Thời gian bắt đầu đăng ký</label>
                             <div class="h5 text-icon">
                                 <i class="fas fa-calendar-plus me-2 text-primary"></i>
-                                <span class="fw-bold"><?= $bat_dau_dang_ky ?></span>
+                                <span class="fw-bold"><?= $thoi_gian_bat_dau_dang_ky ?></span>
                             </div>
                         </div>
                         <?php endif; ?>
 
-                        <?php if (!empty($ket_thuc_dang_ky)): ?>
+                        <?php if (!empty($thoi_gian_ket_thuc_dang_ky)): ?>
                         <div class="mb-3 pb-3 border-bottom">
                             <label class="text-muted mb-1 fw-medium">Thời gian kết thúc đăng ký</label>
                             <div class="h5 text-icon">
                                 <i class="fas fa-calendar-times me-2 text-primary"></i>
-                                <span class="fw-bold"><?= $ket_thuc_dang_ky ?></span>
+                                <span class="fw-bold"><?= $thoi_gian_ket_thuc_dang_ky ?></span>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($thoi_gian_checkin_bat_dau)): ?>
+                        <div class="mb-3 pb-3 border-bottom">
+                            <label class="text-muted mb-1 fw-medium">Thời gian bắt đầu check-in</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-sign-in-alt me-2 text-primary"></i>
+                                <span class="fw-bold"><?= $thoi_gian_checkin_bat_dau ?></span>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($thoi_gian_checkin_ket_thuc)): ?>
+                        <div class="mb-3 pb-3 border-bottom">
+                            <label class="text-muted mb-1 fw-medium">Thời gian kết thúc check-in</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-hourglass-end me-2 text-primary"></i>
+                                <span class="fw-bold"><?= $thoi_gian_checkin_ket_thuc ?></span>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($thoi_gian_checkout_bat_dau)): ?>
+                        <div class="mb-3 pb-3 border-bottom">
+                            <label class="text-muted mb-1 fw-medium">Thời gian bắt đầu check-out</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-sign-out-alt me-2 text-primary"></i>
+                                <span class="fw-bold"><?= $thoi_gian_checkout_bat_dau ?></span>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($thoi_gian_checkout_ket_thuc)): ?>
+                        <div class="mb-3 pb-3 border-bottom">
+                            <label class="text-muted mb-1 fw-medium">Thời gian kết thúc check-out</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-hourglass-end me-2 text-primary"></i>
+                                <span class="fw-bold"><?= $thoi_gian_checkout_ket_thuc ?></span>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($han_huy_dang_ky)): ?>
+                        <div class="mb-3 pb-3 border-bottom">
+                            <label class="text-muted mb-1 fw-medium">Hạn chót hủy đăng ký</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-calendar-minus me-2 text-primary"></i>
+                                <span class="fw-bold"><?= $han_huy_dang_ky ?></span>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -460,6 +520,18 @@ $updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
                                 <?php endif; ?>
                             </div>
                         </div>
+                        
+                        <div class="mb-3 pb-3 border-bottom">
+                            <label class="text-muted mb-1 fw-medium">Cho phép check-in thủ công</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-clipboard-check me-2 text-primary"></i>
+                                <?php if ($cho_phep_checkin_thu_cong): ?>
+                                    <span class="badge bg-success">Cho phép</span>
+                                <?php else: ?>
+                                    <span class="badge bg-danger">Không cho phép</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
 
                         <div class="mb-3 pb-3 border-bottom">
                             <label class="text-muted mb-1 fw-medium">Số lượng tham gia tối đa</label>
@@ -478,11 +550,41 @@ $updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
                         </div>
 
                         <?php if (!empty($gioi_han_loai_nguoi_dung)): ?>
-                        <div class="mb-3">
+                        <div class="mb-3 pb-3 border-bottom">
                             <label class="text-muted mb-1 fw-medium">Giới hạn loại người dùng</label>
                             <div class="h5 text-icon">
                                 <i class="fas fa-user-shield me-2 text-primary"></i>
                                 <span class="fw-bold"><?= esc($gioi_han_loai_nguoi_dung) ?></span>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($doi_tuong_tham_gia)): ?>
+                        <div class="mb-3 pb-3 border-bottom">
+                            <label class="text-muted mb-1 fw-medium">Đối tượng tham gia</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-users me-2 text-primary"></i>
+                                <span class="fw-bold"><?= esc($doi_tuong_tham_gia) ?></span>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($don_vi_to_chuc)): ?>
+                        <div class="mb-3 pb-3 border-bottom">
+                            <label class="text-muted mb-1 fw-medium">Đơn vị tổ chức</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-building me-2 text-primary"></i>
+                                <span class="fw-bold"><?= esc($don_vi_to_chuc) ?></span>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($don_vi_phoi_hop)): ?>
+                        <div class="mb-3">
+                            <label class="text-muted mb-1 fw-medium">Đơn vị phối hợp</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-handshake me-2 text-primary"></i>
+                                <span class="fw-bold"><?= esc($don_vi_phoi_hop) ?></span>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -576,6 +678,14 @@ $updated_at = isset($data) ? $data->getUpdatedAtFormatted() : '';
                             <div class="h5 text-icon">
                                 <i class="fas fa-calendar-check me-2 text-primary"></i>
                                 <span class="fw-bold"><?= $updated_at ?></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="text-muted mb-1 fw-medium">Phiên bản</label>
+                            <div class="h5 text-icon">
+                                <i class="fas fa-code-branch me-2 text-primary"></i>
+                                <span class="fw-bold"><?= $version ?></span>
                             </div>
                         </div>
                     </div>
