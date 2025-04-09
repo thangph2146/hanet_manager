@@ -197,51 +197,80 @@
         <style>
         .countdown-timer {
             display: flex;
-            gap: 15px;
+            gap: 20px;
+            justify-content: center;
         }
+        
         .countdown-item {
             text-align: center;
-            min-width: 70px;
+            min-width: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 10px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
         }
+        
         .countdown-item div {
             font-size: 2.5rem;
             font-weight: bold;
             line-height: 1;
+            margin-bottom: 5px;
+            color: #fff;
         }
+        
         .countdown-item span {
             font-size: 0.85rem;
             text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .countdown-section {
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
+            transition: all 0.3s ease;
+        }
+        
+        .countdown-section.bg-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+        
+        .countdown-section.bg-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
         }
         
         .timeline {
             display: flex;
             justify-content: space-between;
             position: relative;
+            margin: 30px 0;
         }
+        
         .timeline:after {
             content: '';
             position: absolute;
             width: 100%;
             height: 2px;
-            background-color: #e9ecef;
+            background: #e9ecef;
             top: 25px;
             left: 0;
             z-index: 1;
         }
+        
         .timeline-step {
             position: relative;
             z-index: 2;
             text-align: center;
             width: 33.33%;
         }
+        
         .timeline-content {
             padding: 0 10px;
         }
+        
         .inner-circle {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background-color: #f8f9fa;
+            background: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -249,14 +278,46 @@
             margin: 0 auto 10px;
             transition: all 0.3s;
         }
+        
         .timeline-step.active .inner-circle {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-            color: white;
+            border-color: #4e54c8;
+            background: #4e54c8;
+            color: #fff;
         }
+        
         .timeline-step p {
-            margin-bottom: 0;
+            margin: 0;
             font-weight: 500;
+        }
+        
+        .timeline-step small {
+            color: #6c757d;
+        }
+        
+        .registration-info {
+            background: #fff;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .alert i {
+            font-size: 1.5rem;
+        }
+        
+        .btn-primary {
+            padding: 12px 30px;
+            font-weight: 500;
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         </style>
         

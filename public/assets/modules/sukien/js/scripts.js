@@ -4,73 +4,80 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Xử lý đếm ngược
-    let countdownDate = null;
-    const eventDateElem = document.getElementById('event-date');
+    // Xử lý đếm ngược cho tất cả các timer
+    const countdownTimers = document.querySelectorAll('.countdown-timer[data-countdown]');
     
-    if (eventDateElem) {
-        const eventDate = eventDateElem.value;
-        if (eventDate) {
-            countdownDate = new Date(eventDate).getTime();
-        }
-    }
-    
-    // Nếu không có ngày sự kiện cụ thể, đặt mặc định là 30 ngày kể từ hiện tại
-    if (!countdownDate) {
-        countdownDate = new Date();
-        countdownDate.setDate(countdownDate.getDate() + 30);
-        countdownDate = countdownDate.getTime();
-    }
-    
-    // Cập nhật đếm ngược mỗi giây
-    const countdown = setInterval(function() {
-        const now = new Date().getTime();
-        const distance = countdownDate - now;
+    countdownTimers.forEach(function(timerElement) {
+        const countdownDate = new Date(timerElement.dataset.countdown).getTime();
         
-        // Tính toán các đơn vị thời gian
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        
-        // Cập nhật giao diện
-        if (document.getElementById('countdown-days')) {
-            document.getElementById('countdown-days').innerText = days < 10 ? '0' + days : days;
-        }
-        if (document.getElementById('countdown-hours')) {
-            document.getElementById('countdown-hours').innerText = hours < 10 ? '0' + hours : hours;
-        }
-        if (document.getElementById('countdown-minutes')) {
-            document.getElementById('countdown-minutes').innerText = minutes < 10 ? '0' + minutes : minutes;
-        }
-        if (document.getElementById('countdown-seconds')) {
-            document.getElementById('countdown-seconds').innerText = seconds < 10 ? '0' + seconds : seconds;
-        }
-        
-        // Khi đếm ngược kết thúc
-        if (distance < 0) {
-            clearInterval(countdown);
+        // Cập nhật đếm ngược mỗi giây
+        const countdown = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = countdownDate - now;
             
-            if (document.getElementById('countdown-days')) {
-                document.getElementById('countdown-days').innerText = '00';
+            // Tính toán các đơn vị thời gian
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            // Cập nhật giao diện
+            const daysElement = timerElement.querySelector('.days');
+            const hoursElement = timerElement.querySelector('.hours');
+            const minutesElement = timerElement.querySelector('.minutes');
+            const secondsElement = timerElement.querySelector('.seconds');
+            
+            if (daysElement) {
+                daysElement.innerText = days < 10 ? '0' + days : days;
             }
-            if (document.getElementById('countdown-hours')) {
-                document.getElementById('countdown-hours').innerText = '00';
+            if (hoursElement) {
+                hoursElement.innerText = hours < 10 ? '0' + hours : hours;
             }
-            if (document.getElementById('countdown-minutes')) {
-                document.getElementById('countdown-minutes').innerText = '00';
+            if (minutesElement) {
+                minutesElement.innerText = minutes < 10 ? '0' + minutes : minutes;
             }
-            if (document.getElementById('countdown-seconds')) {
-                document.getElementById('countdown-seconds').innerText = '00';
+            if (secondsElement) {
+                secondsElement.innerText = seconds < 10 ? '0' + seconds : seconds;
             }
             
-            // Hiển thị thông báo sự kiện đã diễn ra
-            const countdownTitle = document.querySelector('.countdown-title');
-            if (countdownTitle) {
-                countdownTitle.innerText = 'Sự kiện đã diễn ra!';
+            // Khi đếm ngược kết thúc
+            if (distance < 0) {
+                clearInterval(countdown);
+                
+                if (daysElement) daysElement.innerText = '00';
+                if (hoursElement) hoursElement.innerText = '00';
+                if (minutesElement) minutesElement.innerText = '00';
+                if (secondsElement) secondsElement.innerText = '00';
+                
+                // Tự động reload trang để cập nhật trạng thái
+                window.location.reload();
             }
-        }
-    }, 1000);
+        }, 1000);
+    });
+    
+    // Xử lý remaining time cho sự kiện đang diễn ra
+    const remainingTimeElements = document.querySelectorAll('.remaining-time[data-endtime]');
+    
+    remainingTimeElements.forEach(function(element) {
+        const endTime = new Date(element.dataset.endtime).getTime();
+        
+        const updateRemainingTime = function() {
+            const now = new Date().getTime();
+            const distance = endTime - now;
+            
+            if (distance > 0) {
+                const hours = Math.ceil(distance / (1000 * 60 * 60));
+                element.innerText = hours + ' giờ';
+            } else {
+                element.innerText = 'Đã kết thúc';
+                // Tự động reload trang để cập nhật trạng thái
+                window.location.reload();
+            }
+        };
+        
+        updateRemainingTime();
+        setInterval(updateRemainingTime, 60000); // Cập nhật mỗi phút
+    });
     
     // Back to top button
     const backToTopButton = document.querySelector('.back-to-top');

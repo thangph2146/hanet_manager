@@ -35,11 +35,12 @@ $colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'];
 
 <?php if (!empty($schedules)): ?>
 <div class="event-schedule mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
-    <div class="border-bottom mb-4">
-        <h3 class="section-title text-primary fw-bold">
+    <div class="schedule-header mb-4">
+        <h3 class="section-title text-burgundy fw-bold">
             <i class="lni lni-calendar me-2"></i>
             Lịch trình sự kiện
         </h3>
+        <div class="burgundy-line"></div>
     </div>
 
     <div class="timeline-container">
@@ -77,41 +78,42 @@ $colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'];
                 <div class="timeline-marker" style="background-color: <?= $color ?>"></div>
                 <div class="timeline-content card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
                             <?php if (!empty($time)): ?>
-                            <div class="event-time fw-bold" style="color: <?= $color ?>">
+                            <div class="event-time">
                                 <i class="lni lni-timer me-1"></i> <?= $time ?>
                             </div>
                             <?php endif; ?>
                             
                             <?php if (!empty($date)): ?>
-                            <div class="event-date text-muted small">
+                            <div class="event-date">
                                 <i class="lni lni-calendar me-1"></i> <?= $date ?>
                             </div>
                             <?php endif; ?>
                         </div>
                         
-                        <h5 class="card-title mb-2"><?= $content ?></h5>
+                        <h5 class="card-title mb-3"><?= $content ?></h5>
                         
-                        <div class="d-flex flex-wrap gap-2 mt-2">
+                        <div class="d-flex flex-wrap gap-2 mb-3">
                             <?php if (!empty($location)): ?>
-                            <span class="badge bg-light text-dark">
+                            <span class="event-badge location-badge">
                                 <i class="lni lni-map me-1"></i> <?= $location ?>
                             </span>
                             <?php endif; ?>
                             
                             <?php if (!empty($type)): ?>
-                            <span class="badge bg-primary-soft text-primary">
+                            <span class="event-badge type-badge">
                                 <i class="lni lni-tag me-1"></i> <?= $type ?>
                             </span>
                             <?php endif; ?>
                         </div>
                         
                         <?php if (!empty($speaker)): ?>
-                        <div class="mt-3 pt-2 border-top">
-                            <div class="small text-muted mb-1">Người phụ trách:</div>
+                        <div class="speaker-section">
+                            <div class="speaker-label">Người phụ trách:</div>
                             <div class="speaker-info">
-                                <span class="fw-bold"><?= $speaker ?></span>
+                                <i class="lni lni-user me-2"></i>
+                                <span><?= $speaker ?></span>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -123,47 +125,173 @@ $colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'];
 </div>
 
 <style>
+:root {
+    --burgundy: #800020;
+    --burgundy-light: #a3324d;
+    --burgundy-dark: #4d0013;
+    --burgundy-transparent: rgba(128, 0, 32, 0.1);
+}
+
+.schedule-header {
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.text-burgundy {
+    color: var(--burgundy);
+}
+
+.burgundy-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100px;
+    height: 3px;
+    background: var(--burgundy);
+}
+
 .timeline-container {
     position: relative;
-    padding-left: 40px;
+    padding-left: 50px;
+    padding-top: 20px;
 }
+
 .timeline-container:before {
     content: '';
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 15px;
+    left: 25px;
     width: 2px;
-    background-color: #e9ecef;
+    background: linear-gradient(to bottom, 
+        var(--burgundy) 0%, 
+        var(--burgundy-light) 50%, 
+        var(--burgundy-dark) 100%
+    );
 }
+
 .timeline-item {
     position: relative;
 }
+
 .timeline-marker {
     position: absolute;
-    left: -40px;
+    left: -50px;
     width: 20px;
     height: 20px;
     border-radius: 50%;
+    background: var(--burgundy);
     top: 15px;
     z-index: 1;
-    box-shadow: 0 0 0 4px rgba(255,255,255,0.7);
+    box-shadow: 0 0 0 4px rgba(128, 0, 32, 0.2),
+                0 0 0 8px rgba(128, 0, 32, 0.1);
+    transition: all 0.3s ease;
 }
+
 .timeline-content {
-    border-radius: 0.5rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     border: none;
+    transition: all 0.3s ease;
 }
+
+.timeline-content:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(128, 0, 32, 0.15);
+}
+
 .event-time {
     font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--burgundy);
 }
-.badge.bg-primary-soft {
-    background-color: rgba(13, 110, 253, 0.15);
+
+.event-date {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.card-title {
+    color: var(--burgundy-dark);
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.event-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.location-badge {
+    background-color: var(--burgundy-transparent);
+    color: var(--burgundy);
+}
+
+.type-badge {
+    background-color: var(--burgundy);
+    color: white;
+}
+
+.speaker-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(128, 0, 32, 0.1);
+}
+
+.speaker-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.speaker-info {
+    display: flex;
+    align-items: center;
+    color: var(--burgundy);
+    font-weight: 500;
+}
+
+.speaker-info i {
+    color: var(--burgundy-light);
+}
+
+@media (max-width: 768px) {
+    .timeline-container {
+        padding-left: 30px;
+    }
+    
+    .timeline-container:before {
+        left: 15px;
+    }
+    
+    .timeline-marker {
+        left: -30px;
+        width: 16px;
+        height: 16px;
+    }
+    
+    .event-time, .event-date {
+        font-size: 0.9rem;
+    }
 }
 </style>
+
 <?php else: ?>
-<div class="alert alert-info mb-5">
+<div class="alert alert-burgundy mb-5">
     <i class="lni lni-information-circle me-2"></i>
     Chưa có lịch trình chi tiết cho sự kiện này.
 </div>
+
+<style>
+.alert-burgundy {
+    background-color: var(--burgundy-transparent);
+    color: var(--burgundy);
+    border: none;
+    border-radius: 10px;
+}
+</style>
 <?php endif; ?>
