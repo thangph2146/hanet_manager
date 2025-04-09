@@ -309,7 +309,7 @@ class SuKien extends BaseController
             'meta_keywords' => $event['tu_khoa_su_kien'] ?? $event['ten_su_kien'] . ', ' . $event['loai_su_kien'] . ', sự kiện hub, đại học ngân hàng',
             'canonical_url' => site_url('su-kien/chi-tiet/' . $event['slug']),
             'event_types' => $this->getEventTypes(),
-            'og_image' => base_url($event['hinh_anh']),
+            'og_image' => !empty($event['hinh_anh']) ? base_url($event['hinh_anh']) : base_url('assets/images/default-event.jpg'),
             'structured_data' => $this->generateEventStructuredData($event)
         ];
         
@@ -569,7 +569,7 @@ class SuKien extends BaseController
                 'name' => 'Trường Đại học Ngân hàng TP.HCM',
                 'url' => 'https://hub.edu.vn'
             ],
-            'image' => base_url($event['hinh_anh']),
+            'image' => !empty($event['hinh_anh']) ? base_url($event['hinh_anh']) : base_url('assets/images/default-event.jpg'),
             'url' => site_url('su-kien/chi-tiet/' . $event['slug'])
         ];
         
