@@ -66,6 +66,12 @@ class Autoload extends AutoloadConfig
         'App\Modules\quanlybachoc' => APPPATH . 'Modules/quanlybachoc',
         'App\Modules\quanlycamera' => APPPATH . 'Modules/quanlycamera',
         'App\Modules\quanlydangkysukien' => APPPATH . 'Modules/quanlydangkysukien',
+        'App\Modules\quanlynguoidung' => APPPATH . 'Modules/quanlynguoidung',
+        'App\Modules\quanlyloaisukien' => APPPATH . 'Modules/quanlyloaisukien',
+        'App\Modules\quanlysukien' => APPPATH . 'Modules/quanlysukien',
+        'App\Modules\quanlycheckinsukien' => APPPATH . 'Modules/quanlycheckinsukien',
+        'App\Modules\quanlycheckoutsukien' => APPPATH . 'Modules/quanlycheckoutsukien',
+        'App\Modules\namhoc' => APPPATH . 'Modules/namhoc',
     ];
 
 
@@ -125,5 +131,6 @@ class Autoload extends AutoloadConfig
         'array',
         'my_string',
         'locale',
+        'time',
     ];
 }

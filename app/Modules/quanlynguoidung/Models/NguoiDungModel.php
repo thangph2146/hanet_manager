@@ -6,6 +6,7 @@ use App\Models\BaseModel;
 use App\Modules\quanlynguoidung\Entities\NguoiDung;
 use App\Modules\quanlynguoidung\Libraries\Pager;
 use CodeIgniter\I18n\Time;
+use Config\Services;
 
 class NguoiDungModel extends BaseModel
 {
@@ -662,8 +663,9 @@ class NguoiDungModel extends BaseModel
      */
     public function updateLastLogin(int $id): bool
     {
+        // Use the current datetime formatted in standard SQL format
         return $this->update($id, [
-            'last_login' => Time::now()->toDateTimeString()
+            'last_login' => date('Y-m-d H:i:s')
         ]);
     }
     

@@ -3,12 +3,18 @@
 namespace App\Modules\quanlynguoidung\Database\Seeds;
 
 use CodeIgniter\Database\Seeder;
-use CodeIgniter\I18n\Time;
 
 class NguoiDungSeeder extends Seeder
 {
     public function run()
     {
+        // Kiểm tra nếu đã tồn tại dữ liệu
+        $count = $this->db->table('nguoi_dung')->countAllResults();
+        if ($count > 0) {
+            echo "Bảng nguoi_dung đã có dữ liệu. Bỏ qua việc tạo dữ liệu mẫu.\n";
+            return;
+        }
+        
         // Dữ liệu mẫu cho người dùng
         $data = [
             [
@@ -31,9 +37,9 @@ class NguoiDungSeeder extends Seeder
                 'nganh_id' => 1,
                 'phong_khoa_id' => 1,
                 'status' => 1,
-                'last_login' => Time::now()->toDateTimeString(),
-                'created_at' => Time::now()->toDateTimeString(),
-                'updated_at' => Time::now()->toDateTimeString(),
+                'last_login' => date('Y-m-d H:i:s'),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
                 'deleted_at' => null
             ],
             [
@@ -56,9 +62,9 @@ class NguoiDungSeeder extends Seeder
                 'nganh_id' => 1,
                 'phong_khoa_id' => 1,
                 'status' => 1,
-                'last_login' => Time::now()->toDateTimeString(),
-                'created_at' => Time::now()->toDateTimeString(),
-                'updated_at' => Time::now()->toDateTimeString(),
+                'last_login' => date('Y-m-d H:i:s'),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
                 'deleted_at' => null
             ]
         ];

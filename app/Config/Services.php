@@ -69,4 +69,12 @@ class Services extends BaseService
 
 		return new \App\Config\Locale();
 	}
+
+	/**
+	 * Custom Time class to avoid IntlDateFormatter issues
+	 */
+	public static function time($time = null, $timezone = null, $locale = null)
+	{
+		return new \App\Libraries\CustomTime($time, $timezone, $locale);
+	}
 }

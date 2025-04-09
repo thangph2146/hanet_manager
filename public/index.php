@@ -50,6 +50,9 @@ require FCPATH . '../app/Config/Paths.php';
 
 $paths = new Config\Paths();
 
+// LOAD CUSTOM FUNCTIONS BEFORE FRAMEWORK BOOTSTRAP
+require FCPATH . '../app/Config/Boot/custom_functions.php';
+
 // LOAD THE FRAMEWORK BOOTSTRAP FILE
 require $paths->systemDirectory . '/Boot.php';
 
