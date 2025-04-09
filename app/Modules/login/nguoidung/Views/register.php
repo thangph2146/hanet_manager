@@ -49,9 +49,11 @@
                     <div class="info-panel">
                         <div class="text-center">
                             <a href="<?= site_url('') ?>">
-                                <img src="<?= base_url('assets/modules/images/hub-logo.png') ?>" alt="Logo Đại học Ngân hàng TP.HCM" class="school-logo">
+                                <img src="<?= base_url('assets/modules/images/hub-logo.png') ?>" 
+                                alt="Logo Đại học Ngân hàng TP.HCM" 
+                                class="school-logo"
+                                style="width: 300px">
                             </a>
-                            <h2 class="school-name">ĐẠI HỌC NGÂN HÀNG<br>TP. HỒ CHÍ MINH</h2>
                         </div>
                         
                         <h3 class="events-title">SỰ KIỆN NỔI BẬT</h3>
