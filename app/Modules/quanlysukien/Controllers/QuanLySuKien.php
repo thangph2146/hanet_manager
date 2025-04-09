@@ -309,6 +309,54 @@ class QuanLySuKien extends BaseController
             ->with('error', 'Có lỗi xảy ra, vui lòng thử lại');
     }
  
+    /**
+     * Khôi phục sự kiện đã xóa
+     */
+    public function restore($id = null)
+    {
+        if (!$id) {
+            $this->alert->set('danger', 'ID không hợp lệ', true);
+            return redirect()->back();
+        }
+        
+        try {
+            // Ghi log dữ liệu đầu vào
+            log_message('debug', '[' . $this->controller_name . '::restore] Attempting to restore sự kiện with ID: ' . $id);
+            
+            // Kiểm tra xem bản ghi có tồn tại và bị xóa hay không
+            $sukien = $this->model->withDeleted()->find($id);
+            
+            if (!$sukien || $sukien->deleted_at === null) {
+                log_message('error', '[' . $this->controller_name . '::restore] Sự kiện not found or not deleted: ' . $id);
+                $this->alert->set('danger', 'Không tìm thấy sự kiện đã xóa với ID: ' . $id, true);
+                return redirect()->back();
+            }
+            
+            // Sử dụng phương thức để khôi phục trực tiếp từ cơ sở dữ liệu
+            $result = $this->model->restoreFromTrash($id);
+
+            log_message('debug', '[' . $this->controller_name . '::restore] Restore result: ' . ($result ? 'success' : 'failed'));
+            
+            if ($result) {
+                $this->alert->set('success', 'Khôi phục ' . $this->title . ' thành công', true);
+            } else {
+                $this->alert->set('danger', 'Không thể khôi phục ' . $this->title, true);
+            }
+        } catch (\Exception $e) {
+            log_message('error', '[' . $this->controller_name . '::restore] ' . $e->getMessage());
+            $this->alert->set('danger', 'Có lỗi xảy ra khi khôi phục ' . $this->title . ': ' . $e->getMessage(), true);
+        }
+        
+        // Kiểm tra nếu là request AJAX
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => session()->has('success'),
+                'message' => session()->get('success') ?? session()->get('error')
+            ]);
+        }
+        
+        return redirect()->to(site_url($this->module_name));
+    }
    
     /**
      * Hiển thị chi tiết sự kiện
@@ -504,7 +552,7 @@ class QuanLySuKien extends BaseController
         
         try {
             $successCount = 0;
-            
+                
             foreach ($selectedIds as $id) {
                 if ($this->model->update($id, ['status' => $newStatus])) {
                     $successCount++;

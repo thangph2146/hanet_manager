@@ -864,6 +864,16 @@ class SuKien extends BaseEntity
     }
     
     /**
+     * Lấy phiên bản
+     *
+     * @return int
+     */
+    public function getVersion(): int
+    {
+        return (int)($this->attributes['version'] ?? 1);
+    }
+    
+    /**
      * Lấy ngày tạo
      *
      * @return Time|null
