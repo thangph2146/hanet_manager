@@ -87,30 +87,70 @@ class NguoiDung extends BaseController
         
         // Xác thực đầu vào
         $rules = [
+            'LastName' => [
+                'label' => 'Họ',
+                'rules' => 'required|min_length[2]|max_length[100]',
+                'errors' => [
+                    'required' => 'Họ không được để trống',
+                    'min_length' => 'Họ phải có ít nhất {param} ký tự',
+                    'max_length' => 'Họ không được quá {param} ký tự'
+                ]
+            ],
+            'FirstName' => [
+                'label' => 'Tên',
+                'rules' => 'required|min_length[2]|max_length[100]',
+                'errors' => [
+                    'required' => 'Tên không được để trống',
+                    'min_length' => 'Tên phải có ít nhất {param} ký tự',
+                    'max_length' => 'Tên không được quá {param} ký tự'
+                ]
+            ],
+            'MiddleName' => [
+                'label' => 'Tên đệm',
+                'rules' => 'permit_empty|max_length[100]',
+                'errors' => [
+                    'max_length' => 'Tên đệm không được quá {param} ký tự'
+                ]
+            ],
             'FullName' => [
                 'label' => 'Họ và tên',
                 'rules' => 'required|min_length[3]|max_length[100]',
                 'errors' => [
-                    'required' => '{field} không được để trống',
-                    'min_length' => '{field} phải có ít nhất {param} ký tự',
-                    'max_length' => '{field} không được quá {param} ký tự'
+                    'required' => 'Họ và tên không được để trống',
+                    'min_length' => 'Họ và tên phải có ít nhất {param} ký tự',
+                    'max_length' => 'Họ và tên không được quá {param} ký tự'
                 ]
             ],
             'MobilePhone' => [
                 'label' => 'Số điện thoại',
-                'rules' => 'required|min_length[10]|max_length[20]',
+                'rules' => 'permit_empty|min_length[10]|max_length[20]',
                 'errors' => [
-                    'required' => '{field} không được để trống',
-                    'min_length' => '{field} phải có ít nhất {param} ký tự',
-                    'max_length' => '{field} không được quá {param} ký tự'
+                    'min_length' => 'Số điện thoại phải có ít nhất {param} ký tự',
+                    'max_length' => 'Số điện thoại không được quá {param} ký tự'
+                ]
+            ],
+            'HomePhone' => [
+                'label' => 'Số điện thoại nhà',
+                'rules' => 'permit_empty|min_length[10]|max_length[20]',
+                'errors' => [
+                    'min_length' => 'Số điện thoại nhà phải có ít nhất {param} ký tự',
+                    'max_length' => 'Số điện thoại nhà không được quá {param} ký tự'
+                ]
+            ],
+            'HomePhone1' => [
+                'label' => 'Số điện thoại nhà (2)',
+                'rules' => 'permit_empty|min_length[10]|max_length[20]',
+                'errors' => [
+                    'min_length' => 'Số điện thoại nhà (2) phải có ít nhất {param} ký tự',
+                    'max_length' => 'Số điện thoại nhà (2) không được quá {param} ký tự'
                 ]
             ],
             'avatar' => [
                 'label' => 'Ảnh đại diện',
                 'rules' => 'permit_empty|is_image[avatar,true]|max_size[avatar,2048]',
                 'errors' => [
-                    'is_image' => '{field} phải là định dạng hình ảnh',
-                    'max_size' => '{field} không được quá 2MB'
+                    'is_image' => 'Ảnh đại diện phải là định dạng hình ảnh',
+                    'max_size' => 'Ảnh đại diện không được quá 2MB'
                 ]
             ]
         ];
@@ -127,15 +167,25 @@ class NguoiDung extends BaseController
         
         try {
             // Lấy dữ liệu từ form
+            $lastName = $this->request->getPost('LastName');
+            $middleName = $this->request->getPost('MiddleName');
+            $firstName = $this->request->getPost('FirstName');
             $fullName = $this->request->getPost('FullName');
             $mobilePhone = $this->request->getPost('MobilePhone');
+            $homePhone = $this->request->getPost('HomePhone');
+            $homePhone1 = $this->request->getPost('HomePhone1');
             
-            log_message('debug', 'Dữ liệu gửi đến: FullName=' . $fullName . ', MobilePhone=' . $mobilePhone);
+            log_message('debug', 'Dữ liệu gửi đến: LastName=' . $lastName . ', MiddleName=' . $middleName . ', FirstName=' . $firstName . ', FullName=' . $fullName . ', MobilePhone=' . $mobilePhone);
             
             // Tạo dữ liệu cập nhật
             $updateData = [
+                'LastName' => $lastName,
+                'MiddleName' => $middleName,
+                'FirstName' => $firstName,
                 'FullName' => $fullName,
                 'MobilePhone' => $mobilePhone,
+                'HomePhone' => $homePhone,
+                'HomePhone1' => $homePhone1,
                 'updated_at' => date('Y-m-d H:i:s')
             ];
             
@@ -144,27 +194,38 @@ class NguoiDung extends BaseController
             if ($avatar && $avatar->isValid() && !$avatar->hasMoved() && $avatar->getSize() > 0) {
                 log_message('debug', 'Xử lý tải lên ảnh đại diện: ' . $avatar->getName() . ', size: ' . $avatar->getSize() . ', type: ' . $avatar->getClientMimeType());
                 
-                // Tạo tên tệp tin đích
-                $newName = $nguoi_dung_id . '_' . time() . '.' . $avatar->getExtension();
-                
-                // Kiểm tra và tạo thư mục nếu chưa tồn tại
-                $uploadPath = ROOTPATH . 'public/uploads/avatars';
-                if (!is_dir($uploadPath)) {
-                    mkdir($uploadPath, 0777, true);
+                try {
+                    // Tạo tên tệp tin đích
+                    $newName = $nguoi_dung_id . '_' . time() . '.' . $avatar->getExtension();
+                    
+                    // Kiểm tra và tạo thư mục nếu chưa tồn tại
+                    $uploadPath = ROOTPATH . 'public/uploads/avatars';
+                    if (!is_dir($uploadPath)) {
+                        mkdir($uploadPath, 0777, true);
+                    }
+                    
+                    // Di chuyển tệp tin vào thư mục uploads/avatars
+                    $avatar->move($uploadPath, $newName);
+                    
+                    // Thêm tên tệp tin avatar vào dữ liệu cập nhật
+                    $updateData['avatar'] = 'public/uploads/avatars/' . $newName;
+                    
+                    // Xóa avatar cũ nếu có
+                    if (!empty($profile->avatar)) {
+                        $oldAvatarPath = ROOTPATH . $profile->avatar;
+                        if (file_exists($oldAvatarPath)) {
+                            unlink($oldAvatarPath);
+                            log_message('debug', 'Đã xóa avatar cũ: ' . $oldAvatarPath);
+                        } else {
+                            log_message('debug', 'Không tìm thấy file avatar cũ: ' . $oldAvatarPath);
+                        }
+                    }
+                    
+                    log_message('debug', 'Đã tải lên ảnh đại diện mới: ' . $newName);
+                } catch (\Exception $e) {
+                    log_message('error', 'Lỗi khi xử lý avatar: ' . $e->getMessage());
+                    // Không dừng quá trình cập nhật nếu có lỗi với avatar
                 }
-                
-                // Di chuyển tệp tin vào thư mục uploads/avatars
-                $avatar->move($uploadPath, $newName);
-                
-                // Thêm tên tệp tin avatar vào dữ liệu cập nhật
-                $updateData['avatar'] = 'public/uploads/avatars/' . $newName;
-                
-                // Xóa avatar cũ nếu có
-                if (!empty($profile->avatar) && file_exists(ROOTPATH . 'public/uploads/avatars/' . $profile->avatar)) {
-                    unlink(ROOTPATH . 'public/uploads/avatars/' . $profile->avatar);
-                }
-                
-                log_message('debug', 'Đã tải lên ảnh đại diện mới: ' . $newName);
             } else {
                 log_message('debug', 'Không có ảnh đại diện mới hoặc ảnh không hợp lệ');
             }
@@ -178,8 +239,13 @@ class NguoiDung extends BaseController
                     'success' => true,
                     'message' => 'Cập nhật thông tin cá nhân thành công',
                     'data' => [
+                        'LastName' => $lastName,
+                        'MiddleName' => $middleName,
+                        'FirstName' => $firstName,
                         'FullName' => $fullName,
                         'MobilePhone' => $mobilePhone,
+                        'HomePhone' => $homePhone,
+                        'HomePhone1' => $homePhone1,
                         'avatar' => $updateData['avatar'] ?? $profile->avatar
                     ]
                 ]);

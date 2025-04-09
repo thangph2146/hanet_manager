@@ -15,7 +15,7 @@
                 <div class="profile-header">
                     <div class="row align-items-center">
                         <div class="col-lg-3 col-md-4 col-sm-12 text-center text-md-start mb-3 mb-md-0">
-                            <img src="<?= !empty($profile->avatar) ? base_url($profile->avatar) : base_url('assets/images/avatars/default.jpg') ?>" alt="Avatar" class="profile-avatar" data-bs-toggle="tooltip" title="Ảnh đại diện">
+                            <img src="<?= !empty($profile->avatar) ? base_url($profile->avatar) : base_url('assets/images/avatars/user.png') ?>" alt="Avatar" class="profile-avatar" data-bs-toggle="tooltip" title="Ảnh đại diện">
                         </div>
                         <div class="col-lg-7 col-md-6 col-sm-12">
                             <div class="profile-info-header">
@@ -51,12 +51,32 @@
                                     <p class="info-value"><?= $profile->FullName ?></p>
                                 </div>
                                 <div class="info-group">
+                                    <label class="info-label">Họ</label>
+                                    <p class="info-value"><?= $profile->LastName ?? 'Chưa cập nhật' ?></p>
+                                </div>
+                                <div class="info-group">
+                                    <label class="info-label">Tên đệm</label>
+                                    <p class="info-value"><?= $profile->MiddleName ?? 'Chưa cập nhật' ?></p>
+                                </div>
+                                <div class="info-group">
+                                    <label class="info-label">Tên</label>
+                                    <p class="info-value"><?= $profile->FirstName ?? 'Chưa cập nhật' ?></p>
+                                </div>
+                                <div class="info-group">
                                     <label class="info-label">Email</label>
                                     <p class="info-value"><?= $profile->Email ?></p>
                                 </div>
                                 <div class="info-group">
                                     <label class="info-label">Số điện thoại</label>
                                     <p class="info-value"><?= $profile->MobilePhone ?? 'Chưa cập nhật' ?></p>
+                                </div>
+                                <div class="info-group">
+                                    <label class="info-label">Số điện thoại nhà</label>
+                                    <p class="info-value"><?= $profile->HomePhone ?? 'Chưa cập nhật' ?></p>
+                                </div>
+                                <div class="info-group">
+                                    <label class="info-label">Số điện thoại nhà (2)</label>
+                                    <p class="info-value"><?= $profile->HomePhone1 ?? 'Chưa cập nhật' ?></p>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-4">
@@ -90,10 +110,22 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="edit-profile-form" data-ajax="true" action="<?= base_url('nguoi-dung/thong-tin-ca-nhan/update') ?>" method="post" enctype="multipart/form-data">
+                <form id="edit-profile-form" data-ajax="true" action="<?= base_url('nguoi-dung/profile/update') ?>" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="nguoi_dung_id" value="<?= $profile->nguoi_dung_id ?>">
                     <input type="hidden" name="avatar_folder" value="uploads/avatars/">
                     <div class="row">
+                        <div class="col-md-4 col-sm-12 mb-3">
+                            <label for="lastname" class="form-label">Họ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="lastname" name="LastName" value="<?= $profile->LastName ?>" required>
+                        </div>
+                        <div class="col-md-4 col-sm-12 mb-3">
+                            <label for="middlename" class="form-label">Tên đệm</label>
+                            <input type="text" class="form-control" id="middlename" name="MiddleName" value="<?= $profile->MiddleName ?>">
+                        </div>
+                        <div class="col-md-4 col-sm-12 mb-3">
+                            <label for="firstname" class="form-label">Tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="firstname" name="FirstName" value="<?= $profile->FirstName ?>" required>
+                        </div>
                         <div class="col-md-6 col-sm-12 mb-3">
                             <label for="fullname" class="form-label">Họ và tên <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="fullname" name="FullName" value="<?= $profile->FullName ?>" required>
@@ -102,6 +134,14 @@
                             <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="phone" name="MobilePhone" value="<?= $profile->MobilePhone ?>" required>
                         </div>
+                        <div class="col-md-6 col-sm-12 mb-3">
+                            <label for="homephone" class="form-label">Số điện thoại nhà</label>
+                            <input type="text" class="form-control" id="homephone" name="HomePhone" value="<?= $profile->HomePhone ?>">
+                        </div>
+                        <div class="col-md-6 col-sm-12 mb-3">
+                            <label for="homephone1" class="form-label">Số điện thoại nhà (2)</label>
+                            <input type="text" class="form-control" id="homephone1" name="HomePhone1" value="<?= $profile->HomePhone1 ?>">
+                        </div>
                         <div class="col-12 mb-3">
                             <label for="avatar" class="form-label">Ảnh đại diện</label>
                             <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
@@ -109,7 +149,7 @@
                         </div>
                         <div class="col-12 mb-3 text-center">
                             <div class="avatar-preview">
-                                <img src="<?= !empty($profile->avatar) ? base_url($profile->avatar) : base_url('assets/images/avatars/default.jpg') ?>" alt="Avatar Preview" id="avatar-preview">
+                                <img src="<?= !empty($profile->avatar) ? base_url($profile->avatar) : base_url('assets/images/avatars/user.png') ?>" alt="Avatar Preview" id="avatar-preview">
                             </div>
                         </div>
                     </div>
@@ -130,7 +170,7 @@
 <script>
 // Cấu hình API endpoints và user ID
 const API_CONFIG = {
-    profileUpdate: '<?= base_url('api/nguoi-dung/thong-tin-ca-nhan/update') ?>',
+    profileUpdate: '<?= base_url('nguoi-dung/profile/update') ?>',
     userId: <?= $profile->nguoi_dung_id ?>,
     csrfToken: '<?= csrf_hash() ?>'
 };
@@ -158,6 +198,19 @@ document.getElementById('save-profile-btn').addEventListener('click', function()
     const form = document.getElementById('edit-profile-form');
     const formData = new FormData(form);
     
+    // Tự động cập nhật FullName nếu các trường họ, tên đệm, tên thay đổi
+    const lastName = document.getElementById('lastname').value;
+    const middleName = document.getElementById('middlename').value;
+    const firstName = document.getElementById('firstname').value;
+    
+    // Tạo FullName từ các thành phần
+    let fullName = lastName;
+    if (middleName) fullName += ' ' + middleName;
+    fullName += ' ' + firstName;
+    
+    // Cập nhật giá trị FullName trong form
+    document.getElementById('fullname').value = fullName;
+    
     // Hiển thị thông báo đang xử lý
     const saveBtn = this;
     saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
@@ -175,7 +228,9 @@ document.getElementById('save-profile-btn').addEventListener('click', function()
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Lỗi mạng: ' + response.status);
+            return response.text().then(text => {
+                throw new Error('Lỗi mạng: ' + response.status + ' - ' + text);
+            });
         }
         return response.json();
     })
@@ -200,7 +255,7 @@ document.getElementById('save-profile-btn').addEventListener('click', function()
             
             // Cập nhật ảnh đại diện nếu có
             if (data.data.avatar) {
-                const avatarSrc = '<?= base_url('uploads/avatars/') ?>' + data.data.avatar;
+                const avatarSrc = '<?= base_url('') ?>' + data.data.avatar;
                 document.querySelector('.profile-avatar').src = avatarSrc;
             }
             
