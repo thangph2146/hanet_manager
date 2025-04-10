@@ -1349,7 +1349,7 @@ class QuanLySuKien extends BaseController
             $status = 'Đã đăng ký';
             if (!empty($participant['check_in_time'])) {
                 $status = 'Đã check-in';
-                if (!empty($participant['check_out_time'])) {
+                if (!empty($participant['thoi_gian_check_out'])) {
                     $status = 'Đã check-out';
                 }
             }
@@ -1360,7 +1360,7 @@ class QuanLySuKien extends BaseController
             $sheet->setCellValue('D' . $row, $participant['so_dien_thoai'] ?? 'N/A');
             $sheet->setCellValue('E' . $row, !empty($participant['created_at']) ? date('d/m/Y H:i:s', strtotime($participant['created_at'])) : 'N/A');
             $sheet->setCellValue('F' . $row, !empty($participant['check_in_time']) ? date('d/m/Y H:i:s', strtotime($participant['check_in_time'])) : 'N/A');
-            $sheet->setCellValue('G' . $row, !empty($participant['check_out_time']) ? date('d/m/Y H:i:s', strtotime($participant['check_out_time'])) : 'N/A');
+            $sheet->setCellValue('G' . $row, !empty($participant['thoi_gian_check_out']) ? date('d/m/Y H:i:s', strtotime($participant['thoi_gian_check_out'])) : 'N/A');
             $sheet->setCellValue('H' . $row, $status);
             
             $row++;

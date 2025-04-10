@@ -145,9 +145,9 @@
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php if (!empty($item['check_out_time'])): ?>
+                                    <?php if (!empty($item['thoi_gian_check_out'])): ?>
                                         <span class="badge badge-info">
-                                            <?= date('d/m/Y H:i:s', strtotime($item['check_out_time'])) ?>
+                                            <?= date('d/m/Y H:i:s', strtotime($item['thoi_gian_check_out'])) ?>
                                         </span>
                                     <?php else: ?>
                                         <span class="badge badge-warning">Chưa check-out</span>

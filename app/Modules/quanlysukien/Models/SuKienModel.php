@@ -1254,7 +1254,7 @@ class SuKienModel extends BaseModel
         $checkoutCount = $db->table('checkin_sukien')
             ->where('su_kien_id', $eventId)
             ->where('deleted_at IS NULL')
-            ->where('check_out_time IS NOT NULL')
+            ->where('thoi_gian_check_out IS NOT NULL')
             ->countAllResults();
         
         // Cập nhật thống kê cho sự kiện
@@ -1405,7 +1405,8 @@ class SuKienModel extends BaseModel
         
         // Xây dựng query cơ bản
         $builder = $db->table('dangky_sukien')
-            ->select('dangky_sukien.*')
+            ->select('dangky_sukien.*, checkout_sukien.thoi_gian_checkout as thoi_gian_check_out')
+            ->join('checkout_sukien', 'checkout_sukien.dangky_sukien_id = dangky_sukien.dangky_sukien_id', 'left')
             ->where('dangky_sukien.su_kien_id', $eventId)
             ->where('dangky_sukien.deleted_at IS NULL');
         
@@ -1450,6 +1451,8 @@ class SuKienModel extends BaseModel
         
         // Xây dựng query cơ bản
         $builder = $db->table('dangky_sukien')
+            ->select('COUNT(DISTINCT dangky_sukien.dangky_sukien_id) as total')
+            ->join('checkout_sukien', 'checkout_sukien.dangky_sukien_id = dangky_sukien.dangky_sukien_id', 'left')
             ->where('dangky_sukien.su_kien_id', $eventId)
             ->where('dangky_sukien.deleted_at IS NULL');
         
@@ -1463,7 +1466,9 @@ class SuKienModel extends BaseModel
                 ->groupEnd();
         }
         
-        // Đếm kết quả
-        return $builder->countAllResults();
+        // Thực hiện query
+        $result = $builder->get()->getRow();
+        
+        return (int)($result->total ?? 0);
     }
 }   

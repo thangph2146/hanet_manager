@@ -3,7 +3,8 @@
 <head>
     <!-- Meta -->
     <?= $this->include('frontend/components/nguoidung/head/meta') ?>
-
+    <!--favicon-->
+    <link rel="icon" href="<?= site_url('assets/images/favicon-32x32.png') ?>" type="image/png" />
     <!-- Link href - CSS chính -->
     <?= $this->include('frontend/components/nguoidung/head/link_href') ?>
 
