@@ -158,59 +158,24 @@ class DangKySuKienModel extends BaseModel
     {
         $builder = $this->builder();
         
-        // Xử lý withDeleted nếu cần
-        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
-            $builder->where($this->table . '.deleted_at IS NOT NULL');
-        } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa
-            $builder->where($this->table . '.deleted_at IS NULL');
-        }
-        
-        // Xử lý lọc theo sự kiện
-        if (isset($criteria['su_kien_id']) && $criteria['su_kien_id'] !== '') {
-            $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
-        }
-        
-        // Xử lý lọc theo loại người đăng ký
-        if (isset($criteria['loai_nguoi_dang_ky']) && $criteria['loai_nguoi_dang_ky'] !== '') {
-            $builder->where($this->table . '.loai_nguoi_dang_ky', $criteria['loai_nguoi_dang_ky']);
-        }
-        
-        // Xử lý lọc theo trạng thái
-        if (isset($criteria['status']) && $criteria['status'] !== '') {
-            $builder->where($this->table . '.status', $criteria['status']);
-        }
-        
-        // Xử lý lọc theo hình thức tham gia
-        if (isset($criteria['hinh_thuc_tham_gia']) && $criteria['hinh_thuc_tham_gia'] !== '') {
-            $builder->where($this->table . '.hinh_thuc_tham_gia', $criteria['hinh_thuc_tham_gia']);
-        }
-        
-        // Xử lý lọc theo trạng thái điểm danh
-        if (isset($criteria['attendance_status']) && $criteria['attendance_status'] !== '') {
-            $builder->where($this->table . '.attendance_status', $criteria['attendance_status']);
-        }
-        
-        // Xử lý lọc theo phương thức điểm danh
-        if (isset($criteria['diem_danh_bang']) && $criteria['diem_danh_bang'] !== '') {
-            $builder->where($this->table . '.diem_danh_bang', $criteria['diem_danh_bang']);
-        }
+        // Mặc định chỉ lấy dữ liệu chưa xóa
+        $builder->where($this->table . '.deleted_at IS NULL');
         
         // Xử lý tìm kiếm theo từ khóa
         if (!empty($criteria['keyword'])) {
-            $keyword = trim($criteria['keyword']);
-            
-            $builder->groupStart();
-            foreach ($this->searchableFields as $index => $field) {
-                if ($index === 0) {
-                    $builder->like($this->table . '.' . $field, $keyword);
-                } else {
-                    $builder->orLike($this->table . '.' . $field, $keyword);
-                }
-            }
-            $builder->groupEnd();
+            $keyword = $criteria['keyword'];
+            $builder->groupStart()
+                ->like($this->table . '.email', $keyword)
+                ->orLike($this->table . '.ho_ten', $keyword)
+                ->orLike($this->table . '.dien_thoai', $keyword)
+                ->orLike($this->table . '.don_vi_to_chuc', $keyword)
+                ->orLike($this->table . '.noi_dung_gop_y', $keyword)
+                ->orLike($this->table . '.ly_do_tham_du', $keyword)
+                ->orLike($this->table . '.nguon_gioi_thieu', $keyword)
+                ->orLike($this->table . '.ma_xac_nhan', $keyword)
+                ->groupEnd();
         }
-
+        
         // Xử lý lọc theo thời gian
         if (!empty($criteria['start_date'])) {
             $builder->where($this->table . '.created_at >=', $criteria['start_date']);
@@ -220,37 +185,32 @@ class DangKySuKienModel extends BaseModel
             $builder->where($this->table . '.created_at <=', $criteria['end_date']);
         }
         
-        // Xác định trường sắp xếp và thứ tự sắp xếp
-        $sort = $options['sort'] ?? 'created_at';
-        $order = $options['order'] ?? 'DESC';
-        
-        // Xử lý giới hạn và phân trang
-        $limit = $options['limit'] ?? 10;
-        $offset = $options['offset'] ?? 0;
-        
-        // Thực hiện truy vấn với phân trang
-        if ($limit > 0) {
-            $builder->limit($limit, $offset);
+        // Xử lý sắp xếp
+        if (isset($options['sort']) && isset($options['order'])) {
+            $builder->orderBy($this->table . '.' . $options['sort'], $options['order']);
         }
         
-        // Sắp xếp kết quả
-        $builder->orderBy($this->table . '.' . $sort, $order);
+        // Xử lý phân trang
+        if (isset($options['limit']) && isset($options['offset'])) {
+            $builder->limit($options['limit'], $options['offset']);
+        }
         
         // Thực hiện truy vấn
         $result = $builder->get()->getResult($this->returnType);
         
-        // Thiết lập pager nếu cần
-        if ($limit > 0) {
-            $totalRows = $this->countSearchResults($criteria);
-            $this->pager = new Pager(
-                $totalRows,
-                $limit,
-                floor($offset / $limit) + 1
-            );
-            $this->pager->setSurroundCount($this->surroundCount ?? 2);
+        // Cập nhật pager
+        $total = $this->countSearchResults($criteria);
+        $currentPage = isset($options['offset']) && isset($options['limit']) ? floor($options['offset'] / $options['limit']) + 1 : 1;
+        
+        if ($this->pager === null) {
+            $this->pager = new Pager($total, $options['limit'] ?? 10, $currentPage);
+        } else {
+            $this->pager->setTotal($total)
+                        ->setPerPage($options['limit'] ?? 10)
+                        ->setCurrentPage($currentPage);
         }
         
-        return $result;
+        return $result ?: [];
     }
     
     /**
@@ -263,57 +223,22 @@ class DangKySuKienModel extends BaseModel
     {
         $builder = $this->builder();
         
-        // Xử lý withDeleted nếu cần
-        if (isset($criteria['deleted']) && $criteria['deleted'] === true) {
-            $builder->where($this->table . '.deleted_at IS NOT NULL');
-        } else {
-            // Mặc định chỉ lấy dữ liệu chưa xóa
-            $builder->where($this->table . '.deleted_at IS NULL');
-        }
-        
-        // Xử lý lọc theo sự kiện
-        if (isset($criteria['su_kien_id']) && $criteria['su_kien_id'] !== '') {
-            $builder->where($this->table . '.su_kien_id', $criteria['su_kien_id']);
-        }
-        
-        // Xử lý lọc theo loại người đăng ký
-        if (isset($criteria['loai_nguoi_dang_ky']) && $criteria['loai_nguoi_dang_ky'] !== '') {
-            $builder->where($this->table . '.loai_nguoi_dang_ky', $criteria['loai_nguoi_dang_ky']);
-        }
-        
-        // Xử lý lọc theo trạng thái
-        if (isset($criteria['status']) && $criteria['status'] !== '') {
-            $builder->where($this->table . '.status', $criteria['status']);
-        }
-        
-        // Xử lý lọc theo hình thức tham gia
-        if (isset($criteria['hinh_thuc_tham_gia']) && $criteria['hinh_thuc_tham_gia'] !== '') {
-            $builder->where($this->table . '.hinh_thuc_tham_gia', $criteria['hinh_thuc_tham_gia']);
-        }
-        
-        // Xử lý lọc theo trạng thái điểm danh
-        if (isset($criteria['attendance_status']) && $criteria['attendance_status'] !== '') {
-            $builder->where($this->table . '.attendance_status', $criteria['attendance_status']);
-        }
-        
-        // Xử lý lọc theo phương thức điểm danh
-        if (isset($criteria['diem_danh_bang']) && $criteria['diem_danh_bang'] !== '') {
-            $builder->where($this->table . '.diem_danh_bang', $criteria['diem_danh_bang']);
-        }
+        // Mặc định chỉ lấy dữ liệu chưa xóa
+        $builder->where($this->table . '.deleted_at IS NULL');
         
         // Xử lý tìm kiếm theo từ khóa
         if (!empty($criteria['keyword'])) {
-            $keyword = trim($criteria['keyword']);
-            
-            $builder->groupStart();
-            foreach ($this->searchableFields as $index => $field) {
-                if ($index === 0) {
-                    $builder->like($this->table . '.' . $field, $keyword);
-                } else {
-                    $builder->orLike($this->table . '.' . $field, $keyword);
-                }
-            }
-            $builder->groupEnd();
+            $keyword = $criteria['keyword'];
+            $builder->groupStart()
+                ->like($this->table . '.email', $keyword)
+                ->orLike($this->table . '.ho_ten', $keyword)
+                ->orLike($this->table . '.dien_thoai', $keyword)
+                ->orLike($this->table . '.don_vi_to_chuc', $keyword)
+                ->orLike($this->table . '.noi_dung_gop_y', $keyword)
+                ->orLike($this->table . '.ly_do_tham_du', $keyword)
+                ->orLike($this->table . '.nguon_gioi_thieu', $keyword)
+                ->orLike($this->table . '.ma_xac_nhan', $keyword)
+                ->groupEnd();
         }
         
         // Xử lý lọc theo thời gian

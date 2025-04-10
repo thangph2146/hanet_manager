@@ -699,103 +699,28 @@ class QuanLyDangKySuKien extends BaseController
     }
 
     /**
-     * Chuẩn bị tham số tìm kiếm
-     */
-    protected function prepareSearchParams($request)
-    {
-        // Xử lý perPage trước
-        $perPage = $request->getGet('perPage');
-        $perPage = !empty($perPage) ? (int)$perPage : 10;
-        
-        return [
-            'keyword' => $request->getGet('keyword') ?? '',
-            'status' => $request->getGet('status') ?? '',
-            'page' => (int)($request->getGet('page') ?? 1),
-            'perPage' => $perPage,
-            'sort' => $request->getGet('sort') ?? 'created_at',
-            'order' => $request->getGet('order') ?? 'DESC',
-            'su_kien_id' => $request->getGet('su_kien_id') ?? '',
-            'loai_nguoi_dang_ky' => $request->getGet('loai_nguoi_dang_ky') ?? '',
-            'hinh_thuc_tham_gia' => $request->getGet('hinh_thuc_tham_gia') ?? '',
-            'face_verified' => $request->getGet('face_verified') ?? '',
-            'start_date' => $request->getGet('start_date') ?? '',
-            'end_date' => $request->getGet('end_date') ?? '',
-            'dangky_sukien_id' => $request->getGet('dangky_sukien_id') ?? '',
-        ];
-    }
-    
-    /**
-     * Xử lý các tham số tìm kiếm
-     * 
-     * @param array $params Tham số tìm kiếm
-     * @return array Tham số đã xử lý
-     */
-    protected function processSearchParams($params)
-    {
-        // Sắp xếp
-        if (!isset($params['sort']) || empty($params['sort'])) {
-            $params['sort'] = 'thoi_gian_check_out';
-        }
-        
-        // Thứ tự sắp xếp
-        if (!isset($params['order']) || empty($params['order'])) {
-            $params['order'] = 'DESC';
-        }
-        
-        // Đảm bảo thứ tự sắp xếp hợp lệ
-        if (!in_array(strtoupper($params['order']), ['ASC', 'DESC'])) {
-            $params['order'] = 'DESC';
-        }
-        
-        // Phân trang
-        if (!isset($params['perPage']) || empty($params['perPage'])) {
-            $params['perPage'] = 10;
-        }
-        
-        // Đảm bảo perPage hợp lệ
-        $validPerPage = [10, 25, 50, 100];
-        if (!in_array((int)$params['perPage'], $validPerPage)) {
-            $params['perPage'] = 10;
-        }
-        
-        // Trang hiện tại
-        if (!isset($params['page']) || empty($params['page'])) {
-            $params['page'] = 1;
-        }
-        
-        // Đảm bảo page hợp lệ
-        if ((int)$params['page'] < 1) {
-            $params['page'] = 1;
-        }
-        
-        return $params;
-    }
-    
-    /**
      * Xây dựng tiêu chí tìm kiếm từ tham số
+     *
+     * @param array $params Tham số tìm kiếm
+     * @return array
      */
-    protected function buildSearchCriteria($params)
+    protected function buildSearchCriteria(array $params): array
     {
         $criteria = [];
         
-        // Tìm kiếm theo từ khóa
+        // Xử lý từ khóa tìm kiếm
         if (!empty($params['keyword'])) {
-            // Tạo một mảng các điều kiện tìm kiếm OR
-            $orConditions = [];
-            
-            // Tìm kiếm theo tên loại sự kiện
-            $orConditions['ten_loai_su_kien'] = $params['keyword'];
-            
-            // Tìm kiếm theo mã loại sự kiện
-            $orConditions['ma_loai_su_kien'] = $params['keyword'];
-            
-            // Thêm điều kiện tìm kiếm OR vào criteria
-            $criteria['keyword'] = $orConditions;
+            $criteria['keyword'] = $params['keyword'];
         }
         
-        // Lọc theo trạng thái
-        if (isset($params['status']) && $params['status'] !== '') {
-            $criteria['status'] = $params['status'];
+        // Xử lý ngày bắt đầu
+        if (!empty($params['start_date'])) {
+            $criteria['start_date'] = $params['start_date'];
+        }
+        
+        // Xử lý ngày kết thúc
+        if (!empty($params['end_date'])) {
+            $criteria['end_date'] = $params['end_date'];
         }
         
         return $criteria;
@@ -803,24 +728,66 @@ class QuanLyDangKySuKien extends BaseController
     
     /**
      * Xây dựng tùy chọn tìm kiếm từ tham số
+     *
+     * @param array $params Tham số tìm kiếm
+     * @return array
      */
-    protected function buildSearchOptions($params)
+    protected function buildSearchOptions(array $params): array
     {
-        // Đảm bảo các giá trị là số nguyên
-        $page = (int)($params['page'] ?? 1);
-        $perPage = (int)($params['perPage'] ?? 10);
+        $options = [];
         
-        // Tính toán offset
-        $offset = ($page - 1) * $perPage;
+        // Xử lý phân trang
+        $options['limit'] = $params['perPage'];
+        $options['offset'] = ($params['page'] - 1) * $params['perPage'];
         
+        // Sắp xếp mặc định theo thời gian tạo giảm dần
+        $options['sort'] = 'created_at';
+        $options['order'] = 'DESC';
+        
+        return $options;
+    }
+    
+    /**
+     * Chuẩn bị tham số tìm kiếm từ request
+     *
+     * @param \CodeIgniter\HTTP\IncomingRequest $request
+     * @return array
+     */
+    protected function prepareSearchParams($request): array
+    {
         return [
-            'page' => $page,
-            'perPage' => $perPage,
-            'offset' => $offset,
-            'limit' => $perPage,
-            'sort' => $params['sort'] ?? 'thoi_gian_check_out',
-            'order' => $params['order'] ?? 'DESC'
+            'keyword' => $request->getGet('keyword'),
+            'start_date' => $request->getGet('start_date'),
+            'end_date' => $request->getGet('end_date'),
+            'perPage' => (int) ($request->getGet('perPage') ?? 10),
+            'page' => max(1, (int) ($request->getGet('page') ?? 1))
         ];
+    }
+    
+    /**
+     * Xử lý tham số tìm kiếm
+     *
+     * @param array $params Tham số tìm kiếm
+     * @return array
+     */
+    protected function processSearchParams(array $params): array
+    {
+        // Xử lý từ khóa tìm kiếm
+        if (isset($params['keyword'])) {
+            $params['keyword'] = trim($params['keyword']);
+        }
+        
+        // Xử lý ngày bắt đầu
+        if (!empty($params['start_date'])) {
+            $params['start_date'] = date('Y-m-d H:i:s', strtotime($params['start_date']));
+        }
+        
+        // Xử lý ngày kết thúc
+        if (!empty($params['end_date'])) {
+            $params['end_date'] = date('Y-m-d H:i:s', strtotime($params['end_date']));
+        }
+        
+        return $params;
     }
     
     /**
