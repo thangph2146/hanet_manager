@@ -3,9 +3,7 @@
 namespace App\Modules\login\Controllers;
 
 use App\Controllers\BaseController;
-use App\Models\StudentModel;
-use App\Models\StudentInfoModel;
-use App\Models\UserModel;
+use App\Modules\quanlynguoidung\Models\NguoiDungModel;
 
 class LoginController extends BaseController
 {
@@ -17,8 +15,8 @@ class LoginController extends BaseController
             session()->set('redirect_url', urldecode($redirect));
         }
         
-        $googleAuth = service('googleAuth');
-        $googleAuthUrl = $googleAuth->getAuthUrl('nguoidung');    
+        $googleAuth = service('googleAuthUser');
+        $googleAuthUrl = $googleAuth->getAuthUrl();    
         return view('App\Modules\login\nguoidung\Views\login', ['googleAuthUrl' => $googleAuthUrl]);
     }
 
@@ -214,17 +212,14 @@ class LoginController extends BaseController
         // In ra thông tin để debug (có thể xóa sau khi đã hoạt động)
         log_message('debug', 'Google Callback Student - State: ' . $state . ', Login Type param: ' . $login_type);
         
-        // Đảm bảo login_type là 'student'
-        $login_type = 'student';
-        
         if (empty($code)) {
             return redirect()->to('login')
                             ->with('warning', 'Không thể xác thực với Google!');
         }
         
         // Xử lý code để lấy thông tin người dùng
-        $googleAuth = service('googleAuth');
-        $googleUser = $googleAuth->handleCallback($code, $login_type);
+        $googleAuth = service('googleAuthUser');
+        $googleUser = $googleAuth->handleCallback($code);
         
         if (empty($googleUser)) {
             return redirect()->to('login')
@@ -232,7 +227,7 @@ class LoginController extends BaseController
         }
         
         // Tìm sinh viên theo email
-        $model = new StudentModel();
+        $model = new NguoiDungModel();
         $user = $model->where('Email', $googleUser['email'])->first();
         
         // Hiển thị thông báo phù hợp nếu không tìm thấy người dùng
@@ -242,17 +237,17 @@ class LoginController extends BaseController
         }
         
         // Đăng nhập sinh viên
-        if ($googleAuth->loginWithGoogle($googleUser, $login_type)) {
+        if ($googleAuth->loginWithGoogle($googleUser)) {
             $redirect_url = session('redirect_url') ?? '/';
             unset($_SESSION['redirect_url']);
             
             return redirect()->to($redirect_url)
                             ->with('info', 'Bạn đã đăng nhập thành công với Google!')
                             ->withCookies();
-        } else {
-            return redirect()->to('login')
-                            ->with('warning', 'Đăng nhập với Google không thành công!');
         }
+        
+        return redirect()->to('login')
+                        ->with('warning', 'Đăng nhập với Google không thành công!');
     }
 
     public function deletenguoidung()

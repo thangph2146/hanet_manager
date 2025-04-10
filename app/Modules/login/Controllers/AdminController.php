@@ -10,8 +10,8 @@ class AdminController extends BaseController
     public function index()
     {
         // Lấy URL đăng nhập Google
-        $googleAuth = service('googleAuth');
-        $googleAuthUrl = $googleAuth->getAuthUrl('admin');
+        $googleAuth = service('googleAuthAdmin');
+        $googleAuthUrl = $googleAuth->getAuthUrl();
         
         return view('App\Modules\login\admin\Views\login', ['googleAuthUrl' => $googleAuthUrl]);
     }
@@ -54,25 +54,14 @@ class AdminController extends BaseController
         // Lấy code từ callback URL
         $code = $this->request->getGet('code');
         
-        // Lấy state từ query string (chứa login_type)
-        $state = $this->request->getGet('state');
-        
-        if (!empty($state)) {
-            $type = $state;
-        }
-        
-        if (empty($type)) {
-            $type = 'admin';
-        }
-        
         if (empty($code)) {
             return redirect()->to('login/admin')
                             ->with('warning', 'Không thể xác thực với Google!');
         }
         
         // Xử lý code để lấy thông tin người dùng
-        $googleAuth = service('googleAuth');
-        $googleUser = $googleAuth->handleCallback($code, $type);
+        $googleAuth = service('googleAuthAdmin');
+        $googleUser = $googleAuth->handleCallback($code);
         
         if (empty($googleUser)) {
             return redirect()->to('login/admin')
@@ -80,7 +69,7 @@ class AdminController extends BaseController
         }
         
         // Xử lý thông tin và đăng nhập người dùng
-        if ($googleAuth->loginWithGoogle($googleUser, $type)) {
+        if ($googleAuth->loginWithGoogle($googleUser)) {
             $redirect_url = session('redirect_url') ?? 'users/dashboard';
             unset($_SESSION['redirect_url']);
             

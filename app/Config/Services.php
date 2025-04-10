@@ -60,6 +60,26 @@ class Services extends BaseService
 		return new \App\Libraries\GoogleAuthentication;
 	}
 	
+	public static function googleAuthUser($getShared = true)
+	{
+		if ($getShared)
+		{
+			return static::getSharedInstance('googleAuthUser');
+		}
+
+		return new \App\Libraries\GoogleAuthenticationUser;
+	}
+	
+	public static function googleAuthAdmin($getShared = true)
+	{
+		if ($getShared)
+		{
+			return static::getSharedInstance('googleAuthAdmin');
+		}
+
+		return new \App\Libraries\GoogleAuthenticationAdmin;
+	}
+	
 	public static function locale($getShared = true)
 	{
 		if ($getShared)
