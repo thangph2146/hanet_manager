@@ -976,7 +976,9 @@
             <!-- Thẻ thống kê -->
             <div class="card statistics-card shadow-sm border-0">
                 <div class="card-header bg-white p-3 border-bottom">
-                    <h5 class="card-title mb-0"><i class="fas fa-chart-pie text-primary me-2"></i>Thống kê sự kiện</h5>
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie text-primary me-2" style="color: rgb(153, 0, 0) !important"></i>Thống kê sự kiện
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div class="row align-items-center">
@@ -1052,14 +1054,8 @@
                 <div class="card-header bg-white p-3 border-bottom">
                     <div class="w-100 d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-list text-primary me-2"></i>Danh sách sự kiện
+                            <i class="fas fa-list text-primary me-2" style="color: rgb(153, 0, 0) !important"></i>Danh sách sự kiện
                         </h5>
-                        <div class="input-group" style="max-width: 300px;">
-                            <input type="text" class="form-control" placeholder="Tìm kiếm sự kiện..." id="searchEvent">
-                            <button class="btn btn-outline-primary" type="button">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
                     </div>
                 </div>
                 <div class="card-body">

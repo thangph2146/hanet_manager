@@ -556,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .text-primary {
-    color: #0d6efd !important;
+    color: rgb(153, 0, 0) !important;
 }
 
 /* Buttons styling */

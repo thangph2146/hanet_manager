@@ -234,18 +234,38 @@ class SuKienModel extends BaseModel
 
         // Tìm kiếm theo từ khóa (chỉ tìm trong tên sự kiện)
         if (!empty($criteria['keyword'])) {
-            $this->builder->like($this->table . '.ten_su_kien', $criteria['keyword']);
+            $this->builder->groupStart()
+                ->like($this->table . '.ten_su_kien', $criteria['keyword'], 'both')
+                ->orLike($this->table . '.mo_ta_su_kien', $criteria['keyword'], 'both')
+                ->orLike($this->table . '.dia_diem', $criteria['keyword'], 'both')
+            ->groupEnd();
         }
 
         // Tìm kiếm theo thời gian bắt đầu sự kiện
         if (!empty($criteria['start_date'])) {
-            $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['start_date'])));
+            // Xử lý định dạng ngày tháng ISO
+            $startDate = $criteria['start_date'];
+            if (strpos($startDate, 'T') !== false) {
+                // Định dạng ISO với timezone
+                $startDate = date('Y-m-d', strtotime($startDate));
+            } else {
+                // Định dạng thông thường
+                $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $startDate)));
+            }
             $this->builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
         }
 
         // Tìm kiếm theo thời gian kết thúc sự kiện
         if (!empty($criteria['end_date'])) {
-            $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['end_date'])));
+            // Xử lý định dạng ngày tháng ISO
+            $endDate = $criteria['end_date'];
+            if (strpos($endDate, 'T') !== false) {
+                // Định dạng ISO với timezone
+                $endDate = date('Y-m-d', strtotime($endDate));
+            } else {
+                // Định dạng thông thường
+                $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $endDate)));
+            }
             $this->builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
         }
 
@@ -412,13 +432,29 @@ class SuKienModel extends BaseModel
 
         // Tìm kiếm theo thời gian bắt đầu sự kiện
         if (!empty($criteria['start_date'])) {
-            $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['start_date'])));
+            // Xử lý định dạng ngày tháng ISO
+            $startDate = $criteria['start_date'];
+            if (strpos($startDate, 'T') !== false) {
+                // Định dạng ISO với timezone
+                $startDate = date('Y-m-d', strtotime($startDate));
+            } else {
+                // Định dạng thông thường
+                $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $startDate)));
+            }
             $this->builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
         }
 
         // Tìm kiếm theo thời gian kết thúc sự kiện
         if (!empty($criteria['end_date'])) {
-            $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['end_date'])));
+            // Xử lý định dạng ngày tháng ISO
+            $endDate = $criteria['end_date'];
+            if (strpos($endDate, 'T') !== false) {
+                // Định dạng ISO với timezone
+                $endDate = date('Y-m-d', strtotime($endDate));
+            } else {
+                // Định dạng thông thường
+                $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $endDate)));
+            }
             $this->builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
         }
         
@@ -948,14 +984,30 @@ class SuKienModel extends BaseModel
 
         // Tìm kiếm theo thời gian bắt đầu sự kiện
         if (!empty($criteria['start_date'])) {
-            $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['start_date'])));
-            $builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
+            // Xử lý định dạng ngày tháng ISO
+            $startDate = $criteria['start_date'];
+            if (strpos($startDate, 'T') !== false) {
+                // Định dạng ISO với timezone
+                $startDate = date('Y-m-d', strtotime($startDate));
+            } else {
+                // Định dạng thông thường
+                $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $startDate)));
+            }
+            $this->builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
         }
 
         // Tìm kiếm theo thời gian kết thúc sự kiện
         if (!empty($criteria['end_date'])) {
-            $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['end_date'])));
-            $builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
+            // Xử lý định dạng ngày tháng ISO
+            $endDate = $criteria['end_date'];
+            if (strpos($endDate, 'T') !== false) {
+                // Định dạng ISO với timezone
+                $endDate = date('Y-m-d', strtotime($endDate));
+            } else {
+                // Định dạng thông thường
+                $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $endDate)));
+            }
+            $this->builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
         }
         
         // Chỉ đếm bản ghi chưa xóa
@@ -990,13 +1042,29 @@ class SuKienModel extends BaseModel
 
         // Tìm kiếm theo thời gian bắt đầu sự kiện
         if (!empty($criteria['start_date'])) {
-            $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['start_date'])));
+            // Xử lý định dạng ngày tháng ISO
+            $startDate = $criteria['start_date'];
+            if (strpos($startDate, 'T') !== false) {
+                // Định dạng ISO với timezone
+                $startDate = date('Y-m-d', strtotime($startDate));
+            } else {
+                // Định dạng thông thường
+                $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $startDate)));
+            }
             $this->builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
         }
 
         // Tìm kiếm theo thời gian kết thúc sự kiện
         if (!empty($criteria['end_date'])) {
-            $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['end_date'])));
+            // Xử lý định dạng ngày tháng ISO
+            $endDate = $criteria['end_date'];
+            if (strpos($endDate, 'T') !== false) {
+                // Định dạng ISO với timezone
+                $endDate = date('Y-m-d', strtotime($endDate));
+            } else {
+                // Định dạng thông thường
+                $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $endDate)));
+            }
             $this->builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
         }
         
@@ -1059,13 +1127,29 @@ class SuKienModel extends BaseModel
 
         // Tìm kiếm theo thời gian bắt đầu sự kiện
         if (!empty($criteria['start_date'])) {
-            $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['start_date'])));
+            // Xử lý định dạng ngày tháng ISO
+            $startDate = $criteria['start_date'];
+            if (strpos($startDate, 'T') !== false) {
+                // Định dạng ISO với timezone
+                $startDate = date('Y-m-d', strtotime($startDate));
+            } else {
+                // Định dạng thông thường
+                $startDate = date('Y-m-d', strtotime(str_replace('/', '-', $startDate)));
+            }
             $builder->where('DATE(' . $this->table . '.thoi_gian_bat_dau_su_kien) >=', $startDate);
         }
 
         // Tìm kiếm theo thời gian kết thúc sự kiện
         if (!empty($criteria['end_date'])) {
-            $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $criteria['end_date'])));
+            // Xử lý định dạng ngày tháng ISO
+            $endDate = $criteria['end_date'];
+            if (strpos($endDate, 'T') !== false) {
+                // Định dạng ISO với timezone
+                $endDate = date('Y-m-d', strtotime($endDate));
+            } else {
+                // Định dạng thông thường
+                $endDate = date('Y-m-d', strtotime(str_replace('/', '-', $endDate)));
+            }
             $builder->where('DATE(' . $this->table . '.thoi_gian_ket_thuc_su_kien) <=', $endDate);
         }
         
@@ -1251,10 +1335,9 @@ class SuKienModel extends BaseModel
             ->countAllResults();
         
         // Đếm số lượng check-out
-        $checkoutCount = $db->table('checkin_sukien')
+        $checkoutCount = $db->table('checkout_sukien')
             ->where('su_kien_id', $eventId)
             ->where('deleted_at IS NULL')
-            ->where('thoi_gian_check_out IS NOT NULL')
             ->countAllResults();
         
         // Cập nhật thống kê cho sự kiện

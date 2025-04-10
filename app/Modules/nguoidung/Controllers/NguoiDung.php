@@ -680,6 +680,7 @@ class NguoiDung extends BaseController
         $filters = [
             'start_date' => $this->request->getGet('start_date'),
             'end_date' => $this->request->getGet('end_date'),
+            'search' => $search
         ];
         
         $data['current_filter'] = $filters;
@@ -702,7 +703,7 @@ class NguoiDung extends BaseController
             ], [
                 'limit' => $perPage,
                 'offset' => ($page - 1) * $perPage,
-                'sort' => 'thoi_gian_bat_dau_su_kien    ',
+                'sort' => 'thoi_gian_bat_dau_su_kien',
                 'order' => 'DESC'
             ]);
             
@@ -747,6 +748,9 @@ class NguoiDung extends BaseController
             $data['registeredCount'] = $registeredCount;
             $data['attendedCount'] = $attendedCount;
             $data['pager'] = $sukienModel->getPager();
+            
+            // Đảm bảo tham số tìm kiếm được truyền đúng vào view
+            $data['current_filter']['search'] = $search;
             
         } catch (\Exception $e) {
             log_message('error', 'Lỗi lấy danh sách sự kiện: ' . $e->getMessage());

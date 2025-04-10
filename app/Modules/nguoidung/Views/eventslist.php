@@ -115,7 +115,7 @@
                 <h3 class="empty-state-title">Không tìm thấy sự kiện nào</h3>
                 <p class="empty-state-description">Hiện tại không có sự kiện nào phù hợp với tiêu chí tìm kiếm. Vui lòng thử lại với các bộ lọc khác.</p>
                 <button id="resetFilters" class="btn-reset-filters">
-                    <i class="fas fa-redo"></i> Đặt lại bộ lọc
+                    <i class="fas fa-redo mb-0" style="font-size: 2rem; color: white;"></i> Đặt lại bộ lọc
                 </button>
             </div>
         <?php else: ?>
