@@ -30,16 +30,9 @@ $masterScript = new $masterScriptClass($module_name);
         <?= view('App\Modules\\' . $module_name . '\Views\components\_filter', [
             'module_name' => $module_name,
             'keyword' => $keyword ?? '',
-            'status' => $status ?? '',
-            'su_kien_id' => $su_kien_id ?? '',
-            'loai_nguoi_dang_ky' => $loai_nguoi_dang_ky ?? '',
-            'hinh_thuc_tham_gia' => $hinh_thuc_tham_gia ?? '',
-            'attendance_status' => $attendance_status ?? '',
-            'diem_danh_bang' => $diem_danh_bang ?? '',
             'start_date' => $start_date ?? '',
             'end_date' => $end_date ?? '',
-            'perPage' => $perPage,
-            'suKiens' => $suKiens ?? []
+            'perPage' => $perPage
         ]) ?>
         
         <?= view('App\Modules\\' . $module_name . '\Views\components\_alerts') ?>

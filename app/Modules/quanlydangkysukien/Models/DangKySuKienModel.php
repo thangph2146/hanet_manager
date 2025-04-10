@@ -178,39 +178,24 @@ class DangKySuKienModel extends BaseModel
         
         // Xử lý lọc theo thời gian
         if (!empty($criteria['start_date'])) {
-            $builder->where($this->table . '.created_at >=', $criteria['start_date']);
+            $builder->where($this->table . '.created_at >=', $criteria['start_date'] . ' 00:00:00');
         }
         
         if (!empty($criteria['end_date'])) {
-            $builder->where($this->table . '.created_at <=', $criteria['end_date']);
+            $builder->where($this->table . '.created_at <=', $criteria['end_date'] . ' 23:59:59');
         }
         
-        // Xử lý sắp xếp
-        if (isset($options['sort']) && isset($options['order'])) {
-            $builder->orderBy($this->table . '.' . $options['sort'], $options['order']);
-        }
+        // Xử lý sắp xếp mặc định
+        $builder->orderBy($this->table . '.created_at', 'DESC');
         
         // Xử lý phân trang
         if (isset($options['limit']) && isset($options['offset'])) {
             $builder->limit($options['limit'], $options['offset']);
         }
         
-        // Thực hiện truy vấn
         $result = $builder->get()->getResult($this->returnType);
         
-        // Cập nhật pager
-        $total = $this->countSearchResults($criteria);
-        $currentPage = isset($options['offset']) && isset($options['limit']) ? floor($options['offset'] / $options['limit']) + 1 : 1;
-        
-        if ($this->pager === null) {
-            $this->pager = new Pager($total, $options['limit'] ?? 10, $currentPage);
-        } else {
-            $this->pager->setTotal($total)
-                        ->setPerPage($options['limit'] ?? 10)
-                        ->setCurrentPage($currentPage);
-        }
-        
-        return $result ?: [];
+        return $result;
     }
     
     /**
@@ -243,11 +228,11 @@ class DangKySuKienModel extends BaseModel
         
         // Xử lý lọc theo thời gian
         if (!empty($criteria['start_date'])) {
-            $builder->where($this->table . '.created_at >=', $criteria['start_date']);
+            $builder->where($this->table . '.created_at >=', $criteria['start_date'] . ' 00:00:00');
         }
         
         if (!empty($criteria['end_date'])) {
-            $builder->where($this->table . '.created_at <=', $criteria['end_date']);
+            $builder->where($this->table . '.created_at <=', $criteria['end_date'] . ' 23:59:59');
         }
         
         return $builder->countAllResults();

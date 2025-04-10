@@ -59,62 +59,44 @@ class QuanLyDangKySuKien extends BaseController
         $this->initializeRelationTrait();
     }
     
-       /**
-     * Hiển thị danh sách check-in sự kiện với phân trang
+    /**
+     * Hiển thị danh sách đăng ký sự kiện với phân trang
      */
     public function index()
     {
         // Lấy các tham số từ URL
-        $params = $this->prepareSearchParams($this->request);
-        // Xử lý tham số tìm kiếm
-        $params = $this->processSearchParams($params);
-        
+        $params = [
+            'keyword' => $this->request->getGet('keyword'),
+            'start_date' => $this->request->getGet('start_date'),
+            'end_date' => $this->request->getGet('end_date'),
+            'perPage' => (int)($this->request->getGet('perPage') ?? 10),
+            'page' => (int)($this->request->getGet('page') ?? 1)
+        ];
+
         // Thiết lập số liên kết trang hiển thị xung quanh trang hiện tại
         $this->model->setSurroundCount(3);
         
-        // Xây dựng tiêu chí và tùy chọn tìm kiếm
-        $criteria = $this->buildSearchCriteria($params);
-        $options = $this->buildSearchOptions($params);
+        // Xây dựng tiêu chí tìm kiếm
+        $criteria = [
+            'keyword' => $params['keyword'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date']
+        ];
+
+        // Xây dựng tùy chọn phân trang
+        $options = [
+            'limit' => $params['perPage'],
+            'offset' => ($params['page'] - 1) * $params['perPage']
+        ];
         
-        // Lấy dữ liệu check-in và thông tin phân trang
+        // Lấy dữ liệu đăng ký sự kiện và thông tin phân trang
         $pageData = $this->model->search($criteria, $options);
-        // Lấy tổng số kết quả
-        $pager = $this->model->getPager();
-        $total = $pager ? $pager->getTotal() : $this->model->countSearchResults($criteria);
         
-        // Nếu trang hiện tại lớn hơn tổng số trang, điều hướng về trang cuối cùng
-        $pageCount = ceil($total / $params['perPage']);
-        if ($total > 0 && $params['page'] > $pageCount) {
-            // Tạo URL mới với trang cuối cùng
-            $redirectParams = $_GET;
-            $redirectParams['page'] = $pageCount;
-            $redirectUrl = site_url($this->module_name) . '?' . http_build_query($redirectParams);
-            
-            // Chuyển hướng đến trang cuối cùng
-            return redirect()->to($redirectUrl);
-        }
+        // Lấy tổng số kết quả từ model
+        $total = $this->model->countSearchResults($criteria);
         
-        // Lấy pager từ model và thiết lập các tham số
-        $pager = $this->model->getPager();
-        if ($pager !== null) {
-            $pager->setPath($this->module_name);
-            $pager->setRouteUrl($this->module_name);
-            // Thêm tất cả các tham số cần giữ lại khi chuyển trang
-            $pager->setOnly(['keyword', 'status', 'perPage', 'sort', 'order', 'su_kien_id', 'loai_nguoi_dang_ky', 'hinh_thuc_tham_gia', 'start_date', 'end_date']);
-            
-            // Đảm bảo perPage và currentPage được thiết lập đúng
-            $pager->setPerPage($params['perPage']);
-            $pager->setCurrentPage($params['page']);
-        }
-        
-        // Lấy danh sách sự kiện cho filter và hiển thị
-        $suKienModel = new \App\Modules\quanlysukien\Models\SuKienModel();
-        $suKiens = $suKienModel->where('deleted_at', null)
-                              ->orderBy('created_at', 'DESC')
-                              ->findAll();
-        
-        // Lấy danh sách loại người dùng cho filter
-        $loaiNguoiDungOptions = $this->model->getLoaiNguoiDungOptions();
+        // Khởi tạo pager với tổng số kết quả
+        $pager = service('pager');
         
         // Chuẩn bị dữ liệu cho view
         $viewData = [
@@ -126,13 +108,11 @@ class QuanLyDangKySuKien extends BaseController
             'pager' => $pager,
             'perPage' => $params['perPage'],
             'total' => $total,
-            'keyword' => $params['keyword'] ?? '',
-            'status' => $params['status'] ?? '',
-            'su_kien_id' => $params['su_kien_id'] ?? '',
-            'loai_nguoi_dang_ky' => $params['loai_nguoi_dang_ky'] ?? '',
-            'hinh_thuc_tham_gia' => $params['hinh_thuc_tham_gia'] ?? '',
-            'suKiens' => $suKiens,
-            'loaiNguoiDungOptions' => $loaiNguoiDungOptions
+            'keyword' => $params['keyword'],
+            'start_date' => $params['start_date'],
+            'end_date' => $params['end_date'],
+            'page' => $params['page'],
+            'totalPages' => ceil($total / $params['perPage'])
         ];
 
         // Hiển thị view
@@ -699,6 +679,48 @@ class QuanLyDangKySuKien extends BaseController
     }
 
     /**
+     * Chuẩn bị tham số tìm kiếm từ request
+     *
+     * @param \CodeIgniter\HTTP\IncomingRequest $request
+     * @return array
+     */
+    protected function prepareSearchParams($request): array
+    {
+        return [
+            'keyword' => $request->getGet('keyword'),
+            'start_date' => $request->getGet('start_date'),
+            'end_date' => $request->getGet('end_date'),
+            'perPage' => (int) ($request->getGet('perPage') ?? 10),
+            'page' => max(1, (int) ($request->getGet('page') ?? 1))
+        ];
+    }
+    
+    /**
+     * Xử lý tham số tìm kiếm
+     *
+     * @param array $params Tham số tìm kiếm
+     * @return array
+     */
+    protected function processSearchParams(array $params): array
+    {
+        // Xử lý từ khóa tìm kiếm
+        if (isset($params['keyword'])) {
+            $params['keyword'] = trim($params['keyword']);
+        }
+        
+        // Xử lý ngày bắt đầu và kết thúc
+        if (!empty($params['start_date'])) {
+            $params['start_date'] = date('Y-m-d', strtotime($params['start_date']));
+        }
+        
+        if (!empty($params['end_date'])) {
+            $params['end_date'] = date('Y-m-d', strtotime($params['end_date']));
+        }
+        
+        return $params;
+    }
+    
+    /**
      * Xây dựng tiêu chí tìm kiếm từ tham số
      *
      * @param array $params Tham số tìm kiếm
@@ -734,60 +756,10 @@ class QuanLyDangKySuKien extends BaseController
      */
     protected function buildSearchOptions(array $params): array
     {
-        $options = [];
-        
-        // Xử lý phân trang
-        $options['limit'] = $params['perPage'];
-        $options['offset'] = ($params['page'] - 1) * $params['perPage'];
-        
-        // Sắp xếp mặc định theo thời gian tạo giảm dần
-        $options['sort'] = 'created_at';
-        $options['order'] = 'DESC';
-        
-        return $options;
-    }
-    
-    /**
-     * Chuẩn bị tham số tìm kiếm từ request
-     *
-     * @param \CodeIgniter\HTTP\IncomingRequest $request
-     * @return array
-     */
-    protected function prepareSearchParams($request): array
-    {
         return [
-            'keyword' => $request->getGet('keyword'),
-            'start_date' => $request->getGet('start_date'),
-            'end_date' => $request->getGet('end_date'),
-            'perPage' => (int) ($request->getGet('perPage') ?? 10),
-            'page' => max(1, (int) ($request->getGet('page') ?? 1))
+            'limit' => $params['perPage'],
+            'offset' => ($params['page'] - 1) * $params['perPage']
         ];
-    }
-    
-    /**
-     * Xử lý tham số tìm kiếm
-     *
-     * @param array $params Tham số tìm kiếm
-     * @return array
-     */
-    protected function processSearchParams(array $params): array
-    {
-        // Xử lý từ khóa tìm kiếm
-        if (isset($params['keyword'])) {
-            $params['keyword'] = trim($params['keyword']);
-        }
-        
-        // Xử lý ngày bắt đầu
-        if (!empty($params['start_date'])) {
-            $params['start_date'] = date('Y-m-d H:i:s', strtotime($params['start_date']));
-        }
-        
-        // Xử lý ngày kết thúc
-        if (!empty($params['end_date'])) {
-            $params['end_date'] = date('Y-m-d H:i:s', strtotime($params['end_date']));
-        }
-        
-        return $params;
     }
     
     /**
