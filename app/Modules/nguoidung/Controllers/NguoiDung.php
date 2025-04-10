@@ -693,7 +693,7 @@ class NguoiDung extends BaseController
         
         try {
             // Phần 2: Lấy danh sách sự kiện
-            $sukienModel = model('App\Modules\quanlysukien\Models\SukienModel');
+            $sukienModel = model('App\Modules\quanlysukien\Models\SuKienModel');
             $events = $sukienModel->search([
                 'keyword' => $search,
                 'start_date' => $filters['start_date'] ?? null,
@@ -702,7 +702,7 @@ class NguoiDung extends BaseController
             ], [
                 'limit' => $perPage,
                 'offset' => ($page - 1) * $perPage,
-                'sort' => 'thoi_gian_bat_dau',
+                'sort' => 'thoi_gian_bat_dau_su_kien    ',
                 'order' => 'DESC'
             ]);
             
@@ -733,7 +733,7 @@ class NguoiDung extends BaseController
             // Phần 4: Tính toán số lượng sự kiện sắp diễn ra
             $now = new \DateTime();
             foreach ($events as $event) {
-                $startDate = new \DateTime($event->thoi_gian_bat_dau ?? date('Y-m-d H:i:s'));
+                $startDate = new \DateTime($event->thoi_gian_bat_dau_su_kien ?? date('Y-m-d H:i:s'));
                 if ($startDate > $now) {
                     $upcomingCount++;
                 }
