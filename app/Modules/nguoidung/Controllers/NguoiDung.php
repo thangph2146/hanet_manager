@@ -203,25 +203,32 @@ class NguoiDung extends BaseController
                     if (!is_dir($uploadPath)) {
                         mkdir($uploadPath, 0777, true);
                     }
-                    
-                    // Di chuyển tệp tin vào thư mục uploads/avatars
-                    $avatar->move($uploadPath, $newName);
-                    
-                    // Thêm tên tệp tin avatar vào dữ liệu cập nhật
-                    $updateData['avatar'] = 'uploads/avatars/' . $newName;
-                    
+
                     // Xóa avatar cũ nếu có
                     if (!empty($profile->avatar)) {
-                        $oldAvatarPath = ROOTPATH . $profile->avatar;
+                        $oldAvatarPath = ROOTPATH . 'public/' . $profile->avatar;
                         if (file_exists($oldAvatarPath)) {
                             unlink($oldAvatarPath);
                             log_message('debug', 'Đã xóa avatar cũ: ' . $oldAvatarPath);
-                        } else {
-                            log_message('debug', 'Không tìm thấy file avatar cũ: ' . $oldAvatarPath);
                         }
                     }
+
+                    // Kiểm tra và xóa file trùng tên nếu tồn tại
+                    $newFilePath = $uploadPath . DIRECTORY_SEPARATOR . $newName;
+                    if (file_exists($newFilePath)) {
+                        unlink($newFilePath);
+                        log_message('debug', 'Đã xóa file trùng tên: ' . $newFilePath);
+                    }
                     
-                    log_message('debug', 'Đã tải lên ảnh đại diện mới: ' . $newName);
+                    // Di chuyển tệp tin mới vào thư mục uploads/avatars
+                    if ($avatar->move($uploadPath, $newName)) {
+                        // Thêm tên tệp tin avatar vào dữ liệu cập nhật
+                        $updateData['avatar'] = 'uploads/avatars/' . $newName;
+                        log_message('debug', 'Đã tải lên avatar mới thành công: ' . $newName);
+                    } else {
+                        throw new \Exception('Không thể di chuyển file avatar');
+                    }
+                    
                 } catch (\Exception $e) {
                     log_message('error', 'Lỗi khi xử lý avatar: ' . $e->getMessage());
                     // Không dừng quá trình cập nhật nếu có lỗi với avatar
