@@ -67,7 +67,7 @@ class Services extends BaseService
 			return static::getSharedInstance('googleAuthUser');
 		}
 
-		return new \App\Libraries\GoogleAuthenticationUser;
+		return new \App\Libraries\GoogleAuthenticationNguoiDung;
 	}
 	
 	public static function googleAuthAdmin($getShared = true)

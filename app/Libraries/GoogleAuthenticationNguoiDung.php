@@ -6,7 +6,7 @@
 
 namespace App\Libraries;
 
-class GoogleAuthenticationUser {
+class GoogleAuthenticationNguoiDung {
 
     private $clientID;
     private $clientSecret;
