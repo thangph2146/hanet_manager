@@ -512,7 +512,7 @@
                     echo "su_kien_id: 3\n";
                     echo "email: nguyenvana@example.com\n";
                     echo "ho_ten: Nguyễn Văn Tiến Anh\n";
-                    echo "ma_sinh_vien: ACC001\n";
+                    echo "nguoi_dung_id: ACC001\n";
                     echo "dien_thoai: \n";
                     echo "so_dien_thoai: 0123456789\n";
                     echo "loai_nguoi_dang_ky: khach\n";

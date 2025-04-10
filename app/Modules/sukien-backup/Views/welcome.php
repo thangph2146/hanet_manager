@@ -317,8 +317,8 @@
                                     <input type="tel" class="form-control" id="so_dien_thoai" name="so_dien_thoai" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="ma_sinh_vien" class="form-label">Mã số sinh viên (nếu có)</label>
-                                    <input type="text" class="form-control" id="ma_sinh_vien" name="ma_sinh_vien">
+                                    <label for="nguoi_dung_id" class="form-label">Mã số sinh viên (nếu có)</label>
+                                    <input type="text" class="form-control" id="nguoi_dung_id" name="nguoi_dung_id">
                                 </div>
                             </div>
                             <div class="mb-3">

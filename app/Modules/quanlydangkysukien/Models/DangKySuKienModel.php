@@ -52,8 +52,6 @@ class DangKySuKienModel extends BaseModel
         'thong_tin_dang_ky',
         'ly_do_tham_du',
         'nguoi_dung_id',
-        'ma_sinh_vien',
-        'so_dien_thoai',
         'created_at',
         'updated_at',
         'deleted_at'

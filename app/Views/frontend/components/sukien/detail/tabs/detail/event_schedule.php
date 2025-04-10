@@ -176,7 +176,7 @@ $colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'];
 
 .timeline-marker {
     position: absolute;
-    left: -50px;
+    left: -35px;
     width: 20px;
     height: 20px;
     border-radius: 50%;
@@ -269,7 +269,7 @@ $colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'];
     }
     
     .timeline-marker {
-        left: -30px;
+        left: -22px;
         width: 16px;
         height: 16px;
     }

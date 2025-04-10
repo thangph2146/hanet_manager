@@ -23,6 +23,7 @@ class DangKySuKien extends BaseEntity
     protected $casts = [
         'dangky_sukien_id' => 'int',
         'su_kien_id' => 'int',
+        'nguoi_dung_id' => 'int',
         'status' => 'int',
         'face_verified' => 'boolean',
         'da_check_in' => 'boolean',

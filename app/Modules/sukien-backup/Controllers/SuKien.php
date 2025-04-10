@@ -255,7 +255,7 @@ class Sukien extends BaseController
                 'ho_ten' => 'required|min_length[3]|max_length[255]',
                 'email' => 'required|valid_email',
                 'so_dien_thoai' => 'required|numeric|min_length[10]|max_length[15]',
-                'ma_sinh_vien' => 'permit_empty|alpha_numeric|min_length[5]|max_length[20]',
+                'nguoi_dung_id' => 'permit_empty|alpha_numeric|min_length[5]|max_length[20]',
             ];
             
             // Thông báo lỗi tùy chỉnh
@@ -279,7 +279,7 @@ class Sukien extends BaseController
                     'min_length' => 'Số điện thoại phải có ít nhất 10 số',
                     'max_length' => 'Số điện thoại không được vượt quá 15 số'
                 ],
-                'ma_sinh_vien' => [
+                'nguoi_dung_id' => [
                     'alpha_numeric' => 'Mã sinh viên chỉ được chứa chữ cái và số',
                     'min_length' => 'Mã sinh viên phải có ít nhất 5 ký tự',
                     'max_length' => 'Mã sinh viên không được vượt quá 20 ký tự'
@@ -293,7 +293,7 @@ class Sukien extends BaseController
                     'ho_ten' => $this->request->getPost('ho_ten'),
                     'email' => $this->request->getPost('email'),
                     'so_dien_thoai' => $this->request->getPost('so_dien_thoai'),
-                    'ma_sinh_vien' => $this->request->getPost('ma_sinh_vien'),
+                    'nguoi_dung_id' => $this->request->getPost('nguoi_dung_id'),
                     'thoi_gian_dang_ky' => date('Y-m-d H:i:s')
                 ];
                 

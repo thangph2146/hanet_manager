@@ -96,18 +96,26 @@ document.addEventListener('DOMContentLoaded', function() {
             // Kiểm tra form trước khi submit
             const hoTen = document.querySelector('#ho_ten').value.trim();
             const email = document.querySelector('#email').value.trim();
-            const soDienThoai = document.querySelector('#so_dien_thoai').value.trim();
+            const dienThoai = document.querySelector('#dien_thoai').value.trim();
+            const loaiNguoiDangKy = document.querySelector('#loai_nguoi_dang_ky').value;
+            const maSinhVien = document.querySelector('#nguoi_dung_id')?.value.trim();
             const agreeTerms = document.querySelector('#agree_terms').checked;
             
             let isValid = true;
             let errorMessage = '';
             
+            // Kiểm tra họ tên
             if (!hoTen) {
                 isValid = false;
                 errorMessage += 'Vui lòng nhập họ tên. ';
                 highlightError('#ho_ten');
+            } else if (!/^[a-zA-ZÀ-ỹ\s]{2,}$/.test(hoTen)) {
+                isValid = false;
+                errorMessage += 'Họ tên không hợp lệ. ';
+                highlightError('#ho_ten');
             }
             
+            // Kiểm tra email
             if (!email) {
                 isValid = false;
                 errorMessage += 'Vui lòng nhập email. ';
@@ -118,16 +126,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 highlightError('#email');
             }
             
-            if (!soDienThoai) {
+            // Kiểm tra số điện thoại
+            if (!dienThoai) {
                 isValid = false;
                 errorMessage += 'Vui lòng nhập số điện thoại. ';
-                highlightError('#so_dien_thoai');
-            } else if (!isValidPhone(soDienThoai)) {
+                highlightError('#dien_thoai');
+            } else if (!isValidPhone(dienThoai)) {
                 isValid = false;
                 errorMessage += 'Số điện thoại không hợp lệ. ';
-                highlightError('#so_dien_thoai');
+                highlightError('#dien_thoai');
             }
             
+            // Kiểm tra loại người đăng ký
+            if (!loaiNguoiDangKy) {
+                isValid = false;
+                errorMessage += 'Vui lòng chọn loại người đăng ký. ';
+                highlightError('#loai_nguoi_dang_ky');
+            }
+            
+            // Kiểm tra mã sinh viên nếu là sinh viên
+            if (loaiNguoiDangKy === 'sinh_vien') {
+                if (!maSinhVien) {
+                    isValid = false;
+                    errorMessage += 'Vui lòng nhập mã sinh viên. ';
+                    highlightError('#nguoi_dung_id');
+                } else if (!/^[0-9]{8,10}$/.test(maSinhVien)) {
+                    isValid = false;
+                    errorMessage += 'Mã sinh viên không hợp lệ. ';
+                    highlightError('#nguoi_dung_id');
+                }
+            }
+            
+            // Kiểm tra điều khoản
             if (!agreeTerms) {
                 isValid = false;
                 errorMessage += 'Vui lòng đồng ý với điều khoản tham gia. ';
@@ -137,6 +167,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isValid) {
                 e.preventDefault();
                 showErrorAlert(errorMessage);
+                
+                // Hiệu ứng rung form khi có lỗi
+                registrationForm.classList.add('animate__animated', 'animate__shakeX');
+                setTimeout(() => {
+                    registrationForm.classList.remove('animate__animated', 'animate__shakeX');
+                }, 1000);
+                
+                // Cuộn đến trường lỗi đầu tiên
+                const firstInvalidField = registrationForm.querySelector('.is-invalid');
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             } else {
                 // Hiển thị loading khi submit form
                 showLoadingOverlay();

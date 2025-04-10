@@ -447,8 +447,8 @@ class SuKien extends BaseController
                 'su_kien_id' => 'required|numeric',
                 'ho_ten' => 'required|min_length[3]|max_length[255]',
                 'email' => 'required|valid_email',
-                'so_dien_thoai' => 'required|regex_match[/^[0-9]{10,15}$/]',
-                'ma_sinh_vien' => 'permit_empty|alpha_numeric|min_length[5]|max_length[20]',
+                'dien_thoai' => 'required|regex_match[/^[0-9]{10,15}$/]',
+                'nguoi_dung_id' => 'permit_empty|alpha_numeric|min_length[5]|max_length[20]',
             ];
             
             // Thông báo lỗi tùy chỉnh
@@ -466,11 +466,11 @@ class SuKien extends BaseController
                     'required' => 'Vui lòng nhập email',
                     'valid_email' => 'Email không hợp lệ'
                 ],
-                'so_dien_thoai' => [
+                'dien_thoai' => [
                     'required' => 'Vui lòng nhập số điện thoại',
                     'regex_match' => 'Số điện thoại chỉ được chứa số và có độ dài từ 10-15 số'
                 ],
-                'ma_sinh_vien' => [
+                'nguoi_dung_id' => [
                     'alpha_numeric' => 'Mã sinh viên chỉ được chứa chữ cái và số',
                     'min_length' => 'Mã sinh viên phải có ít nhất 5 ký tự',
                     'max_length' => 'Mã sinh viên không được vượt quá 20 ký tự'
@@ -483,8 +483,8 @@ class SuKien extends BaseController
                     'su_kien_id' => $this->request->getPost('su_kien_id'),
                     'ho_ten' => $this->request->getPost('ho_ten'),
                     'email' => $this->request->getPost('email'),
-                    'so_dien_thoai' => $this->request->getPost('so_dien_thoai'),
-                    'ma_sinh_vien' => $this->request->getPost('ma_sinh_vien'),
+                    'dien_thoai' => $this->request->getPost('dien_thoai'),
+                    'nguoi_dung_id' => $this->request->getPost('nguoi_dung_id'),
                     'thoi_gian_dang_ky' => date('Y-m-d H:i:s')
                 ];
                 
@@ -925,9 +925,7 @@ class SuKien extends BaseController
         ];
 
         // Kiểm tra và sử dụng trường điện thoại phù hợp
-        if ($this->request->getPost('so_dien_thoai')) {
-            $registrationData['so_dien_thoai'] = $this->request->getPost('so_dien_thoai');
-        } elseif ($this->request->getPost('dien_thoai')) {
+        if ($this->request->getPost('dien_thoai')) {
             $registrationData['dien_thoai'] = $this->request->getPost('dien_thoai');
         }
 
@@ -937,10 +935,10 @@ class SuKien extends BaseController
         }
 
         // Thêm trường mã sinh viên nếu có
-        if ($userData && isset($userData->ma_sinh_vien)) {
-            $registrationData['ma_sinh_vien'] = $userData->ma_sinh_vien;
+        if ($userData && isset($userData->nguoi_dung_id)) {
+            $registrationData['nguoi_dung_id'] = $userData->nguoi_dung_id;
         } else if ($userData && isset($userData->AccountId)) {
-            $registrationData['ma_sinh_vien'] = $userData->AccountId;
+            $registrationData['nguoi_dung_id'] = $userData->AccountId;
         }
 
         // Lấy avatar của người dùng và ánh xạ tới face_image_path

@@ -6,13 +6,13 @@ include APPPATH . 'Views/components/_form.php';
 $formElements = [
     [
         'type' => 'hidden',
-        'name' => 'sukien_id',
+        'name' => 'su_kien_id',
         'value' => $event['su_kien_id'] ?? ''
     ],
     [
         'type' => 'hidden',
-        'name' => 'user_id',
-        'value' => session()->get('user_id') ?? ''
+        'name' => 'nguoi_dung_id',
+        'value' => session()->get('nguoi_dung_id') ?? ''
     ],
     // Row 1: Họ tên và Email
     [
@@ -28,7 +28,9 @@ $formElements = [
                 'required' => true,
                 'error' => 'Vui lòng nhập họ và tên',
                 'floating' => true,
-                'colClass' => 'col-md-6'
+                'colClass' => 'col-md-6',
+                'pattern' => '^[a-zA-ZÀ-ỹ\s]{2,}$',
+                'data-validate' => 'name'
             ],
             [
                 'type' => 'email',
@@ -39,7 +41,8 @@ $formElements = [
                 'required' => true,
                 'error' => 'Vui lòng nhập email hợp lệ',
                 'floating' => true,
-                'colClass' => 'col-md-6'
+                'colClass' => 'col-md-6',
+                'data-validate' => 'email'
             ]
         ]
     ],
@@ -50,27 +53,31 @@ $formElements = [
         'elements' => [
             [
                 'type' => 'tel',
-                'name' => 'so_dien_thoai',
+                'name' => 'dien_thoai',
                 'label' => 'Số điện thoại <span class="text-danger">*</span>',
                 'placeholder' => 'Số điện thoại',
                 'class' => 'form-control',
                 'required' => true,
-                'error' => 'Vui lòng nhập số điện thoại hợp lệ (10-11 số)',
+                'error' => 'Vui lòng nhập số điện thoại hợp lệ (10-15 số)',
                 'floating' => true,
-                'colClass' => 'col-md-6'
+                'colClass' => 'col-md-6',
+                'pattern' => '^[0-9]{10,15}$',
+                'data-validate' => 'phone'
             ],
             [
                 'type' => 'text',
-                'name' => 'student_id',
+                'name' => 'nguoi_dung_id',
                 'label' => 'Mã sinh viên (nếu có)',
                 'placeholder' => 'Mã sinh viên',
                 'class' => 'form-control',
                 'floating' => true,
-                'colClass' => 'col-md-6'
+                'colClass' => 'col-md-6',
+                'pattern' => '^[0-9]{8,10}$',
+                'data-validate' => 'student_id'
             ]
         ]
     ],
-    // Row 3: Bạn là và Chức danh/vai trò
+    // Row 3: Loại người đăng ký và Chức danh
     [
         'isRow' => true,
         'rowClass' => 'row g-3',
@@ -83,17 +90,18 @@ $formElements = [
                 'required' => true,
                 'options' => [
                     '' => 'Chọn loại người đăng ký',
-                    'khach' => 'Khách',
                     'sinh_vien' => 'Sinh viên',
-                    'giang_vien' => 'Giảng viên'
+                    'giang_vien' => 'Giảng viên',
+                    'khach' => 'Khách'
                 ],
                 'error' => 'Vui lòng chọn loại người đăng ký',
                 'floating' => true,
-                'colClass' => 'col-md-6'
+                'colClass' => 'col-md-6',
+                'data-validate' => 'registration_type'
             ],
             [
                 'type' => 'text',
-                'name' => 'loai_nguoi_dung',
+                'name' => 'chuc_danh',
                 'label' => 'Chức danh/Vai trò (nếu có)',
                 'placeholder' => 'Chức danh/Vai trò',
                 'class' => 'form-control',
@@ -139,7 +147,7 @@ $formElements = [
                     'Khác' => 'Khác'
                 ],
                 'floating' => true,
-                'colClass' => 'col-md-6'
+                'wrapperClass' => 'mb-4'
             ]
         ]
     ],
@@ -152,7 +160,8 @@ $formElements = [
         'class' => 'form-control',
         'style' => 'height: 100px',
         'floating' => true,
-        'wrapperClass' => 'mb-4'
+        'wrapperClass' => 'mb-4',
+        'maxlength' => '500'
     ],
     // Đồng ý điều khoản
     [
@@ -269,6 +278,126 @@ include APPPATH . 'Views/components/_modal.php';
 <!-- Script để xử lý validate form và hiệu ứng -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize particles.js only if the container exists
+    const particlesContainer = document.getElementById('particles-js');
+    if (particlesContainer) {
+        particlesJS('particles-js', {
+            particles: {
+                number: {
+                    value: 80,
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                color: {
+                    value: '#ffffff'
+                },
+                shape: {
+                    type: 'circle'
+                },
+                opacity: {
+                    value: 0.5,
+                    random: false
+                },
+                size: {
+                    value: 3,
+                    random: true
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#ffffff',
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 6,
+                    direction: 'none',
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: {
+                        enable: true,
+                        mode: 'repulse'
+                    },
+                    onclick: {
+                        enable: true,
+                        mode: 'push'
+                    },
+                    resize: true
+                }
+            },
+            retina_detect: true
+        });
+    }
+
+    // Initialize countdown only if the element exists
+    const countdownElement = document.getElementById('countdown');
+    if (countdownElement) {
+        function updateCountdown() {
+            const eventDate = new Date(countdownElement.getAttribute('data-event-date'));
+            const now = new Date();
+            const diff = eventDate - now;
+
+            if (diff <= 0) {
+                countdownElement.innerHTML = 'Sự kiện đã bắt đầu!';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            countdownElement.innerHTML = `
+                <div class="countdown-item">
+                    <span class="countdown-value">${days}</span>
+                    <span class="countdown-label">Ngày</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-value">${hours}</span>
+                    <span class="countdown-label">Giờ</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-value">${minutes}</span>
+                    <span class="countdown-label">Phút</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-value">${seconds}</span>
+                    <span class="countdown-label">Giây</span>
+                </div>
+            `;
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    }
+
+    // Form validation
+    const registrationForm = document.getElementById('registration-form');
+    if (registrationForm) {
+        registrationForm.addEventListener('submit', function(e) {
+            const phoneInput = document.getElementById('dien_thoai');
+            const phoneValue = phoneInput.value.trim();
+            const phoneRegex = /^[0-9]{10,15}$/;
+
+            if (!phoneRegex.test(phoneValue)) {
+                e.preventDefault();
+                alert('Vui lòng nhập số điện thoại hợp lệ (10-15 số)');
+                phoneInput.focus();
+                return false;
+            }
+        });
+    }
+
     // Khởi tạo bootstrap modal
     const termsModal = new bootstrap.Modal(document.getElementById('termsModal'), {
         backdrop: 'static',  // Không đóng modal khi click bên ngoài
@@ -282,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Hiển thị/ẩn các trường dựa trên loại người đăng ký
     const loaiNguoiDangKySelect = document.getElementById('loai_nguoi_dang_ky');
-    const studentIdField = document.getElementById('student_id');
+    const studentIdField = document.getElementById('nguoi_dung_id');
     
     loaiNguoiDangKySelect.addEventListener('change', function() {
         if (this.value === 'sinh_vien') {
@@ -670,3 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
     border-color: #800000;
 }
 </style>
+
+<div class="countdown-wrapper">
+    <div id="countdown" data-event-date="<?= isset($event['thoi_gian_bat_dau']) ? date('c', strtotime($event['thoi_gian_bat_dau'])) : '' ?>"></div>
+</div>

@@ -241,7 +241,10 @@ if ($isLoggedIn): ?>
                                     <input type="hidden" name="su_kien_id" value="<?= isset($event['su_kien_id']) ? $event['su_kien_id'] : '' ?>">
                                     <input type="hidden" name="ho_ten" value="<?= $userData ? ($userData->FullName ?? '') : '' ?>">
                                     <input type="hidden" name="email" value="<?= $userData ? ($userData->Email ?? '') : '' ?>">
-                                    <input type="hidden" name="so_dien_thoai" value="<?= $userData ? ($userData->MobilePhone ?? '') : '' ?>">
+                                    <div class="form-group">
+                                        <label for="dien_thoai">Số điện thoại</label>
+                                        <input type="text" class="form-control" id="dien_thoai" name="dien_thoai" required>
+                                    </div>
                                     
                                     <div class="user-info-summary mb-4">
                                         <div class="row">
