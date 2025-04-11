@@ -416,9 +416,6 @@ class SukienModel extends BaseModel
                     ->groupEnd();
         }
         
-        // Ưu tiên sự kiện sắp diễn ra
-        $this->builder->orderBy('ABS(TIMESTAMPDIFF(SECOND, ' . $this->table . '.thoi_gian_bat_dau_su_kien, "' . $now . '"))', 'ASC');
-        
         // Thực hiện truy vấn
         $events = $this->builder->get()->getResult($this->returnType);
         
@@ -705,13 +702,13 @@ class SukienModel extends BaseModel
         
         $options = [
             'limit' => 0, // Lấy tất cả
-            'sort' => 'thoi_gian_bat_dau',
+            'sort' => 'thoi_gian_bat_dau_su_kien',
             'order' => 'DESC',
             'join_loai_su_kien' => true
         ];
         
         // Thêm điều kiện thời gian bắt đầu lớn hơn hoặc bằng thời gian hiện tại
-        $this->where('su_kien.thoi_gian_bat_dau >=', $now);
+        $this->where('su_kien.thoi_gian_bat_dau_su_kien >=', $now);
         
         $events = $this->search($criteria, $options);
         
@@ -723,14 +720,14 @@ class SukienModel extends BaseModel
                 'ten_su_kien' => $event->ten_su_kien,
                 'mo_ta_su_kien' => $event->mo_ta ?? $event->mo_ta_su_kien ?? '',
                 'chi_tiet_su_kien' => $event->chi_tiet_su_kien,
-                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau)),
+                'ngay_to_chuc' => date('Y-m-d', strtotime($event->thoi_gian_bat_dau_su_kien)),
                 'dia_diem' => $event->dia_diem,
                 'dia_chi_cu_the' => $event->dia_chi_cu_the ?? '',
                 'hinh_anh' => $event->su_kien_poster,
                 'gio_bat_dau' => $event->gio_bat_dau,
                 'gio_ket_thuc' => $event->gio_ket_thuc,
-                'thoi_gian_bat_dau' => $event->thoi_gian_bat_dau,
-                'thoi_gian_ket_thuc' => $event->thoi_gian_ket_thuc,
+                'thoi_gian_bat_dau_su_kien' => $event->thoi_gian_bat_dau_su_kien,
+                'thoi_gian_ket_thuc_su_kien' => $event->thoi_gian_ket_thuc_su_kien,
                 'thoi_gian' => date('H:i', strtotime($event->gio_bat_dau)) . ' - ' . date('H:i', strtotime($event->gio_ket_thuc)),
                 'loai_su_kien_id' => $event->loai_su_kien_id,
                 'loai_su_kien' => $event->ten_loai_su_kien ?? $category,
