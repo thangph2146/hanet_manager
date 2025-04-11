@@ -338,7 +338,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     border-radius: 10px;
     padding: 10px;
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+     
     transition: all 0.3s ease;
 }
 
@@ -376,7 +376,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     display: flex;
     align-items: center;
     gap: 5px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+     
 }
 
 .event-status-badge.completed {

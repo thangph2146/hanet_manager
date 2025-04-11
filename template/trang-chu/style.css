@@ -677,7 +677,7 @@ footer .contact-icon {
     background: var(--white-color);
     border: none;
     border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+     
     padding: 0.5rem;
     margin-top: 0.5rem;
     border-top: 3px solid var(--primary);

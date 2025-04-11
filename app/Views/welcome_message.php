@@ -238,29 +238,41 @@
             <div class="row">
                 <div class="col-md-4 mb-4">
                     <div class="feature-box animate-on-scroll">
+                        <div class="feature-counter">01</div>
                         <div class="feature-icon">
                             <i class="lni lni-network"></i>
                         </div>
                         <h4 class="mb-3">Kết nối với doanh nghiệp</h4>
                         <p>Gặp gỡ và trao đổi trực tiếp với đại diện từ các doanh nghiệp hàng đầu trong lĩnh vực tài chính, ngân hàng và công nghệ.</p>
+                        <div class="feature-action mt-4">
+                            <a href="#registration" class="btn btn-sm btn-outline-primary">Tìm hiểu thêm <i class="fas fa-arrow-right ms-1"></i></a>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
                     <div class="feature-box animate-on-scroll">
+                        <div class="feature-counter">02</div>
                         <div class="feature-icon">
                             <i class="lni lni-graduation"></i>
                         </div>
                         <h4 class="mb-3">Phát triển kiến thức</h4>
                         <p>Tham gia các workshop và hội thảo chuyên sâu để cập nhật kiến thức mới nhất về ngành tài chính - ngân hàng.</p>
+                        <div class="feature-action mt-4">
+                            <a href="#registration" class="btn btn-sm btn-outline-primary">Tìm hiểu thêm <i class="fas fa-arrow-right ms-1"></i></a>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
                     <div class="feature-box animate-on-scroll">
+                        <div class="feature-counter">03</div>
                         <div class="feature-icon">
                             <i class="lni lni-briefcase"></i>
                         </div>
                         <h4 class="mb-3">Cơ hội việc làm</h4>
                         <p>Khám phá hàng trăm vị trí tuyển dụng phù hợp và có cơ hội phỏng vấn trực tiếp ngay tại sự kiện.</p>
+                        <div class="feature-action mt-4">
+                            <a href="#registration" class="btn btn-sm btn-outline-primary">Tìm hiểu thêm <i class="fas fa-arrow-right ms-1"></i></a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -273,12 +285,91 @@
         <div class="container">
             <h2 class="section-title">Diễn Giả Nổi Bật</h2>
             <div class="row">
-                <?php foreach ($speakers as $speaker): ?>
+                <?php 
+                // Sample data for speakers if no data is available
+                $sample_speakers = [
+                    [
+                        'name' => 'Nguyễn Văn A',
+                        'position' => 'Giám đốc Tài chính',
+                        'company' => 'Ngân hàng TMCP Á Châu',
+                        'bio' => 'Chuyên gia với hơn 15 năm kinh nghiệm trong lĩnh vực tài chính ngân hàng, từng giữ nhiều vị trí quan trọng tại các ngân hàng hàng đầu Việt Nam.',
+                        'image' => 'assets/modules/images/speakers/speaker-1.jpg',
+                        'social' => [
+                            'linkedin' => '#',
+                            'twitter' => '#',
+                            'facebook' => '#'
+                        ]
+                    ],
+                    [
+                        'name' => 'Trần Thị B',
+                        'position' => 'Trưởng phòng Nhân sự',
+                        'company' => 'Công ty TNHH Tài chính ABC',
+                        'bio' => 'Chuyên gia tư vấn nhân sự với hơn 10 năm kinh nghiệm trong việc tuyển dụng và phát triển nhân tài cho các tổ chức tài chính.',
+                        'image' => 'assets/modules/images/speakers/speaker-2.jpg',
+                        'social' => [
+                            'linkedin' => '#',
+                            'twitter' => '#',
+                            'facebook' => '#'
+                        ]
+                    ],
+                    [
+                        'name' => 'Lê Văn C',
+                        'position' => 'Giám đốc Điều hành',
+                        'company' => 'Công ty Công nghệ XYZ',
+                        'bio' => 'Chuyên gia trong lĩnh vực công nghệ tài chính (Fintech) với nhiều dự án đổi mới sáng tạo trong ngành ngân hàng.',
+                        'image' => 'assets/modules/images/speakers/speaker-3.jpg',
+                        'social' => [
+                            'linkedin' => '#',
+                            'twitter' => '#',
+                            'facebook' => '#'
+                        ]
+                    ],
+                    [
+                        'name' => 'Phạm Thị D',
+                        'position' => 'Chuyên gia Tư vấn',
+                        'company' => 'Công ty Tư vấn DEF',
+                        'bio' => 'Chuyên gia tư vấn chiến lược với hơn 12 năm kinh nghiệm trong lĩnh vực tài chính và đầu tư.',
+                        'image' => 'assets/modules/images/speakers/speaker-4.jpg',
+                        'social' => [
+                            'linkedin' => '#',
+                            'twitter' => '#',
+                            'facebook' => '#'
+                        ]
+                    ]
+                ];
+                
+                // Use sample data if no speakers data is available
+                $speakers_to_display = !empty($speakers) ? $speakers : $sample_speakers;
+                
+                foreach ($speakers_to_display as $speaker): 
+                    // Use default image if speaker image is not available
+                    $speaker_image = !empty($speaker['image']) ? base_url($speaker['image']) : base_url('assets/modules/images/speakers/default-speaker.jpg');
+                    $speaker_name = $speaker['name'] ?? 'Diễn giả';
+                    $speaker_position = $speaker['position'] ?? 'Chức vụ';
+                    $speaker_company = $speaker['company'] ?? 'Công ty';
+                    $speaker_bio = $speaker['bio'] ?? 'Chuyên gia trong lĩnh vực tài chính ngân hàng với nhiều năm kinh nghiệm.';
+                    $speaker_social = $speaker['social'] ?? [];
+                ?>
                 <div class="col-md-3 col-sm-6 mb-4">
-                    <div class="speaker-card animate-on-scroll">
-                        <img src="<?= base_url($speaker['image']) ?>" alt="<?= $speaker['name'] ?>" class="speaker-image">
-                        <h5><?= $speaker['name'] ?></h5>
-                        <p class="text-muted"><?= $speaker['position'] ?></p>
+                    <div class="speaker-card speaker-animate">
+                        <div class="speaker-image-wrapper">
+                            <img src="<?= $speaker_image ?>" alt="<?= $speaker_name ?>" class="speaker-image">
+                            <div class="speaker-social">
+                                <?php if (!empty($speaker_social['linkedin'])): ?>
+                                <a href="<?= $speaker_social['linkedin'] ?>" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($speaker_social['twitter'])): ?>
+                                <a href="<?= $speaker_social['twitter'] ?>" target="_blank"><i class="fab fa-twitter"></i></a>
+                                <?php endif; ?>
+                                <?php if (!empty($speaker_social['facebook'])): ?>
+                                <a href="<?= $speaker_social['facebook'] ?>" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <h5><?= $speaker_name ?></h5>
+                        <div class="speaker-role"><?= $speaker_position ?></div>
+                        <p class="text-muted"><?= $speaker_company ?></p>
+                        <p class="speaker-bio"><?= $speaker_bio ?></p>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -286,66 +377,6 @@
         </div>
     </section>
 
-    <!-- Registration Section -->
-    <section class="registration-section" id="registration">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="registration-form">
-                        <h2 class="text-center mb-4">Đăng Ký Tham Gia</h2>
-                        <form action="<?= site_url('su-kien/register') ?>" method="post">
-                            <input type="hidden" name="nguoi_dung_id" value="<?= rand(1000, 9999) ?>"> <!-- Giả lập ID người dùng -->
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="ho_ten" class="form-label">Họ và tên</label>
-                                    <input type="text" class="form-control" id="ho_ten" name="ho_ten" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" name="email" required>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="so_dien_thoai" class="form-label">Số điện thoại</label>
-                                    <input type="tel" class="form-control" id="so_dien_thoai" name="so_dien_thoai" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="nguoi_dung_id" class="form-label">Mã số sinh viên (nếu có)</label>
-                                    <input type="text" class="form-control" id="nguoi_dung_id" name="nguoi_dung_id">
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="su_kien_id" class="form-label">Sự kiện tham gia</label>
-                                <select class="form-select" id="su_kien_id" name="su_kien_id" required>
-                                    <option value="" selected disabled>Chọn sự kiện</option>
-                                    <?php foreach ($upcoming_events as $event): ?>
-                                    <option value="<?= $event['su_kien_id'] ?>"><?= $event['ten_su_kien'] ?> (<?= date('d/m/Y', strtotime($event['ngay_to_chuc'])) ?>)</option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="noi_dung_gop_y" class="form-label">Góp ý/Câu hỏi (nếu có)</label>
-                                <textarea class="form-control" id="noi_dung_gop_y" name="noi_dung_gop_y" rows="3"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="nguon_gioi_thieu" class="form-label">Bạn biết đến sự kiện này từ đâu?</label>
-                                <select class="form-select" id="nguon_gioi_thieu" name="nguon_gioi_thieu">
-                                    <option value="Website trường">Website trường</option>
-                                    <option value="Facebook">Facebook</option>
-                                    <option value="Email từ trường">Email từ trường</option>
-                                    <option value="Bạn bè">Bạn bè</option>
-                                    <option value="Khác">Khác</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100 btn-lg">Đăng ký ngay</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
@@ -397,6 +428,28 @@
             }
         }, 1000);
         <?php endif; ?>
+    });
+
+    // Animation for feature boxes and speaker cards when scrolling
+    document.addEventListener('DOMContentLoaded', function() {
+        const animateElements = document.querySelectorAll('.animate-on-scroll, .speaker-animate');
+        
+        function checkVisibility() {
+            animateElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < window.innerHeight - elementVisible) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+        
+        // Check visibility on load
+        checkVisibility();
+        
+        // Check visibility on scroll
+        window.addEventListener('scroll', checkVisibility);
     });
 </script>
 <?= $this->endSection() ?> 

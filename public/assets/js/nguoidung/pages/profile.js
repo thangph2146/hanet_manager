@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() {
             overflow: hidden;
             margin: 0 auto;
             border: 5px solid rgba(78, 115, 223, 0.1);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+             
         }
         
         .avatar-preview img {

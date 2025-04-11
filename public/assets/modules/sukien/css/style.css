@@ -800,7 +800,6 @@ footer a:hover {
 
 .speaker-card:hover {
     transform: translateY(-8px);
-    box-shadow: var(--shadow-hover);
     border-bottom: 3px solid var(--primary);
 }
 
@@ -810,15 +809,11 @@ footer a:hover {
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 1.5rem;
-    border: 5px solid var(--bg-white);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
 .speaker-card:hover .speaker-image {
-    border-color: var(--primary-light);
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(128, 0, 0, 0.15);
 }
 
 .speaker-card h5 {
